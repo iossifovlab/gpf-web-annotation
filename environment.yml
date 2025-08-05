@@ -12,5 +12,7 @@ dependencies:
   - pip
   - django
   - django-stubs
+  - djangorestframework
   - pytest
   - pytest-django
+  - python-magic

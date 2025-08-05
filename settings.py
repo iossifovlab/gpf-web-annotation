@@ -25,6 +25,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'web_annotation',
 ]
 
 MIDDLEWARE = [
@@ -108,3 +110,17 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10
+}
+
+# Project-specific stuff
+
+# Dir to store uploaded annotation configurations in
+ANNOTATION_CONFIG_STORAGE_DIR = "data/annotation-configs"
+# Dir to store uploaded files in before they are annotated
+JOB_INPUT_STORAGE_DIR = "data/job-inputs"
+# Dir to store results of annotation in
+JOB_RESULT_STORAGE_DIR = "data/job-results"
