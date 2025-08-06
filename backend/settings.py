@@ -118,9 +118,11 @@ REST_FRAMEWORK = {
 
 # Project-specific stuff
 
-# Dir to store uploaded annotation configurations in
-ANNOTATION_CONFIG_STORAGE_DIR = "data/annotation-configs"
-# Dir to store uploaded files in before they are annotated
-JOB_INPUT_STORAGE_DIR = "data/job-inputs"
-# Dir to store results of annotation in
-JOB_RESULT_STORAGE_DIR = "data/job-results"
+# Dir for all data storage
+DATA_STORAGE_DIR = "data"
+# Subdir to store uploaded annotation configurations in
+ANNOTATION_CONFIG_STORAGE_DIR = f"{DATA_STORAGE_DIR}/annotation-configs"
+# Subdir to store uploaded files in before they are annotated
+JOB_INPUT_STORAGE_DIR = f"{DATA_STORAGE_DIR}/job-inputs"
+# Subdir to store results of annotation in
+JOB_RESULT_STORAGE_DIR = f"{DATA_STORAGE_DIR}/job-results"
