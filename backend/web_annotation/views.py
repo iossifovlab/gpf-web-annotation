@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login
 from django.conf import settings
 from django.http.response import FileResponse
 from django.shortcuts import get_object_or_404
@@ -125,6 +126,23 @@ class UserDetail(generics.RetrieveAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAdminUser]
+
+
+class Login(views.APIView):
+    parser_classes = [JSONParser]
+
+    def post(self, request):
+        username = request.data["username"]
+        password = request.data["password"]
+        if "username" not in request.data or "password" not in request.data:
+            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+
+        user = authenticate(request, username=username, password=password)
+        if user is None:
+            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+
+        login(request, user)
+        return Response(status=views.status.HTTP_200_OK)
 
 
 class Registration(views.APIView):
