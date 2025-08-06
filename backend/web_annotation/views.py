@@ -10,9 +10,6 @@ import settings
 import magic
 
 
-from dae.annotation.annotation_config import AnnotationConfigParser
-
-
 class FileUploadView(views.APIView):
     parser_classes = [MultiPartParser]
 
