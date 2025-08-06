@@ -16,10 +16,18 @@ import pathlib
 import magic
 
 
-class JobList(generics.ListAPIView):
+class JobAll(generics.ListAPIView):
     queryset = Job.objects.all()
     serializer_class = JobSerializer
     permission_classes = [permissions.IsAdminUser]
+
+
+class JobList(generics.ListAPIView):
+    def get_queryset(self):
+        return Job.objects.filter(owner=self.request.user)
+
+    serializer_class = JobSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class JobDetail(generics.RetrieveAPIView):
@@ -110,11 +118,13 @@ class JobGetResult(views.APIView):
 class UserList(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = [permissions.IsAdminUser]
 
 
 class UserDetail(generics.RetrieveAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = [permissions.IsAdminUser]
 
 
 class Registration(views.APIView):

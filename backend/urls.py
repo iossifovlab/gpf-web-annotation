@@ -7,6 +7,7 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls')),
 
     path('jobs/', views.JobList.as_view()),
+    path('jobs/all/', views.JobAll.as_view()),
     path('jobs/create/', views.JobCreate.as_view()),
     path('jobs/<int:pk>/', views.JobDetail.as_view()),
     path('jobs/<int:pk>/input/', views.JobGetInput.as_view()),
