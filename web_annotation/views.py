@@ -10,6 +10,9 @@ import settings
 import magic
 
 
+from dae.annotation.annotation_config import AnnotationConfigParser
+
+
 class FileUploadView(views.APIView):
     parser_classes = [MultiPartParser]
 
@@ -19,6 +22,18 @@ class FileUploadView(views.APIView):
         if "Variant Call Format" not in magic.from_buffer(content):
             return Response(status=views.status.HTTP_400_BAD_REQUEST)
         pathlib.Path(settings.JOB_INPUT_STORAGE_DIR, filename).write_text(content)
+        return Response(status=views.status.HTTP_204_NO_CONTENT)
+
+
+class ConfigUploadView(views.APIView):
+    parser_classes = [MultiPartParser]
+
+    def post(self, request):
+        filename = request.FILES["data"].name
+        content = request.FILES["data"].read().decode()
+        if "ASCII text" not in magic.from_buffer(content):
+            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+        pathlib.Path(settings.ANNOTATION_CONFIG_STORAGE_DIR, filename).write_text(content)
         return Response(status=views.status.HTTP_204_NO_CONTENT)
 
 
