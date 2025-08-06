@@ -2,13 +2,14 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from django.http.response import FileResponse
 from django.shortcuts import get_object_or_404
-from rest_framework import permissions, views, viewsets
-from rest_framework.parsers import MultiPartParser
+from rest_framework import permissions, views
+from rest_framework.parsers import MultiPartParser, JSONParser
 from rest_framework.response import Response
 from rest_framework import generics
 
 from web_annotation.serializers import JobSerializer, UserSerializer
 from web_annotation.models import Job
+from web_annotation.permissions import IsOwner, has_job_permission
 
 import time
 import pathlib
@@ -18,15 +19,18 @@ import magic
 class JobList(generics.ListAPIView):
     queryset = Job.objects.all()
     serializer_class = JobSerializer
+    permission_classes = [permissions.IsAdminUser]
 
 
 class JobDetail(generics.RetrieveAPIView):
     queryset = Job.objects.all()
     serializer_class = JobSerializer
+    permission_classes = [permissions.IsAuthenticated, IsOwner]
 
 
 class JobCreate(views.APIView):
     parser_classes = [MultiPartParser]
+    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         job_name = f"job-{int(time.time())}"
@@ -54,15 +58,21 @@ class JobCreate(views.APIView):
         # Create Job model instance
         job = Job(input_path=input_path,
                   config_path=config_path,
-                  result_path=result_path)
+                  result_path=result_path,
+                  owner=request.user)
         job.save()
 
         return Response(status=views.status.HTTP_204_NO_CONTENT)
 
 
 class JobGetInput(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
     def get(self, request, pk):
         job = get_object_or_404(Job, id=pk)
+        if not has_job_permission(job, request.user):
+            return Response(status=views.status.HTTP_403_FORBIDDEN)
+
         input_path = pathlib.Path(job.input_path)
         if not input_path.exists():
             return Response(status=views.status.HTTP_404_NOT_FOUND)
@@ -70,8 +80,13 @@ class JobGetInput(views.APIView):
 
 
 class JobGetConfig(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
     def get(self, request, pk):
         job = get_object_or_404(Job, id=pk)
+        if not has_job_permission(job, request.user):
+            return Response(status=views.status.HTTP_403_FORBIDDEN)
+
         config_path = pathlib.Path(job.config_path)
         if not config_path.exists():
             return Response(status=views.status.HTTP_404_NOT_FOUND)
@@ -79,18 +94,41 @@ class JobGetConfig(views.APIView):
 
 
 class JobGetResult(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
     def get(self, request, pk):
         job = get_object_or_404(Job, id=pk)
+        if not has_job_permission(job, request.user):
+            return Response(status=views.status.HTTP_403_FORBIDDEN)
+
         result_path = pathlib.Path(job.result_path)
         if not result_path.exists():
             return Response(status=views.status.HTTP_404_NOT_FOUND)
         return FileResponse(open(job.result_path, "rb"))
 
 
-class UserViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows users to be viewed or edited.
-    """
-    queryset = User.objects.all().order_by('-date_joined')
+class UserList(generics.ListAPIView):
+    queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticated]
+
+
+class UserDetail(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+
+class Registration(views.APIView):
+    parser_classes = [JSONParser]
+
+    def post(self, request):
+        username = request.data["username"]
+        email = request.data["email"]
+        password = request.data["password"]
+        if User.objects.filter(username=username).exists():
+            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+        if User.objects.filter(email=email).exists():
+            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.create_user(username, email, password)
+        user.save()
+        return Response(status=views.status.HTTP_200_OK)

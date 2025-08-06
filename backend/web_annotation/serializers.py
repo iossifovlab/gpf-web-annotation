@@ -5,12 +5,16 @@ from web_annotation.models import Job
 
 
 class JobSerializer(serializers.ModelSerializer):
+    owner = serializers.ReadOnlyField(source='owner.username')
+
     class Meta:
         model = Job
-        fields = ["id", "created", "status"]
+        fields = ["id", "created", "status", "owner"]
 
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
+    jobs = serializers.PrimaryKeyRelatedField(many=True, queryset=Job.objects.all())
+
     class Meta:
         model = User
-        fields = ['url', 'username', 'email', 'groups']
+        fields = ["username", "email", "jobs"]

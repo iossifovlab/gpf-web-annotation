@@ -14,3 +14,5 @@ class Job(models.Model):
     result_path = models.FilePathField(path=settings.JOB_RESULT_STORAGE_DIR)
     created = models.DateTimeField(auto_now_add=True)
     status = models.IntegerField(choices=Status, default=Status.WAITING)
+
+    owner = models.ForeignKey('auth.User', related_name='jobs', on_delete=models.CASCADE)
