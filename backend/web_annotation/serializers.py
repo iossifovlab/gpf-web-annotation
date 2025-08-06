@@ -7,7 +7,7 @@ from web_annotation.models import Job
 class JobSerializer(serializers.ModelSerializer):
     class Meta:
         model = Job
-        fields = ["id", "input_path", "config_path", "result_path", "created", "status"]
+        fields = ["id", "created", "status"]
 
 
 class UserSerializer(serializers.HyperlinkedModelSerializer):

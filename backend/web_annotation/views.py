@@ -1,5 +1,7 @@
 from django.contrib.auth.models import User
 from django.conf import settings
+from django.http.response import FileResponse
+from django.shortcuts import get_object_or_404
 from rest_framework import permissions, views, viewsets
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
@@ -56,6 +58,33 @@ class JobCreate(views.APIView):
         job.save()
 
         return Response(status=views.status.HTTP_204_NO_CONTENT)
+
+
+class JobGetInput(views.APIView):
+    def get(self, request, pk):
+        job = get_object_or_404(Job, id=pk)
+        input_path = pathlib.Path(job.input_path)
+        if not input_path.exists():
+            return Response(status=views.status.HTTP_404_NOT_FOUND)
+        return FileResponse(open(job.input_path, "rb"))
+
+
+class JobGetConfig(views.APIView):
+    def get(self, request, pk):
+        job = get_object_or_404(Job, id=pk)
+        config_path = pathlib.Path(job.config_path)
+        if not config_path.exists():
+            return Response(status=views.status.HTTP_404_NOT_FOUND)
+        return FileResponse(open(job.config_path, "rb"))
+
+
+class JobGetResult(views.APIView):
+    def get(self, request, pk):
+        job = get_object_or_404(Job, id=pk)
+        result_path = pathlib.Path(job.result_path)
+        if not result_path.exists():
+            return Response(status=views.status.HTTP_404_NOT_FOUND)
+        return FileResponse(open(job.result_path, "rb"))
 
 
 class UserViewSet(viewsets.ModelViewSet):
