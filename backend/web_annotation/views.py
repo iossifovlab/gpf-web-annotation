@@ -46,21 +46,21 @@ class JobCreate(views.APIView):
 
         # Handle annotation config file
         filename = f"{job_name}.yaml"
-        content = request.FILES["config"].read().decode()
+        content = request.FILES["config"].read()
         if "ASCII text" not in magic.from_buffer(content):
             return Response(status=views.status.HTTP_400_BAD_REQUEST)
         # TODO Verify validity of config
         config_path = pathlib.Path(settings.ANNOTATION_CONFIG_STORAGE_DIR, filename)
-        config_path.write_text(content)
+        config_path.write_text(content.decode())
 
         # Handle input VCF file
         filename = f"{job_name}.vcf"
-        content = request.FILES["data"].read().decode()
+        content = request.FILES["data"].read()
         if "Variant Call Format" not in magic.from_buffer(content):
             return Response(status=views.status.HTTP_400_BAD_REQUEST)
         # TODO Verify if valid VCF (?)
         input_path = pathlib.Path(settings.JOB_INPUT_STORAGE_DIR, filename)
-        input_path.write_text(content)
+        input_path.write_text(content.decode())
 
         result_path = pathlib.Path(settings.JOB_RESULT_STORAGE_DIR, filename)
 
