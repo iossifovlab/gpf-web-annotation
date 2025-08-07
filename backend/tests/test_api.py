@@ -1,8 +1,8 @@
+import datetime
 import pathlib
 import textwrap
 import shutil
 from django.core.files.base import ContentFile
-from django.core.files.images import ImageFile
 from django.contrib.auth.models import User
 import pytest
 from django.test import Client
@@ -95,6 +95,9 @@ def test_get_jobs(
 
     job = result[0]
     assert "created" in job
+    created = datetime.datetime.fromisoformat(job["created"])
+    now = datetime.datetime.now(datetime.timezone.utc)
+    assert abs(now - created) < datetime.timedelta(minutes=1)
     assert job["id"] == 1
     assert job["status"] == 1
     assert job["owner"] == "test-user"
@@ -108,6 +111,9 @@ def test_get_jobs(
 
     job = result[0]
     assert "created" in job
+    created = datetime.datetime.fromisoformat(job["created"])
+    now = datetime.datetime.now(datetime.timezone.utc)
+    assert abs(now - created) < datetime.timedelta(minutes=1)
     assert job["id"] == 2
     assert job["status"] == 1
     assert job["owner"] == "test-admin"
@@ -127,12 +133,18 @@ def test_get_all_jobs_admin_user(admin_client: Client) -> None:
 
     job = result[0]
     assert "created" in job
+    created = datetime.datetime.fromisoformat(job["created"])
+    now = datetime.datetime.now(datetime.timezone.utc)
+    assert abs(now - created) < datetime.timedelta(minutes=1)
     assert job["id"] == 1
     assert job["status"] == 1
     assert job["owner"] == "test-user"
 
     job = result[1]
     assert "created" in job
+    created = datetime.datetime.fromisoformat(job["created"])
+    now = datetime.datetime.now(datetime.timezone.utc)
+    assert abs(now - created) < datetime.timedelta(minutes=1)
     assert job["id"] == 2
     assert job["status"] == 1
     assert job["owner"] == "test-admin"
@@ -233,6 +245,9 @@ def test_job_details(user_client: Client) -> None:
 
     result = response.json()
     assert "created" in result
+    created = datetime.datetime.fromisoformat(result["created"])
+    now = datetime.datetime.now(datetime.timezone.utc)
+    assert abs(now - created) < datetime.timedelta(minutes=1)
     assert result["id"] == 1
     assert result["status"] == 1
     assert result["owner"] == "test-user"
