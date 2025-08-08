@@ -112,10 +112,11 @@ class Login(views.APIView):
     parser_classes = [JSONParser]
 
     def post(self, request):
-        username = request.data["username"]
-        password = request.data["password"]
         if "username" not in request.data or "password" not in request.data:
             return Response(status=views.status.HTTP_400_BAD_REQUEST)
+
+        username = request.data["username"]
+        password = request.data["password"]
 
         user = authenticate(request, username=username, password=password)
         if user is None:
@@ -129,9 +130,17 @@ class Registration(views.APIView):
     parser_classes = [JSONParser]
 
     def post(self, request):
+        if (
+            "username" not in request.data
+            or "email" not in request.data
+            or "password" not in request.data
+        ):
+            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+
         username = request.data["username"]
         email = request.data["email"]
         password = request.data["password"]
+
         if User.objects.filter(username=username).exists():
             return Response(status=views.status.HTTP_400_BAD_REQUEST)
         if User.objects.filter(email=email).exists():
