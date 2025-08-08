@@ -3,13 +3,13 @@
   <form>
     <div class="form-group">
       <label for="email">email</label>
-      <input type="text" id="email" name="email" required />
+      <input type="text" id="email" name="email" [(ngModel)]="email" required />
     </div>
     <div class="form-group">
       <label for="password">password</label>
-      <input type="password" id="password" name="password" required />
+      <input type="password" id="password" name="password" [(ngModel)]="password" required />
     </div>
-    <button id="login-button" type="submit">Create</button>
+    <button id="login-button" type="submit" (click)="register()">Create</button>
   </form>
 
   <div id="login-options">
