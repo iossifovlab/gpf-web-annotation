@@ -1,11 +1,10 @@
-from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from web_annotation.models import Job
+from web_annotation.models import Job, User
 
 
 class JobSerializer(serializers.ModelSerializer):
-    owner = serializers.ReadOnlyField(source='owner.username')
+    owner = serializers.ReadOnlyField(source='owner.email')
 
     class Meta:
         model = Job
@@ -17,4 +16,4 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["username", "email", "jobs"]
+        fields = ["email", "jobs"]

@@ -1,4 +1,3 @@
-from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from django.conf import settings
 from django.http.response import FileResponse
@@ -9,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework import generics
 
 from web_annotation.serializers import JobSerializer, UserSerializer
-from web_annotation.models import Job
+from web_annotation.models import Job, User
 from web_annotation.permissions import IsOwner, has_job_permission
 
 import time
@@ -112,13 +111,13 @@ class Login(views.APIView):
     parser_classes = [JSONParser]
 
     def post(self, request):
-        if "username" not in request.data or "password" not in request.data:
+        if "email" not in request.data or "password" not in request.data:
             return Response(status=views.status.HTTP_400_BAD_REQUEST)
 
-        username = request.data["username"]
+        email = request.data["email"]
         password = request.data["password"]
 
-        user = authenticate(request, username=username, password=password)
+        user = authenticate(request, email=email, password=password)
         if user is None:
             return Response(status=views.status.HTTP_400_BAD_REQUEST)
 
@@ -131,21 +130,17 @@ class Registration(views.APIView):
 
     def post(self, request):
         if (
-            "username" not in request.data
-            or "email" not in request.data
+            "email" not in request.data
             or "password" not in request.data
         ):
             return Response(status=views.status.HTTP_400_BAD_REQUEST)
 
-        username = request.data["username"]
         email = request.data["email"]
         password = request.data["password"]
 
-        if User.objects.filter(username=username).exists():
-            return Response(status=views.status.HTTP_400_BAD_REQUEST)
         if User.objects.filter(email=email).exists():
             return Response(status=views.status.HTTP_400_BAD_REQUEST)
 
-        user = User.objects.create_user(username, email, password)
+        user = User.objects.create_user(email, email, password)
         user.save()
         return Response(status=views.status.HTTP_200_OK)

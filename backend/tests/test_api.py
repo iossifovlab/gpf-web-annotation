@@ -3,13 +3,12 @@ import pathlib
 import textwrap
 import shutil
 from django.core.files.base import ContentFile
-from django.contrib.auth.models import User
 from django.http.response import FileResponse
 import pytest
 from django.test import Client
 from django.conf import settings
 
-from web_annotation.models import Job
+from web_annotation.models import Job, User
 
 
 pytestmark = pytest.mark.django_db
@@ -72,14 +71,14 @@ def setup_test_db(
 @pytest.fixture
 def admin_client() -> Client:
     client = Client()
-    client.login(username="test-admin", password="secret")
+    client.login(email="admin@example.com", password="secret")
     return client
 
 
 @pytest.fixture
 def user_client() -> Client:
     client = Client()
-    client.login(username="test-user", password="secret")
+    client.login(email="user@example.com", password="secret")
     return client
 
 
@@ -101,7 +100,7 @@ def test_get_jobs(
     assert abs(now - created) < datetime.timedelta(minutes=1)
     assert job["id"] == 1
     assert job["status"] == 1
-    assert job["owner"] == "test-user"
+    assert job["owner"] == "user@example.com"
 
     # Try with different user, expect different jobs
     response = admin_client.get("/jobs/")
@@ -117,7 +116,7 @@ def test_get_jobs(
     assert abs(now - created) < datetime.timedelta(minutes=1)
     assert job["id"] == 2
     assert job["status"] == 1
-    assert job["owner"] == "test-admin"
+    assert job["owner"] == "admin@example.com"
 
 
 def test_get_all_jobs_normal_user(user_client: Client) -> None:
@@ -139,7 +138,7 @@ def test_get_all_jobs_admin_user(admin_client: Client) -> None:
     assert abs(now - created) < datetime.timedelta(minutes=1)
     assert job["id"] == 1
     assert job["status"] == 1
-    assert job["owner"] == "test-user"
+    assert job["owner"] == "user@example.com"
 
     job = result[1]
     assert "created" in job
@@ -148,11 +147,11 @@ def test_get_all_jobs_admin_user(admin_client: Client) -> None:
     assert abs(now - created) < datetime.timedelta(minutes=1)
     assert job["id"] == 2
     assert job["status"] == 1
-    assert job["owner"] == "test-admin"
+    assert job["owner"] == "admin@example.com"
 
 
 def test_create_job(user_client: Client) -> None:
-    user = User.objects.get(username="test-user")
+    user = User.objects.get(email="user@example.com")
 
     assert Job.objects.filter(owner=user).count() == 1
 
@@ -189,7 +188,7 @@ def test_create_job(user_client: Client) -> None:
 
 
 def test_create_job_bad_config(user_client: Client) -> None:
-    user = User.objects.get(username="test-user")
+    user = User.objects.get(email="user@example.com")
 
     assert Job.objects.filter(owner=user).count() == 1
 
@@ -212,7 +211,7 @@ def test_create_job_bad_config(user_client: Client) -> None:
 
 
 def test_create_job_bad_input_data(user_client: Client) -> None:
-    user = User.objects.get(username="test-user")
+    user = User.objects.get(email="user@example.com")
 
     assert Job.objects.filter(owner=user).count() == 1
 
@@ -228,7 +227,7 @@ def test_create_job_bad_input_data(user_client: Client) -> None:
 
 
 def test_create_job_non_vcf_input_data(user_client: Client) -> None:
-    user = User.objects.get(username="test-user")
+    user = User.objects.get(email="user@example.com")
 
     assert Job.objects.filter(owner=user).count() == 1
 
@@ -251,7 +250,7 @@ def test_job_details(user_client: Client) -> None:
     assert abs(now - created) < datetime.timedelta(minutes=1)
     assert result["id"] == 1
     assert result["status"] == 1
-    assert result["owner"] == "test-user"
+    assert result["owner"] == "user@example.com"
 
 
 def test_job_details_not_owner(user_client: Client) -> None:
@@ -292,8 +291,8 @@ def test_get_users(admin_client: Client) -> None:
     response = admin_client.get("/users/")
     assert response.status_code == 200
     assert response.json() == [
-        {"username": "test-user", "email": "user@example.com", "jobs": [1]},
-        {"username": "test-admin", "email": "admin@example.com", "jobs": [2]},
+        {"email": "user@example.com", "jobs": [1]},
+        {"email": "admin@example.com", "jobs": [2]},
     ]
 
 
@@ -305,9 +304,7 @@ def test_get_users_unauthorized(user_client: Client) -> None:
 def test_get_user_details(admin_client: Client) -> None:
     response = admin_client.get("/users/1/")
     assert response.status_code == 200
-    assert response.json() == {
-        "username": "test-user", "email": "user@example.com", "jobs": [1],
-    }
+    assert response.json() == {"email": "user@example.com", "jobs": [1]}
 
 
 def test_get_user_details_unauthorized(user_client: Client) -> None:
@@ -318,33 +315,18 @@ def test_get_user_details_unauthorized(user_client: Client) -> None:
 def test_register(client: Client) -> None:
     response = client.post(
         "/register/",
-        {"username": "gosho",
-         "email": "gosho@example.com",
+        {"email": "gosho@example.com",
          "password": "secret"},
         content_type="application/json",
     )
     assert response.status_code == 200
     assert User.objects.filter(email="gosho@example.com").exists()
-    user = User.objects.get(email="gosho@example.com")
-    assert user.username == "gosho"
-
-
-def test_register_username_taken(client: Client) -> None:
-    response = client.post(
-        "/register/",
-        {"username": "test-user",
-         "email": "gosho@example.com",
-         "password": "secret"},
-        content_type="application/json",
-    )
-    assert response.status_code == 400
 
 
 def test_register_email_taken(client: Client) -> None:
     response = client.post(
         "/register/",
-        {"username": "gosho",
-         "email": "user@example.com",
+        {"email": "user@example.com",
          "password": "secret"},
         content_type="application/json",
     )
@@ -354,24 +336,14 @@ def test_register_email_taken(client: Client) -> None:
 def test_register_bad_requests(client: Client) -> None:
     response = client.post(
         "/register/",
-        {"email": "gosho@example.com",
-         "password": "secret"},
+        {"email": "gosho@example.com"},
         content_type="application/json",
     )
     assert response.status_code == 400
 
     response = client.post(
         "/register/",
-        {"username": "gosho",
-         "password": "secret"},
-        content_type="application/json",
-    )
-    assert response.status_code == 400
-
-    response = client.post(
-        "/register/",
-        {"username": "gosho",
-         "email": "gosho@example.com"},
+        {"password": "secret"},
         content_type="application/json",
     )
     assert response.status_code == 400
@@ -380,7 +352,7 @@ def test_register_bad_requests(client: Client) -> None:
 def test_login(client: Client) -> None:
     response = client.post(
         "/login/",
-        {"username": "test-user",
+        {"email": "user@example.com",
          "password": "secret"},
         content_type="application/json",
     )
@@ -396,7 +368,7 @@ def test_login(client: Client) -> None:
 def test_login_user_wrong_password(client: Client) -> None:
     response = client.post(
         "/login/",
-        {"username": "test-user",
+        {"email": "user@example.com",
          "password": "alabala"},
         content_type="application/json",
     )
@@ -406,7 +378,7 @@ def test_login_user_wrong_password(client: Client) -> None:
 def test_login_user_does_not_exist(client: Client) -> None:
     response = client.post(
         "/login/",
-        {"username": "test-user-two",
+        {"email": "user-two@example.com",
          "password": "secret"},
         content_type="application/json",
     )
@@ -416,7 +388,7 @@ def test_login_user_does_not_exist(client: Client) -> None:
 def test_login_bad_requests(client: Client) -> None:
     response = client.post(
         "/login/",
-        {"username": "test-user"},
+        {"email": "user@example.com"},
         content_type="application/json",
     )
     assert response.status_code == 400

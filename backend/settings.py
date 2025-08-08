@@ -121,6 +121,7 @@ REST_FRAMEWORK = {
 }
 
 # Project-specific stuff
+AUTH_USER_MODEL = "web_annotation.User"
 
 # Dir for all data storage
 DATA_STORAGE_DIR = "data"
