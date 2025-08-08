@@ -3,6 +3,7 @@
   flex-direction: row;
   align-items: center;
   height: 100vh;
+  gap: 4vw;
 }
 
 #app-header {
@@ -11,6 +12,6 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  width: 45%;
+  width: 50%;
   height: 100vh;
 }
