@@ -1,5 +1,5 @@
 input {
-  border: 1px solid #CFD8DF;
+  border: 1px solid #cfd8df;
   border-radius: 10px;
   height: 35px;
   width: 22vw;
@@ -8,13 +8,13 @@ input {
   font-size: 18px;
   margin: 10px;
   margin-left: 0;
-  color: #252E34;
+  color: #252e34;
 }
 
 input:focus {
-  border-color: #85A2B9;
+  border-color: #85a2b9;
   outline: 0;
-  box-shadow: 0 0 0 .2rem #B9D3E7;
+  box-shadow: 0 0 0 0.2rem #b9d3e7;
 }
 
 form {
@@ -25,7 +25,7 @@ form {
 }
 
 label {
-  color: #5B778C;
+  color: #5b778c;
   font-size: 18px;
 }
 
@@ -38,11 +38,11 @@ label {
 
 hr {
   width: 12vw;
-  border: 0.5px solid #ECF1F6;
+  border: 0.5px solid #ecf1f6;
 }
 
 #or-text {
-  color: #CFD8DF;
+  color: #cfd8df;
   font-size: 18px;
 }
 
@@ -70,12 +70,12 @@ button:hover {
 }
 
 #login-button:hover {
-  background-color: #5B778C;
+  background-color: #5b778c;
 }
 
 #google-login-button {
-  color: #5B778C;
-  border: 1px solid #CFD8DF;
+  color: #5b778c;
+  border: 1px solid #cfd8df;
   background-color: white;
   display: flex;
   gap: 10px;
@@ -83,7 +83,7 @@ button:hover {
 }
 
 #google-login-button:hover {
-  background-color: #F4F7FB;
+  background-color: #f4f7fb;
 }
 
 #google-icon {
@@ -99,5 +99,5 @@ button:hover {
 }
 
 #register-link {
-  color: #24699E;
+  color: #24699e;
 }
