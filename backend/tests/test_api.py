@@ -4,6 +4,7 @@ import textwrap
 import shutil
 from django.core.files.base import ContentFile
 from django.contrib.auth.models import User
+from django.http.response import FileResponse
 import pytest
 from django.test import Client
 from django.conf import settings
@@ -54,11 +55,11 @@ def setup_test_db(
         "secret",
     )
     admin.save()
-    admin_input = tmp_path / "user-input.vcf"
+    admin_input = tmp_path / "admin-input.vcf"
     admin_input.write_text("mock vcf data 2")
-    admin_config = tmp_path / "user-config.yaml"
+    admin_config = tmp_path / "admin-config.yaml"
     admin_config.write_text("mock annotation config 2")
-    admin_result = tmp_path / "user-result.vcf"
+    admin_result = tmp_path / "admin-result.vcf"
     admin_result.write_text("mock annotated vcf 2")
     Job(
         input_path=admin_input,
@@ -255,4 +256,28 @@ def test_job_details(user_client: Client) -> None:
 
 def test_job_details_not_owner(user_client: Client) -> None:
     response = user_client.get("/jobs/2/")
+    assert response.status_code == 403
+
+
+def test_job_file_input(user_client: Client) -> None:
+    response: FileResponse = user_client.get("/jobs/1/file/input/")  # type: ignore
+    assert response.status_code == 200
+    assert response.getvalue() == b"mock vcf data"
+
+    response: FileResponse = user_client.get("/jobs/1/file/config/")  # type: ignore
+    assert response.status_code == 200
+    assert response.getvalue() == b"mock annotation config"
+
+    response: FileResponse = user_client.get("/jobs/1/file/result/")  # type: ignore
+    assert response.status_code == 200
+    assert response.getvalue() == b"mock annotated vcf"
+
+
+def test_job_file_input_bad_request(user_client: Client) -> None:
+    response: FileResponse = user_client.get("/jobs/1/file/blabla/")  # type: ignore
+    assert response.status_code == 400
+
+
+def test_job_file_input_not_owner(user_client: Client) -> None:
+    response: FileResponse = user_client.get("/jobs/2/file/input/")  # type: ignore
     assert response.status_code == 403

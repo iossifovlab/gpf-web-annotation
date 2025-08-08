@@ -74,46 +74,26 @@ class JobCreate(views.APIView):
         return Response(status=views.status.HTTP_204_NO_CONTENT)
 
 
-class JobGetInput(views.APIView):
+class JobGetFile(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request, pk):
+    def get(self, request, pk: int, file: str):
         job = get_object_or_404(Job, id=pk)
         if not has_job_permission(job, request.user):
             return Response(status=views.status.HTTP_403_FORBIDDEN)
 
-        input_path = pathlib.Path(job.input_path)
-        if not input_path.exists():
+        if file == "input":
+            file_path = pathlib.Path(job.input_path)
+        elif file == "config":
+            file_path = pathlib.Path(job.config_path)
+        elif file == "result":
+            file_path = pathlib.Path(job.result_path)
+        else:
+            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+
+        if not file_path.exists():
             return Response(status=views.status.HTTP_404_NOT_FOUND)
-        return FileResponse(open(job.input_path, "rb"))
-
-
-class JobGetConfig(views.APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get(self, request, pk):
-        job = get_object_or_404(Job, id=pk)
-        if not has_job_permission(job, request.user):
-            return Response(status=views.status.HTTP_403_FORBIDDEN)
-
-        config_path = pathlib.Path(job.config_path)
-        if not config_path.exists():
-            return Response(status=views.status.HTTP_404_NOT_FOUND)
-        return FileResponse(open(job.config_path, "rb"))
-
-
-class JobGetResult(views.APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get(self, request, pk):
-        job = get_object_or_404(Job, id=pk)
-        if not has_job_permission(job, request.user):
-            return Response(status=views.status.HTTP_403_FORBIDDEN)
-
-        result_path = pathlib.Path(job.result_path)
-        if not result_path.exists():
-            return Response(status=views.status.HTTP_404_NOT_FOUND)
-        return FileResponse(open(job.result_path, "rb"))
+        return FileResponse(open(file_path, "rb"), as_attachment=True)
 
 
 class UserList(generics.ListAPIView):
