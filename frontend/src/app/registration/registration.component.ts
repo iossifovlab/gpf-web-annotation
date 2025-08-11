@@ -1,28 +1,80 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { UsersService } from '../users.service';
 import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-registration',
-  imports: [FormsModule],
+  imports: [FormsModule, CommonModule],
   templateUrl: './registration.component.html',
   styleUrl: './registration.component.css',
   providers: [UsersService]
 })
 export class RegistrationComponent {
-  public email: string = '';
-  public password: string = '';
+  @ViewChild('emailInput') private email!: ElementRef;
+  @ViewChild('passwordInput') private password!: ElementRef;
+  public responseMessage: string = '';
+  public validationMessage: string = '';
 
   public constructor(private usersService: UsersService) {}
 
   public register(): void {
-    this.usersService.registerUser(this.email, this.password).subscribe({
-      next: (response) => {
-        console.log('Registration successful', response);
+    this.responseMessage = '';
+    if (!this.isFormValid()) {
+      return;
+    }
+    const email = (this.email.nativeElement as HTMLInputElement).value;
+    const password = (this.password.nativeElement as HTMLInputElement).value;
+    this.usersService.registerUser(email, password).subscribe({
+      next: () => {
+        this.responseMessage = 'Registration successful!';
+        this.cleanInputs();
       },
-      error: (error) => {
-        console.error('Registration failed', error);
+      error: () => {
+        this.responseMessage = 'Registration failed!';
       }
     });
+  }
+
+  private validateEmail(): boolean {
+    const email = (this.email.nativeElement as HTMLInputElement).value;
+    const re = new RegExp(/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/);
+    return re.test(String(email).toLowerCase());
+  }
+
+  private validatePassword(): boolean {
+    const password = (this.password.nativeElement as HTMLInputElement).value;
+    const re = new RegExp(/.{6,}/);
+    return re.test(String(password).toLowerCase());
+  }
+
+  private isFormValid(): boolean {
+    const emailRef = this.email.nativeElement as HTMLInputElement;
+    const passwordRef = this.password.nativeElement as HTMLInputElement;
+    this.validationMessage = '';
+    if (!emailRef.value) {
+      emailRef.focus();
+      return false;
+    }
+    if (!this.validateEmail()) {
+      emailRef.focus();
+      this.validationMessage = 'Invalid email format.';
+      return false;
+    }
+    if (!passwordRef.value) {
+      passwordRef.focus();
+      return false;
+    }
+    if (!this.validatePassword()) {
+      passwordRef.focus();
+      this.validationMessage = 'Password must be at least 6 characters long.';
+      return false;
+    }
+    return true;
+  }
+
+  private cleanInputs(): void {
+    (this.email.nativeElement as HTMLInputElement).value = '';
+    (this.password.nativeElement as HTMLInputElement).value = '';
   }
 }

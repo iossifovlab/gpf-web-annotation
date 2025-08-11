@@ -101,3 +101,16 @@ button:hover {
 #register-link {
   color: #24699e;
 }
+
+input:invalid:focus {
+  outline: rgb(255, 0, 0);
+  border-color: rgb(255, 0, 0);
+  box-shadow: 0 0 0 4px rgba(244, 15, 15, 30%);
+}
+
+#validation-message {
+  color: red;
+  font-size: 16px;
+  margin-bottom: 10px;
+  text-align: center;
+}
