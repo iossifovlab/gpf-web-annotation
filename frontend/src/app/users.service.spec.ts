@@ -29,7 +29,7 @@ describe('UsersService', () => {
 
     const postResult = service.registerUser('mockEmail', 'mockPassword');
     expect(httpPostSpy).toHaveBeenCalledWith(
-      '/register',
+      'http://localhost:8000/register/',
       {
         email: 'mockEmail',
         password: 'mockPassword'
