@@ -6,6 +6,7 @@ from rest_framework import permissions, views
 from rest_framework.parsers import MultiPartParser, JSONParser
 from rest_framework.response import Response
 from rest_framework import generics
+from annotation import run_job
 
 from web_annotation.serializers import JobSerializer, UserSerializer
 from web_annotation.models import Job, User
@@ -69,6 +70,8 @@ class JobCreate(views.APIView):
                   result_path=result_path,
                   owner=request.user)
         job.save()
+
+        run_job()
 
         return Response(status=views.status.HTTP_204_NO_CONTENT)
 
