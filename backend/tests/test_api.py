@@ -118,7 +118,7 @@ def test_create_job_calls_annotation_runner(
     user_client: Client,
     mocker,
 ) -> None:
-    mocked_run_job = mocker.patch("annotation.run_job")
+    mocked_run_job = mocker.patch("web_annotation.views.run_job")
 
     annotation_config = "sample_annotator: sample_resource"
     vcf = textwrap.dedent("""
