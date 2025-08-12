@@ -16,4 +16,5 @@ dependencies:
   - django-cors-headers
   - pytest
   - pytest-django
+  - pytest-mock
   - python-magic
