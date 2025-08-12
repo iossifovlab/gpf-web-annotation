@@ -1,0 +1,11 @@
+[report]
+exclude_also=
+    raise NotImplementedError
+
+[run]
+omit=
+    */tests/*
+    conftest.py
+    */conftest.py
+
+branch=true

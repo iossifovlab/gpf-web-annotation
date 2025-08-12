@@ -17,4 +17,5 @@ dependencies:
   - pytest
   - pytest-django
   - pytest-mock
+  - pytest-cov
   - python-magic
