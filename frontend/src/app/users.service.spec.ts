@@ -27,11 +27,28 @@ describe('UsersService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of('mockResponse'));
 
-    const postResult = service.registerUser('mockEmail', 'mockPassword');
+    const postResult = service.registerUser('mockEmail@email.com', 'mockPassword');
     expect(httpPostSpy).toHaveBeenCalledWith(
       'http://localhost:8000/register/',
       {
-        email: 'mockEmail',
+        email: 'mockEmail@email.com',
+        password: 'mockPassword'
+      }
+    );
+
+    const res = await lastValueFrom(postResult.pipe(take(1)));
+    expect(res).toBe('mockResponse');
+  });
+
+  it('should login user', async() => {
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
+    httpPostSpy.mockReturnValue(of('mockResponse'));
+
+    const postResult = service.loginUser('mockEmail@email.com', 'mockPassword');
+    expect(httpPostSpy).toHaveBeenCalledWith(
+      'http://localhost:8000/login/',
+      {
+        email: 'mockEmail@email.com',
         password: 'mockPassword'
       }
     );
