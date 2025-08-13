@@ -14,6 +14,7 @@
   </form>
 
   <div id="login-options">
+    <div id="response-message" *ngIf="responseMessage">{{ responseMessage }}</div>
     <a href="/register" id="register-link">Create an account</a>
     <div id="divider">
       <hr />

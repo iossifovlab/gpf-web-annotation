@@ -23,7 +23,7 @@
     <div
       *ngIf="responseMessage"
       id="registration-messaage"
-      [ngStyle]="responseMessage.includes('fail') ? { color: 'red' } : { color: 'green' }"
+      [ngStyle]="responseMessage.includes('success') ? { color: 'green' } : { color: 'red' }"
       >{{ responseMessage }}</div
     >
     <div>

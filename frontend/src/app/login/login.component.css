@@ -101,3 +101,7 @@ button:hover {
 #register-link {
   color: #24699e;
 }
+
+#response-message {
+  color: red;
+}
