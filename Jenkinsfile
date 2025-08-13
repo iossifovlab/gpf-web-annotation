@@ -20,7 +20,7 @@ pipeline {
     }
     stage('Run backend tests') {
       steps {
-          sh "docker run --rm --name web-annotation-backend-container web_annotation_backend"
+          sh "docker run --name web-annotation-backend-container web_annotation_backend"
           sh "docker cp web-annotation-backend-container:/wd/test-results ."
       }
     }
