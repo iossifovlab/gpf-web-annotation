@@ -125,7 +125,12 @@ class Login(views.APIView):
             return Response(status=views.status.HTTP_400_BAD_REQUEST)
 
         login(request, user)
-        return Response(status=views.status.HTTP_200_OK)
+
+        umodel = User.objects.get(email=email)
+        return Response(
+            {"email": umodel.email,
+             "isAdmin": umodel.is_superuser},
+            status=views.status.HTTP_200_OK)
 
 
 class Registration(views.APIView):

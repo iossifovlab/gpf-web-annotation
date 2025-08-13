@@ -73,6 +73,30 @@ def test_login(client: Client) -> None:
         content_type="application/json",
     )
     assert response.status_code == 200
+    assert response.json() == {
+        "email": "user@example.com",
+        "isAdmin": False,
+    }
+
+    assert "sessionid" in response.cookies
+    assert response.cookies["sessionid"]
+
+    assert "csrftoken" in response.cookies
+    assert response.cookies["csrftoken"]
+
+
+def test_login_admin(client: Client) -> None:
+    response = client.post(
+        "/login/",
+        {"email": "admin@example.com",
+         "password": "secret"},
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    assert response.json() == {
+        "email": "admin@example.com",
+        "isAdmin": True,
+    }
 
     assert "sessionid" in response.cookies
     assert response.cookies["sessionid"]
