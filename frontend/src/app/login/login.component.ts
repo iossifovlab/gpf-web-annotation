@@ -3,6 +3,7 @@ import { UsersService } from '../users.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-login',
@@ -27,8 +28,8 @@ export class LoginComponent {
         this.cleanInputs();
         this.router.navigate(['/home']);
       },
-      error: () => {
-        this.responseMessage = 'Invalid email or password!';
+      error: (error: HttpErrorResponse) => {
+        this.responseMessage = (error.error as {error: string})['error'] || 'Login failed!';
       }
     });
   }

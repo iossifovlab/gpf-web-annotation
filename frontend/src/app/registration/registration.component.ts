@@ -2,6 +2,7 @@ import { Component, ElementRef, ViewChild } from '@angular/core';
 import { UsersService } from '../users.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-registration',
@@ -30,8 +31,8 @@ export class RegistrationComponent {
         this.responseMessage = 'Registration successful!';
         this.cleanInputs();
       },
-      error: () => {
-        this.responseMessage = 'Registration failed!';
+      error: (error: HttpErrorResponse) => {
+        this.responseMessage = (error.error as {error: string})['error'] || 'Registration failed!';
       }
     });
   }
