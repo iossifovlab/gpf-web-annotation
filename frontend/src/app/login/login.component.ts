@@ -10,7 +10,6 @@ import { HttpErrorResponse } from '@angular/common/http';
   imports: [FormsModule, CommonModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
-  providers: [UsersService]
 })
 export class LoginComponent {
   @ViewChild('emailInput') private email!: ElementRef;

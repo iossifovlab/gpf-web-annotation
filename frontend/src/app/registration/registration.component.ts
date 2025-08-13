@@ -8,8 +8,7 @@ import { HttpErrorResponse } from '@angular/common/http';
   selector: 'app-registration',
   imports: [FormsModule, CommonModule],
   templateUrl: './registration.component.html',
-  styleUrl: './registration.component.css',
-  providers: [UsersService]
+  styleUrl: './registration.component.css'
 })
 export class RegistrationComponent {
   @ViewChild('emailInput') private email!: ElementRef;
