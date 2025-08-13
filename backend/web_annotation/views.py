@@ -114,15 +114,23 @@ class Login(views.APIView):
     parser_classes = [JSONParser]
 
     def post(self, request):
-        if "email" not in request.data or "password" not in request.data:
-            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+        if "email" not in request.data:
+            return Response(
+                {"error": "An email is required to log in"},
+                status=views.status.HTTP_400_BAD_REQUEST)
+        if "password" not in request.data:
+            return Response(
+                {"error": "A password is required to log in"},
+                status=views.status.HTTP_400_BAD_REQUEST)
 
         email = request.data["email"]
         password = request.data["password"]
 
         user = authenticate(request, email=email, password=password)
         if user is None:
-            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Invalid login credentials"},
+                status=views.status.HTTP_400_BAD_REQUEST)
 
         login(request, user)
 

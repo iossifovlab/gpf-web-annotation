@@ -113,6 +113,9 @@ def test_login_user_wrong_password(client: Client) -> None:
         content_type="application/json",
     )
     assert response.status_code == 400
+    assert response.json() == {
+        "error": "Invalid login credentials",
+    }
 
 
 def test_login_user_does_not_exist(client: Client) -> None:
@@ -123,6 +126,9 @@ def test_login_user_does_not_exist(client: Client) -> None:
         content_type="application/json",
     )
     assert response.status_code == 400
+    assert response.json() == {
+        "error": "Invalid login credentials",
+    }
 
 
 def test_login_bad_requests(client: Client) -> None:
@@ -132,6 +138,9 @@ def test_login_bad_requests(client: Client) -> None:
         content_type="application/json",
     )
     assert response.status_code == 400
+    assert response.json() == {
+        "error": "A password is required to log in",
+    }
 
     response = client.post(
         "/login/",
@@ -139,3 +148,6 @@ def test_login_bad_requests(client: Client) -> None:
         content_type="application/json",
     )
     assert response.status_code == 400
+    assert response.json() == {
+        "error": "An email is required to log in",
+    }
