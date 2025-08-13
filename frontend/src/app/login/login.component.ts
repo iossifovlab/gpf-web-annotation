@@ -1,12 +1,40 @@
+import { Component, ElementRef, ViewChild } from '@angular/core';
+import { UsersService } from '../users.service';
+import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-login',
-  imports: [CommonModule],
+  imports: [FormsModule, CommonModule],
   templateUrl: './login.component.html',
-  styleUrl: './login.component.css'
+  styleUrl: './login.component.css',
+  providers: [UsersService]
 })
 export class LoginComponent {
+  @ViewChild('emailInput') private email!: ElementRef;
+  @ViewChild('passwordInput') private password!: ElementRef;
+  public responseMessage: string = '';
 
+  public constructor(private usersService: UsersService, private router: Router) {}
+
+  public login(): void {
+    this.responseMessage = '';
+    const email = (this.email.nativeElement as HTMLInputElement).value;
+    const password = (this.password.nativeElement as HTMLInputElement).value;
+    this.usersService.loginUser(email, password).subscribe({
+      next: () => {
+        this.cleanInputs();
+        this.router.navigate(['/home']);
+      },
+      error: () => {
+        this.responseMessage = 'Invalid email or password!';
+      }
+    });
+  }
+
+  private cleanInputs(): void {
+    (this.email.nativeElement as HTMLInputElement).value = '';
+    (this.password.nativeElement as HTMLInputElement).value = '';
+  }
 }
