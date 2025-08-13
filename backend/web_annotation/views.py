@@ -145,17 +145,22 @@ class Registration(views.APIView):
     parser_classes = [JSONParser]
 
     def post(self, request):
-        if (
-            "email" not in request.data
-            or "password" not in request.data
-        ):
-            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+        if "email" not in request.data:
+            return Response(
+                {"error": "An email is required to register"},
+                status=views.status.HTTP_400_BAD_REQUEST)
+        if "password" not in request.data:
+            return Response(
+                {"error": "A password is required to register"},
+                status=views.status.HTTP_400_BAD_REQUEST)
 
         email = request.data["email"]
         password = request.data["password"]
 
         if User.objects.filter(email=email).exists():
-            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "This email is already in use"},
+                status=views.status.HTTP_400_BAD_REQUEST)
 
         user = User.objects.create_user(email, email, password)
         user.save()

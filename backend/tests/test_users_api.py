@@ -47,6 +47,9 @@ def test_register_email_taken(client: Client) -> None:
         content_type="application/json",
     )
     assert response.status_code == 400
+    assert response.json() == {
+        "error": "This email is already in use",
+    }
 
 
 def test_register_bad_requests(client: Client) -> None:
@@ -56,6 +59,9 @@ def test_register_bad_requests(client: Client) -> None:
         content_type="application/json",
     )
     assert response.status_code == 400
+    assert response.json() == {
+        "error": "A password is required to register",
+    }
 
     response = client.post(
         "/register/",
@@ -63,6 +69,9 @@ def test_register_bad_requests(client: Client) -> None:
         content_type="application/json",
     )
     assert response.status_code == 400
+    assert response.json() == {
+        "error": "An email is required to register",
+    }
 
 
 def test_login(client: Client) -> None:
