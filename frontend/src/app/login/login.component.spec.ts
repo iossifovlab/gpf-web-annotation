@@ -1,16 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { LoginComponent } from './login.component';
-import { provideHttpClient } from '@angular/common/http';
+import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { UsersService } from '../users.service';
-import { Observable, of, throwError } from 'rxjs';
+import { UserData, UsersService } from '../users.service';
+import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 
 class UsersServiceMock {
+  public userData = new BehaviorSubject<UserData>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public loginUser(email: string, password: string): Observable<object> {
-    return of({});
+    return of({ email: email, isAdmin: false });
   }
 }
 
@@ -39,8 +40,8 @@ describe('LoginComponent', () => {
     component = fixture.componentInstance;
 
     templateRef = fixture.debugElement.nativeElement as HTMLElement;
-    emailInput = templateRef.querySelector('#email') as HTMLInputElement;
-    passwordInput = templateRef.querySelector('#password') as HTMLInputElement;
+    emailInput = templateRef.querySelector('#email');
+    passwordInput = templateRef.querySelector('#password');
 
     fixture.detectChanges();
   });
@@ -69,14 +70,28 @@ describe('LoginComponent', () => {
     expect(passwordInput.value).toBe('');
   });
 
-  it('should show error message when fail to login', () => {
+  it('should show error message from response when fail to login', () => {
     emailInput.value = 'mockEmail@email.com';
     passwordInput.value = 'mockPassword';
+
+    const errorMock = new HttpErrorResponse({error: {error: 'Invalid email or password!'}});
     jest.spyOn(usersServiceMock, 'loginUser')
-      .mockReturnValue(throwError(() => new Error()));
+      .mockReturnValue(throwError(() => errorMock));
 
     component.login();
     expect(component.responseMessage).toBe('Invalid email or password!');
+  });
+
+  it('should show default error message when response doesnt\'t contain one', () => {
+    emailInput.value = 'mockEmail@email.com';
+    passwordInput.value = 'mockPassword';
+
+    const errorMock = new HttpErrorResponse({error: {}});
+    jest.spyOn(usersServiceMock, 'loginUser')
+      .mockReturnValue(throwError(() => errorMock));
+
+    component.login();
+    expect(component.responseMessage).toBe('Login failed!');
   });
 
   it('should not clear input data when fail to login', () => {
@@ -88,5 +103,12 @@ describe('LoginComponent', () => {
     component.login();
     expect(emailInput.value).toBe('mockEmail@email.com');
     expect(passwordInput.value).toBe('mockPassword');
+  });
+
+  it('should previous user on component initialization', () => {
+    usersServiceMock.userData.next({ email: 'email', isAdmin: false });
+
+    component.ngOnInit();
+    expect(usersServiceMock.userData.value).toBeNull();
   });
 });
