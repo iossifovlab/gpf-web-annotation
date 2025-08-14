@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { RegistrationComponent } from './registration.component';
-import { provideHttpClient } from '@angular/common/http';
+import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
 import { UsersService } from '../users.service';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
@@ -37,8 +37,8 @@ describe('RegistrationComponent', () => {
     component = fixture.componentInstance;
 
     templateRef = fixture.debugElement.nativeElement as HTMLElement;
-    emailInput = templateRef.querySelector('#email') as HTMLInputElement;
-    passwordInput = templateRef.querySelector('#password') as HTMLInputElement;
+    emailInput = templateRef.querySelector('#email');
+    passwordInput = templateRef.querySelector('#password');
 
     fixture.detectChanges();
   });
@@ -59,17 +59,31 @@ describe('RegistrationComponent', () => {
     expect(passwordInput.value).toBe('');
   });
 
-  it('should show error message when user registration is failed', () => {
+  it('should show error message from response when user registration has failed and not clean input fields', () => {
     emailInput.value = 'mockEmail@email.com';
     passwordInput.value = 'mockPassword';
+
+    const errorMock = new HttpErrorResponse({error: {error: 'Unble to register user'}});
     const registerSpy = jest.spyOn(usersServiceMock, 'registerUser')
-      .mockReturnValue(throwError(() => new Error()));
+      .mockReturnValue(throwError(() => errorMock));
 
     component.register();
     expect(registerSpy).toHaveBeenCalledWith('mockEmail@email.com', 'mockPassword');
-    expect(component.responseMessage).toBe('Registration failed!');
+    expect(component.responseMessage).toBe('Unble to register user');
     expect(emailInput.value).toBe('mockEmail@email.com');
     expect(passwordInput.value).toBe('mockPassword');
+  });
+
+  it('should show defualt error message when user registration has failed', () => {
+    emailInput.value = 'mockEmail@email.com';
+    passwordInput.value = 'mockPassword';
+
+    const errorMock = new HttpErrorResponse({error: {}});
+    jest.spyOn(usersServiceMock, 'registerUser')
+      .mockReturnValue(throwError(() => errorMock));
+
+    component.register();
+    expect(component.responseMessage).toBe('Registration failed!');
   });
 
   it('should show error message when email is in invalid', () => {
