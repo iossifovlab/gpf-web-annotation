@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, DoCheck } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { UserData, UsersService } from './users.service';
+import { takeWhile } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -9,15 +10,27 @@ import { UserData, UsersService } from './users.service';
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements DoCheck {
   public description = 'GPF Web Annotation description';
   public currentUserData: UserData = null;
 
-  public constructor(private router: Router, private usersService: UsersService) {}
+  public constructor(
+    private router: Router,
+    private usersService: UsersService,
+    private changeDetectorRef: ChangeDetectorRef
+  ) { }
 
-  public ngOnInit(): void {
-    this.usersService.userData.subscribe((userData) => {
+  public ngDoCheck(): void {
+    this.usersService.userData.pipe(
+      takeWhile(user => user?.email !== this.currentUserData?.email),
+    ).subscribe((userData) => {
       this.currentUserData = userData;
     });
+    this.changeDetectorRef.detectChanges();
+  }
+
+  public logout(): void {
+    this.usersService.userData.next(null);
+    this.router.navigate(['/login']);
   }
 }

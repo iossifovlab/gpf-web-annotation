@@ -1,8 +1,20 @@
-<div id="app-container">
-  <div id="app-header">
+<div id="front-page-container" *ngIf="!currentUserData">
+  <div id="front-page-header">
     <img src="../assets/logo-64x64.png" alt="GPF Logo" class="logo" />
     <h1>GPF Web Annotation</h1>
     <p>{{ description }}</p>
+  </div>
+  <router-outlet></router-outlet>
+</div>
+
+<div id="app-container" *ngIf="currentUserData">
+  <div id="app-header">
+    <img src="../assets/logo-64x64.png" alt="GPF Logo" class="logo" />
+    <h1>GPF Web Annotation</h1>
+  </div>
+  <div id="user-data">
+    <p>{{ currentUserData.email }}</p>
+    <button id="logout-button" (click)="logout()">Logout</button>
   </div>
   <router-outlet></router-outlet>
 </div>
