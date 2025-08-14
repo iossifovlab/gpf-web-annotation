@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { UsersService } from '../users.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -11,12 +11,16 @@ import { HttpErrorResponse } from '@angular/common/http';
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   @ViewChild('emailInput') private email!: ElementRef;
   @ViewChild('passwordInput') private password!: ElementRef;
   public responseMessage: string = '';
 
   public constructor(private usersService: UsersService, private router: Router) {}
+
+  public ngOnInit(): void {
+    this.clearPreviousUserData();
+  }
 
   public login(): void {
     this.responseMessage = '';
@@ -36,5 +40,9 @@ export class LoginComponent {
   private cleanInputs(): void {
     (this.email.nativeElement as HTMLInputElement).value = '';
     (this.password.nativeElement as HTMLInputElement).value = '';
+  }
+
+  private clearPreviousUserData(): void {
+    this.usersService.userData.next(null);
   }
 }
