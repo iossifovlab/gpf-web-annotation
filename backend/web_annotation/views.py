@@ -71,7 +71,12 @@ class JobCreate(views.APIView):
                   owner=request.user)
         job.save()
 
-        run_job()
+        run_job(
+            str(input_path),
+            str(config_path),
+            str(result_path),
+            settings.JOB_RESULT_STORAGE_DIR,
+        )
 
         return Response(status=views.status.HTTP_204_NO_CONTENT)
 
