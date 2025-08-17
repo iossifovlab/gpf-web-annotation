@@ -13,20 +13,36 @@ pipeline {
           topic: "${env.JOB_NAME}")
       }
     }
+
+    stage('Copy artifacts') {
+      steps {
+        script {
+          dir('backend/gpf') {
+            checkout scmGit([
+              branches: [[name: '*/master']],
+              userRemoteConfigs: [[credentialsId: 'lubo_jenkins_42', url: 'git@github.com:iossifovlab/gpf.git']],
+            ])
+          }
+        }
+      }
+    }
+
     stage('Build backend Docker image') {
       steps {
-          sh "docker build -q . -t web_annotation_backend"
+        sh "docker build -q . -t web_annotation_backend"
       }
     }
+
     stage('Run backend tests') {
       steps {
-          sh "docker run --name web-annotation-backend-container web_annotation_backend"
-          sh "docker cp web-annotation-backend-container:/wd/test-results ."
+        sh "docker run --name web-annotation-backend-container web_annotation_backend"
+        sh "docker cp web-annotation-backend-container:/wd/test-results ."
       }
     }
+
     stage('Cleanup') {
       steps {
-          sh "docker rm web-annotation-backend-container"
+        sh "docker rm web-annotation-backend-container"
       }
     }
   }

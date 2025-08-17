@@ -10,10 +10,10 @@ channels:
 dependencies:
   - python=3.12
   - pip
-  - django
-  - django-stubs
-  - djangorestframework
-  - django-cors-headers
+  - django=5.2.5
+  - django-stubs=5.2.2
+  - djangorestframework=3.16.1
+  - django-cors-headers=4.7.0
   - pytest
   - pytest-django
   - pytest-mock
