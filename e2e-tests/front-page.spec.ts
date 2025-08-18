@@ -7,14 +7,15 @@ test.describe('Basic tests', () => {
     await page.goto(utils.frontendUrl, {waitUntil: 'load'});
   });
 
-  test('should check if login page is loaded by default', async({ page }) => {
-    await expect(page.url()).toContain('/login');
+  test('should check if login page is loaded by default', ({ page }) => {
+    expect(page.url()).toContain('/login');
   });
 
-   test('should check if user is redirected to login page after trying to access page without being logged in', async({ page }) => {
+  test('should check if user is redirected to login page after ' +
+      'trying to access page without being logged in', async({ page }) => {
     await page.goto(utils.frontendUrl + '/home', {waitUntil: 'load'});
     await expect(page.locator('app-login')).toBeVisible();
-    await expect(page.url()).toContain('/login');
+    expect(page.url()).toContain('/login');
   });
 
   test('should check visible elements of login page', async({ page }) => {
@@ -34,7 +35,7 @@ test.describe('Basic tests', () => {
 
   test('should check url after navigating to register page from login page', async({ page }) => {
     await page.locator('#register-link').click();
-    await expect(page.url()).toContain('/register');
+    expect(page.url()).toContain('/register');
   });
 
   test('should check if user is redirected to register page after clicking the link in login page', async({ page }) => {
@@ -46,7 +47,7 @@ test.describe('Basic tests', () => {
     await page.goto(utils.frontendUrl + '/register', {waitUntil: 'load'});
     await page.locator('#login-link').click();
     await expect(page.locator('app-login')).toBeVisible();
-    await expect(page.url()).toContain('/login');
+    expect(page.url()).toContain('/login');
   });
 });
 
@@ -105,7 +106,7 @@ test.describe('Registration tests', () => {
   test('should register and login after that', async({ page }) => {
     const randomEmail = `${utils.getRandomString()}@email.com`;
     await utils.registerUser(page, randomEmail, 'password123');
-      
+
     await page.locator('#login-link').click();
 
     await page.locator('#email').pressSequentially('user@email.com');
@@ -133,7 +134,7 @@ test.describe('Login tests', () => {
     await utils.registerUser(page, randomEmail, 'password123');
 
     await page.locator('#login-link').click();
-  
+
     await page.locator('#email').pressSequentially(randomEmail);
     await page.locator('#password').pressSequentially('password123');
     await page.getByRole('button', { name: 'Login' }).click();
