@@ -1,1 +1,27 @@
-<p>home works!</p>
+<div id="page-content">
+  <div id="above-table">
+    <span id="table-title">Annotation jobs</span>
+    <button id="add-job-button">+ new job</button>
+  </div>
+  <div id="grid-container">
+    <div class="grid-header">Job</div>
+    <div class="grid-header">Created</div>
+    <div class="grid-header">Started</div>
+    <div class="grid-header">Duration</div>
+    <div class="grid-header">Status</div>
+    <div class="grid-header">Annotated file</div>
+    <div class="grid-header">Delete</div>
+
+    <ng-container *ngFor="let j of jobs">
+      <div class="grid-cell">{{ j }}<span class="material-symbols-outlined info-icon">info</span></div>
+      <div class="grid-cell">{{ j }}</div>
+      <div class="grid-cell">{{ j }}</div>
+      <div class="grid-cell">{{ j }}</div>
+      <div class="grid-cell">{{ j }}</div>
+      <div class="grid-cell"><span class="material-symbols-outlined download-icon">download</span></div>
+      <div class="grid-cell"><span class="material-symbols-outlined delete-icon">delete</span></div>
+    </ng-container>
+  </div>
+
+  <span id="note">Note: Jobs are stored for 30 days</span>
+</div>
