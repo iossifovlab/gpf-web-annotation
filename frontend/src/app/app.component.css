@@ -15,3 +15,40 @@
   width: 50%;
   height: 100vh;
 }
+
+#app-header {
+  display: flex;
+  justify-content: space-between;
+  margin: 10px 15px;
+}
+
+#header-logo {
+  width: 32px;
+  height: 32px;
+}
+
+#app-title {
+  font-size: 28px;
+  font-weight: bold;
+  margin-left: 10px;
+  vertical-align: text-bottom;
+}
+
+#user-email {
+  font-size: 16px;
+  margin-right: 10px;
+}
+
+#logout-button {
+  padding: 10px 12px;
+  font-size: 16px;
+  white-space: nowrap;
+  border: 1px solid #cfd8df;
+  background: #fff;
+  border-radius: 10px;
+}
+
+#logout-button:hover {
+  background: #cfd8df;
+  cursor: pointer;
+}
