@@ -1,0 +1,80 @@
+#annotation-mode button {
+  border: none;
+  color: #85a2b9;
+  background-color: transparent;
+  font-weight: 600;
+}
+
+#file-upload-field {
+  border: 2px dashed #cfd8df;
+  border-radius: 15px;
+  height: 150px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* #file-upload-field:active {
+  background-color: #f4f7fb;
+} */
+
+#upload-instructions {
+  color: #5b778c;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+#uploaded-file-container {
+  border: 1px solid  #cfd8df;
+  border-radius: 5px;
+  background-color: #f4f7fb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 95%;
+  padding: 10px;
+  color: #252e34;
+  font-weight: 600;
+}
+
+.restrictions {
+  color: #85a2b9;
+  font-size: 14px;
+}
+
+label {
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+
+label:hover {
+  color: #85a2b9;
+}
+
+.delete-icon {
+  color: #435869;
+  vertical-align: middle;
+}
+
+.delete-icon:hover {
+  color: #85a2b9;
+  cursor: pointer;
+}
+
+.warning-icon {
+  color: #d74b59;
+}
+
+#delete-uploaded-file {
+  background: none;
+  border: none;
+}
+
+#error-message {
+  font-size: 14px;
+  color: #d74b59;
+  font-weight: normal;
+  margin-left: 10px;
+}

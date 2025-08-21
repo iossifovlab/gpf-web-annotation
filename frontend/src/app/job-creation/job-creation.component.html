@@ -1,0 +1,38 @@
+<mat-dialog-content>
+  <div>Quota: 5 per day</div>
+  <div id="annotation-mode">
+    <button id="pipelines-list">Annotation pipelines</button>
+    <button id="text-editor">YML text editor</button>
+  </div>
+  <div id="annotation-details">
+    <ng-container></ng-container>
+  </div>
+  <div *ngIf="!file" id="file-upload-field" (dragover)="onDragOver($event)" (drop)="onDropSuccess($event)">
+    <div id="upload-instructions">
+      Drag & drop here or
+      <label for="file-upload">Choose file</label>
+      <input type="file" id="file-upload" accept=".csv, .vcf" (change)="onUpload($event)" style="display: none" />
+    </div>
+    <div>
+      <div class="restrictions">*Supported formats: CSV, VCF</div>
+      <div class="restrictions">*Maximum file size: 5MB</div>
+      <div class="restrictions">*Maximum variants: 5</div>
+    </div>
+  </div>
+
+  <div *ngIf="file" id="uploaded-file-container">
+    <div>
+      <span *ngIf="uploadError" class="material-symbols-outlined warning-icon">warning</span>
+      <span *ngIf="!uploadError" class="material-symbols-outlined file-icon">article</span>
+      <span>{{ file.name }}</span>
+      <span id="error-message">{{ uploadError }}</span>
+    </div>
+    <button (click)="removeFile()" id="delete-uploaded-file">
+      <span class="material-symbols-outlined delete-icon">delete</span>
+    </button>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions align="center">
+  <button mat-raised-button (click)="onStartClick()" tabindex="1">Start</button>
+  <button mat-raised-button (click)="onCancelClick()" tabindex="-1">Cancel</button>
+</mat-dialog-actions>

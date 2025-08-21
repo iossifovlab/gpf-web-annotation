@@ -1,5 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import { JobCreationComponent } from '../job-creation/job-creation.component';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-home',
@@ -9,4 +11,24 @@ import { Component } from '@angular/core';
 })
 export class HomeComponent {
   public jobs: string[] = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+
+  public constructor(private dialog: MatDialog) {}
+
+  public openModal(): void {
+    const dialogRef = this.dialog.open(JobCreationComponent, {
+      height: '600px',
+      width: '800px',
+      // data: {
+      //   message: 'Are you sure want to delete?',
+      //   buttonText: {
+      //     ok: 'Save',
+      //     cancel: 'No'
+      //   }
+      // }
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      
+    });
+  }
 }
