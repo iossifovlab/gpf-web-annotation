@@ -1,6 +1,6 @@
 <div id="front-page-container" *ngIf="!currentUserData">
   <div id="front-page-header">
-    <img src="../assets/logo-64x64.png" alt="GPF Logo" id="front-page-logo" />
+    <img src="{{environment.imgPathPrefix}}/logo-64x64.png" alt="GPF Logo" id="front-page-logo" />
     <h1>GPF Web Annotation</h1>
     <p>{{ description }}</p>
   </div>
@@ -10,7 +10,7 @@
 <div id="app-container" *ngIf="currentUserData">
   <div id="app-header">
     <div>
-      <img src="../assets/logo-64x64.png" alt="GPF Logo" id="header-logo" />
+      <img src="{{environment.imgPathPrefix}}/logo-64x64.png" alt="GPF Logo" id="header-logo" />
       <span id="app-title">GPF Web Annotation</span>
     </div>
     <div id="user-data">

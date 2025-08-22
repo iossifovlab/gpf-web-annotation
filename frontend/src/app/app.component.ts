@@ -3,6 +3,7 @@ import { ChangeDetectorRef, Component, DoCheck } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { UserData, UsersService } from './users.service';
 import { takeWhile } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -13,6 +14,7 @@ import { takeWhile } from 'rxjs';
 export class AppComponent implements DoCheck {
   public description = 'GPF Web Annotation description';
   public currentUserData: UserData = null;
+  public readonly environment = environment;
 
   public constructor(
     private router: Router,

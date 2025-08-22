@@ -3,3 +3,6 @@ __pycache__
 data
 .pytest_cache
 gpf
+django-gpf-web-annotation-frontend/gpf_web_annotation_frontend/static
+*.egg-info
+django-gpf-web-annotation-frontend/dist

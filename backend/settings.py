@@ -19,7 +19,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
+    # 'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'web_annotation',
+    'gpf_web_annotation_frontend',
 ]
 
 MIDDLEWARE = [
@@ -103,10 +104,16 @@ USE_I18N = True
 USE_TZ = True
 
 
+# kasdfkaksdf !!?!??!
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = 'media-root/'
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = 'pesho/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -139,3 +146,6 @@ ANNOTATION_CONFIG_STORAGE_DIR = f"{DATA_STORAGE_DIR}/annotation-configs"
 JOB_INPUT_STORAGE_DIR = f"{DATA_STORAGE_DIR}/job-inputs"
 # Subdir to store results of annotation in
 JOB_RESULT_STORAGE_DIR = f"{DATA_STORAGE_DIR}/job-results"
+
+# Hristo kaza
+APPEND_SLASH = False

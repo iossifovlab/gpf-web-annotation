@@ -3,10 +3,12 @@ import { UsersService } from '../users.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
+import { RouterModule } from '@angular/router';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-registration',
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, RouterModule],
   templateUrl: './registration.component.html',
   styleUrl: './registration.component.css'
 })
@@ -15,6 +17,7 @@ export class RegistrationComponent {
   @ViewChild('passwordInput') private password!: ElementRef;
   public responseMessage: string = '';
   public validationMessage: string = '';
+  public readonly environment = environment;
 
   public constructor(private usersService: UsersService) {}
 

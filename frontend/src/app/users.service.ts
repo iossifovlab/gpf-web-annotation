@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, map } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface UserData {
   email: string;
@@ -9,8 +10,8 @@ export interface UserData {
 
 @Injectable()
 export class UsersService {
-  private readonly registerUrl = 'http://localhost:8000/register/';
-  private readonly loginUrl = 'http://localhost:8000/login/';
+  private readonly registerUrl = `${environment.basePath}/register`;
+  private readonly loginUrl = `${environment.basePath}/login`;
   public userData = new BehaviorSubject<UserData>(null);
 
   public constructor(

@@ -15,7 +15,7 @@
 
   <div id="login-options">
     <div id="response-message" *ngIf="responseMessage">{{ responseMessage }}</div>
-    <a href="/register" id="register-link">Create an account</a>
+    <a routerLink="/register" id="register-link">Create an account</a>
     <div id="divider">
       <hr />
       <span id="or-text">or</span>
@@ -23,7 +23,7 @@
     </div>
 
     <button id="google-login-button">
-      <img src="../../assets/google_logo.svg.png" alt="Google Icon" id="google-icon" />
+      <img src="{{environment.imgPathPrefix}}/google_logo.svg.png" alt="Google Icon" id="google-icon" />
       Continue with Google
     </button>
   </div>
