@@ -16,15 +16,8 @@ export class HomeComponent {
 
   public openModal(): void {
     const dialogRef = this.dialog.open(JobCreationComponent, {
-      height: '600px',
-      width: '800px',
-      // data: {
-      //   message: 'Are you sure want to delete?',
-      //   buttonText: {
-      //     ok: 'Save',
-      //     cancel: 'No'
-      //   }
-      // }
+      height: '60vh',
+      width: '50vw',
     });
 
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
