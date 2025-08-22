@@ -1,11 +1,37 @@
 <mat-dialog-content>
-  <div>Quota: 5 per day</div>
+  <div id="quota">Quota: 5 per day</div>
   <div id="annotation-mode">
-    <button id="pipelines-list">Annotation pipelines</button>
-    <button id="text-editor">YML text editor</button>
+    <button
+      id="pipelines-list"
+      [ngClass]="view === 'pipeline list' ? 'active-view' : 'inactive-view'"
+      (click)="changeView('pipeline list')"
+      >Annotation pipelines</button
+    >
+    <button
+      id="text-editor"
+      [ngClass]="view === 'text editor' ? 'active-view' : 'inactive-view'"
+      (click)="changeView('text editor')"
+      >YML text editor</button
+    >
   </div>
   <div id="annotation-details">
-    <ng-container></ng-container>
+    <ng-container *ngIf="view === 'pipeline list'">
+      <div class="pipeline-option">
+        <input type="radio" name="contact" value="autism" />
+        <a id="autism-link" href="https://grr.seqpipe.org/pipeline/Autism_annotation/index.html">pipeline/Autism_annotation</a>
+      </div>
+      <div class="pipeline-option">
+        <input type="radio" name="contact" value="clinical" />
+        <a id="clinical-link" href="https://grr.seqpipe.org/pipeline/Clinical_annotation/index.html">pipeline/Clinical_annotation</a>
+      </div>
+      <div class="pipeline-option">
+        <input type="radio" name="contact" value="gpf-sfari" />
+        <a id="gpf-sfari-link" href="https://grr.seqpipe.org/pipeline/GPF-SFARI_annotation/index.html">pipeline/GPF-SFARI_annotation</a>
+      </div>
+    </ng-container>
+    <ng-container *ngIf="view === 'text editor'">
+      <textarea></textarea>
+    </ng-container>
   </div>
   <div *ngIf="!file" id="file-upload-field" (dragover)="onDragOver($event)" (drop)="onDropSuccess($event)">
     <div id="upload-instructions">
@@ -33,6 +59,6 @@
   </div>
 </mat-dialog-content>
 <mat-dialog-actions align="center">
-  <button mat-raised-button (click)="onStartClick()" tabindex="1">Start</button>
-  <button mat-raised-button (click)="onCancelClick()" tabindex="-1">Cancel</button>
+  <button id="start-button" mat-raised-button (click)="onStartClick()" tabindex="1">Start</button>
+  <button id="cancel-button" mat-raised-button (click)="onCancelClick()" tabindex="-1">Cancel</button>
 </mat-dialog-actions>

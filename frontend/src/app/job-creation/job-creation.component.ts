@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { MatDialogRef, MatDialogActions, MatDialogContent } from '@angular/material/dialog';
+import { JobCreationView } from './jobs';
 
 
 @Component({
@@ -12,6 +13,7 @@ import { MatDialogRef, MatDialogActions, MatDialogContent } from '@angular/mater
 export class JobCreationComponent {
   public file: File = null;
   public uploadError = '';
+  public view: JobCreationView = 'pipeline list';
 
   private MAX_FILE_SIZE_BYTES = 5000000;
 
@@ -57,7 +59,6 @@ export class JobCreationComponent {
   }
 
   private isInSizeRange(file: File): void {
-    console.log((file.size / (1024 * 1024)).toFixed(2));
     if (file.size > this.MAX_FILE_SIZE_BYTES) {
       this.uploadError = 'Size limit is 5 MB!';
     }
@@ -69,5 +70,9 @@ export class JobCreationComponent {
 
   private onFileChange(file: File): void {
     this.file = file;
+  }
+
+  public changeView(view: JobCreationView): void {
+    this.view = view;
   }
 }
