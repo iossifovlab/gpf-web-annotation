@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { MatDialogRef, MatDialogActions, MatDialogContent } from '@angular/material/dialog';
 import { JobCreationView } from './jobs';
+import { JobsService } from './jobs.service';
 
 
 @Component({
@@ -17,10 +18,13 @@ export class JobCreationComponent {
 
   private MAX_FILE_SIZE_BYTES = 5000000;
 
-  public constructor(private dialogRef: MatDialogRef<JobCreationComponent>) { }
+  public constructor(private dialogRef: MatDialogRef<JobCreationComponent>, private jobsService: JobsService) { }
 
   public onStartClick(): void {
     this.dialogRef.close(true);
+    if (this.file) {
+      this.jobsService.createJob(this.file).subscribe();
+    }
   }
 
   public onCancelClick(): void {
