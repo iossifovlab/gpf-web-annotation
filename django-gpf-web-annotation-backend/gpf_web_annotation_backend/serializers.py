@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from web_annotation.models import Job, User
+from .models import Job, User
 
 
 class JobSerializer(serializers.ModelSerializer):

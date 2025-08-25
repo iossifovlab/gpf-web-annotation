@@ -8,9 +8,9 @@ from rest_framework.response import Response
 from rest_framework import generics
 from annotation import run_job
 
-from web_annotation.serializers import JobSerializer, UserSerializer
-from web_annotation.models import Job, User
-from web_annotation.permissions import IsOwner, has_job_permission
+from .serializers import JobSerializer, UserSerializer
+from .models import Job, User
+from .permissions import IsOwner, has_job_permission
 
 import time
 import pathlib

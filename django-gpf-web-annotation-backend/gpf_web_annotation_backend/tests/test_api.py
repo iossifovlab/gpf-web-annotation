@@ -6,7 +6,7 @@ from django.http.response import FileResponse
 from django.test import Client
 from django.conf import settings
 
-from web_annotation.models import Job, User
+from .models import Job, User
 
 
 def test_get_jobs(

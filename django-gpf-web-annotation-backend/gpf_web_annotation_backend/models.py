@@ -22,4 +22,4 @@ class Job(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     status = models.IntegerField(choices=Status, default=Status.WAITING)
 
-    owner = models.ForeignKey('web_annotation.User', related_name='jobs', on_delete=models.CASCADE)
+    owner = models.ForeignKey('gpf_web_annnotation_backend.User', related_name='jobs', on_delete=models.CASCADE)
