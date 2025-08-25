@@ -131,6 +131,8 @@ CORS_ORIGIN_WHITELIST = [
     "http://127.0.0.1:4200",
 ]
 
+CORS_ALLOW_CREDENTIALS = True
+
 # Dir for all data storage
 DATA_STORAGE_DIR = "data"
 # Subdir to store uploaded annotation configurations in
