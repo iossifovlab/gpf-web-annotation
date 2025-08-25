@@ -133,6 +133,11 @@ CORS_ORIGIN_WHITELIST = [
 
 CORS_ALLOW_CREDENTIALS = True
 
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:4200",
+    "http://127.0.0.1:4200",
+]
+
 # Dir for all data storage
 DATA_STORAGE_DIR = "data"
 # Subdir to store uploaded annotation configurations in

@@ -10,8 +10,18 @@ export class JobsService {
     private http: HttpClient,
   ) { }
 
+  private getCSRFToken(): string {
+    let res = "";
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; csrftoken=`);
+    if (parts.length === 2) {
+        res = parts.pop().split(';').shift();
+    }
+    return res;
+  }
+
   public createJob(file: File): Observable<object> {
-    const options = { withCredentials: true };
+    const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
     const formData = new FormData();
     formData.append('data', file, file.name);
     formData.append('config', new Blob(['absdb']), 'asd');

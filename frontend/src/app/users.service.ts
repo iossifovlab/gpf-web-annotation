@@ -34,6 +34,7 @@ export class UsersService {
         email: email,
         password: password
       },
+      { withCredentials: true },
     ).pipe(
       map((userData: UserData) => {
         this.userData.next(userData);
