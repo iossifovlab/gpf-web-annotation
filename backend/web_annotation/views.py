@@ -51,6 +51,7 @@ class JobCreate(views.APIView):
             return Response(status=views.status.HTTP_400_BAD_REQUEST)
         # TODO Verify validity of config
         config_path = pathlib.Path(settings.ANNOTATION_CONFIG_STORAGE_DIR, filename)
+        config_path.parent.mkdir(exist_ok=True, parents=True)
         config_path.write_text(content.decode())
 
         # Handle input VCF file
@@ -60,6 +61,7 @@ class JobCreate(views.APIView):
             return Response(status=views.status.HTTP_400_BAD_REQUEST)
         # TODO Verify if valid VCF (?)
         input_path = pathlib.Path(settings.JOB_INPUT_STORAGE_DIR, filename)
+        input_path.parent.mkdir(exist_ok=True, parents=True)
         input_path.write_text(content.decode())
 
         result_path = pathlib.Path(settings.JOB_RESULT_STORAGE_DIR, filename)
