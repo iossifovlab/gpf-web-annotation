@@ -52,7 +52,8 @@ describe('UsersService', () => {
       {
         email: 'mockEmail@email.com',
         password: 'mockPassword'
-      }
+      },
+      { withCredentials: true }
     );
   });
 
