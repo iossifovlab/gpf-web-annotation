@@ -17,8 +17,6 @@ export class JobCreationComponent {
   public view: JobCreationView = 'pipeline list';
   @ViewChild('ymlText') private ymlText: ElementRef<HTMLTextAreaElement>;
 
-  private MAX_FILE_SIZE_BYTES = 5000000;
-
   public constructor(private dialogRef: MatDialogRef<JobCreationComponent>, private jobsService: JobsService) { }
 
   public onStartClick(): void {
@@ -48,10 +46,6 @@ export class JobCreationComponent {
     event.preventDefault();
     if (event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length > 0) {
       const file = event.dataTransfer.files[0];
-
-      this.isFormatValid(file);
-
-
       this.onFileChange(file);
     }
   }
@@ -59,14 +53,6 @@ export class JobCreationComponent {
   private isFormatValid(file: File): void {
     if (!file.type.includes('csv') && !file.type.includes('vcf')) {
       this.uploadError = 'Unsupported format!';
-      return;
-    }
-    this.isInSizeRange(file);
-  }
-
-  private isInSizeRange(file: File): void {
-    if (file.size > this.MAX_FILE_SIZE_BYTES) {
-      this.uploadError = 'Size limit is 5 MB!';
     }
   }
 
@@ -75,6 +61,7 @@ export class JobCreationComponent {
   }
 
   private onFileChange(file: File): void {
+    this.isFormatValid(file);
     this.file = file;
   }
 
