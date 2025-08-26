@@ -16,11 +16,11 @@
     <div class="grid-header">Delete</div>
 
     <ng-container *ngFor="let j of jobs">
-      <div class="grid-cell">{{ j }}<span class="material-symbols-outlined info-icon">info</span></div>
-      <div class="grid-cell">{{ j }}</div>
-      <div class="grid-cell">{{ j }}</div>
-      <div class="grid-cell">{{ j }}</div>
-      <div class="grid-cell">{{ j }}</div>
+      <div class="grid-cell">{{ j.id }}<span class="material-symbols-outlined info-icon">info</span></div>
+      <div class="grid-cell">{{ j.created }}</div>
+      <div class="grid-cell">-</div>
+      <div class="grid-cell">-</div>
+      <div class="grid-cell">{{ j.status }}</div>
       <div class="grid-cell"><span class="material-symbols-outlined download-icon">download</span></div>
       <div class="grid-cell"><span class="material-symbols-outlined delete-icon">delete</span></div>
     </ng-container>
