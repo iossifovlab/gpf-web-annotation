@@ -11,20 +11,21 @@ export class JobsService {
   ) { }
 
   private getCSRFToken(): string {
-    let res = "";
+    let res = '';
     const value = `; ${document.cookie}`;
-    const parts = value.split(`; csrftoken=`);
+    const parts = value.split('; csrftoken=');
     if (parts.length === 2) {
-        res = parts.pop().split(';').shift();
+      res = parts.pop().split(';').shift();
     }
     return res;
   }
 
-  public createJob(file: File): Observable<object> {
+  public createJob(file: File, config: string): Observable<object> {
+    const configFile = new File([config], 'config.yml');
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
     const formData = new FormData();
     formData.append('data', file, file.name);
-    formData.append('config', new Blob(['absdb']), 'asd');
+    formData.append('config', configFile);
     return this.http.post(
       this.createJobUrl,
       formData,

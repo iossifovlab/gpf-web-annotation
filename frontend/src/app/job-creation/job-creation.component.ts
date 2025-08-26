@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { MatDialogRef, MatDialogActions, MatDialogContent } from '@angular/material/dialog';
 import { JobCreationView } from './jobs';
 import { JobsService } from './jobs.service';
@@ -15,6 +15,7 @@ export class JobCreationComponent {
   public file: File = null;
   public uploadError = '';
   public view: JobCreationView = 'pipeline list';
+  @ViewChild('ymlText') private ymlText: ElementRef<HTMLTextAreaElement>;
 
   private MAX_FILE_SIZE_BYTES = 5000000;
 
@@ -23,7 +24,8 @@ export class JobCreationComponent {
   public onStartClick(): void {
     this.dialogRef.close(true);
     if (this.file) {
-      this.jobsService.createJob(this.file).subscribe();
+      this.jobsService.createJob(this.file, this.ymlText.nativeElement.value).subscribe();
+      this.ymlText.nativeElement.value = '';
     }
   }
 

@@ -30,7 +30,7 @@
       </div>
     </ng-container>
     <ng-container *ngIf="view === 'text editor'">
-      <textarea></textarea>
+      <textarea #ymlText></textarea>
     </ng-container>
   </div>
   <div *ngIf="!file" id="file-upload-field" (dragover)="onDragOver($event)" (drop)="onDropSuccess($event)">
