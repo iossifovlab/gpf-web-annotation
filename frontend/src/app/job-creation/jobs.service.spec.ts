@@ -3,6 +3,14 @@ import { HttpClient, HttpResponse, provideHttpClient } from '@angular/common/htt
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { lastValueFrom, of, take } from 'rxjs';
 import { JobsService } from './jobs.service';
+import { Job } from './jobs';
+
+const jobsMockJson = [
+  { id: 1, created: '1.10.2025', owner: 'test@email.com', status: 2 },
+  { id: 2, created: '1.10.2025', owner: 'test@email.com', status: 4 },
+  { id: 3, created: '1.10.2025', owner: 'test@email.com', status: 3 },
+  { id: 4, created: '1.10.2025', owner: 'test@email.com', status: 1 },
+];
 
 describe('JobsService', () => {
   let service: JobsService;
@@ -92,5 +100,62 @@ describe('JobsService', () => {
       formData,
       options
     );
+  });
+
+  it('should check parameters of get jobs query', () => {
+    const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
+
+    const mockCookie = 'csrftoken=EYZbFmv1i1Ie7cmT3OFHgxdv3kOR7rIt';
+    document.cookie = mockCookie;
+
+    const options = {
+      headers: {
+        'X-CSRFToken': 'EYZbFmv1i1Ie7cmT3OFHgxdv3kOR7rIt'
+      },
+      withCredentials: true
+    };
+
+    service.getJobs();
+    expect(httpGetSpy).toHaveBeenCalledWith(
+      'http://localhost:8000/jobs/',
+      options
+    );
+  });
+
+  it('should get users jobs and create list with job objects from response', async() => {
+    const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
+    httpGetSpy.mockReturnValue(of(jobsMockJson));
+
+    const jobsMockResult = [
+      new Job(1, '1.10.2025', 'test@email.com', 'in process'),
+      new Job(2, '1.10.2025', 'test@email.com', 'failed'),
+      new Job(3, '1.10.2025', 'test@email.com', 'success'),
+      new Job(4, '1.10.2025', 'test@email.com', 'waiting'),
+    ];
+
+    const getResponse = service.getJobs();
+
+    const res = await lastValueFrom(getResponse.pipe(take(1)));
+    expect(res).toStrictEqual(jobsMockResult);
+  });
+
+  it('should return undefined when converting invalid response into array of jobs', async() => {
+    const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
+    httpGetSpy.mockReturnValue(of(null));
+
+    const getResponse = service.getJobs();
+
+    const res = await lastValueFrom(getResponse.pipe(take(1)));
+    expect(res).toBeUndefined();
+  });
+
+  it('should return undefined when converting array with invalid data into array of jobs', async() => {
+    const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
+    httpGetSpy.mockReturnValue(of([null]));
+
+    const getResponse = service.getJobs();
+
+    const res = await lastValueFrom(getResponse.pipe(take(1)));
+    expect(res).toStrictEqual([undefined]);
   });
 });

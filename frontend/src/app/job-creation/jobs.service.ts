@@ -1,14 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
+import { Job } from './jobs';
 
 @Injectable()
 export class JobsService {
   private readonly createJobUrl = 'http://localhost:8000/jobs/create/';
+  private readonly getUsersJobsUrl = 'http://localhost:8000/jobs/';
 
-  public constructor(
-    private http: HttpClient,
-  ) { }
+  public constructor(private http: HttpClient) { }
 
   private getCSRFToken(): string {
     let res = '';
@@ -31,5 +31,13 @@ export class JobsService {
       formData,
       options
     );
+  }
+
+  public getJobs(): Observable<Job[]> {
+    const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
+    return this.http.get<object[]>(
+      this.getUsersJobsUrl,
+      options
+    ).pipe(map((response: object[]) => Job.fromJsonArray(response)));
   }
 }
