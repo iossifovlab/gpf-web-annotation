@@ -1,0 +1,44 @@
+<mat-dialog-content>
+  <div>
+    <span>Id: </span>
+    <span>{{ job.id }}</span>
+  </div>
+  <div>
+    <span>Created: </span>
+    <span>{{ job.created }}</span>
+  </div>
+  <div>
+    <span>Status: </span>
+    <span>{{ job.status }}</span>
+  </div>
+  <div>
+    <span>Started: </span>
+    <span>-</span>
+  </div>
+  <div>
+    <span>Duration: </span>
+    <span>-</span>
+  </div>
+  <div>
+    <span>Annotated file: </span>
+    <a id="download-result" [href]="annotatedFileLink" download>
+      <span class="material-symbols-outlined download-icon">download</span>
+    </a>
+  </div>
+  <div>
+    <span>Uploaded file: </span>
+    <a id="download-input" [href]="uploadedFileLink" download>
+      <span class="material-symbols-outlined download-icon">download</span>
+    </a>
+  </div>
+
+  <div>
+    <span>Config file: </span>
+    <a id="download-input" [href]="configFileLink" download>
+      <span class="material-symbols-outlined download-icon">download</span>
+    </a>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions align="center">
+  <button id="delete-button" mat-raised-button tabindex="1">Delete job</button>
+</mat-dialog-actions>
