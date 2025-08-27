@@ -159,6 +159,26 @@ describe('JobsService', () => {
     expect(res).toStrictEqual([undefined]);
   });
 
+  it('should get details of a job', async() => {
+    const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
+    httpGetSpy.mockReturnValue(of(
+      {
+        id: 16,
+        created: '2025-08-26',
+        status: 1,
+        owner: 'register@email.com'
+      }
+    ));
+
+    const job = new Job(16, '2025-08-26', 'register@email.com', 'waiting');
+
+    const getResponse = service.getJobDetails(16);
+
+    const res = await lastValueFrom(getResponse.pipe(take(1)));
+    expect(res).toStrictEqual(job);
+  });
+
+
   it('should create annotated file download link', () => {
     const url = service.getDownloadJobResultLink(10);
     expect(url).toBe('http://localhost:8000/jobs/10/file/result/');

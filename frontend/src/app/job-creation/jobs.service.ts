@@ -41,6 +41,14 @@ export class JobsService {
     ).pipe(map((response: object[]) => Job.fromJsonArray(response)));
   }
 
+  public getJobDetails(jobId: number): Observable<Job> {
+    const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
+    return this.http.get(
+      this.getUsersJobsUrl + jobId,
+      options
+    ).pipe(map((response: object) => Job.fromJson(response)));
+  }
+
   public getDownloadJobResultLink(jobId: number): string {
     return `http://localhost:8000/jobs/${jobId}/file/result/`;
   }
