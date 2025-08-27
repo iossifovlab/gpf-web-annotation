@@ -183,4 +183,14 @@ describe('JobsService', () => {
     const url = service.getDownloadJobResultLink(10);
     expect(url).toBe('http://localhost:8000/jobs/10/file/result/');
   });
+
+  it('should create config file download link', () => {
+    const url = service.getJobConfigLink(10);
+    expect(url).toBe('http://localhost:8000/jobs/10/file/config/');
+  });
+
+  it('should create input file download link', () => {
+    const url = service.getJobInputDownloadLink(10);
+    expect(url).toBe('http://localhost:8000/jobs/10/file/input/');
+  });
 });

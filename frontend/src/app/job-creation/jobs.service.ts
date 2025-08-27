@@ -52,4 +52,12 @@ export class JobsService {
   public getDownloadJobResultLink(jobId: number): string {
     return `http://localhost:8000/jobs/${jobId}/file/result/`;
   }
+
+  public getJobInputDownloadLink(jobId: number): string {
+    return `http://localhost:8000/jobs/${jobId}/file/input/`;
+  }
+
+  public getJobConfigLink(jobId: number): string {
+    return `http://localhost:8000/jobs/${jobId}/file/config/`;
+  }
 }
