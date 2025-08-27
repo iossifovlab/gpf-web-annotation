@@ -1,7 +1,7 @@
 <div id="page-content">
   <div id="above-table">
     <span id="table-title">Annotation jobs</span>
-    <button id="add-job-button" mat-button (click)="openModal()">
+    <button id="add-job-button" mat-button (click)="openCreateModal()">
       <span class="material-symbols-outlined add-icon">add</span>
       new job</button
     >
@@ -16,7 +16,10 @@
     <div class="grid-header">Delete</div>
 
     <ng-container *ngFor="let j of jobs">
-      <div class="grid-cell">{{ j.id }}<span class="material-symbols-outlined info-icon">info</span></div>
+      <div class="grid-cell"
+        >{{ j.id
+        }}<span class="material-symbols-outlined info-icon" mat-button (click)="openDetailsModal(j.id)">info</span></div
+      >
       <div class="grid-cell">{{ j.created }}</div>
       <div class="grid-cell">-</div>
       <div class="grid-cell">-</div>

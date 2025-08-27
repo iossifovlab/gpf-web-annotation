@@ -5,6 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { JobsService } from '../job-creation/jobs.service';
 import { take } from 'rxjs';
 import { Job } from '../job-creation/jobs';
+import { JobDetailsComponent } from '../job-details/job-details.component';
 
 @Component({
   selector: 'app-home',
@@ -23,8 +24,16 @@ export class HomeComponent implements OnInit {
     });
   }
 
-  public openModal(): void {
+  public openCreateModal(): void {
     this.dialog.open(JobCreationComponent, {
+      height: '60vh',
+      width: '50vw',
+    });
+  }
+
+  public openDetailsModal(jobId: number): void {
+    this.dialog.open(JobDetailsComponent, {
+      data: jobId,
       height: '60vh',
       width: '50vw',
     });
