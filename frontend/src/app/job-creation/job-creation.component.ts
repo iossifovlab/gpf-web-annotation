@@ -51,7 +51,7 @@ export class JobCreationComponent {
   }
 
   private isFormatValid(file: File): void {
-    if (!file.type.includes('csv') && !file.type.includes('vcf')) {
+    if (file.type !== 'text/csv' && file.type !== 'text/vcard') {
       this.uploadError = 'Unsupported format!';
     }
   }

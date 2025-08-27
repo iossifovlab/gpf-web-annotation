@@ -85,7 +85,7 @@ describe('JobCreationComponent', () => {
   });
 
   it('should upload csv file', () => {
-    const mockFile = new File([], 'mockFile', { type: 'csv' });
+    const mockFile = new File([], 'mockFile', { type: 'text/csv' });
     const mockEvent = {
       target: { files: [mockFile] } as unknown as HTMLInputElement,
     } as unknown as Event;
@@ -95,7 +95,7 @@ describe('JobCreationComponent', () => {
   });
 
   it('should upload vcf file', () => {
-    const mockFile = new File([], 'mockFile', { type: 'vcf' });
+    const mockFile = new File([], 'mockFile', { type: 'text/vcard' });
     const mockEvent = {
       target: { files: [mockFile] } as unknown as HTMLInputElement,
     } as unknown as Event;
@@ -123,7 +123,7 @@ describe('JobCreationComponent', () => {
   });
 
   it('should start process after clicking start button', () => {
-    const mockFile = new File([], 'mockFile', { type: 'vcf' });
+    const mockFile = new File([], 'mockFile', { type: 'text/vcard' });
     component.file = mockFile;
     component.changeView('text editor');
     fixture.detectChanges();
