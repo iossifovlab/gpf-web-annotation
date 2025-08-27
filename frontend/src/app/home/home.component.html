@@ -21,7 +21,11 @@
       <div class="grid-cell">-</div>
       <div class="grid-cell">-</div>
       <div class="grid-cell">{{ j.status }}</div>
-      <div class="grid-cell"><span class="material-symbols-outlined download-icon">download</span></div>
+      <div class="grid-cell">
+        <a id="download-result" [href]="getDownloadLink(j.id)" download
+          ><span class="material-symbols-outlined download-icon">download</span></a
+        >
+      </div>
       <div class="grid-cell"><span class="material-symbols-outlined delete-icon">delete</span></div>
     </ng-container>
   </div>

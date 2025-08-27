@@ -93,6 +93,11 @@
   cursor: pointer;
 }
 
+#download-result {
+  background-color: transparent;
+  border: none;
+}
+
 #note {
   font-style: italic;
   color: #5b778c;

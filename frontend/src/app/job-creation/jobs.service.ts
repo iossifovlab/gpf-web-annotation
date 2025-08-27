@@ -40,4 +40,8 @@ export class JobsService {
       options
     ).pipe(map((response: object[]) => Job.fromJsonArray(response)));
   }
+
+  public getDownloadJobResultLink(jobId: number): string {
+    return `http://localhost:8000/jobs/${jobId}/file/result/`;
+  }
 }

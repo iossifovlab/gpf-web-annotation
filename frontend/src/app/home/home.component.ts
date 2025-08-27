@@ -29,4 +29,8 @@ export class HomeComponent implements OnInit {
       width: '50vw',
     });
   }
+
+  public getDownloadLink(jobId: number): string {
+    return this.jobsService.getDownloadJobResultLink(jobId);
+  }
 }

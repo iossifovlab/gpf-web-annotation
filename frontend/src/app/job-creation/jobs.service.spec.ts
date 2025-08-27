@@ -158,4 +158,9 @@ describe('JobsService', () => {
     const res = await lastValueFrom(getResponse.pipe(take(1)));
     expect(res).toStrictEqual([undefined]);
   });
+
+  it('should create annotated file download link', () => {
+    const url = service.getDownloadJobResultLink(10);
+    expect(url).toBe('http://localhost:8000/jobs/10/file/result/');
+  });
 });

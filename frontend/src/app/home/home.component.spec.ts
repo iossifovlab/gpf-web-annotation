@@ -13,6 +13,10 @@ class JobsServiceMock {
   public getJobs(): Observable<Job[]> {
     return of(jobs);
   }
+
+  public getDownloadJobResultLink(jobId: number): string {
+    return `/jobs/mockUrl/${jobId}`;
+  }
 }
 
 describe('HomeComponent', () => {
@@ -40,5 +44,10 @@ describe('HomeComponent', () => {
   it('should get users jobs from service', () => {
     component.ngOnInit();
     expect(component.jobs).toStrictEqual(jobs);
+  });
+
+  it('should get download link for annotated file from service', () => {
+    const url = component.getDownloadLink(15);
+    expect(url).toBe('/jobs/mockUrl/15');
   });
 });
