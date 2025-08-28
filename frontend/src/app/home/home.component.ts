@@ -4,7 +4,7 @@ import { JobCreationComponent } from '../job-creation/job-creation.component';
 import { MatDialog } from '@angular/material/dialog';
 import { JobsService } from '../job-creation/jobs.service';
 import { take } from 'rxjs';
-import { Job } from '../job-creation/jobs';
+import { getStatusClassName, Job } from '../job-creation/jobs';
 import { JobDetailsComponent } from '../job-details/job-details.component';
 
 @Component({
@@ -34,12 +34,16 @@ export class HomeComponent implements OnInit {
   public openDetailsModal(jobId: number): void {
     this.dialog.open(JobDetailsComponent, {
       data: jobId,
-      height: '60vh',
-      width: '50vw',
+      height: '40vh',
+      width: '30vw',
     });
   }
 
   public getDownloadLink(jobId: number): string {
     return this.jobsService.getDownloadJobResultLink(jobId);
+  }
+
+  public getStatusClass(status: string): string {
+    return getStatusClassName(status);
   }
 }

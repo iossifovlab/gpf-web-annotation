@@ -1,0 +1,43 @@
+#delete-button {
+  color: #d74b59;
+  text-decoration-line: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 5px;
+  background: none;
+  border: none;
+  font-size: 16px;
+}
+
+#delete-button:hover {
+  color: #f57380;
+  cursor: pointer;
+}
+
+.mat-mdc-dialog-actions {
+  justify-content: end;
+}
+
+.download-icon {
+  color: #435869;
+  vertical-align: middle;
+}
+
+.download-icon:hover {
+  color: #85a2b9;
+  cursor: pointer;
+}
+
+.label {
+  color: #b9d3e7;
+  font-weight: bold;
+}
+
+.data {
+  color: #5b778c;
+}
+
+mat-dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

@@ -20,10 +20,12 @@
         >{{ j.id
         }}<span class="material-symbols-outlined info-icon" mat-button (click)="openDetailsModal(j.id)">info</span></div
       >
-      <div class="grid-cell">{{ j.created }}</div>
-      <div class="grid-cell">-</div>
-      <div class="grid-cell">-</div>
-      <div class="grid-cell">{{ j.status }}</div>
+      <div class="grid-cell time">{{ j.created }}</div>
+      <div class="grid-cell time">-</div>
+      <div class="grid-cell time">-</div>
+      <div class="grid-cell">
+        <span class="status-label" [ngClass]="getStatusClass(j.status)">{{ j.status }}</span>
+      </div>
       <div class="grid-cell">
         <a id="download-result" [href]="getDownloadLink(j.id)" download
           ><span class="material-symbols-outlined download-icon">download</span></a

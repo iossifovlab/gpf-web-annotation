@@ -41,3 +41,13 @@ export class Job {
 
 export type JobCreationView = 'text editor' | 'pipeline list';
 export type Status = 'waiting' | 'in process' | 'success' | 'failed';
+
+export function getStatusClassName(status: string): string {
+  switch (status) {
+    case 'waiting': return 'waiting-status';
+    case 'in process': return 'in-progress-status';
+    case 'success': return 'success-status';
+    case 'failed': return 'fail-status';
+  }
+  return '';
+}

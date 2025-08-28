@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogActions, MatDialogContent, MatDialogRef } from '@angular/material/dialog';
 import { JobsService } from '../job-creation/jobs.service';
-import { Job } from '../job-creation/jobs';
+import { getStatusClassName, Job } from '../job-creation/jobs';
 
 @Component({
   selector: 'app-job-details',
@@ -37,5 +37,9 @@ export class JobDetailsComponent implements OnInit {
 
   public onCancelClick(): void {
     this.dialogRef.close(true);
+  }
+
+  public getStatusClass(status: string): string {
+    return getStatusClassName(status);
   }
 }

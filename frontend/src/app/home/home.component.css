@@ -1,5 +1,5 @@
 #page-content {
-  margin: 60px 15% 0;
+  margin: 60px 15%;
   min-width: 715px;
   max-width: 1600px;
 }
@@ -71,7 +71,7 @@
 }
 
 .info-icon {
-  font-size: 16px;
+  font-size: 20px;
   color: #5b778c;
   margin-left: 5px;
 }
@@ -79,6 +79,10 @@
 .info-icon:hover {
   color: #85a2b9;
   cursor: pointer;
+}
+
+.time {
+  color: #85a2b9;
 }
 
 .download-icon,

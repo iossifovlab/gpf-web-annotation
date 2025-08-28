@@ -1,39 +1,39 @@
 <mat-dialog-content>
   <div>
-    <span>Id: </span>
-    <span>{{ job.id }}</span>
+    <span class="label">Id: </span>
+    <span class="data">{{ job.id }}</span>
   </div>
   <div>
-    <span>Created: </span>
-    <span>{{ job.created }}</span>
+    <span class="label">Created: </span>
+    <span class="data">{{ job.created }}</span>
   </div>
   <div>
-    <span>Status: </span>
-    <span>{{ job.status }}</span>
+    <span class="label">Status: </span>
+    <span class="status-label" [ngClass]="getStatusClass(job.status)">{{ job.status }}</span>
   </div>
   <div>
-    <span>Started: </span>
-    <span>-</span>
+    <span class="label">Started: </span>
+    <span class="data">-</span>
   </div>
   <div>
-    <span>Duration: </span>
-    <span>-</span>
+    <span class="label">Duration: </span>
+    <span class="data">-</span>
   </div>
   <div>
-    <span>Annotated file: </span>
+    <span class="label">Annotated file: </span>
     <a id="download-result" [href]="annotatedFileLink" download>
       <span class="material-symbols-outlined download-icon">download</span>
     </a>
   </div>
   <div>
-    <span>Uploaded file: </span>
+    <span class="label">Uploaded file: </span>
     <a id="download-input" [href]="uploadedFileLink" download>
       <span class="material-symbols-outlined download-icon">download</span>
     </a>
   </div>
 
   <div>
-    <span>Config file: </span>
+    <span class="label">Config file: </span>
     <a id="download-input" [href]="configFileLink" download>
       <span class="material-symbols-outlined download-icon">download</span>
     </a>
