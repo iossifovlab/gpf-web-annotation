@@ -83,6 +83,11 @@
   font-weight: 600;
 }
 
+#file-info {
+  display: flex;
+  gap: 8px;
+}
+
 .restrictions {
   color: #85a2b9;
   font-size: 14px;

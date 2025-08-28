@@ -47,7 +47,7 @@
   </div>
 
   <div *ngIf="file" id="uploaded-file-container">
-    <div>
+    <div id="file-info">
       <span *ngIf="uploadError" class="material-symbols-outlined warning-icon">warning</span>
       <span *ngIf="!uploadError" class="material-symbols-outlined file-icon">article</span>
       <span>{{ file.name }}</span>
