@@ -147,4 +147,39 @@ describe('JobCreationComponent', () => {
     component.onStartClick();
     expect(createJob).toHaveBeenCalledWith(mockFile, 'autism', null);
   });
+
+  it('should disable start button if no file is uploaded', () => {
+    component.file = null;
+    component.uploadError = '';
+    component.pipelineId = 'autism';
+    expect(component.disableStart()).toBe(true);
+  });
+
+  it('should disable start button if file with unsupported format is uploaded', () => {
+    const mockFile = new File([], 'mockFile', { type: 'json' });
+    const mockEvent = {
+      target: { files: [mockFile] } as unknown as HTMLInputElement,
+    } as unknown as Event;
+
+    component.onUpload(mockEvent);
+    component.pipelineId = 'autism';
+    expect(component.disableStart()).toBe(true);
+  });
+
+  it('should disable start button if no pipeline is chosen', () => {
+    component.file = new File([], 'mockFile', { type: 'json' });
+    component.uploadError = '';
+    component.pipelineId = '';
+    expect(component.disableStart()).toBe(true);
+  });
+
+  it('should disable start button if no yml config is set', () => {
+    component.file = new File([], 'mockFile', { type: 'json' });
+    component.uploadError = '';
+    component.changeView('text editor');
+    fixture.detectChanges();
+    const ymlArea: HTMLTextAreaElement = templateRef.querySelector('#yml-textarea');
+    ymlArea.value = '';
+    expect(component.disableStart()).toBe(true);
+  });
 });

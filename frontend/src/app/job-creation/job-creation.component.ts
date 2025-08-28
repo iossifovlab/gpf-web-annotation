@@ -67,6 +67,7 @@ export class JobCreationComponent {
 
   public removeFile(): void {
     this.file = null;
+    this.uploadError = '';
   }
 
   private onFileChange(file: File): void {
@@ -75,6 +76,13 @@ export class JobCreationComponent {
   }
 
   public changeView(view: JobCreationView): void {
+    this.pipelineId = '';
     this.view = view;
+  }
+
+  public disableStart(): boolean {
+    return !this.file ||
+      Boolean(this.uploadError) ||
+      (this.view === 'text editor' ? !this.ymlText?.nativeElement.value : !this.pipelineId);
   }
 }

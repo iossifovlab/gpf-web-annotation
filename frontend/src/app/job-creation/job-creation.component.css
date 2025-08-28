@@ -145,6 +145,15 @@ label:hover {
   cursor: pointer;
 }
 
+#start-button:disabled {
+  opacity: 30%;
+}
+
+#start-button:disabled:hover {
+  cursor: auto;
+  background-color: #435869;
+}
+
 #cancel-button {
   padding: 8px 10px;
   font-size: 16px;
