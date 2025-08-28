@@ -6,8 +6,8 @@ import { of } from 'rxjs';
 import { JobsService } from '../job-creation/jobs.service';
 
 const jobs = [
-  new Job(1, '1.10.2025', 'test@email.com', 'in process'),
-  new Job(2, '1.10.2025', 'test@email.com', 'failed'),
+  new Job(1, new Date('1.10.2025'), 'test@email.com', 'in process'),
+  new Job(2, new Date('1.10.2025'), 'test@email.com', 'failed'),
 ];
 class JobsServiceMock {
   public getJobs(): Observable<Job[]> {

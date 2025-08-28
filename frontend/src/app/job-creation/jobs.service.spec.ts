@@ -127,10 +127,10 @@ describe('JobsService', () => {
     httpGetSpy.mockReturnValue(of(jobsMockJson));
 
     const jobsMockResult = [
-      new Job(1, '1.10.2025', 'test@email.com', 'in process'),
-      new Job(2, '1.10.2025', 'test@email.com', 'failed'),
-      new Job(3, '1.10.2025', 'test@email.com', 'success'),
-      new Job(4, '1.10.2025', 'test@email.com', 'waiting'),
+      new Job(1, new Date('1.10.2025'), 'test@email.com', 'in process'),
+      new Job(2, new Date('1.10.2025'), 'test@email.com', 'failed'),
+      new Job(3, new Date('1.10.2025'), 'test@email.com', 'success'),
+      new Job(4, new Date('1.10.2025'), 'test@email.com', 'waiting'),
     ];
 
     const getResponse = service.getJobs();
@@ -170,7 +170,7 @@ describe('JobsService', () => {
       }
     ));
 
-    const job = new Job(16, '2025-08-26', 'register@email.com', 'waiting');
+    const job = new Job(16, new Date('2025-08-26'), 'register@email.com', 'waiting');
 
     const getResponse = service.getJobDetails(16);
 

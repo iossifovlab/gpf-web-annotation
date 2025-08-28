@@ -36,6 +36,10 @@
   color: #5b778c;
 }
 
+.time {
+  color: #c8dae7;
+}
+
 mat-dialog-content {
   display: flex;
   flex-direction: column;

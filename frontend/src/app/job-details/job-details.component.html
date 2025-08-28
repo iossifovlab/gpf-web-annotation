@@ -1,11 +1,14 @@
-<mat-dialog-content>
+<mat-dialog-content *ngIf="job">
   <div>
     <span class="label">Id: </span>
     <span class="data">{{ job.id }}</span>
   </div>
   <div>
     <span class="label">Created: </span>
-    <span class="data">{{ job.created }}</span>
+    <span class="data">
+      <span class="date">{{ job.created.toDateString() }} </span>
+      <span class="time">{{ job.created.toLocaleTimeString('en-US') }}</span>
+    </span>
   </div>
   <div>
     <span class="label">Status: </span>
@@ -39,6 +42,6 @@
     </a>
   </div>
 </mat-dialog-content>
-<mat-dialog-actions align="center">
+<mat-dialog-actions align="center" *ngIf="job">
   <button id="delete-button" mat-raised-button tabindex="1">Delete job</button>
 </mat-dialog-actions>

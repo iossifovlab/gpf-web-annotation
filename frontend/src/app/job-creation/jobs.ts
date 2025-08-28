@@ -1,7 +1,7 @@
 export class Job {
   public constructor(
     public id: number,
-    public created: string,
+    public created: Date,
     public owner: string,
     public status: Status,
     // public started: string,
@@ -32,7 +32,7 @@ export class Job {
 
     return new Job(
       json['id'] as number,
-      json['created'] as string,
+      new Date(json['created'] as string),
       json['owner'] as string,
       status,
     );
