@@ -35,10 +35,6 @@ export class JobDetailsComponent implements OnInit {
     // TODO
   }
 
-  public onCancelClick(): void {
-    this.dialogRef.close(true);
-  }
-
   public getStatusClass(status: string): string {
     return getStatusClassName(status);
   }
