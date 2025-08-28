@@ -232,4 +232,24 @@ describe('JobsService', () => {
     const url = service.getJobInputDownloadLink(10);
     expect(url).toBe('http://localhost:8000/jobs/10/file/input/');
   });
+
+  it('should get correct class name for waiting status', () => {
+    expect(getStatusClassName('waiting')).toBe('waiting-status');
+  });
+
+  it('should get correct class name for in progress status', () => {
+    expect(getStatusClassName('in process')).toBe('in-progress-status');
+  });
+
+  it('should get correct class name for success status', () => {
+    expect(getStatusClassName('success')).toBe('success-status');
+  });
+
+  it('should get correct class name for fail status', () => {
+    expect(getStatusClassName('failed')).toBe('fail-status');
+  });
+
+  it('should return empty string as class name for invalid status', () => {
+    expect(getStatusClassName('nonexisting')).toBe('');
+  });
 });

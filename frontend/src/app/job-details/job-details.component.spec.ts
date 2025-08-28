@@ -60,4 +60,8 @@ describe('JobDetailsComponent', () => {
     expect(component.uploadedFileLink).toBe('jobs/input/3');
     expect(component.configFileLink).toBe('jobs/config/3');
   });
+
+  it('should get correct css class for status success', () => {
+    expect(component.getStatusClass('success')).toBe('success-status');
+  });
 });
