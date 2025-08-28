@@ -3,7 +3,7 @@ import { HttpClient, HttpResponse, provideHttpClient } from '@angular/common/htt
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { lastValueFrom, of, take } from 'rxjs';
 import { JobsService } from './jobs.service';
-import { Job } from './jobs';
+import { getStatusClassName, Job } from './jobs';
 
 const jobsMockJson = [
   { id: 1, created: '1.10.2025', owner: 'test@email.com', status: 2 },
@@ -31,20 +31,33 @@ describe('JobsService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should create job', async() => {
+  it('should create job with config written by user', async() => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(new HttpResponse({status: 204})));
 
     const mockInputFile = new File(['mockData'], 'mockInput.vcf');
 
-    const postResult = service.createJob(mockInputFile, 'mockConfigData');
+    const postResult = service.createJob(mockInputFile, null, 'mockConfigData');
 
     const res = await lastValueFrom(postResult.pipe(take(1)));
     const httpResponse = new HttpResponse(res);
     expect(httpResponse.status).toBe(204);
   });
 
-  it('should check if create query has correct parameters', () => {
+  it('should create job with config chosen from pipeline list by user', async() => {
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
+    httpPostSpy.mockReturnValue(of(new HttpResponse({status: 204})));
+
+    const mockInputFile = new File(['mockData'], 'mockInput.vcf');
+
+    const postResult = service.createJob(mockInputFile, 'autism', null);
+
+    const res = await lastValueFrom(postResult.pipe(take(1)));
+    const httpResponse = new HttpResponse(res);
+    expect(httpResponse.status).toBe(204);
+  });
+
+  it('should check if create query has correct parameters when config is written by user', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(new HttpResponse({status: 204})));
 
@@ -63,7 +76,33 @@ describe('JobsService', () => {
       withCredentials: true
     };
 
-    service.createJob(mockInputFile, mockConfigCntent);
+    service.createJob(mockInputFile, null, mockConfigCntent);
+
+    expect(httpPostSpy).toHaveBeenCalledWith(
+      'http://localhost:8000/jobs/create/',
+      formData,
+      options
+    );
+  });
+
+  it('should check if create query has correct parameters when config is chosen by user', () => {
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
+    httpPostSpy.mockReturnValue(of(new HttpResponse({status: 204})));
+
+    const mockInputFile = new File(['mockData'], 'mockInput.vcf');
+
+    const formData = new FormData();
+    formData.append('data', mockInputFile, 'mockInput.vcf');
+    formData.append('pipeline', 'autism');
+
+    const options = {
+      headers: {
+        'X-CSRFToken': ''
+      },
+      withCredentials: true
+    };
+
+    service.createJob(mockInputFile, 'autism', null);
 
     expect(httpPostSpy).toHaveBeenCalledWith(
       'http://localhost:8000/jobs/create/',
@@ -94,7 +133,7 @@ describe('JobsService', () => {
       withCredentials: true
     };
 
-    service.createJob(mockInputFile, mockConfigCntent);
+    service.createJob(mockInputFile, null, mockConfigCntent);
     expect(httpPostSpy).toHaveBeenCalledWith(
       'http://localhost:8000/jobs/create/',
       formData,

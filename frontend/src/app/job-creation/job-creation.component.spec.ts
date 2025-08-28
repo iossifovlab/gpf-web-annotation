@@ -122,7 +122,7 @@ describe('JobCreationComponent', () => {
     expect(dialogSpy).toHaveBeenCalledWith(true);
   });
 
-  it('should start process after clicking start button', () => {
+  it('should create process with yml config entered by user', () => {
     const mockFile = new File([], 'mockFile', { type: 'text/vcard' });
     component.file = mockFile;
     component.changeView('text editor');
@@ -133,7 +133,18 @@ describe('JobCreationComponent', () => {
     ymlArea.value = 'some yml text';
     const createJob = jest.spyOn(jobsServiceMock, 'createJob');
     component.onStartClick();
-    expect(createJob).toHaveBeenCalledWith(mockFile, 'some yml text');
+    expect(createJob).toHaveBeenCalledWith(mockFile, null, 'some yml text');
     expect(ymlArea.value).toBe('');
+  });
+
+  it('should create process with pipeline', () => {
+    const mockFile = new File([], 'mockFile', { type: 'text/vcard' });
+    component.file = mockFile;
+    fixture.detectChanges();
+
+    component.onPipelineClick('autism');
+    const createJob = jest.spyOn(jobsServiceMock, 'createJob');
+    component.onStartClick();
+    expect(createJob).toHaveBeenCalledWith(mockFile, 'autism', null);
   });
 });

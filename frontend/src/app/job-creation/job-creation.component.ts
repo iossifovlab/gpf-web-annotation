@@ -15,6 +15,7 @@ export class JobCreationComponent {
   public file: File = null;
   public uploadError = '';
   public view: JobCreationView = 'pipeline list';
+  public pipelineId = '';
   @ViewChild('ymlText') private ymlText: ElementRef<HTMLTextAreaElement>;
 
   public constructor(private dialogRef: MatDialogRef<JobCreationComponent>, private jobsService: JobsService) { }
@@ -22,13 +23,21 @@ export class JobCreationComponent {
   public onStartClick(): void {
     this.dialogRef.close(true);
     if (this.file) {
-      this.jobsService.createJob(this.file, this.ymlText.nativeElement.value).subscribe();
-      this.ymlText.nativeElement.value = '';
+      if (this.view === 'text editor') {
+        this.jobsService.createJob(this.file, null, this.ymlText.nativeElement.value).subscribe();
+        this.ymlText.nativeElement.value = '';
+      } else {
+        this.jobsService.createJob(this.file, this.pipelineId, null).subscribe();
+      }
     }
   }
 
   public onCancelClick(): void {
     this.dialogRef.close(true);
+  }
+
+  public onPipelineClick(option: string): void {
+    this.pipelineId = option;
   }
 
   public onUpload(event: Event): void {

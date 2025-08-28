@@ -20,12 +20,16 @@ export class JobsService {
     return res;
   }
 
-  public createJob(file: File, config: string): Observable<object> {
-    const configFile = new File([config], 'config.yml');
+  public createJob(file: File, pipeline: string, config: string): Observable<object> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
     const formData = new FormData();
     formData.append('data', file, file.name);
-    formData.append('config', configFile);
+    if (pipeline) {
+      formData.append('pipeline', pipeline);
+    } else {
+      const configFile = new File([config], 'config.yml');
+      formData.append('config', configFile);
+    }
     return this.http.post(
       this.createJobUrl,
       formData,
