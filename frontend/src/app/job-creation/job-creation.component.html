@@ -16,21 +16,9 @@
   </div>
   <div id="annotation-details">
     <ng-container *ngIf="view === 'pipeline list'">
-      <div class="pipeline-option">
-        <input type="radio" name="contact" value="autism" (click)="onPipelineClick('Autism_annotation')" />
-        <a id="autism-link" href="https://grr.seqpipe.org/pipeline/Autism_annotation/index.html">Autism_annotation</a>
-      </div>
-      <div class="pipeline-option">
-        <input type="radio" name="contact" value="clinical" (click)="onPipelineClick('Clinical_annotation')" />
-        <a id="clinical-link" href="https://grr.seqpipe.org/pipeline/Clinical_annotation/index.html"
-          >Clinical_annotation</a
-        >
-      </div>
-      <div class="pipeline-option">
-        <input type="radio" name="contact" value="gpf-sfari" (click)="onPipelineClick('GPF-SFARI_annotation')" />
-        <a id="gpf-sfari-link" href="https://grr.seqpipe.org/pipeline/GPF-SFARI_annotation/index.html"
-          >GPF-SFARI_annotation</a
-        >
+      <div *ngFor="let pipelineId of pipelines" class="pipeline-option">
+        <input type="radio" name="pipeline" [value]="pipelineId" (click)="onPipelineClick(pipelineId)" />
+        <span>{{ pipelineId }}</span>
       </div>
     </ng-container>
     <ng-container *ngIf="view === 'text editor'">

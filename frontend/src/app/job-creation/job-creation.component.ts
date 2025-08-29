@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { MatDialogRef, MatDialogActions, MatDialogContent } from '@angular/material/dialog';
 import { JobCreationView } from './jobs';
 import { JobsService } from './jobs.service';
+import { take } from 'rxjs';
 
 
 @Component({
@@ -11,14 +12,21 @@ import { JobsService } from './jobs.service';
   templateUrl: './job-creation.component.html',
   styleUrl: './job-creation.component.css'
 })
-export class JobCreationComponent {
+export class JobCreationComponent implements OnInit {
   public file: File = null;
   public uploadError = '';
   public view: JobCreationView = 'pipeline list';
+  public pipelines : string[] = [];
   public pipelineId = '';
   @ViewChild('ymlText') private ymlText: ElementRef<HTMLTextAreaElement>;
 
   public constructor(private dialogRef: MatDialogRef<JobCreationComponent>, private jobsService: JobsService) { }
+
+  public ngOnInit(): void {
+    this.jobsService.getAnnotationPipelines().pipe(take(1)).subscribe(pipelines => {
+      this.pipelines = pipelines;
+    });
+  }
 
   public onStartClick(): void {
     this.dialogRef.close(true);
