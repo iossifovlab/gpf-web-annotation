@@ -117,6 +117,20 @@ class UserDetail(generics.RetrieveAPIView):
     permission_classes = [permissions.IsAdminUser]
 
 
+class UserInfo(views.APIView):
+    def get(self, request):
+        user = request.user
+        if not user.is_authenticated:
+            return Response({"loggedIn": False})
+        return Response(
+            {
+                "loggedIn": True,
+                "email": user.email,
+            },
+            views.status.HTTP_200_OK,
+        )
+
+
 class Login(views.APIView):
     parser_classes = [JSONParser]
 
