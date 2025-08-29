@@ -18,6 +18,10 @@ class JobsServiceMock {
   public createJob(file1: File, content: string): Observable<object> {
     return of({});
   }
+
+  public getAnnotationPipelines(): Observable<string[]> {
+    return of(['autism']);
+  }
 }
 
 describe('JobCreationComponent', () => {
