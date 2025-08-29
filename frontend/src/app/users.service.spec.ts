@@ -4,16 +4,24 @@ import { UserData, UsersService } from './users.service';
 import { HttpClient, provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { lastValueFrom, of, take } from 'rxjs';
+import { CookieService } from 'ngx-cookie-service';
 
+class CookieServiceMock {
+  public get(): string {
+    return '';
+  }
+}
 describe('UsersService', () => {
   let service: UsersService;
+  const cookieServiceMock = new CookieServiceMock();
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
         UsersService,
         provideHttpClient(),
-        provideHttpClientTesting()
+        provideHttpClientTesting(),
+        { provide: CookieService, useValue: cookieServiceMock }
       ]
     });
 
@@ -66,5 +74,40 @@ describe('UsersService', () => {
 
     await lastValueFrom(postResult.pipe(take(1)));
     expect(service.userData.value).toStrictEqual(mockUserData);
+  });
+
+  it('should get user data if there is csrf token in cookies', () => {
+    const getUserDataSpy = jest.spyOn(service, 'getUserData');
+
+    const mockCookie = 'csrftoken=EYZbFmv1i1Ie7cmT3OFHgxdv3kOR7rIt';
+    jest.spyOn(cookieServiceMock, 'get').mockReturnValueOnce(mockCookie);
+
+    service.autoLogin();
+    expect(getUserDataSpy).toHaveBeenCalledWith();
+  });
+
+  it('should not requset user data if there is no csrf token in cookies', () => {
+    const getUserDataSpy = jest.spyOn(service, 'getUserData');
+    service.autoLogin();
+    expect(getUserDataSpy).not.toHaveBeenCalledWith();
+  });
+
+  it('should check get user data query params', () => {
+    const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
+
+    service.getUserData();
+    expect(httpGetSpy).toHaveBeenCalledWith(
+      'http://localhost:8000/user_info/',
+      { withCredentials: true }
+    );
+  });
+
+  it('should set current user after getting user data', () => {
+    const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
+    httpGetSpy.mockReturnValue(of({ email: 'mockEmail', isAdmin: false }));
+
+    const userDataMockResult = { email: 'mockEmail', isAdmin: false } as UserData;
+    service.getUserData().subscribe();
+    expect(service.userData.value).toStrictEqual(userDataMockResult);
   });
 });

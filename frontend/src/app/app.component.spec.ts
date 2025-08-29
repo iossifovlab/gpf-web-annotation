@@ -8,6 +8,7 @@ import { BehaviorSubject } from 'rxjs';
 
 class UsersServiceMock {
   public userData = new BehaviorSubject<UserData>(null);
+  public autoLogin(): void { }
 }
 describe('AppComponent', () => {
   let component: AppComponent;
