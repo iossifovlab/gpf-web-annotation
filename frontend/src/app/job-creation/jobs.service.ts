@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { map, Observable } from 'rxjs';
+import { map, Observable, of } from 'rxjs';
 import { Job } from './jobs';
 
 @Injectable()
@@ -63,5 +63,9 @@ export class JobsService {
 
   public getJobConfigLink(jobId: number): string {
     return `http://localhost:8000/jobs/${jobId}/file/config/`;
+  }
+
+  public getAnnotationPipelines(): Observable<string[]> {
+    return of(['pipeline/Autism_annotation', 'pipeline/Clinical_annotation', 'pipeline/GPF-SFARI_annotation']);
   }
 }
