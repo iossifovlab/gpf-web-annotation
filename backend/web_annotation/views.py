@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.conf import settings
 from django.http.response import FileResponse
 from django.shortcuts import get_object_or_404
@@ -129,6 +130,11 @@ class UserInfo(views.APIView):
             },
             views.status.HTTP_200_OK,
         )
+
+
+class Logout(views.APIView):
+    def get(self, request):
+        logout(request)
 
 
 class Login(views.APIView):
