@@ -7,6 +7,7 @@ import { Job } from './jobs';
 export class JobsService {
   private readonly createJobUrl = 'http://localhost:8000/jobs/create/';
   private readonly getUsersJobsUrl = 'http://localhost:8000/jobs/';
+  private readonly getPipelinesUrl = 'http://localhost:8000/pipelines/';
 
   public constructor(private http: HttpClient) { }
 
@@ -66,6 +67,10 @@ export class JobsService {
   }
 
   public getAnnotationPipelines(): Observable<string[]> {
+    // return this.http.get<string[]>(
+    //   this.getPipelinesUrl,
+    //   { withCredentials: true }
+    // );
     return of(['pipeline/Autism_annotation', 'pipeline/Clinical_annotation', 'pipeline/GPF-SFARI_annotation']);
   }
 }
