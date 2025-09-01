@@ -1,4 +1,10 @@
-from django.contrib.auth import authenticate, login
+import time
+import logging
+from pathlib import Path
+
+import magic
+import yaml
+from dae.annotation.annotation_config import AnnotationConfigParser
 from django.contrib.auth import authenticate, login, logout
 from django.conf import settings
 from django.http.response import FileResponse
@@ -7,15 +13,44 @@ from rest_framework import permissions, views
 from rest_framework.parsers import MultiPartParser, JSONParser
 from rest_framework.response import Response
 from rest_framework import generics
-from annotation import run_job
+
+from dae.genomic_resources.repository_factory import \
+    build_genomic_resource_repository
 
 from web_annotation.serializers import JobSerializer, UserSerializer
 from web_annotation.models import Job, User
 from web_annotation.permissions import IsOwner, has_job_permission
+from web_annotation.tasks import create_annotation
 
-import time
-import pathlib
-import magic
+logger = logging.getLogger(__name__)
+
+
+def get_pipelines():
+    pipelines: dict[str, dict[str, str]] = {}
+    pipelines_dir = Path(settings.PIPELINES_STORAGE_DIR)
+    for file in pipelines_dir.glob("*.yaml"):
+        contents = file.read_text()
+        try:
+            AnnotationConfigParser.parse_raw(
+                yaml.safe_load(contents),
+                GRR,
+            )
+            pipelines[file.stem] = {"id": file.stem, "content": contents}
+        except Exception:
+            logger.exception("Couldn't load annotation config %s", file)
+            continue
+    return pipelines
+
+
+GRR = build_genomic_resource_repository()
+PIPELINES = get_pipelines()
+
+
+class AnnotationBaseView(views.APIView):
+    def __init__(self):
+        super().__init__()
+        self.grr = GRR
+        self.pipelines = PIPELINES
 
 
 class JobAll(generics.ListAPIView):
@@ -38,34 +73,45 @@ class JobDetail(generics.RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated, IsOwner]
 
 
-class JobCreate(views.APIView):
+class JobCreate(AnnotationBaseView):
     parser_classes = [MultiPartParser]
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         job_name = f"job-{int(time.time())}"
 
-        # Handle annotation config file
-        filename = f"{job_name}.yaml"
-        content = request.FILES["config"].read()
-        if "ASCII text" not in magic.from_buffer(content):
-            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+        config_filename = f"{job_name}.yaml"
+        if "pipeline" in request.data:
+            pipeline_id = request.data["pipeline"]
+            if pipeline_id not in self.pipelines:
+                return Response(status=views.status.HTTP_404_NOT_FOUND)
+            content = self.pipelines[pipeline_id]["content"]
+        else:
+            # Handle annotation config file
+            content = request.FILES["config"].read().decode()
+            if "ASCII text" not in magic.from_buffer(content):
+                return Response(status=views.status.HTTP_400_BAD_REQUEST)
+
         # TODO Verify validity of config
-        config_path = pathlib.Path(settings.ANNOTATION_CONFIG_STORAGE_DIR, filename)
-        config_path.parent.mkdir(exist_ok=True, parents=True)
-        config_path.write_text(content.decode())
+        config_path = Path(
+            settings.ANNOTATION_CONFIG_STORAGE_DIR, config_filename)
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        config_path.write_text(content)
 
         # Handle input VCF file
-        filename = f"{job_name}.vcf"
+        data_filename = f"{job_name}.vcf"
         content = request.FILES["data"].read()
         if "Variant Call Format" not in magic.from_buffer(content):
-            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+            return Response(
+                data={"reason": "Invalid variant file."},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
         # TODO Verify if valid VCF (?)
-        input_path = pathlib.Path(settings.JOB_INPUT_STORAGE_DIR, filename)
-        input_path.parent.mkdir(exist_ok=True, parents=True)
+        input_path = Path(settings.JOB_INPUT_STORAGE_DIR, data_filename)
+        input_path.parent.mkdir(parents=True, exist_ok=True)
         input_path.write_text(content.decode())
 
-        result_path = pathlib.Path(settings.JOB_RESULT_STORAGE_DIR, filename)
+        result_path = Path(settings.JOB_RESULT_STORAGE_DIR, data_filename)
 
         # Create Job model instance
         job = Job(input_path=input_path,
@@ -74,12 +120,7 @@ class JobCreate(views.APIView):
                   owner=request.user)
         job.save()
 
-        run_job(
-            str(input_path),
-            str(config_path),
-            str(result_path),
-            settings.JOB_RESULT_STORAGE_DIR,
-        )
+        create_annotation.delay(job.pk)
 
         return Response(status=views.status.HTTP_204_NO_CONTENT)
 
@@ -93,11 +134,11 @@ class JobGetFile(views.APIView):
             return Response(status=views.status.HTTP_403_FORBIDDEN)
 
         if file == "input":
-            file_path = pathlib.Path(job.input_path)
+            file_path = Path(job.input_path)
         elif file == "config":
-            file_path = pathlib.Path(job.config_path)
+            file_path = Path(job.config_path)
         elif file == "result":
-            file_path = pathlib.Path(job.result_path)
+            file_path = Path(job.result_path)
         else:
             return Response(status=views.status.HTTP_400_BAD_REQUEST)
 
@@ -193,3 +234,9 @@ class Registration(views.APIView):
         user = User.objects.create_user(email, email, password)
         user.save()
         return Response(status=views.status.HTTP_200_OK)
+
+
+class ListPipelines(AnnotationBaseView):
+
+    def get(self, request):
+        return Response(self.pipelines.values(), status=views.status.HTTP_200_OK)

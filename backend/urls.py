@@ -12,6 +12,8 @@ urlpatterns = [
     path('jobs/<int:pk>/', views.JobDetail.as_view()),
     path('jobs/<int:pk>/file/<str:file>/', views.JobGetFile.as_view()),
 
+    path('pipelines/', views.ListPipelines.as_view()),
+
     path('users/', views.UserList.as_view()),
     path('users/<int:pk>/', views.UserDetail.as_view()),
 

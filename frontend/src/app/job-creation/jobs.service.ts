@@ -27,7 +27,8 @@ export class JobsService {
     const formData = new FormData();
     formData.append('data', file, file.name);
     if (pipeline) {
-      formData.append('pipeline', pipeline);
+      //formData.append('pipeline', pipeline);
+      formData.append('pipeline', 'minimal');
     } else {
       const configFile = new File([config], 'config.yml');
       formData.append('config', configFile);
@@ -68,23 +69,9 @@ export class JobsService {
   }
 
   public getAnnotationPipelines(): Observable<Pipeline[]> {
-    // return this.http.get<object[]>(
-    //   this.getPipelinesUrl,
-    //   { withCredentials: true }
-    // ).pipe(map((response: object[]) => Pipeline.fromJsonArray(response)));
-    return of([
-      {
-        id: 'pipeline/Autism_annotation',
-        content: ''
-      },
-      {
-        id: 'pipeline/Clinical_annotation',
-        content: ''
-      },
-      {
-        id: 'pipeline/GPF-SFARI_annotation',
-        content: ''
-      }
-    ]).pipe(map((response: object[]) => Pipeline.fromJsonArray(response)));
+     return this.http.get<Pipeline[]>(
+       this.getPipelinesUrl,
+       { withCredentials: true }
+     );
   }
 }
