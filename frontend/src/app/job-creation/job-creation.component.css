@@ -93,13 +93,13 @@
   font-size: 14px;
 }
 
-label {
+#file-upload-label {
   cursor: pointer;
   text-decoration: underline;
   text-decoration-thickness: 2px;
 }
 
-label:hover {
+#file-upload-label:hover {
   color: #85a2b9;
 }
 
