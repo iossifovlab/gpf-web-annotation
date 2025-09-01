@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { JobCreationComponent } from '../job-creation/job-creation.component';
 import { MatDialog } from '@angular/material/dialog';
 import { JobsService } from '../job-creation/jobs.service';
-import { filter, repeat, take } from 'rxjs';
+import { filter, repeat, Subscription, take } from 'rxjs';
 import { getStatusClassName, Job } from '../job-creation/jobs';
 import { JobDetailsComponent } from '../job-details/job-details.component';
 
@@ -13,8 +13,9 @@ import { JobDetailsComponent } from '../job-details/job-details.component';
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy {
   public jobs: Job[] = [];
+  private refreshJobsSubscription = new Subscription();
 
   public constructor(private dialog: MatDialog, private jobsService: JobsService) {}
 
@@ -42,7 +43,7 @@ export class HomeComponent implements OnInit {
   }
 
   private refreshTable(): void {
-    this.jobsService.getJobs().pipe(
+    this.refreshJobsSubscription = this.jobsService.getJobs().pipe(
       repeat({ delay: 30000 }),
       filter(jobs => this.allJobsFinished(jobs)),
       take(1),
@@ -65,5 +66,9 @@ export class HomeComponent implements OnInit {
 
   public getStatusClass(status: string): string {
     return getStatusClassName(status);
+  }
+
+  public ngOnDestroy(): void {
+    this.refreshJobsSubscription.unsubscribe();
   }
 }
