@@ -135,6 +135,7 @@ class UserInfo(views.APIView):
 class Logout(views.APIView):
     def get(self, request):
         logout(request)
+        return Response(views.status.HTTP_204_NO_CONTENT)
 
 
 class Login(views.APIView):
