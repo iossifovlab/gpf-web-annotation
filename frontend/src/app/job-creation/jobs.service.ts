@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable, of } from 'rxjs';
 import { Job } from './jobs';
+import { Pipeline } from './pipelines';
 
 @Injectable()
 export class JobsService {
@@ -66,11 +67,24 @@ export class JobsService {
     return `http://localhost:8000/jobs/${jobId}/file/config/`;
   }
 
-  public getAnnotationPipelines(): Observable<string[]> {
-    // return this.http.get<string[]>(
+  public getAnnotationPipelines(): Observable<Pipeline[]> {
+    // return this.http.get<object[]>(
     //   this.getPipelinesUrl,
     //   { withCredentials: true }
-    // );
-    return of(['pipeline/Autism_annotation', 'pipeline/Clinical_annotation', 'pipeline/GPF-SFARI_annotation']);
+    // ).pipe(map((response: object[]) => Pipeline.fromJsonArray(response)));
+    return of([
+      {
+        id: 'pipeline/Autism_annotation',
+        content: ''
+      },
+      {
+        id: 'pipeline/Clinical_annotation',
+        content: ''
+      },
+      {
+        id: 'pipeline/GPF-SFARI_annotation',
+        content: ''
+      }
+    ]).pipe(map((response: object[]) => Pipeline.fromJsonArray(response)));
   }
 }

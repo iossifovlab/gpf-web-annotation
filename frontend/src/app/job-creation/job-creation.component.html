@@ -16,9 +16,9 @@
   </div>
   <div id="annotation-details">
     <ng-container *ngIf="view === 'pipeline list'">
-      <div *ngFor="let pipelineId of pipelines" class="pipeline-option">
-        <input type="radio" name="pipeline" [value]="pipelineId" (click)="onPipelineClick(pipelineId)" />
-        <span>{{ pipelineId }}</span>
+      <div *ngFor="let pipeline of pipelines" class="pipeline-option">
+        <input type="radio" name="pipeline" [value]="pipeline.id" (click)="onPipelineClick(pipeline.id)" />
+        <span>{{ pipeline.id }}</span>
       </div>
     </ng-container>
     <ng-container *ngIf="view === 'text editor'">

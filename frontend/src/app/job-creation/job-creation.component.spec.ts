@@ -6,6 +6,7 @@ import { JobsService } from './jobs.service';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { Observable, of } from 'rxjs';
+import { Pipeline } from './pipelines';
 
 
 class MatDialogRefMock {
@@ -13,14 +14,19 @@ class MatDialogRefMock {
   public close(value: boolean): void { }
 }
 
+const mockPipelines = [
+  new Pipeline('id1', 'content1'),
+  new Pipeline('id2', 'content2'),
+  new Pipeline('id3', 'content3'),
+]
 class JobsServiceMock {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public createJob(file1: File, content: string): Observable<object> {
     return of({});
   }
 
-  public getAnnotationPipelines(): Observable<string[]> {
-    return of(['autism']);
+  public getAnnotationPipelines(): Observable<Pipeline[]> {
+    return of(mockPipelines);
   }
 }
 
@@ -185,5 +191,12 @@ describe('JobCreationComponent', () => {
     const ymlArea: HTMLTextAreaElement = templateRef.querySelector('#yml-textarea');
     ymlArea.value = '';
     expect(component.disableStart()).toBe(true);
+  });
+
+  it('should get pipelines list on component init', () => {
+    const getPipelinesSpy = jest.spyOn(jobsServiceMock, 'getAnnotationPipelines');
+    component.ngOnInit();
+    expect(getPipelinesSpy).toHaveBeenCalledWith();
+    expect(component.pipelines).toStrictEqual(mockPipelines);
   });
 });

@@ -4,6 +4,7 @@ import { MatDialogRef, MatDialogActions, MatDialogContent } from '@angular/mater
 import { JobCreationView } from './jobs';
 import { JobsService } from './jobs.service';
 import { take } from 'rxjs';
+import { Pipeline } from './pipelines';
 
 
 @Component({
@@ -16,7 +17,7 @@ export class JobCreationComponent implements OnInit {
   public file: File = null;
   public uploadError = '';
   public view: JobCreationView = 'pipeline list';
-  public pipelines : string[] = [];
+  public pipelines : Pipeline[] = [];
   public pipelineId = '';
   @ViewChild('ymlText') private ymlText: ElementRef<HTMLTextAreaElement>;
 
