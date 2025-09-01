@@ -44,7 +44,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   private refreshTable(): void {
     this.refreshJobsSubscription = this.jobsService.getJobs().pipe(
-      repeat({ delay: 3000 }),
+      repeat({ delay: 30000 }),
       takeWhile(jobs => !this.areJobsFinished() || jobs.length !== this.jobs.length),
     ).subscribe(jobs => {
       this.jobs = jobs.reverse();
