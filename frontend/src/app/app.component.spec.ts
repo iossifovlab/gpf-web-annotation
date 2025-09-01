@@ -3,17 +3,18 @@ import { AppComponent } from './app.component';
 import { UserData, UsersService } from './users.service';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 
 class UsersServiceMock {
   public userData = new BehaviorSubject<UserData>(null);
   public autoLogin(): void { }
+  public logout(): Observable<object> {
+    return of({});
+  }
 }
 describe('AppComponent', () => {
   let component: AppComponent;
   let fixture: ComponentFixture<AppComponent>;
-  let router: Router;
   const usersServiceMock = new UsersServiceMock();
 
   beforeEach(async() => {
@@ -26,7 +27,6 @@ describe('AppComponent', () => {
 
     TestBed.overrideProvider(UsersService, {useValue: usersServiceMock});
 
-    router = TestBed.inject(Router);
     fixture = TestBed.createComponent(AppComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -49,14 +49,10 @@ describe('AppComponent', () => {
   });
 
   it('should set current user to null when logout', () => {
+    const logoutSpy = jest.spyOn(usersServiceMock, 'logout');
     component.logout();
+    expect(logoutSpy).toHaveBeenCalledWith();
     expect(component.currentUserData).toBeNull();
-  });
-
-  it('should redirect to login page when logout', () => {
-    const navigateSpy = jest.spyOn(router, 'navigate');
-    component.logout();
-    expect(navigateSpy).toHaveBeenCalledWith(['/login']);
   });
 
   it('should get last logged in user from service', () => {

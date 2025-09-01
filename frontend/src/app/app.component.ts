@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, DoCheck, OnInit } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
+import { RouterOutlet } from '@angular/router';
 import { UserData, UsersService } from './users.service';
 import { takeWhile } from 'rxjs';
 
@@ -15,7 +15,6 @@ export class AppComponent implements DoCheck, OnInit {
   public currentUserData: UserData = null;
 
   public constructor(
-    private router: Router,
     private usersService: UsersService,
     private changeDetectorRef: ChangeDetectorRef
   ) { }
@@ -34,7 +33,8 @@ export class AppComponent implements DoCheck, OnInit {
   }
 
   public logout(): void {
-    this.usersService.userData.next(null);
-    this.router.navigate(['/login']);
+    this.usersService.logout().subscribe(() => {
+      this.currentUserData = null;
+    });
   }
 }
