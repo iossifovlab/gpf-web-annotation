@@ -13,14 +13,30 @@ export interface UserData {
 export class UsersService {
   private readonly registerUrl = 'http://localhost:8000/register/';
   private readonly loginUrl = 'http://localhost:8000/login/';
+  private readonly logoutUrl = 'http://localhost:8000/logout/';
   private readonly userDataUrl = 'http://localhost:8000/user_info/';
   public userData = new BehaviorSubject<UserData>(null);
 
   public constructor(
     private http: HttpClient,
     private cookieService: CookieService,
-    private router: Router
+    private router: Router,
   ) { }
+
+  public logout(): Observable<object> {
+    const csrfToken = this.cookieService.get('csrftoken');
+    const headers = { 'X-CSRFToken': csrfToken };
+    const options = { headers: headers, withCredentials: true };
+
+    return this.http.get(this.logoutUrl, options).pipe(
+      take(1),
+      tap(() => {
+        this.cookieService.delete('csrftoken');
+        this.userData.next(null);
+        this.router.navigate(['/login']);
+      })
+    );
+  }
 
   public autoLogin(): void {
     if (this.cookieService.get('csrftoken')) {

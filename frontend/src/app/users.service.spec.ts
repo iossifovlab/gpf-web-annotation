@@ -1,19 +1,23 @@
 import { TestBed } from '@angular/core/testing';
-
 import { UserData, UsersService } from './users.service';
 import { HttpClient, provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { lastValueFrom, of, take } from 'rxjs';
 import { CookieService } from 'ngx-cookie-service';
+import { Router } from '@angular/router';
 
 class CookieServiceMock {
   public get(): string {
-    return '';
+    return 'csrfMockToken';
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public delete(token: string): void { }
 }
 describe('UsersService', () => {
   let service: UsersService;
   const cookieServiceMock = new CookieServiceMock();
+  let router: Router;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -25,6 +29,7 @@ describe('UsersService', () => {
       ]
     });
 
+    router = TestBed.inject(Router);
     service = TestBed.inject(UsersService);
   });
 
@@ -87,6 +92,7 @@ describe('UsersService', () => {
   });
 
   it('should not requset user data if there is no csrf token in cookies', () => {
+    jest.spyOn(cookieServiceMock, 'get').mockReturnValueOnce('');
     const getUserDataSpy = jest.spyOn(service, 'getUserData');
     service.autoLogin();
     expect(getUserDataSpy).not.toHaveBeenCalledWith();
@@ -109,5 +115,50 @@ describe('UsersService', () => {
     const userDataMockResult = { email: 'mockEmail', isAdmin: false } as UserData;
     service.getUserData().subscribe();
     expect(service.userData.value).toStrictEqual(userDataMockResult);
+  });
+
+  it('should check params of logout query', () => {
+    const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
+    httpGetSpy.mockReturnValue(of({}));
+
+    service.logout();
+
+    const headers = { 'X-CSRFToken': 'csrfMockToken' };
+    const options = { headers: headers, withCredentials: true };
+    expect(httpGetSpy).toHaveBeenCalledWith(
+      'http://localhost:8000/logout/',
+      options
+    );
+  });
+
+  it('should redirect to login page after logout', async() => {
+    const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
+    httpGetSpy.mockReturnValue(of({}));
+
+    const navigateSpy = jest.spyOn(router, 'navigate');
+    const queryResponse = service.logout();
+    await lastValueFrom(queryResponse.pipe(take(1)));
+    expect(navigateSpy).toHaveBeenCalledWith(['/login']);
+  });
+
+  it('should delete csrf token from cookies after logout', async() => {
+    const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
+    httpGetSpy.mockReturnValue(of({}));
+
+    const deleteTokenSpy = jest.spyOn(cookieServiceMock, 'delete');
+    const queryResponse = service.logout();
+    await lastValueFrom(queryResponse.pipe(take(1)));
+
+    expect(deleteTokenSpy).toHaveBeenCalledWith('csrftoken');
+  });
+
+  it('should clean current user data after logout', async() => {
+    const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
+    httpGetSpy.mockReturnValue(of({}));
+
+    const queryResponse = service.logout();
+    await lastValueFrom(queryResponse.pipe(take(1)));
+
+    expect(service.userData.value).toBeNull();
   });
 });
