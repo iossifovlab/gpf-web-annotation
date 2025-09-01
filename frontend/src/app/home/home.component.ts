@@ -3,7 +3,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { JobCreationComponent } from '../job-creation/job-creation.component';
 import { MatDialog } from '@angular/material/dialog';
 import { JobsService } from '../job-creation/jobs.service';
-import { filter, repeat, Subscription, take } from 'rxjs';
+import { repeat, Subscription, take, takeWhile } from 'rxjs';
 import { getStatusClassName, Job } from '../job-creation/jobs';
 import { JobDetailsComponent } from '../job-details/job-details.component';
 
@@ -27,8 +27,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.refreshTable();
   }
 
-  private allJobsFinished(jobs: Job[]): boolean {
-    return !jobs.find(j => j.status !== 'success' && j.status !== 'failed');
+  private areJobsFinished(): boolean {
+    return !this.jobs.find(j => j.status !== 'success' && j.status !== 'failed');
   }
 
   public openCreateModal(): void {
@@ -44,9 +44,8 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   private refreshTable(): void {
     this.refreshJobsSubscription = this.jobsService.getJobs().pipe(
-      repeat({ delay: 30000 }),
-      filter(jobs => this.allJobsFinished(jobs)),
-      take(1),
+      repeat({ delay: 3000 }),
+      takeWhile(jobs => !this.areJobsFinished() || jobs.length !== this.jobs.length),
     ).subscribe(jobs => {
       this.jobs = jobs.reverse();
     });
