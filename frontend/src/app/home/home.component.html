@@ -30,7 +30,7 @@
         <span class="status-label" [ngClass]="getStatusClass(j.status)">{{ j.status }}</span>
       </div>
       <div class="grid-cell">
-        <a id="download-result" [href]="getDownloadLink(j.id)" download
+        <a *ngIf="j.status === 'success'" id="download-result" [href]="getDownloadLink(j.id)" download
           ><span class="material-symbols-outlined download-icon">download</span></a
         >
       </div>

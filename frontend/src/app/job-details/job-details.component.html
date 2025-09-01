@@ -22,7 +22,7 @@
     <span class="label">Duration: </span>
     <span class="data">-</span>
   </div>
-  <div>
+  <div *ngIf="job.status === 'success'">
     <span class="label">Annotated file: </span>
     <a id="download-result" [href]="annotatedFileLink" download>
       <span class="material-symbols-outlined download-icon">download</span>
