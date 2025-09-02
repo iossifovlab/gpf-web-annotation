@@ -1,15 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { MatDialogRef, MatDialogActions, MatDialogContent } from '@angular/material/dialog';
 import { JobCreationView } from './jobs';
 import { JobsService } from './jobs.service';
 import { take } from 'rxjs';
 import { Pipeline } from './pipelines';
+import { FormsModule } from '@angular/forms';
 
 
 @Component({
   selector: 'app-job-creation',
-  imports: [MatDialogActions, MatDialogContent, CommonModule],
+  imports: [MatDialogActions, MatDialogContent, CommonModule, FormsModule],
   templateUrl: './job-creation.component.html',
   styleUrl: './job-creation.component.css'
 })
@@ -19,7 +20,7 @@ export class JobCreationComponent implements OnInit {
   public view: JobCreationView = 'pipeline list';
   public pipelines : Pipeline[] = [];
   public pipelineId = '';
-  @ViewChild('ymlText') private ymlText: ElementRef<HTMLTextAreaElement>;
+  public ymlConfig = '';
 
   public constructor(private dialogRef: MatDialogRef<JobCreationComponent>, private jobsService: JobsService) { }
 
@@ -33,8 +34,8 @@ export class JobCreationComponent implements OnInit {
     this.dialogRef.close(true);
     if (this.file) {
       if (this.view === 'text editor') {
-        this.jobsService.createJob(this.file, null, this.ymlText.nativeElement.value).subscribe();
-        this.ymlText.nativeElement.value = '';
+        this.jobsService.createJob(this.file, null, this.ymlConfig).subscribe();
+        this.ymlConfig = '';
       } else {
         this.jobsService.createJob(this.file, this.pipelineId, null).subscribe();
       }
@@ -92,6 +93,6 @@ export class JobCreationComponent implements OnInit {
   public disableStart(): boolean {
     return !this.file ||
       Boolean(this.uploadError) ||
-      (this.view === 'text editor' ? !this.ymlText?.nativeElement.value : !this.pipelineId);
+      (this.view === 'text editor' ? !this.ymlConfig : !this.pipelineId);
   }
 }
