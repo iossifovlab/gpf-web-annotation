@@ -138,13 +138,11 @@ describe('JobCreationComponent', () => {
     component.changeView('text editor');
     fixture.detectChanges();
 
-    const ymlArea: HTMLTextAreaElement = templateRef.querySelector('#yml-textarea');
-
-    ymlArea.value = 'some yml text';
+    component.ymlConfig = 'some yml text';
     const createJob = jest.spyOn(jobsServiceMock, 'createJob');
     component.onStartClick();
     expect(createJob).toHaveBeenCalledWith(mockFile, null, 'some yml text');
-    expect(ymlArea.value).toBe('');
+    expect(component.ymlConfig).toBe('');
   });
 
   it('should create process with pipeline', () => {
