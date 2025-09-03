@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { map, Observable, of } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { Job } from './jobs';
 import { Pipeline } from './pipelines';
 
@@ -71,6 +71,14 @@ export class JobsService {
     return this.http.get<Pipeline[]>(
       this.getPipelinesUrl,
       { withCredentials: true }
+    );
+  }
+
+  public deleteJob(jobId: number): Observable<object> {
+    const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
+    return this.http.delete(
+      this.getUsersJobsUrl + jobId + '/',
+      options
     );
   }
 }

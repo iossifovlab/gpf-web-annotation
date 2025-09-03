@@ -252,4 +252,33 @@ describe('JobsService', () => {
   it('should return empty string as class name for invalid status', () => {
     expect(getStatusClassName('nonexisting')).toBe('');
   });
+
+  it('should get pipeline list', async() => {
+    const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
+    httpGetSpy.mockReturnValue(of(['autism', 'clinical']));
+
+    const getResponse = service.getAnnotationPipelines();
+
+    expect(httpGetSpy).toHaveBeenCalledWith(
+      'http://localhost:8000/pipelines/',
+      { withCredentials: true }
+    );
+    const res = await lastValueFrom(getResponse.pipe(take(1)));
+    expect(res).toStrictEqual(['autism', 'clinical']);
+  });
+
+  it('should delete job', () => {
+    const httpDeleteSpy = jest.spyOn(HttpClient.prototype, 'delete');
+    httpDeleteSpy.mockReturnValue(of({}));
+
+    const mockCookie = 'csrftoken=mockToken';
+    document.cookie = mockCookie;
+
+    service.deleteJob(10);
+    const options = { headers: {'X-CSRFToken': 'mockToken' }, withCredentials: true };
+    expect(httpDeleteSpy).toHaveBeenCalledWith(
+      'http://localhost:8000/jobs/10/',
+      options
+    );
+  });
 });
