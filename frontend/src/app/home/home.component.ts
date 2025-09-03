@@ -70,6 +70,10 @@ export class HomeComponent implements OnInit, OnDestroy {
     return getStatusClassName(status);
   }
 
+  public onDelete(jobId: number): void {
+    this.jobsService.deleteJob(jobId).subscribe(() => this.getJobs());
+  }
+
   public ngOnDestroy(): void {
     this.refreshJobsSubscription.unsubscribe();
   }

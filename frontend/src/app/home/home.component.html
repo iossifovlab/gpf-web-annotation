@@ -34,7 +34,9 @@
           ><span class="material-symbols-outlined download-icon">download</span></a
         >
       </div>
-      <div class="grid-cell"><span class="material-symbols-outlined delete-icon">delete</span></div>
+      <div class="grid-cell">
+        <button (click)="onDelete(j.id)"><span class="material-symbols-outlined delete-icon">delete</span></button>
+      </div>
     </ng-container>
   </div>
 

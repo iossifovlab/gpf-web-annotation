@@ -17,6 +17,11 @@ class JobsServiceMock {
   public getDownloadJobResultLink(jobId: number): string {
     return `/jobs/mockUrl/${jobId}`;
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public deleteJob(id: number): Observable<object> {
+    return of({});
+  }
 }
 
 describe('HomeComponent', () => {
@@ -49,5 +54,13 @@ describe('HomeComponent', () => {
   it('should get download link for annotated file from service', () => {
     const url = component.getDownloadLink(15);
     expect(url).toBe('/jobs/mockUrl/15');
+  });
+
+  it('should call delete job from service and get list of jobs after deletion is ready', () => {
+    const deleteSpy = jest.spyOn(jobsServiceMock, 'deleteJob');
+    const getJobsSpy = jest.spyOn(jobsServiceMock, 'getJobs');
+    component.onDelete(12);
+    expect(deleteSpy).toHaveBeenCalledWith(12);
+    expect(getJobsSpy).toHaveBeenCalledWith();
   });
 });
