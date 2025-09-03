@@ -43,5 +43,5 @@
   </div>
 </mat-dialog-content>
 <mat-dialog-actions align="center" *ngIf="job">
-  <button id="delete-button" mat-raised-button tabindex="1">Delete job</button>
+  <button id="delete-button" mat-raised-button tabindex="1" (click)="onDelete(job.id)">Delete job</button>
 </mat-dialog-actions>

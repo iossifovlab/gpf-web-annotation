@@ -55,10 +55,14 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   public openDetailsModal(jobId: number): void {
-    this.dialog.open(JobDetailsComponent, {
+    const detailsModalRef = this.dialog.open(JobDetailsComponent, {
       data: jobId,
       height: '40vh',
       width: '30vw',
+    });
+
+    detailsModalRef.afterClosed().subscribe(() => {
+      this.refreshTable();
     });
   }
 
