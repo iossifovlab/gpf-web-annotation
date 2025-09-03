@@ -129,7 +129,7 @@
   margin-left: 10px;
 }
 
-#start-button {
+#create-button {
   padding: 10px 12px;
   font-size: 16px;
   white-space: nowrap;
@@ -140,16 +140,16 @@
   margin-right: 10px;
 }
 
-#start-button:hover {
+#create-button:hover {
   background: #5b778c;
   cursor: pointer;
 }
 
-#start-button:disabled {
+#create-button:disabled {
   opacity: 30%;
 }
 
-#start-button:disabled:hover {
+#create-button:disabled:hover {
   cursor: auto;
   background-color: #435869;
 }

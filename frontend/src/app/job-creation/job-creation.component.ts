@@ -30,7 +30,7 @@ export class JobCreationComponent implements OnInit {
     });
   }
 
-  public onStartClick(): void {
+  public onCreateClick(): void {
     this.dialogRef.close(true);
     if (this.file) {
       if (this.view === 'text editor') {
@@ -90,7 +90,7 @@ export class JobCreationComponent implements OnInit {
     this.view = view;
   }
 
-  public disableStart(): boolean {
+  public disableCreate(): boolean {
     return !this.file ||
       Boolean(this.uploadError) ||
       (this.view === 'text editor' ? !this.ymlConfig : !this.pipelineId);
