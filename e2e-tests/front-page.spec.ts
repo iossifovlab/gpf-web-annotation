@@ -106,7 +106,7 @@ test.describe('Registration tests', () => {
     const randomEmail = `${utils.getRandomString()}@email.com`;
     await utils.registerUser(page, randomEmail, 'password123');
 
-    await page.locator('#email').pressSequentially('user@email.com');
+    await page.locator('#email').pressSequentially(randomEmail);
     await page.locator('#password').pressSequentially('password123');
     await page.getByRole('button', { name: 'Login' }).click();
     await expect(page.locator('app-home')).toBeVisible();
@@ -119,7 +119,10 @@ test.describe('Login tests', () => {
   });
 
   test('should check if home page is visible after successful login', async({ page }) => {
-    await page.locator('#email').pressSequentially('user@email.com');
+    const randomEmail = `${utils.getRandomString()}@email.com`;
+    await utils.registerUser(page, randomEmail, 'password123'); // need to register user first
+
+    await page.locator('#email').pressSequentially(randomEmail);
     await page.locator('#password').pressSequentially('password123');
     await page.getByRole('button', { name: 'Login' }).click();
     await expect(page.locator('app-home')).toBeVisible();
