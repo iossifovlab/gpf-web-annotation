@@ -12,7 +12,7 @@ export async function registerUser(page: Page, email: string, password: string):
   await page.locator('#email').pressSequentially(email);
   await page.locator('#password').pressSequentially(password);
   await page.getByRole('button', { name: 'Create' }).click();
-  await expect(page.getByText('Registration successful!')).toBeVisible();
+  await expect(page.locator('app-login')).toBeVisible();
 }
 
 export async function loginUser(page: Page, email: string, password: string): Promise<void> {
