@@ -68,10 +68,10 @@ export class JobsService {
   }
 
   public getAnnotationPipelines(): Observable<Pipeline[]> {
-    return this.http.get<Pipeline[]>(
+    return this.http.get<object[]>(
       this.getPipelinesUrl,
       { withCredentials: true }
-    );
+    ).pipe(map((response: object[]) => Pipeline.fromJsonArray(response)));
   }
 
   public deleteJob(jobId: number): Observable<object> {
