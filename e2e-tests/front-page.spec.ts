@@ -62,10 +62,7 @@ test.describe('Registration tests', () => {
     await page.locator('#email').pressSequentially(randomEmail);
     await page.locator('#password').pressSequentially('password123');
     await page.getByRole('button', { name: 'Create' }).click();
-    await expect(page.getByText('Registration successful!')).toBeVisible();
-    await expect(page.getByText('Registration successful!')).toHaveCSS('color', 'rgb(0, 128, 0)');
-    await expect(page.locator('#email')).toBeEmpty();
-    await expect(page.locator('#password')).toBeEmpty();
+    await expect(page.locator('app-login')).toBeVisible();
   });
 
   test('should not create user with invalid email', async({ page }) => {
@@ -94,6 +91,8 @@ test.describe('Registration tests', () => {
     const randomEmail = `${utils.getRandomString()}@email.com`;
     await utils.registerUser(page, randomEmail, 'password123');
 
+    await page.goto(utils.frontendUrl + '/register', {waitUntil: 'load'});
+
     await page.locator('#email').pressSequentially(randomEmail);
     await page.locator('#password').pressSequentially('password123');
     await page.getByRole('button', { name: 'Create' }).click();
@@ -106,8 +105,6 @@ test.describe('Registration tests', () => {
   test('should register and login after that', async({ page }) => {
     const randomEmail = `${utils.getRandomString()}@email.com`;
     await utils.registerUser(page, randomEmail, 'password123');
-
-    await page.locator('#login-link').click();
 
     await page.locator('#email').pressSequentially('user@email.com');
     await page.locator('#password').pressSequentially('password123');
@@ -132,8 +129,6 @@ test.describe('Login tests', () => {
   test('should check if user is redirected to login page after logout', async({ page }) => {
     const randomEmail = `${utils.getRandomString()}@email.com`;
     await utils.registerUser(page, randomEmail, 'password123');
-
-    await page.locator('#login-link').click();
 
     await page.locator('#email').pressSequentially(randomEmail);
     await page.locator('#password').pressSequentially('password123');
