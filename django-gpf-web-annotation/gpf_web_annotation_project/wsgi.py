@@ -1,5 +1,5 @@
 """
-WSGI config for gpf_web_annotation project.
+WSGI config for gpf_web_annotation_project project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gpf_web_annotation_backend.gpf_web_annotation_backend.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gpf_web_annotation_project.settings')
 
 application = get_wsgi_application()

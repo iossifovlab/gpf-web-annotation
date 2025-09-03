@@ -6,7 +6,7 @@ from rest_framework import permissions, views
 from rest_framework.parsers import MultiPartParser, JSONParser
 from rest_framework.response import Response
 from rest_framework import generics
-from annotation import run_job
+from .annotation import run_job
 
 from .serializers import JobSerializer, UserSerializer
 from .models import Job, User
