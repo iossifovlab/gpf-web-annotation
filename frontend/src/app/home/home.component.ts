@@ -20,10 +20,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   public constructor(private dialog: MatDialog, private jobsService: JobsService) {}
 
   public ngOnInit(): void {
-    this.jobsService.getJobs().pipe(take(1)).subscribe(jobs => {
-      this.jobs = jobs.reverse();
-    });
-
+    this.getJobs();
     this.refreshTable();
   }
 
@@ -47,6 +44,12 @@ export class HomeComponent implements OnInit, OnDestroy {
       repeat({ delay: 30000 }),
       takeWhile(jobs => !this.areJobsFinished() || jobs.length !== this.jobs.length),
     ).subscribe(jobs => {
+      this.jobs = jobs.reverse();
+    });
+  }
+
+  private getJobs(): void {
+    this.jobsService.getJobs().pipe(take(1)).subscribe(jobs => {
       this.jobs = jobs.reverse();
     });
   }
