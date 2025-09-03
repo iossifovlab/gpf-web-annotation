@@ -19,7 +19,9 @@ export class LoginComponent implements OnInit {
   public constructor(private usersService: UsersService, private router: Router) {}
 
   public ngOnInit(): void {
-    this.clearPreviousUserData();
+    if (this.usersService.isUserLoggedIn()) {
+      this.usersService.autoLogin();
+    }
   }
 
   public login(): void {
@@ -40,9 +42,5 @@ export class LoginComponent implements OnInit {
   private cleanInputs(): void {
     (this.email.nativeElement as HTMLInputElement).value = '';
     (this.password.nativeElement as HTMLInputElement).value = '';
-  }
-
-  private clearPreviousUserData(): void {
-    this.usersService.userData.next(null);
   }
 }

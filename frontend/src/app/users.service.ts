@@ -6,6 +6,7 @@ import { BehaviorSubject, Observable, map, take, tap } from 'rxjs';
 
 export interface UserData {
   email: string;
+  loggedIn: boolean;
   isAdmin: boolean;
 }
 
@@ -39,20 +40,21 @@ export class UsersService {
   }
 
   public autoLogin(): void {
-    if (this.cookieService.get('csrftoken')) {
-      this.getUserData().pipe(take(1)).subscribe();
-    }
+    this.getUserData().pipe(take(1)).subscribe((userData: UserData) => {
+      if (userData.loggedIn) {
+        this.userData.next(userData);
+        this.router.navigate(['/home']);
+      }
+    });
+  }
+
+  public isUserLoggedIn(): boolean {
+    return this.userData.value !== null && this.userData.value.loggedIn;
   }
 
   public getUserData(): Observable<UserData> {
     const options = { withCredentials: true };
-
-    return this.http.get<UserData>(this.userDataUrl, options).pipe(
-      tap((userData: UserData) => {
-        this.userData.next(userData);
-        this.router.navigate(['/home']);
-      })
-    );
+    return this.http.get<UserData>(this.userDataUrl, options);
   }
 
   public registerUser(email: string, password: string): Observable<object> {
@@ -75,7 +77,8 @@ export class UsersService {
       { withCredentials: true },
     ).pipe(
       map((userData: UserData) => {
-        this.userData.next(userData);
+        const fullUserData = { email: userData.email, isAdmin: userData.isAdmin, loggedIn: true} as UserData;
+        this.userData.next(fullUserData);
       })
     );
   }
