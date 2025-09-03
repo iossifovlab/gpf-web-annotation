@@ -22,11 +22,22 @@ class JobsServiceMock {
   public getJobConfigLink(jobId: number): string {
     return `jobs/config/${jobId}`;
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public deleteJob(jobId: number): Observable<object> {
+    return of({});
+  }
+}
+
+class MatDialogRefMock {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public close(value: boolean): void { }
 }
 describe('JobDetailsComponent', () => {
   let component: JobDetailsComponent;
   let fixture: ComponentFixture<JobDetailsComponent>;
   const jobsServiceMock = new JobsServiceMock();
+  const mockMatDialogRef = new MatDialogRefMock();
 
   beforeEach(() => {
     const mockJobId = 3;
@@ -35,7 +46,7 @@ describe('JobDetailsComponent', () => {
       imports: [JobDetailsComponent, MatDialogModule],
       providers: [
         { provide: MAT_DIALOG_DATA, useValue: mockJobId },
-        { provide: MatDialogRef, useValue: {} },
+        { provide: MatDialogRef, useValue: mockMatDialogRef },
         { provide: JobsService, useValue: jobsServiceMock },
       ]
     }).compileComponents();
@@ -63,5 +74,13 @@ describe('JobDetailsComponent', () => {
 
   it('should get correct css class for status success', () => {
     expect(component.getStatusClass('success')).toBe('success-status');
+  });
+
+  it('should delete job and close modal', () => {
+    const deleteSpy = jest.spyOn(jobsServiceMock, 'deleteJob');
+    const closeSpy = jest.spyOn(mockMatDialogRef, 'close');
+    component.onDelete(9);
+    expect(deleteSpy).toHaveBeenCalledWith(9);
+    expect(closeSpy).toHaveBeenCalledWith();
   });
 });

@@ -4,6 +4,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { lastValueFrom, of, take } from 'rxjs';
 import { JobsService } from './jobs.service';
 import { getStatusClassName, Job } from './jobs';
+import { Pipeline } from './pipelines';
 
 const jobsMockJson = [
   { id: 1, created: '1.10.2025', owner: 'test@email.com', status: 2 },
@@ -255,7 +256,11 @@ describe('JobsService', () => {
 
   it('should get pipeline list', async() => {
     const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
-    httpGetSpy.mockReturnValue(of(['autism', 'clinical']));
+    httpGetSpy.mockReturnValue(of([
+      { id: 'pipeline1', content: '' },
+      { id: 'pipeline2', content: '' },
+      { id: 'pipeline3', content: '' },
+    ]));
 
     const getResponse = service.getAnnotationPipelines();
 
@@ -264,7 +269,45 @@ describe('JobsService', () => {
       { withCredentials: true }
     );
     const res = await lastValueFrom(getResponse.pipe(take(1)));
-    expect(res).toStrictEqual(['autism', 'clinical']);
+    expect(res).toStrictEqual([
+      new Pipeline('pipeline1', ''),
+      new Pipeline('pipeline2', ''),
+      new Pipeline('pipeline3', ''),
+    ]);
+  });
+
+  it('should return undefined if json is invalid when getting pipelines', async() => {
+    const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
+    httpGetSpy.mockReturnValue(of(null));
+
+    const getResponse = service.getAnnotationPipelines();
+
+    expect(httpGetSpy).toHaveBeenCalledWith(
+      'http://localhost:8000/pipelines/',
+      { withCredentials: true }
+    );
+    const res = await lastValueFrom(getResponse.pipe(take(1)));
+    expect(res).toBeUndefined();
+  });
+
+  it('should return undefined for each invalid pipeline from response array', async() => {
+    const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
+    httpGetSpy.mockReturnValue(of([
+      { id: 'pipeline1', content: '' },
+      null
+    ]));
+
+    const getResponse = service.getAnnotationPipelines();
+
+    expect(httpGetSpy).toHaveBeenCalledWith(
+      'http://localhost:8000/pipelines/',
+      { withCredentials: true }
+    );
+    const res = await lastValueFrom(getResponse.pipe(take(1)));
+    expect(res).toStrictEqual([
+      new Pipeline('pipeline1', ''),
+      undefined
+    ]);
   });
 
   it('should delete job', () => {

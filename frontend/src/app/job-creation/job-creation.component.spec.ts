@@ -18,7 +18,7 @@ const mockPipelines = [
   new Pipeline('id1', 'content1'),
   new Pipeline('id2', 'content2'),
   new Pipeline('id3', 'content3'),
-]
+];
 class JobsServiceMock {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public createJob(file1: File, content: string): Observable<object> {
