@@ -93,6 +93,11 @@
   color: #c8dae7;
 }
 
+#delete-job {
+  background: none;
+  border: none;
+}
+
 .download-icon,
 .delete-icon {
   color: #435869;
