@@ -1,28 +1,53 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { MatDialogRef, MatDialogActions, MatDialogContent } from '@angular/material/dialog';
+import { JobCreationView } from './jobs';
+import { JobsService } from './jobs.service';
+import { take } from 'rxjs';
+import { Pipeline } from './pipelines';
+import { FormsModule } from '@angular/forms';
 
 
 @Component({
   selector: 'app-job-creation',
-  imports: [MatDialogActions, MatDialogContent, CommonModule],
+  imports: [MatDialogActions, MatDialogContent, CommonModule, FormsModule],
   templateUrl: './job-creation.component.html',
   styleUrl: './job-creation.component.css'
 })
-export class JobCreationComponent {
+export class JobCreationComponent implements OnInit {
   public file: File = null;
   public uploadError = '';
+  public view: JobCreationView = 'pipeline list';
+  public pipelines : Pipeline[] = [];
+  public pipelineId = '';
+  public ymlConfig = '';
 
-  private MAX_FILE_SIZE_BYTES = 5000000;
+  public constructor(private dialogRef: MatDialogRef<JobCreationComponent>, private jobsService: JobsService) { }
 
-  public constructor(private dialogRef: MatDialogRef<JobCreationComponent>) { }
+  public ngOnInit(): void {
+    this.jobsService.getAnnotationPipelines().pipe(take(1)).subscribe(pipelines => {
+      this.pipelines = pipelines;
+    });
+  }
 
   public onStartClick(): void {
     this.dialogRef.close(true);
+    if (this.file) {
+      if (this.view === 'text editor') {
+        this.jobsService.createJob(this.file, null, this.ymlConfig).subscribe();
+        this.ymlConfig = '';
+      } else {
+        this.jobsService.createJob(this.file, this.pipelineId, null).subscribe();
+      }
+    }
   }
 
   public onCancelClick(): void {
     this.dialogRef.close(true);
+  }
+
+  public onPipelineClick(option: string): void {
+    this.pipelineId = option;
   }
 
   public onUpload(event: Event): void {
@@ -40,34 +65,34 @@ export class JobCreationComponent {
     event.preventDefault();
     if (event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length > 0) {
       const file = event.dataTransfer.files[0];
-
-      this.isFormatValid(file);
-
-
       this.onFileChange(file);
     }
   }
 
   private isFormatValid(file: File): void {
-    if (!file.type.includes('csv') && !file.type.includes('vcf')) {
+    if (file.type !== 'text/csv' && file.type !== 'text/vcard') {
       this.uploadError = 'Unsupported format!';
-      return;
-    }
-    this.isInSizeRange(file);
-  }
-
-  private isInSizeRange(file: File): void {
-    console.log((file.size / (1024 * 1024)).toFixed(2));
-    if (file.size > this.MAX_FILE_SIZE_BYTES) {
-      this.uploadError = 'Size limit is 5 MB!';
     }
   }
 
   public removeFile(): void {
     this.file = null;
+    this.uploadError = '';
   }
 
   private onFileChange(file: File): void {
+    this.isFormatValid(file);
     this.file = file;
+  }
+
+  public changeView(view: JobCreationView): void {
+    this.pipelineId = '';
+    this.view = view;
+  }
+
+  public disableStart(): boolean {
+    return !this.file ||
+      Boolean(this.uploadError) ||
+      (this.view === 'text editor' ? !this.ymlConfig : !this.pipelineId);
   }
 }

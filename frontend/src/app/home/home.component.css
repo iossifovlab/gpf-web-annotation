@@ -1,5 +1,5 @@
 #page-content {
-  margin: 60px 15% 0;
+  margin: 60px 15%;
   min-width: 715px;
   max-width: 1600px;
 }
@@ -18,6 +18,9 @@
   background: #435869;
   border-radius: 10px;
   color: white;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
 #add-job-button:hover {
@@ -63,12 +66,14 @@
 
 .grid-cell {
   border-top: 1px solid #cfd8df;
-  text-align: center;
-  line-height: 3rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  line-height: 2rem;
 }
 
 .info-icon {
-  font-size: 16px;
+  font-size: 20px;
   color: #5b778c;
   margin-left: 5px;
 }
@@ -76,6 +81,16 @@
 .info-icon:hover {
   color: #85a2b9;
   cursor: pointer;
+}
+
+.time-info {
+  color: #85a2b9;
+  display: flex;
+  flex-direction: column;
+}
+
+.time {
+  color: #c8dae7;
 }
 
 .download-icon,
@@ -90,8 +105,18 @@
   cursor: pointer;
 }
 
+#download-result {
+  background-color: transparent;
+  border: none;
+}
+
 #note {
   font-style: italic;
   color: #5b778c;
   margin-top: 5px;
+}
+
+::ng-deep .cdk-overlay-pane.mat-mdc-dialog-panel {
+  max-width: 1000px !important;
+  min-height: 400px !important;
 }

@@ -15,6 +15,8 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Hristo kaza
+APPEND_SLASH = False
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -151,6 +153,13 @@ CORS_ORIGIN_WHITELIST = [
     "http://127.0.0.1:4200",
 ]
 
+CORS_ALLOW_CREDENTIALS = True
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:4200",
+    "http://127.0.0.1:4200",
+]
+
 # Dir for all data storage
 DATA_STORAGE_DIR = "data"
 # Subdir to store uploaded annotation configurations in
@@ -160,5 +169,4 @@ JOB_INPUT_STORAGE_DIR = f"{DATA_STORAGE_DIR}/job-inputs"
 # Subdir to store results of annotation in
 JOB_RESULT_STORAGE_DIR = f"{DATA_STORAGE_DIR}/job-results"
 
-# Hristo kaza
-APPEND_SLASH = False
+PIPELINES_STORAGE_DIR = f"{DATA_STORAGE_DIR}/pipelines"

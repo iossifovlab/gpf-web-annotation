@@ -166,3 +166,43 @@ test.describe('Login tests', () => {
     await expect(page.locator('app-home')).not.toBeVisible();
   });
 });
+
+test.describe('Logout tests', () => {
+  test.beforeEach(async({ page }) => {
+    await page.goto(utils.frontendUrl, {waitUntil: 'load'});
+
+    const email = utils.getRandomString() + '@email.com';
+    const password = 'aaabbb';
+    await utils.registerUser(page, email, password);
+
+    await utils.loginUser(page, email, password);
+  });
+
+  test('should redirect to login page after logout', async({ page }) => {
+    await page.locator('#logout-button').click();
+    await expect(page.locator('#front-page-container')).toBeVisible();
+    expect(page.url()).toContain('/login');
+  });
+
+  test('should stay logged out after refreshing the page', async({ page }) => {
+    await page.locator('#logout-button').click();
+    await page.waitForSelector('#front-page-container');
+    await page.reload();
+    await expect(page.locator('#front-page-container')).toBeVisible();
+  });
+
+  test('should stay logged out after clicking back button', async({ page }) => {
+    await page.locator('#logout-button').click();
+    await page.waitForSelector('#front-page-container');
+    await page.goBack();
+    await expect(page.locator('#front-page-container')).toBeVisible();
+  });
+
+  test('should not be able to navigate to home page after logout', async({ page }) => {
+    await page.locator('#logout-button').click();
+    await page.waitForSelector('#front-page-container');
+    await page.goto(utils.frontendUrl +'/home', {waitUntil: 'load'});
+    await expect(page.locator('#front-page-container')).toBeVisible();
+    expect(page.url()).toContain('/login');
+  });
+});

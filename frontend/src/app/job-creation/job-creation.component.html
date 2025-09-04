@@ -1,16 +1,39 @@
 <mat-dialog-content>
-  <div>Quota: 5 per day</div>
+  <div id="quota">Quota: 5 per day</div>
   <div id="annotation-mode">
-    <button id="pipelines-list">Annotation pipelines</button>
-    <button id="text-editor">YML text editor</button>
+    <button
+      id="pipelines-list"
+      [ngClass]="view === 'pipeline list' ? 'active-view' : 'inactive-view'"
+      (click)="changeView('pipeline list')"
+      >Annotation pipelines</button
+    >
+    <button
+      id="text-editor"
+      [ngClass]="view === 'text editor' ? 'active-view' : 'inactive-view'"
+      (click)="changeView('text editor')"
+      >YML text editor</button
+    >
   </div>
   <div id="annotation-details">
-    <ng-container></ng-container>
+    <ng-container *ngIf="view === 'pipeline list'">
+      <div *ngFor="let pipeline of pipelines" class="pipeline-option">
+        <input
+          type="radio"
+          name="pipeline"
+          [id]="pipeline.id"
+          [value]="pipeline.id"
+          (click)="onPipelineClick(pipeline.id)" />
+        <label [attr.for]="pipeline.id">{{ pipeline.id }}</label>
+      </div>
+    </ng-container>
+    <ng-container *ngIf="view === 'text editor'">
+      <textarea id="yml-textarea" [(ngModel)]="ymlConfig"></textarea>
+    </ng-container>
   </div>
   <div *ngIf="!file" id="file-upload-field" (dragover)="onDragOver($event)" (drop)="onDropSuccess($event)">
     <div id="upload-instructions">
       Drag & drop here or
-      <label for="file-upload">Choose file</label>
+      <label id="file-upload-label" for="file-upload">Choose file</label>
       <input type="file" id="file-upload" accept=".csv, .vcf" (change)="onUpload($event)" style="display: none" />
     </div>
     <div>
@@ -21,7 +44,7 @@
   </div>
 
   <div *ngIf="file" id="uploaded-file-container">
-    <div>
+    <div id="file-info">
       <span *ngIf="uploadError" class="material-symbols-outlined warning-icon">warning</span>
       <span *ngIf="!uploadError" class="material-symbols-outlined file-icon">article</span>
       <span>{{ file.name }}</span>
@@ -33,6 +56,8 @@
   </div>
 </mat-dialog-content>
 <mat-dialog-actions align="center">
-  <button mat-raised-button (click)="onStartClick()" tabindex="1">Start</button>
-  <button mat-raised-button (click)="onCancelClick()" tabindex="-1">Cancel</button>
+  <button id="start-button" mat-raised-button (click)="onStartClick()" tabindex="1" [disabled]="disableStart()"
+    >Start</button
+  >
+  <button id="cancel-button" mat-raised-button (click)="onCancelClick()" tabindex="-1">Cancel</button>
 </mat-dialog-actions>

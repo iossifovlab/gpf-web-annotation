@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, DoCheck } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
+import { ChangeDetectorRef, Component, DoCheck, OnInit } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 import { UserData, UsersService } from './users.service';
 import { takeWhile } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -11,16 +11,19 @@ import { environment } from '../../environments/environment';
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })
-export class AppComponent implements DoCheck {
+export class AppComponent implements DoCheck, OnInit {
   public description = 'GPF Web Annotation description';
   public currentUserData: UserData = null;
   public readonly environment = environment;
 
   public constructor(
-    private router: Router,
     private usersService: UsersService,
     private changeDetectorRef: ChangeDetectorRef
   ) { }
+
+  public ngOnInit(): void {
+    this.usersService.autoLogin();
+  }
 
   public ngDoCheck(): void {
     this.usersService.userData.pipe(
@@ -32,7 +35,8 @@ export class AppComponent implements DoCheck {
   }
 
   public logout(): void {
-    this.usersService.userData.next(null);
-    this.router.navigate(['/login']);
+    this.usersService.logout().subscribe(() => {
+      this.currentUserData = null;
+    });
   }
 }
