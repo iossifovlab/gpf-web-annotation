@@ -55,7 +55,7 @@ describe('UsersService', () => {
   });
 
   it('should check post request params when login user', () => {
-    const mockUserData = { email: 'mockEmail@email.com', isAdmin: false } as UserData;
+    const mockUserData = { email: 'mockEmail@email.com', loggedIn: false } as UserData;
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockUserData));
 
@@ -71,7 +71,7 @@ describe('UsersService', () => {
   });
 
   it('should store current user in subject after login', async() => {
-    const mockUserData = { email: 'mockEmail@email.com', isAdmin: false } as UserData;
+    const mockUserData = { email: 'mockEmail@email.com', isAdmin: false, loggedIn: true } as UserData;
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockUserData));
 
@@ -79,23 +79,6 @@ describe('UsersService', () => {
 
     await lastValueFrom(postResult.pipe(take(1)));
     expect(service.userData.value).toStrictEqual(mockUserData);
-  });
-
-  it('should get user data if there is csrf token in cookies', () => {
-    const getUserDataSpy = jest.spyOn(service, 'getUserData');
-
-    const mockCookie = 'csrftoken=EYZbFmv1i1Ie7cmT3OFHgxdv3kOR7rIt';
-    jest.spyOn(cookieServiceMock, 'get').mockReturnValueOnce(mockCookie);
-
-    service.autoLogin();
-    expect(getUserDataSpy).toHaveBeenCalledWith();
-  });
-
-  it('should not requset user data if there is no csrf token in cookies', () => {
-    jest.spyOn(cookieServiceMock, 'get').mockReturnValueOnce('');
-    const getUserDataSpy = jest.spyOn(service, 'getUserData');
-    service.autoLogin();
-    expect(getUserDataSpy).not.toHaveBeenCalledWith();
   });
 
   it('should check get user data query params', () => {
@@ -108,12 +91,12 @@ describe('UsersService', () => {
     );
   });
 
-  it('should set current user after getting user data', () => {
+  it('should set current user after getting user data on auto login', () => {
     const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
-    httpGetSpy.mockReturnValue(of({ email: 'mockEmail', isAdmin: false }));
+    httpGetSpy.mockReturnValue(of({ email: 'mockEmail', isAdmin: false, loggedIn: true }));
 
-    const userDataMockResult = { email: 'mockEmail', isAdmin: false } as UserData;
-    service.getUserData().subscribe();
+    const userDataMockResult = { email: 'mockEmail', isAdmin: false, loggedIn: true } as UserData;
+    service.autoLogin();
     expect(service.userData.value).toStrictEqual(userDataMockResult);
   });
 

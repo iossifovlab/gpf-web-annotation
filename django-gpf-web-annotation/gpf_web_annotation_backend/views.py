@@ -4,7 +4,6 @@ from pathlib import Path
 
 import magic
 import yaml
-from dae.annotation.annotation_config import AnnotationConfigParser
 from django.contrib.auth import authenticate, login, logout
 from django.conf import settings
 from django.http.response import FileResponse
@@ -14,8 +13,12 @@ from rest_framework.parsers import MultiPartParser, JSONParser
 from rest_framework.response import Response
 from rest_framework import generics
 
+from dae.annotation.annotation_config import AnnotationConfigParser
 from dae.genomic_resources.repository_factory import \
     build_genomic_resource_repository
+from dae.genomic_resources.repository import GenomicResourceRepo
+from dae.genomic_resources.implementations.annotation_pipeline_impl import \
+    AnnotationPipelineImplementation
 
 from .annotation import run_job
 from .serializers import JobSerializer, UserSerializer
@@ -26,25 +29,20 @@ from .tasks import create_annotation
 logger = logging.getLogger(__name__)
 
 
-def get_pipelines():
+def get_pipelines(grr: GenomicResourceRepo):
     pipelines: dict[str, dict[str, str]] = {}
-    pipelines_dir = Path(settings.PIPELINES_STORAGE_DIR)
-    for file in pipelines_dir.glob("*.yaml"):
-        contents = file.read_text()
-        try:
-            AnnotationConfigParser.parse_raw(
-                yaml.safe_load(contents),
-                GRR,
-            )
-            pipelines[file.stem] = {"id": file.stem, "content": contents}
-        except Exception:
-            logger.exception("Couldn't load annotation config %s", file)
-            continue
+    for resource in grr.get_all_resources():
+        if resource.get_type() == "annotation_pipeline":
+            impl = AnnotationPipelineImplementation(resource)
+            pipelines[resource.get_id()] = {
+                "id": resource.get_id(),
+                "content": impl.raw,
+            }
     return pipelines
 
 
 GRR = build_genomic_resource_repository()
-PIPELINES = get_pipelines()
+PIPELINES = get_pipelines(GRR)
 
 
 class AnnotationBaseView(views.APIView):
@@ -68,7 +66,7 @@ class JobList(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
 
-class JobDetail(generics.RetrieveAPIView):
+class JobDetail(generics.RetrieveAPIView, generics.DestroyAPIView):
     queryset = Job.objects.all()
     serializer_class = JobSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwner]

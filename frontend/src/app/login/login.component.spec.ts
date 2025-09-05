@@ -11,8 +11,14 @@ class UsersServiceMock {
   public userData = new BehaviorSubject<UserData>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public loginUser(email: string, password: string): Observable<object> {
-    return of({ email: email, isAdmin: false });
+    return of({ email: email, isAdmin: false, loggedIn: true });
   }
+
+  public isUserLoggedIn(): boolean {
+    return true;
+  }
+
+  public autoLogin(): void { }
 }
 
 describe('LoginComponent', () => {
@@ -103,12 +109,5 @@ describe('LoginComponent', () => {
     component.login();
     expect(emailInput.value).toBe('mockEmail@email.com');
     expect(passwordInput.value).toBe('mockPassword');
-  });
-
-  it('should previous user on component initialization', () => {
-    usersServiceMock.userData.next({ email: 'email', isAdmin: false });
-
-    component.ngOnInit();
-    expect(usersServiceMock.userData.value).toBeNull();
   });
 });

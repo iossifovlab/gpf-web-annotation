@@ -3,7 +3,7 @@ import { UsersService } from '../users.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -19,7 +19,7 @@ export class RegistrationComponent {
   public validationMessage: string = '';
   public readonly environment = environment;
 
-  public constructor(private usersService: UsersService) {}
+  public constructor(private usersService: UsersService, private router: Router) {}
 
   public register(): void {
     this.responseMessage = '';
@@ -32,6 +32,7 @@ export class RegistrationComponent {
       next: () => {
         this.responseMessage = 'Registration successful!';
         this.cleanInputs();
+        this.router.navigate(['/login']);
       },
       error: (error: HttpErrorResponse) => {
         this.responseMessage = (error.error as {error: string})['error'] || 'Registration failed!';

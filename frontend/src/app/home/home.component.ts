@@ -20,10 +20,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   public constructor(private dialog: MatDialog, private jobsService: JobsService) {}
 
   public ngOnInit(): void {
-    this.jobsService.getJobs().pipe(take(1)).subscribe(jobs => {
-      this.jobs = jobs.reverse();
-    });
-
+    this.getJobs();
     this.refreshTable();
   }
 
@@ -51,11 +48,21 @@ export class HomeComponent implements OnInit, OnDestroy {
     });
   }
 
+  private getJobs(): void {
+    this.jobsService.getJobs().pipe(take(1)).subscribe(jobs => {
+      this.jobs = jobs.reverse();
+    });
+  }
+
   public openDetailsModal(jobId: number): void {
-    this.dialog.open(JobDetailsComponent, {
+    const detailsModalRef = this.dialog.open(JobDetailsComponent, {
       data: jobId,
       height: '40vh',
       width: '30vw',
+    });
+
+    detailsModalRef.afterClosed().subscribe(() => {
+      this.refreshTable();
     });
   }
 
@@ -65,6 +72,10 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   public getStatusClass(status: string): string {
     return getStatusClassName(status);
+  }
+
+  public onDelete(jobId: number): void {
+    this.jobsService.deleteJob(jobId).subscribe(() => this.getJobs());
   }
 
   public ngOnDestroy(): void {

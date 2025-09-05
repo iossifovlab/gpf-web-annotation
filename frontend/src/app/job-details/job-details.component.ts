@@ -31,8 +31,10 @@ export class JobDetailsComponent implements OnInit {
     });
   }
 
-  public onDeleteClick(): void {
-    // TODO
+  public onDelete(jobId: number): void {
+    this.jobsService.deleteJob(jobId).subscribe(() => {
+      this.dialogRef.close();
+    });
   }
 
   public getStatusClass(status: string): string {
