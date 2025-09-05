@@ -34,5 +34,7 @@ classifiers = [
 [project.urls]
 Homepage = "https://www.seqpipe.com/"
 
-[tool.setuptools.packages]
-find = {}
+[tool.setuptools.packages.find]
+where = ["."]
+exclude = ["**tests*"]
+namespaces = false
