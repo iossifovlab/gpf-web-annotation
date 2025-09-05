@@ -15,7 +15,6 @@ package:
 	set -x; \
 	cd django-gpf-web-annotation; \
 	rm -rf *.egg-info dist/*; \
-	pip install build python-magic; \
 	python -m build .; \
 	pip install dist/django_gpf_web_annotation-0.1-py3-none-any.whl --force-reinstall;
 

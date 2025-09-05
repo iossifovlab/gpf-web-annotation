@@ -10,6 +10,7 @@ channels:
 dependencies:
   - python=3.12
   - pip
+  - python-build
   - django=5.2.5
   - django-stubs=5.2.2
   - djangorestframework=3.16.1
