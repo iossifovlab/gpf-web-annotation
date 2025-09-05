@@ -21,3 +21,4 @@ dependencies:
   - pytest-mock
   - pytest-cov
   - python-magic
+  - celery-types

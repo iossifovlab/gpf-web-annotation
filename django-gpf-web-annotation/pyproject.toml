@@ -34,5 +34,5 @@ classifiers = [
 [project.urls]
 Homepage = "https://www.seqpipe.com/"
 
-[tool.setuptools]
-packages = ["gpf_web_annotation_project", "gpf_web_annotation_backend", "gpf_web_annotation_frontend"]
+[tool.setuptools.packages]
+find = {}
