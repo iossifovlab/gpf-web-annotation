@@ -25,25 +25,24 @@ from gpf_web_annotation_backend import views
 import os
 
 urlpatterns = [
-    path('api-auth/', include('rest_framework.urls')),
+    path('api-auth', include('rest_framework.urls')),
 
-    path('jobs/', views.JobList.as_view()),
-    path('jobs/all/', views.JobAll.as_view()),
-    path('jobs/create/', views.JobCreate.as_view()),
-    path('jobs/<int:pk>/', views.JobDetail.as_view()),
-    path('jobs/<int:pk>/file/<str:file>/', views.JobGetFile.as_view()),
+    path('jobs', views.JobList.as_view()),
+    path('jobs/all', views.JobAll.as_view()),
+    path('jobs/create', views.JobCreate.as_view()),
+    path('jobs/<int:pk>', views.JobDetail.as_view()),
+    path('jobs/<int:pk>/file/<str:file>', views.JobGetFile.as_view()),
 
-    path('pipelines/', views.ListPipelines.as_view()),
+    path('pipelines', views.ListPipelines.as_view()),
 
-    path('users/', views.UserList.as_view()),
-    path('users/<int:pk>/', views.UserDetail.as_view()),
+    path('users', views.UserList.as_view()),
+    path('users/<int:pk>', views.UserDetail.as_view()),
 
-    path('login/', views.Login.as_view()),
-    path('logout/', views.Logout.as_view()),
-    path('register/', views.Registration.as_view()),
-    path('user_info/', views.UserInfo.as_view()),
+    path('login', views.Login.as_view()),
+    path('logout', views.Logout.as_view()),
+    path('register', views.Registration.as_view()),
+    path('user_info', views.UserInfo.as_view()),
 
-    path('static', include('gpf_web_annotation_frontend.urls')),
-    *static(settings.STATIC_URL, document_root=os.path.dirname(finders.find("index.html"))),
+    re_path(r'static(/?.*)?', include('gpf_web_annotation_frontend.urls')),
     re_path(r'^.*$', RedirectView.as_view(url=settings.STATIC_URL.removesuffix("/"))),
 ]
