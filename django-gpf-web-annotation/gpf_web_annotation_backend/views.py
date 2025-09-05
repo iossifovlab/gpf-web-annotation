@@ -87,8 +87,12 @@ class JobCreate(AnnotationBaseView):
             content = self.pipelines[pipeline_id]["content"]
         else:
             # Handle annotation config file
-            content = request.FILES["config"].read().decode()
-            if "ASCII text" not in magic.from_buffer(content):
+            raw_content = request.FILES["config"].read()
+            try:
+                content = raw_content.decode()
+                if "ASCII text" not in magic.from_buffer(content):
+                    return Response(status=views.status.HTTP_400_BAD_REQUEST)
+            except UnicodeDecodeError:
                 return Response(status=views.status.HTTP_400_BAD_REQUEST)
 
         # TODO Verify validity of config

@@ -4,7 +4,7 @@ import pytest
 from django.test import Client
 from django.conf import settings
 
-from ..models import Job, User
+from gpf_web_annotation_backend.models import Job, User
 
 
 @pytest.fixture(scope="session", autouse=True)

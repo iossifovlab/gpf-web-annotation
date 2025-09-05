@@ -1,10 +1,10 @@
 from django.test import Client
 
-from ..models import User
+from gpf_web_annotation_backend.models import User
 
 
 def test_get_users(admin_client: Client) -> None:
-    response = admin_client.get("/users/")
+    response = admin_client.get("/users")
     assert response.status_code == 200
     assert response.json() == [
         {"email": "user@example.com", "jobs": [1]},
@@ -13,24 +13,24 @@ def test_get_users(admin_client: Client) -> None:
 
 
 def test_get_users_unauthorized(user_client: Client) -> None:
-    response = user_client.get("/users/")
+    response = user_client.get("/users")
     assert response.status_code == 403
 
 
 def test_get_user_details(admin_client: Client) -> None:
-    response = admin_client.get("/users/1/")
+    response = admin_client.get("/users/1")
     assert response.status_code == 200
     assert response.json() == {"email": "user@example.com", "jobs": [1]}
 
 
 def test_get_user_details_unauthorized(user_client: Client) -> None:
-    response = user_client.get("/users/1/")
+    response = user_client.get("/users/1")
     assert response.status_code == 403
 
 
 def test_register(client: Client) -> None:
     response = client.post(
-        "/register/",
+        "/register",
         {"email": "gosho@example.com",
          "password": "secret"},
         content_type="application/json",
@@ -41,7 +41,7 @@ def test_register(client: Client) -> None:
 
 def test_register_email_taken(client: Client) -> None:
     response = client.post(
-        "/register/",
+        "/register",
         {"email": "user@example.com",
          "password": "secret"},
         content_type="application/json",
@@ -54,7 +54,7 @@ def test_register_email_taken(client: Client) -> None:
 
 def test_register_bad_requests(client: Client) -> None:
     response = client.post(
-        "/register/",
+        "/register",
         {"email": "gosho@example.com"},
         content_type="application/json",
     )
@@ -64,7 +64,7 @@ def test_register_bad_requests(client: Client) -> None:
     }
 
     response = client.post(
-        "/register/",
+        "/register",
         {"password": "secret"},
         content_type="application/json",
     )
@@ -76,7 +76,7 @@ def test_register_bad_requests(client: Client) -> None:
 
 def test_login(client: Client) -> None:
     response = client.post(
-        "/login/",
+        "/login",
         {"email": "user@example.com",
          "password": "secret"},
         content_type="application/json",
@@ -96,7 +96,7 @@ def test_login(client: Client) -> None:
 
 def test_login_admin(client: Client) -> None:
     response = client.post(
-        "/login/",
+        "/login",
         {"email": "admin@example.com",
          "password": "secret"},
         content_type="application/json",
@@ -116,7 +116,7 @@ def test_login_admin(client: Client) -> None:
 
 def test_login_user_wrong_password(client: Client) -> None:
     response = client.post(
-        "/login/",
+        "/login",
         {"email": "user@example.com",
          "password": "alabala"},
         content_type="application/json",
@@ -129,7 +129,7 @@ def test_login_user_wrong_password(client: Client) -> None:
 
 def test_login_user_does_not_exist(client: Client) -> None:
     response = client.post(
-        "/login/",
+        "/login",
         {"email": "user-two@example.com",
          "password": "secret"},
         content_type="application/json",
@@ -142,7 +142,7 @@ def test_login_user_does_not_exist(client: Client) -> None:
 
 def test_login_bad_requests(client: Client) -> None:
     response = client.post(
-        "/login/",
+        "/login",
         {"email": "user@example.com"},
         content_type="application/json",
     )
@@ -152,7 +152,7 @@ def test_login_bad_requests(client: Client) -> None:
     }
 
     response = client.post(
-        "/login/",
+        "/login",
         {"password": "secret"},
         content_type="application/json",
     )
