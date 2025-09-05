@@ -3,12 +3,13 @@ import { Injectable } from '@angular/core';
 import { map, Observable, of } from 'rxjs';
 import { Job } from './jobs';
 import { Pipeline } from './pipelines';
+import { environment } from '../../../environments/environment'
 
 @Injectable()
 export class JobsService {
-  private readonly createJobUrl = 'http://localhost:8000/jobs/create/';
-  private readonly getUsersJobsUrl = 'http://localhost:8000/jobs/';
-  private readonly getPipelinesUrl = 'http://localhost:8000/pipelines/';
+  private readonly createJobUrl = `${environment.basePath}/jobs/create`;
+  private readonly getUsersJobsUrl = `${environment.basePath}/jobs`;
+  private readonly getPipelinesUrl = `${environment.basePath}/pipelines`;
 
   public constructor(private http: HttpClient) { }
 
@@ -56,15 +57,15 @@ export class JobsService {
   }
 
   public getDownloadJobResultLink(jobId: number): string {
-    return `http://localhost:8000/jobs/${jobId}/file/result/`;
+    return `${environment.basePath}/jobs/${jobId}/file/result`;
   }
 
   public getJobInputDownloadLink(jobId: number): string {
-    return `http://localhost:8000/jobs/${jobId}/file/input/`;
+    return `${environment.basePath}/jobs/${jobId}/file/input`;
   }
 
   public getJobConfigLink(jobId: number): string {
-    return `http://localhost:8000/jobs/${jobId}/file/config/`;
+    return `${environment.basePath}/jobs/${jobId}/file/config`;
   }
 
   public getAnnotationPipelines(): Observable<Pipeline[]> {
