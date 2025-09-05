@@ -8,8 +8,9 @@ from .annotation import run_job
 
 logger = logging.getLogger(__name__)
 
+
 @shared_task
-def create_annotation(job_pk: int):
+def create_annotation(job_pk: int) -> None:
     """Task for running annotation."""
     job = Job.objects.get(pk=job_pk)
     job.status = Job.Status.IN_PROGRESS
