@@ -1,6 +1,6 @@
 from django.test import Client
 
-from web_annotation.models import User
+from ..models import User
 
 
 def test_get_users(admin_client: Client) -> None:

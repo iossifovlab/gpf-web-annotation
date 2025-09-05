@@ -2,8 +2,8 @@
 import logging
 from celery import shared_task
 from django.conf import settings
-from web_annotation.models import Job
-from annotation import run_job
+from .models import Job
+from .annotation import run_job
 
 
 logger = logging.getLogger(__name__)

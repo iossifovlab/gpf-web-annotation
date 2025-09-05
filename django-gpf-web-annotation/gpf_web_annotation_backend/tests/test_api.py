@@ -78,7 +78,7 @@ def test_get_all_jobs_admin_user(admin_client: Client) -> None:
 
 
 def test_create_job(user_client: Client, mocker) -> None:
-    mocker.patch("web_annotation.views.run_job")
+    mocker.patch("gpf_web_annotation_backend.views.run_job")
     user = User.objects.get(email="user@example.com")
 
     assert Job.objects.filter(owner=user).count() == 1
@@ -119,7 +119,7 @@ def test_create_job_calls_annotation_runner(
     user_client: Client,
     mocker,
 ) -> None:
-    mocked_run_job = mocker.patch("web_annotation.views.run_job")
+    mocked_run_job = mocker.patch("gpf_web_annotation_backend.views.run_job")
 
     annotation_config = "sample_annotator: sample_resource"
     vcf = textwrap.dedent("""
