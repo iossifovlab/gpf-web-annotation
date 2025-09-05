@@ -1,4 +1,4 @@
-all: frontend_ package
+all: frontend_ package run
 
 frontend_:
 	set -e; \
@@ -19,3 +19,5 @@ package:
 	python -m build .; \
 	pip install dist/django_gpf_web_annotation-0.1-py3-none-any.whl --force-reinstall;
 
+run:
+	DJANGO_SETTINGS_MODULE='gpf_web_annotation_project.settings' django-admin runserver
