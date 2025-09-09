@@ -16,12 +16,11 @@ services:
     environment:
       POSTGRES_PASSWORD: secret
       POSTGRES_DB: gpfwa
-
-  adminer:
-    image: adminer
-    restart: always
-    ports:
-      - 8080:8080
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   mail:
     image: mailhog/mailhog
@@ -33,8 +32,11 @@ services:
 
   backend:
     build:
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
       context: .
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - "80:80"
     volumes:
