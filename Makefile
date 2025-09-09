@@ -27,7 +27,7 @@ package:
 	pip install dist/django_gpf_web_annotation-0.1-py3-none-any.whl --force-reinstall;
 
 docker: frontend_prod package
-	docker build -f Dockerfile.prod -t gpf-web-annotation .
+	docker build -f Dockerfile.prod -t gpf-web-annotation-backend .
 
 run:
 	DJANGO_SETTINGS_MODULE='gpf_web_annotation_project.settings' django-admin runserver
