@@ -6,3 +6,6 @@ gpf
 django-gpf-web-annotation-frontend/gpf_web_annotation_frontend/static
 *.egg-info
 django-gpf-web-annotation-frontend/dist
+conda-channel.tar.gz
+/conda-channel
+*.tbi

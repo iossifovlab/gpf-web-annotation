@@ -10,6 +10,14 @@ frontend_:
 	rm -rf ../django-gpf-web-annotation/gpf_web_annotation_frontend/templates; \
 	cp -r dist/frontend/browser ../django-gpf-web-annotation/gpf_web_annotation_frontend/static; \
 
+frontend_prod:
+	set -e; \
+	set -x; \
+	cd frontend; \
+	rm -rf dist; \
+	npm i; \
+	npx ng build --aot --configuration 'production' --base-href '/' --deploy-url '/' --source-map
+
 package:
 	set -e; \
 	set -x; \

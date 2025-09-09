@@ -1,7 +1,0 @@
-FROM registry.seqpipe.org/iossifovlab-node-base:latest
-
-ADD frontend /wd/frontend
-
-RUN bash -c 'cd /wd/frontend; npm install'
-RUN bash -c "npx ng serve"
-ENV NODE_PATH=/usr/lib/node_modules

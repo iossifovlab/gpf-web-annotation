@@ -1,18 +1,21 @@
 name: gpf-web-annotation
 services:
+
+  mail:
+    image: mailhog/mailhog
+    hostname: mail
+
+  rabbitmq:
+    image: rabbitmq
+    hostname: rabbitmq
+
   backend:
     build:
-      dockerfile: Dockerfile.backend
-
-  frontend:
-    build:
-      dockerfile: Dockerfile.frontend
-
-  e2e:
-    build:
-      dockerfile: Dockerfile.e2e
-    depends_on:
-      backend:
-        condition: service_healthy
-      frontend:
-        condition: service_healthy
+      dockerfile: Dockerfile
+      context: .
+    ports:
+      - "80:80"
+    environment:
+      DJANGO_SETTINGS_MODULE: gpf_web_annotation_project.settings
+      WDAE_EMAIL_HOST: mail
+      RABBITMQ_HOST: rabbitmq
