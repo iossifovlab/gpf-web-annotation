@@ -9,6 +9,6 @@ export const environment = {
   production: false,
   basePath: basePath,
   apiPath: basePath + "/api",
-  imgPathPrefix: '/static/assets',
+  imgPathPrefix: '/assets',
   version: versionInfo?.version
 };

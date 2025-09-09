@@ -9,3 +9,5 @@ django-gpf-web-annotation-frontend/dist
 conda-channel.tar.gz
 /conda-channel
 *.tbi
+/pg_data
+/gpfwa_data

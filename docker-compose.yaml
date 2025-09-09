@@ -1,6 +1,28 @@
 name: gpf-web-annotation
 services:
 
+  pg_data:
+      image: busybox:latest
+      command: echo "PostgreSQL data only container"
+      volumes:
+        - ./pg_data:/var/lib/postgresql/data
+  db:
+    image: postgres
+    restart: always
+    # set shared memory limit when using docker compose
+    shm_size: 128mb
+    volumes_from:
+      - pg_data
+    environment:
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: gpfwa
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+
   mail:
     image: mailhog/mailhog
     hostname: mail
@@ -15,8 +37,17 @@ services:
       context: .
     ports:
       - "80:80"
+    volumes:
+      - ./gpfwa_data:/data
     environment:
       DJANGO_SETTINGS_MODULE: gpf_web_annotation_project.settings
       WDAE_EMAIL_HOST: mail
       RABBITMQ_HOST: rabbitmq
       GRR_DEFINITION_FILE: /grr-definition.yaml
+      GPFWA_DB_NAME: gpfwa
+      GPFWA_DB_USER: postgres
+      GPFWA_DB_PASSWORD: secret
+      GPFWA_DB_HOST: db
+      GPFWA_DB_PORT: 5432
+      GPFWA_DATA_STORAGE: /data
+

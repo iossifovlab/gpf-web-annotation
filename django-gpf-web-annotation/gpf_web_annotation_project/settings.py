@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
+import os
 
 from pathlib import Path
 
@@ -81,12 +82,28 @@ WSGI_APPLICATION = 'gpf_web_annotation_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'db.sqlite3',
+if os.environ.get("GPFWA_DB_HOST"):
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get("GPFWA_DB_NAME"),
+            "USER": os.environ.get("GPFWA_DB_USER"),
+            "PASSWORD": os.environ.get("GPFWA_DB_PASSWORD"),
+            "HOST": os.environ.get("GPFWA_DB_HOST"),
+            "PORT": os.environ.get("GPFWA_DB_PORT"),
+        },
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": "wdae.sql",
+            "USER": "",
+            "PASSWORD": "",
+            "HOST": "",
+            "PORT": "",
+        },
+    }
 
 
 # Password validation
@@ -167,7 +184,8 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 # Dir for all data storage
-DATA_STORAGE_DIR = "data"
+DATA_STORAGE_DIR = os.environ.get("GPFWA_DATA_STORAGE", "data")
+
 # Subdir to store uploaded annotation configurations in
 ANNOTATION_CONFIG_STORAGE_DIR = f"{DATA_STORAGE_DIR}/annotation-configs"
 # Subdir to store uploaded files in before they are annotated
