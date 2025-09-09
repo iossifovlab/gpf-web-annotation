@@ -73,4 +73,6 @@ RUN chmod +x /*.sh
 
 EXPOSE 80 443
 
+ADD ./scripts/grr-definition.yaml /
+
 ENTRYPOINT ["supervisord", "-c", "/etc/supervisord.conf", "-n"]

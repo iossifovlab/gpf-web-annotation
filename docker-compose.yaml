@@ -19,3 +19,4 @@ services:
       DJANGO_SETTINGS_MODULE: gpf_web_annotation_project.settings
       WDAE_EMAIL_HOST: mail
       RABBITMQ_HOST: rabbitmq
+      GRR_DEFINITION_FILE: /grr-definition.yaml
