@@ -7,9 +7,9 @@ import { environment } from '../../../environments/environment'
 
 @Injectable()
 export class JobsService {
-  private readonly createJobUrl = `${environment.basePath}/jobs/create`;
-  private readonly getUsersJobsUrl = `${environment.basePath}/jobs`;
-  private readonly getPipelinesUrl = `${environment.basePath}/pipelines`;
+  private readonly createJobUrl = `${environment.apiPath}/jobs/create`;
+  private readonly getUsersJobsUrl = `${environment.apiPath}/jobs`;
+  private readonly getPipelinesUrl = `${environment.apiPath}/pipelines`;
 
   public constructor(private http: HttpClient) { }
 
@@ -57,15 +57,15 @@ export class JobsService {
   }
 
   public getDownloadJobResultLink(jobId: number): string {
-    return `${environment.basePath}/jobs/${jobId}/file/result`;
+    return `${environment.apiPath}/jobs/${jobId}/file/result`;
   }
 
   public getJobInputDownloadLink(jobId: number): string {
-    return `${environment.basePath}/jobs/${jobId}/file/input`;
+    return `${environment.apiPath}/jobs/${jobId}/file/input`;
   }
 
   public getJobConfigLink(jobId: number): string {
-    return `${environment.basePath}/jobs/${jobId}/file/config`;
+    return `${environment.apiPath}/jobs/${jobId}/file/config`;
   }
 
   public getAnnotationPipelines(): Observable<Pipeline[]> {

@@ -8,7 +8,7 @@ const basePath = '//localhost:8000';
 export const environment = {
   production: false,
   basePath: basePath,
-  apiPath: basePath,
+  apiPath: basePath + "/api",
   imgPathPrefix: '/static/assets',
   version: versionInfo?.version
 };

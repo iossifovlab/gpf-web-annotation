@@ -27,22 +27,22 @@ import os
 urlpatterns = [
     path('api-auth', include('rest_framework.urls')),
 
-    path('jobs', views.JobList.as_view()),
-    path('jobs/all', views.JobAll.as_view()),
-    path('jobs/create', views.JobCreate.as_view()),
-    path('jobs/<int:pk>', views.JobDetail.as_view()),
-    path('jobs/<int:pk>/file/<str:file>', views.JobGetFile.as_view()),
+    path('api/jobs', views.JobList.as_view()),
+    path('api/jobs/all', views.JobAll.as_view()),
+    path('api/jobs/create', views.JobCreate.as_view()),
+    path('api/jobs/<int:pk>', views.JobDetail.as_view()),
+    path('api/jobs/<int:pk>/file/<str:file>', views.JobGetFile.as_view()),
 
-    path('pipelines', views.ListPipelines.as_view()),
+    path('api/pipelines', views.ListPipelines.as_view()),
 
-    path('users', views.UserList.as_view()),
-    path('users/<int:pk>', views.UserDetail.as_view()),
+    path('api/users', views.UserList.as_view()),
+    path('api/users/<int:pk>', views.UserDetail.as_view()),
 
-    path('login', views.Login.as_view()),
-    path('logout', views.Logout.as_view()),
-    path('register', views.Registration.as_view()),
-    path('user_info', views.UserInfo.as_view()),
+    path('api/login', views.Login.as_view()),
+    path('api/logout', views.Logout.as_view()),
+    path('api/register', views.Registration.as_view()),
+    path('api/user_info', views.UserInfo.as_view()),
 
-    re_path(r'static(/?.*)?', include('gpf_web_annotation_frontend.urls')),
-    re_path(r'^.*$', RedirectView.as_view(url=settings.STATIC_URL.removesuffix("/"))),
+    # re_path(r'static(/?.*)?', include('gpf_web_annotation_frontend.urls')),
+    # re_path(r'^.*$', RedirectView.as_view(url=settings.STATIC_URL.removesuffix("/"))),
 ]

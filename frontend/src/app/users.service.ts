@@ -13,10 +13,10 @@ export interface UserData {
 
 @Injectable()
 export class UsersService {
-  private readonly registerUrl = `${environment.basePath}/register`;
-  private readonly loginUrl = `${environment.basePath}/login`;
-  private readonly logoutUrl = `${environment.basePath}/logout`;
-  private readonly userDataUrl = `${environment.basePath}/user_info`;
+  private readonly registerUrl = `${environment.apiPath}/register`;
+  private readonly loginUrl = `${environment.apiPath}/login`;
+  private readonly logoutUrl = `${environment.apiPath}/logout`;
+  private readonly userDataUrl = `${environment.apiPath}/user_info`;
   public userData = new BehaviorSubject<UserData>(null);
 
   public constructor(

@@ -39,11 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
+    # 'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
     # 'gpf_web_annotation_backend.gpf_web_annotation_backend',
-    'gpf_web_annotation_frontend',
+    # 'gpf_web_annotation_frontend',
     'gpf_web_annotation_backend.apps.WebAnnotationConfig',
 ]
 
@@ -128,8 +128,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = '/static/'
-STATIC_ROOT = 'static-root'
+# STATIC_URL = '/static/'
+# STATIC_ROOT = 'static-root'
 
 # Uploaded static files
 

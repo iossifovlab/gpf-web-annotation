@@ -11,7 +11,7 @@ source /gpf/bin/activate
 
 DJANGO_SETTINGS_MODULE='gpf_web_annotation_project.settings' django-admin migrate
 
-DJANGO_SETTINGS_MODULE='gpf_web_annotation_project.settings' django-admin  collectstatic --noinput
+# DJANGO_SETTINGS_MODULE='gpf_web_annotation_project.settings' django-admin  collectstatic --noinput
 
 supervisorctl start celery
 
