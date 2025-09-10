@@ -42,6 +42,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      rabbitmq:
+        condition: service_started
     ports:
       - "9001:9001"
     volumes:
@@ -57,13 +59,19 @@ services:
       GPFWA_DB_HOST: db
       GPFWA_DB_PORT: 5432
       GPFWA_DATA_STORAGE: /data
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:9001/api/user_info"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend-tests:
     build:
       context: django-gpf-web-annotation
       dockerfile: Dockerfile.dev
     depends_on:
-    - rabbitmq
+      rabbitmq:
+        condition: service_started
     environment:
       DJANGO_SETTINGS_MODULE: gpf_web_annotation_project.test_settings
       WDAE_EMAIL_HOST: mail
@@ -79,6 +87,9 @@ services:
       dockerfile: Dockerfile
     ports:
       - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
 
   frontend-tests:
     build:
