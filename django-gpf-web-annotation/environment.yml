@@ -1,0 +1,25 @@
+# This file may be used to create an environment using:
+# $ conda env create --name <env> --file <this file>
+# platform: linux-64
+# conda create -c conda-forge -c bioconda -n <env name> --file <this file>
+# - conda-forge
+
+name: gpf-web-annotation
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pip
+  - python-build
+  - django=5.2.5
+  - django-stubs=5.2.2
+  - djangorestframework=3.16.1
+  - django-cors-headers=4.7.0
+  - celery=5.5.3
+  - pytest
+  - pytest-django
+  - pytest-mock
+  - pytest-cov
+  - python-magic
+  - celery-types
+  - psycopg>=3.1.18

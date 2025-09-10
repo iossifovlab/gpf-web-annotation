@@ -28,7 +28,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update --fix-missing && \
 RUN mkdir -p /logs
 RUN mkdir -p /site
 
-COPY --chown=nginx:nginx --from=builder /app/dist/*/browser /site/gpf-web-annotation
+COPY --chown=www-data:www-data --from=builder /app/dist/*/browser /site/gpf-web-annotation
 
 WORKDIR /site
 
