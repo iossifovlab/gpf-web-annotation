@@ -30,4 +30,4 @@ docker: frontend_prod package
 	docker build -f Dockerfile.prod -t gpf-web-annotation-backend .
 
 run:
-	DJANGO_SETTINGS_MODULE='gpf_web_annotation_project.settings' django-admin runserver
+	DJANGO_SETTINGS_MODULE='web_annotation.settings' django-admin runserver

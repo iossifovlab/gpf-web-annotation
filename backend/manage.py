@@ -6,7 +6,7 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gpf_web_annotation_project.settings')
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'web_annotation.settings')
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

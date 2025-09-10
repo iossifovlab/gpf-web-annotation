@@ -1,6 +1,6 @@
 from django.test import Client
 
-from gpf_web_annotation_backend.models import User
+from web_annotation.models import User
 
 
 def test_get_users(admin_client: Client) -> None:

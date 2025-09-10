@@ -9,7 +9,7 @@ set -e
 
 source /gpf/bin/activate
 
-DJANGO_SETTINGS_MODULE='gpf_web_annotation_project.settings' django-admin migrate
+DJANGO_SETTINGS_MODULE='web_annotation.settings' django-admin migrate
 
 
 supervisorctl start celery

@@ -1,5 +1,5 @@
 """
-ASGI config for gpf_web_annotation_project project.
+ASGI config for gpf_web_annotation project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,7 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gpf_web_annotation_project.settings')
+os.environ.setdefault(
+    'DJANGO_SETTINGS_MODULE', 'web_annotation.settings')
 
 application = get_asgi_application()

@@ -1,5 +1,5 @@
 """
-URL configuration for gpf_web_annotation_project project.
+URL configuration for gpf_web_annotation project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/5.2/topics/http/urls/
@@ -14,15 +14,10 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.urls import path, re_path, include
-from django.conf.urls.static import static
-from django.conf import settings
-from django.contrib.staticfiles import finders
-from django.views.generic.base import RedirectView
+from django.urls import path, include
 
-from gpf_web_annotation_backend import views
+from web_annotation import views
 
-import os
 
 urlpatterns = [
     path('api-auth', include('rest_framework.urls')),
@@ -42,7 +37,4 @@ urlpatterns = [
     path('api/logout', views.Logout.as_view()),
     path('api/register', views.Registration.as_view()),
     path('api/user_info', views.UserInfo.as_view()),
-
-    # re_path(r'static(/?.*)?', include('gpf_web_annotation_frontend.urls')),
-    # re_path(r'^.*$', RedirectView.as_view(url=settings.STATIC_URL.removesuffix("/"))),
 ]

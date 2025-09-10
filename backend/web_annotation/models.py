@@ -24,4 +24,4 @@ class Job(models.Model):
 
     # owner = models.ForeignKey('gpf_web_annnotation_backend.models.User', related_name='jobs', on_delete=models.CASCADE)
     #owner = models.ForeignKey(User, related_name='jobs', on_delete=models.CASCADE)
-    owner = models.ForeignKey('gpf_web_annotation_backend.User', related_name='jobs', on_delete=models.CASCADE)
+    owner = models.ForeignKey('web_annotation.User', related_name='jobs', on_delete=models.CASCADE)
