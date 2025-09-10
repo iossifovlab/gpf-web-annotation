@@ -28,4 +28,8 @@ cd /wd/backend/
 /opt/conda/bin/conda run -n gpf \
     coverage xml
 
+/opt/conda/bin/conda run -n gpf \
+    coverage html --title gpf_web_annotation_backend -d /wd/results/coverage-html
+
+
 cp /wd/backend/coverage.xml /wd/results/backend-coverage.xml

@@ -59,10 +59,17 @@ pipeline {
             recordCoverage sourceCodeEncoding: 'UTF-8',
                 enabledForFailure: true,
                 sourceCodeRetention: 'LAST_BUILD',
-                sourceDirectories: "backend/gpf_web_annotation_backend",
                 tools: [
                     [parser: 'COBERTURA', pattern: 'results/backend-coverage.xml']
                 ]
+
+            publishHTML (target : [allowMissing: true,
+                alwaysLinkToLastBuild: true,
+                keepAll: true,
+                reportDir: 'results/coverage-html',
+                reportFiles: 'index.html',
+                reportName: 'gpf-web-annotation-coverage',
+                reportTitles: 'gpf-web-annotation-coverage'])
 
         } finally {
           zulipNotification(
