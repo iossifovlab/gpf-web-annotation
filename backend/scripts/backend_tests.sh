@@ -18,6 +18,7 @@ while true; do
     fi
 done
 
-cd /wd/backend/gpf_web_annotation_backend
+cd /wd/backend/
 /opt/conda/bin/conda run --no-capture-output -n gpf \
-    py.test -v tests
+    py.test -v gpf_web_annotation_backend/tests \
+        --junitxml=/wd/results/backend-tests-junit.xml

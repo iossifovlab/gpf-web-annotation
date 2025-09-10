@@ -36,6 +36,32 @@ pipeline {
                 sh "docker compose -f compose-jenkins.yaml build"
             }
         }
+
+        stage('Run Backend Tests') {
+            steps {
+                sh "docker compose -f compose-jenkins.yaml run backend-tests"
+            }
+        }
+
     }
 
+  post {
+    always {
+      script {
+        sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
+
+
+        try {
+            def resultBeforeTests = currentBuild.currentResult
+            junit 'results/backend-tests-junit.xml'
+            sh "test ${resultBeforeTests} == ${currentBuild.currentResult}"
+
+        } finally {
+          zulipNotification(
+            topic: "${env.JOB_NAME}"
+          )
+        }
+      }
+    }
+  }
 }
