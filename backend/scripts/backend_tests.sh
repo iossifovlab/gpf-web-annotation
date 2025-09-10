@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-/opt/conda/bin/conda run --no-capture-output -n gpf pip install -e /wd/django-gpf-web-annotation
+/opt/conda/bin/conda run --no-capture-output -n gpf pip install -e /wd/backend
 
 /opt/conda/bin/conda run --no-capture-output -n gpf \
     celery -A gpf_web_annotation_backend.celery_app worker -l INFO -c 4 -D
@@ -18,6 +18,6 @@ while true; do
     fi
 done
 
-cd /wd/django-gpf-web-annotation/gpf_web_annotation_backend
+cd /wd/backend/gpf_web_annotation_backend
 /opt/conda/bin/conda run --no-capture-output -n gpf \
     py.test -v tests

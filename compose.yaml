@@ -37,7 +37,7 @@ services:
 
   backend:
     build:
-      context: django-gpf-web-annotation
+      context: backend
       dockerfile: Dockerfile
     depends_on:
       db:
@@ -67,7 +67,7 @@ services:
 
   backend-tests:
     build:
-      context: django-gpf-web-annotation
+      context: backend
       dockerfile: Dockerfile.dev
     depends_on:
       rabbitmq:
@@ -79,7 +79,7 @@ services:
       GRR_DEFINITION_FILE: /grr-definition.yaml
     volumes:
       - .:/wd
-    entrypoint: /wd/django-gpf-web-annotation/scripts/backend_tests.sh
+    entrypoint: /wd/backend/scripts/backend_tests.sh
 
   frontend:
     build:
