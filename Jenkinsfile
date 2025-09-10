@@ -35,5 +35,6 @@ pipeline {
                 sh "docker compose -f compose-jenkins.yaml build"
             }
         }
+    }
 
 }
