@@ -16,12 +16,14 @@ class Job(models.Model):
         SUCCESS = 3
         FAILED = 4
 
-    input_path = models.FilePathField(path=settings.JOB_INPUT_STORAGE_DIR)
-    config_path = models.FilePathField(path=settings.ANNOTATION_CONFIG_STORAGE_DIR)
-    result_path = models.FilePathField(path=settings.JOB_RESULT_STORAGE_DIR)
+    input_path = models.FilePathField(
+        path=settings.JOB_INPUT_STORAGE_DIR)
+    config_path = models.FilePathField(
+        path=settings.ANNOTATION_CONFIG_STORAGE_DIR)
+    result_path = models.FilePathField(
+        path=settings.JOB_RESULT_STORAGE_DIR)
     created = models.DateTimeField(auto_now_add=True)
     status = models.IntegerField(choices=Status, default=Status.WAITING)
 
-    # owner = models.ForeignKey('gpf_web_annnotation_backend.models.User', related_name='jobs', on_delete=models.CASCADE)
-    #owner = models.ForeignKey(User, related_name='jobs', on_delete=models.CASCADE)
-    owner = models.ForeignKey('web_annotation.User', related_name='jobs', on_delete=models.CASCADE)
+    owner = models.ForeignKey(
+        'web_annotation.User', related_name='jobs', on_delete=models.CASCADE)

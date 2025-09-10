@@ -29,7 +29,7 @@ from .tasks import create_annotation
 logger = logging.getLogger(__name__)
 
 
-def get_pipelines(grr: GenomicResourceRepo):
+def get_pipelines(grr: GenomicResourceRepo) -> dict[str, dict[str, str]]:
     pipelines: dict[str, dict[str, str]] = {}
     for resource in grr.get_all_resources():
         if resource.get_type() == "annotation_pipeline":
