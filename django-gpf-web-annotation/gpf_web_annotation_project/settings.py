@@ -97,7 +97,7 @@ else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": "wdae.sql",
+            "NAME": "db.sqlite3",
             "USER": "",
             "PASSWORD": "",
             "HOST": "",

@@ -1,6 +1,11 @@
 name: gpfwa
 services:
 
+  gpf-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.gpf_dev
+
   pg_data:
       image: busybox:latest
       command: echo "PostgreSQL data only container"
@@ -52,6 +57,21 @@ services:
       GPFWA_DB_HOST: db
       GPFWA_DB_PORT: 5432
       GPFWA_DATA_STORAGE: /data
+
+  backend-tests:
+    build:
+      context: django-gpf-web-annotation
+      dockerfile: Dockerfile.dev
+    depends_on:
+    - rabbitmq
+    environment:
+      DJANGO_SETTINGS_MODULE: gpf_web_annotation_project.test_settings
+      WDAE_EMAIL_HOST: mail
+      RABBITMQ_HOST: rabbitmq
+      GRR_DEFINITION_FILE: /grr-definition.yaml
+    volumes:
+      - .:/wd
+    entrypoint: /wd/django-gpf-web-annotation/scripts/backend_tests.sh
 
   frontend:
     build:

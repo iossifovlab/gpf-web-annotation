@@ -16,7 +16,7 @@ def test_get_jobs(
     admin_client: Client,
 ) -> None:
     # Each user should have only his jobs listed
-    response = user_client.get("/jobs")
+    response = user_client.get("/api/jobs")
     assert response.status_code == 200
 
     result = response.json()
@@ -32,7 +32,7 @@ def test_get_jobs(
     assert job["owner"] == "user@example.com"
 
     # Try with different user, expect different jobs
-    response = admin_client.get("/jobs")
+    response = admin_client.get("/api/jobs")
     assert response.status_code == 200
 
     result = response.json()
@@ -49,12 +49,12 @@ def test_get_jobs(
 
 
 def test_get_all_jobs_normal_user(user_client: Client) -> None:
-    response = user_client.get("/jobs/all")
+    response = user_client.get("/api/jobs/all")
     assert response.status_code == 403
 
 
 def test_get_all_jobs_admin_user(admin_client: Client) -> None:
-    response = admin_client.get("/jobs/all")
+    response = admin_client.get("/api/jobs/all")
     assert response.status_code == 200
 
     result = response.json()
@@ -94,7 +94,7 @@ def test_create_job(user_client: Client, mocker) -> None:
     """)
 
     response = user_client.post(
-        "/jobs/create",
+        "/api/jobs/create",
         {"config": ContentFile(annotation_config),
          "data": ContentFile(vcf)},
     )
@@ -135,7 +135,7 @@ def test_create_job_calls_annotation_runner(
     assert mocked_run_job.call_count == 0
 
     response = user_client.post(
-        "/jobs/create",
+        "/api/jobs/create",
         {"config": ContentFile(annotation_config),
          "data": ContentFile(vcf)},
     )
@@ -161,7 +161,7 @@ def test_create_job_bad_config(user_client: Client) -> None:
     """)
 
     response = user_client.post(
-        "/jobs/create",
+        "/api/jobs/create",
         {"config": ContentFile(raw_img),
          "data": ContentFile(vcf)},
     )
@@ -177,7 +177,7 @@ def test_create_job_bad_input_data(user_client: Client) -> None:
         raw_img = image.read()
 
     response = user_client.post(
-        "/jobs/create",
+        "/api/jobs/create",
         {"config": ContentFile("sample_annotator: sample_resource"),
          "data": ContentFile(raw_img)},
     )
@@ -190,7 +190,7 @@ def test_create_job_non_vcf_input_data(user_client: Client) -> None:
     assert Job.objects.filter(owner=user).count() == 1
 
     response = user_client.post(
-        "/jobs/create",
+        "/api/jobs/create",
         {"config": ContentFile("sample_annotator: sample_resource"),
          "data": ContentFile("blabla random text")},
     )
@@ -198,7 +198,7 @@ def test_create_job_non_vcf_input_data(user_client: Client) -> None:
 
 
 def test_job_details(user_client: Client) -> None:
-    response = user_client.get("/jobs/1")
+    response = user_client.get("/api/jobs/1")
     assert response.status_code == 200
 
     result = response.json()
@@ -212,34 +212,34 @@ def test_job_details(user_client: Client) -> None:
 
 
 def test_job_details_not_owner(user_client: Client) -> None:
-    response = user_client.get("/jobs/2")
+    response = user_client.get("/api/jobs/2")
     assert response.status_code == 403
 
 
 def test_job_file_input(user_client: Client) -> None:
-    response: FileResponse = user_client.get("/jobs/1/file/input")  # type: ignore
+    response: FileResponse = user_client.get("/api/jobs/1/file/input")  # type: ignore
     assert response.status_code == 200
     assert response.getvalue() == b"mock vcf data"
 
-    response: FileResponse = user_client.get("/jobs/1/file/config")  # type: ignore
+    response: FileResponse = user_client.get("/api/jobs/1/file/config")  # type: ignore
     assert response.status_code == 200
     assert response.getvalue() == b"mock annotation config"
 
-    response: FileResponse = user_client.get("/jobs/1/file/result")  # type: ignore
+    response: FileResponse = user_client.get("/api/jobs/1/file/result")  # type: ignore
     assert response.status_code == 200
     assert response.getvalue() == b"mock annotated vcf"
 
 
 def test_job_file_input_bad_request(user_client: Client) -> None:
-    response: FileResponse = user_client.get("/jobs/1/file/blabla")  # type: ignore
+    response: FileResponse = user_client.get("/api/jobs/1/file/blabla")  # type: ignore
     assert response.status_code == 400
 
 
 def test_job_file_input_not_owner(user_client: Client) -> None:
-    response: FileResponse = user_client.get("/jobs/2/file/input")  # type: ignore
+    response: FileResponse = user_client.get("/api/jobs/2/file/input")  # type: ignore
     assert response.status_code == 403
 
 
 def test_job_file_input_non_existent(user_client: Client) -> None:
-    response: FileResponse = user_client.get("/jobs/13/file/input")  # type: ignore
+    response: FileResponse = user_client.get("/api/jobs/13/file/input")  # type: ignore
     assert response.status_code == 404
