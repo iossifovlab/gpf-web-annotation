@@ -44,8 +44,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_started
-    ports:
-      - "9001:9001"
+    # ports:
+    #   - "9001:9001"
     volumes:
       - ./gpfwa_data:/data
     environment:
@@ -85,8 +85,8 @@ services:
     build:
       context: frontend
       dockerfile: Dockerfile
-    ports:
-      - "80:80"
+    # ports:
+    #   - "80:80"
     depends_on:
       backend:
         condition: service_healthy
