@@ -1,3 +1,5 @@
 dist/
 *.egg-info/
 /conda-channel
+.coverage
+coverage.xml

@@ -56,6 +56,13 @@ pipeline {
             junit 'results/backend-tests-junit.xml'
             sh "test ${resultBeforeTests} == ${currentBuild.currentResult}"
 
+            recordCoverage sourceCodeEncoding: 'UTF-8',
+                enabledForFailure: true,
+                sourceCodeRetention: 'LAST_BUILD',
+                tools: [
+                    [parser: 'COBERTURA', pattern: 'results/backend-coverage.xml']
+                ]
+
         } finally {
           zulipNotification(
             topic: "${env.JOB_NAME}"

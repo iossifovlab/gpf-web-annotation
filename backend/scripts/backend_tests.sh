@@ -21,4 +21,11 @@ done
 cd /wd/backend/
 /opt/conda/bin/conda run --no-capture-output -n gpf \
     py.test -v gpf_web_annotation_backend/tests \
+        --cov-config /wd/backend/coveragerc \
+        --cov gpf_web_annotation_backend \
         --junitxml=/wd/results/backend-tests-junit.xml
+
+/opt/conda/bin/conda run -n gpf \
+    coverage xml
+
+cp /wd/backend/coverage.xml /wd/results/backend-coverage.xml
