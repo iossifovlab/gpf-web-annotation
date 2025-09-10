@@ -32,6 +32,7 @@ pipeline {
 
         stage('Build') {
             steps {
+                sh "docker compose -f compose-jenkins.yaml build gpf-dev"
                 sh "docker compose -f compose-jenkins.yaml build"
             }
         }
