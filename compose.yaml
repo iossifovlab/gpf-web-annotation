@@ -59,3 +59,9 @@ services:
       dockerfile: Dockerfile
     ports:
       - "80:80"
+
+  frontend-tests:
+    build:
+      context: frontend
+      dockerfile: Dockerfile.dev
+    command: ["npm", "run", "test"]
