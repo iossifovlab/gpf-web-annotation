@@ -1,17 +1,6 @@
-FROM condaforge/mambaforge:latest AS build
+FROM gpfwa-gpf-dev:latest AS build
 
-RUN mamba update -y -n base -c conda-forge -y mamba
 RUN mamba install -y -n base -c conda-forge conda-pack=0.8.1
-
-RUN mkdir conda-channel
-COPY conda-channel /conda-channel/
-
-RUN mamba create -n gpf -y
-RUN mamba install -y -n gpf \
-    -c conda-forge \
-    -c bioconda \
-    -c file:///conda-channel \
-    gpf_dae
 
 WORKDIR /app
 

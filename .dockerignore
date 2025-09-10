@@ -2,10 +2,9 @@ __pycache__
 *.sqlite3
 data
 .pytest_cache
-gpf
-django-gpf-web-annotation-frontend/gpf_web_annotation_frontend/static
+/django-gpf-web-annotation
+/frontend
 *.egg-info
-django-gpf-web-annotation-frontend/dist
 conda-channel.tar.gz
 *.tbi
 /pg_data
