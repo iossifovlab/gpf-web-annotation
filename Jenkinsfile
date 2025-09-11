@@ -37,6 +37,12 @@ pipeline {
             }
         }
 
+        stage('Run Backend Linters') {
+            steps {
+                sh "docker compose -f compose-jenkins.yaml run backend-linters"
+            }
+        }
+
         stage('Run Backend Tests') {
             steps {
                 sh "docker compose -f compose-jenkins.yaml run backend-tests"
@@ -62,6 +68,22 @@ pipeline {
                 tools: [
                     [parser: 'COBERTURA', pattern: 'results/backend-coverage.xml']
                 ]
+
+            recordIssues(
+                enabledForFailure: true, aggregatingResults: false,
+                tools: [
+                    flake8(
+                        pattern: 'results/ruff_report', reportEncoding: 'UTF-8',
+                        id: 'ruff', name: 'Ruff'),
+                    myPy(
+                        pattern: 'results/mypy_report', reportEncoding: 'UTF-8',
+                        id: 'mypy', name: 'MyPy'),
+                    pyLint(
+                        pattern: 'results/pylint_report', reportEncoding: 'UTF-8',
+                        id: 'pylint', name: 'PyLint')
+                ],
+                qualityGates: [[threshold: 1, type: 'DELTA', unstable: true]]
+            )
 
             publishHTML (target : [allowMissing: true,
                 alwaysLinkToLastBuild: true,

@@ -81,6 +81,22 @@ services:
       - .:/wd
     entrypoint: /wd/backend/scripts/backend_tests.sh
 
+  backend-linters:
+    build:
+      context: backend
+      dockerfile: Dockerfile.dev
+    depends_on:
+      rabbitmq:
+        condition: service_started
+    environment:
+      DJANGO_SETTINGS_MODULE: web_annotation.test_settings
+      WDAE_EMAIL_HOST: mail
+      RABBITMQ_HOST: rabbitmq
+      GRR_DEFINITION_FILE: /grr-definition.yaml
+    volumes:
+      - .:/wd
+    entrypoint: /wd/backend/scripts/backend_linters.sh
+
   frontend:
     build:
       context: frontend
