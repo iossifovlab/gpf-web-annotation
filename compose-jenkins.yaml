@@ -40,12 +40,12 @@ services:
       context: backend
       dockerfile: Dockerfile
     depends_on:
+      gpf-dev:
+        condition: service_started
       db:
         condition: service_healthy
       rabbitmq:
         condition: service_started
-    # ports:
-    #   - "9001:9001"
     volumes:
       - ./gpfwa_data:/data
     environment:
@@ -101,8 +101,6 @@ services:
     build:
       context: frontend
       dockerfile: Dockerfile
-    # ports:
-    #   - "80:80"
     depends_on:
       backend:
         condition: service_healthy

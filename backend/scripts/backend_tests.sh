@@ -7,7 +7,7 @@
 
 c=0
 while true; do
-    sleep 1
+    sleep 2
     /opt/conda/bin/conda run --no-capture-output -n gpf \
         celery -A web_annotation.celery_app status && break
     c=$(($c+1))

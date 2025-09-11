@@ -1,0 +1,63 @@
+name: gpfwa
+services:
+
+  gpf-dev:
+    extends:
+      file: compose-jenkins.yaml
+      service: gpf-dev
+
+  pg_data:
+    extends:
+      file: compose-jenkins.yaml
+      service: pg_data
+
+  db:
+    extends:
+      file: compose-jenkins.yaml
+      service: db
+    ports:
+      - "5432:5432"
+
+  mail:
+    extends:
+      file: compose-jenkins.yaml
+      service: mail
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  rabbitmq:
+    extends:
+      file: compose-jenkins.yaml
+      service: rabbitmq
+    ports:
+      - "5672:5672"
+
+  backend:
+    extends:
+      file: compose-jenkins.yaml
+      service: backend
+    ports:
+      - "9001:9001"
+
+  backend-tests:
+    extends:
+      file: compose-jenkins.yaml
+      service: backend-tests
+
+  backend-linters:
+    extends:
+      file: compose-jenkins.yaml
+      service: backend-linters
+
+  frontend:
+    extends:
+      file: compose-jenkins.yaml
+      service: frontend
+    ports:
+    - "80:80"
+
+  frontend-tests:
+    extends:
+      file: compose-jenkins.yaml
+      service: frontend-tests
