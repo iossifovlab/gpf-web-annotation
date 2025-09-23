@@ -5,7 +5,7 @@ import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { UserData, UsersService } from '../users.service';
 import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
-import { Router } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 
 class UsersServiceMock {
   public userData = new BehaviorSubject<UserData>(null);
@@ -35,7 +35,8 @@ describe('LoginComponent', () => {
       imports: [LoginComponent],
       providers: [
         provideHttpClient(),
-        provideHttpClientTesting()
+        provideHttpClientTesting(),
+        provideRouter([])
       ]
     }).compileComponents();
 

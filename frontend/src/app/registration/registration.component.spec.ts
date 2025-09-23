@@ -6,6 +6,7 @@ import { Observable, of, throwError } from 'rxjs';
 import { UsersService } from '../users.service';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { By } from '@angular/platform-browser';
+import { provideRouter } from '@angular/router';
 
 class UsersServiceMock {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -27,7 +28,8 @@ describe('RegistrationComponent', () => {
       imports: [RegistrationComponent],
       providers: [
         provideHttpClient(),
-        provideHttpClientTesting()
+        provideHttpClientTesting(),
+        provideRouter([])
       ]
     }).compileComponents();
 
