@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { Job } from './jobs';
 import { Pipeline } from './pipelines';
-import { environment } from '../../../environments/environment'
+import { environment } from '../../../environments/environment';
 
 @Injectable()
 export class JobsService {
@@ -78,7 +78,7 @@ export class JobsService {
   public deleteJob(jobId: number): Observable<object> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
     return this.http.delete(
-      this.getUsersJobsUrl + jobId + '/',
+      `${this.getUsersJobsUrl}/${jobId}`,
       options
     );
   }
