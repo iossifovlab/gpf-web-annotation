@@ -80,7 +80,7 @@ describe('JobsService', () => {
     service.createJob(mockInputFile, null, mockConfigCntent);
 
     expect(httpPostSpy).toHaveBeenCalledWith(
-      'http://localhost:8000/jobs/create/',
+      '//localhost:8000/api/jobs/create',
       formData,
       options
     );
@@ -106,7 +106,7 @@ describe('JobsService', () => {
     service.createJob(mockInputFile, 'autism', null);
 
     expect(httpPostSpy).toHaveBeenCalledWith(
-      'http://localhost:8000/jobs/create/',
+      '//localhost:8000/api/jobs/create',
       formData,
       options
     );
@@ -136,7 +136,7 @@ describe('JobsService', () => {
 
     service.createJob(mockInputFile, null, mockConfigCntent);
     expect(httpPostSpy).toHaveBeenCalledWith(
-      'http://localhost:8000/jobs/create/',
+      '//localhost:8000/api/jobs/create',
       formData,
       options
     );
@@ -157,7 +157,7 @@ describe('JobsService', () => {
 
     service.getJobs();
     expect(httpGetSpy).toHaveBeenCalledWith(
-      'http://localhost:8000/jobs/',
+      '//localhost:8000/api/jobs',
       options
     );
   });
@@ -221,17 +221,17 @@ describe('JobsService', () => {
 
   it('should create annotated file download link', () => {
     const url = service.getDownloadJobResultLink(10);
-    expect(url).toBe('http://localhost:8000/jobs/10/file/result/');
+    expect(url).toBe('//localhost:8000/api/jobs/10/file/result');
   });
 
   it('should create config file download link', () => {
     const url = service.getJobConfigLink(10);
-    expect(url).toBe('http://localhost:8000/jobs/10/file/config/');
+    expect(url).toBe('//localhost:8000/api/jobs/10/file/config');
   });
 
   it('should create input file download link', () => {
     const url = service.getJobInputDownloadLink(10);
-    expect(url).toBe('http://localhost:8000/jobs/10/file/input/');
+    expect(url).toBe('//localhost:8000/api/jobs/10/file/input');
   });
 
   it('should get correct class name for waiting status', () => {
@@ -265,7 +265,7 @@ describe('JobsService', () => {
     const getResponse = service.getAnnotationPipelines();
 
     expect(httpGetSpy).toHaveBeenCalledWith(
-      'http://localhost:8000/pipelines/',
+      '//localhost:8000/api/pipelines',
       { withCredentials: true }
     );
     const res = await lastValueFrom(getResponse.pipe(take(1)));
@@ -283,7 +283,7 @@ describe('JobsService', () => {
     const getResponse = service.getAnnotationPipelines();
 
     expect(httpGetSpy).toHaveBeenCalledWith(
-      'http://localhost:8000/pipelines/',
+      '//localhost:8000/api/pipelines',
       { withCredentials: true }
     );
     const res = await lastValueFrom(getResponse.pipe(take(1)));
@@ -300,7 +300,7 @@ describe('JobsService', () => {
     const getResponse = service.getAnnotationPipelines();
 
     expect(httpGetSpy).toHaveBeenCalledWith(
-      'http://localhost:8000/pipelines/',
+      '//localhost:8000/api/pipelines',
       { withCredentials: true }
     );
     const res = await lastValueFrom(getResponse.pipe(take(1)));
@@ -320,7 +320,7 @@ describe('JobsService', () => {
     service.deleteJob(10);
     const options = { headers: {'X-CSRFToken': 'mockToken' }, withCredentials: true };
     expect(httpDeleteSpy).toHaveBeenCalledWith(
-      'http://localhost:8000/jobs/10/',
+      '//localhost:8000/api/jobs/10',
       options
     );
   });

@@ -43,7 +43,7 @@ describe('UsersService', () => {
 
     const postResult = service.registerUser('mockEmail@email.com', 'mockPassword');
     expect(httpPostSpy).toHaveBeenCalledWith(
-      'http://localhost:8000/register/',
+      '//localhost:8000/api/register',
       {
         email: 'mockEmail@email.com',
         password: 'mockPassword'
@@ -61,7 +61,7 @@ describe('UsersService', () => {
 
     service.loginUser('mockEmail@email.com', 'mockPassword');
     expect(httpPostSpy).toHaveBeenCalledWith(
-      'http://localhost:8000/login/',
+      '//localhost:8000/api/login',
       {
         email: 'mockEmail@email.com',
         password: 'mockPassword'
@@ -86,7 +86,7 @@ describe('UsersService', () => {
 
     service.getUserData();
     expect(httpGetSpy).toHaveBeenCalledWith(
-      'http://localhost:8000/user_info/',
+      '//localhost:8000/api/user_info',
       { withCredentials: true }
     );
   });
@@ -109,7 +109,7 @@ describe('UsersService', () => {
     const headers = { 'X-CSRFToken': 'csrfMockToken' };
     const options = { headers: headers, withCredentials: true };
     expect(httpGetSpy).toHaveBeenCalledWith(
-      'http://localhost:8000/logout/',
+      '//localhost:8000/api/logout',
       options
     );
   });
