@@ -4,14 +4,14 @@ import { defineConfig, devices } from '@playwright/test';
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  timeout: 600000,
+  timeout: 300000,
   expect: {
-    timeout: 60000,
+    timeout: 30000,
     toHaveScreenshot: {
       maxDiffPixels: 100
     },
   },
-  globalTimeout: 3600000,
+  globalTimeout: 1200000,
   testDir: './tests',
   outputDir: './test-results',
   fullyParallel: false,
@@ -28,7 +28,7 @@ export default defineConfig({
       mode: 'retain-on-failure',
       size: { width: 1920, height: 1080 }
     },
-    actionTimeout: 60000
+    actionTimeout: 30000
   },
   projects: [
     {
