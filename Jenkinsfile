@@ -50,8 +50,8 @@ pipeline {
         }
 
         stage('Run Frontend Tests') {
-            sh "mkdir -p frontend/test-reports"
             steps {
+                sh "mkdir -p frontend/test-reports"
                 sh "docker compose -f compose-jenkins.yaml run frontend-tests"
             }
         }
