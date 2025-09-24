@@ -148,5 +148,5 @@ services:
       frontend:
         condition: service_healthy
     environment:
-      FRONTEND_URL: http://frontend
+      DOCKER_COMPOSE: "1"
     command: ["npx", "playwright", "test"]
