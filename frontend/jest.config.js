@@ -8,7 +8,7 @@ module.exports = {
     "default",
     [
       "jest-junit",
-      { outputDirectory: "coverage", outputName: "junit-report.xml" },
+      { outputDirectory: "test-reports", outputName: "junit-report.xml" },
     ],
   ],
 };

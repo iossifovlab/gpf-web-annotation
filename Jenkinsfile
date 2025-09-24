@@ -49,6 +49,13 @@ pipeline {
             }
         }
 
+        stage('Run Frontend Tests') {
+            sh "mkdir -p frontend/test-reports"
+            steps {
+                sh "docker compose -f compose-jenkins.yaml run frontend-tests"
+            }
+        }
+
     }
 
   post {
@@ -60,6 +67,8 @@ pipeline {
         try {
             def resultBeforeTests = currentBuild.currentResult
             junit 'results/backend-tests-junit.xml'
+            sh "test ${resultBeforeTests} == ${currentBuild.currentResult}"
+            junit 'frontend/test-reports/junit-report.xml'
             sh "test ${resultBeforeTests} == ${currentBuild.currentResult}"
 
             recordCoverage sourceCodeEncoding: 'UTF-8',
