@@ -19,7 +19,7 @@ export default defineConfig({
   reporter: process.env.JENKINS ? [['junit', { outputFile: './test-results/results.xml' }]] : [['html']],
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: process.env.JENKINS ? 'http://frontend' : 'http://localhost:4200',
+    baseURL: process.env.JENKINS === '1' ? 'http://frontend' : 'http://localhost:4200',
     trace: process.env.JENKINS ? 'on' : 'on-first-retry',
     video: process.env.JENKINS ? {
       mode: 'retain-on-failure',
