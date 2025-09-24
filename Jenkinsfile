@@ -56,6 +56,12 @@ pipeline {
             }
         }
 
+        stage('Run E2E Tests') {
+            steps {
+                sh "docker compose -f compose-jenkins.yaml run e2e-tests"
+            }
+        }
+
     }
 
   post {
