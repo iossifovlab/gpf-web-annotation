@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
-import * as utils from './utils';
+import * as utils from '../utils';
 
 
 test.describe('Basic tests', () => {
   test.beforeEach(async({ page }) => {
-    await page.goto(utils.frontendUrl, {waitUntil: 'load'});
+    await page.goto('/', {waitUntil: 'load'});
   });
 
   test('should check if login page is loaded by default', ({ page }) => {
@@ -13,7 +13,7 @@ test.describe('Basic tests', () => {
 
   test('should check if user is redirected to login page after ' +
       'trying to access page without being logged in', async({ page }) => {
-    await page.goto(utils.frontendUrl + '/home', {waitUntil: 'load'});
+    await page.goto('/home', {waitUntil: 'load'});
     await expect(page.locator('app-login')).toBeVisible();
     expect(page.url()).toContain('/login');
   });
@@ -44,7 +44,7 @@ test.describe('Basic tests', () => {
   });
 
   test('should check if user is redirected to login page after clicking the link in register page', async({ page }) => {
-    await page.goto(utils.frontendUrl + '/register', {waitUntil: 'load'});
+    await page.goto('/register', {waitUntil: 'load'});
     await page.locator('#login-link').click();
     await expect(page.locator('app-login')).toBeVisible();
     expect(page.url()).toContain('/login');
@@ -53,7 +53,7 @@ test.describe('Basic tests', () => {
 
 test.describe('Registration tests', () => {
   test.beforeEach(async({ page }) => {
-    await page.goto(utils.frontendUrl, {waitUntil: 'load'});
+    await page.goto('/', {waitUntil: 'load'});
     await page.locator('#register-link').click();
   });
 
@@ -91,7 +91,7 @@ test.describe('Registration tests', () => {
     const randomEmail = `${utils.getRandomString()}@email.com`;
     await utils.registerUser(page, randomEmail, 'password123');
 
-    await page.goto(utils.frontendUrl + '/register', {waitUntil: 'load'});
+    await page.goto('/register', {waitUntil: 'load'});
 
     await page.locator('#email').pressSequentially(randomEmail);
     await page.locator('#password').pressSequentially('password123');
@@ -115,7 +115,7 @@ test.describe('Registration tests', () => {
 
 test.describe('Login tests', () => {
   test.beforeEach(async({ page }) => {
-    await page.goto(utils.frontendUrl, {waitUntil: 'load'});
+    await page.goto('/', {waitUntil: 'load'});
   });
 
   test('should check if home page is visible after successful login', async({ page }) => {
@@ -167,7 +167,7 @@ test.describe('Login tests', () => {
 
 test.describe('Logout tests', () => {
   test.beforeEach(async({ page }) => {
-    await page.goto(utils.frontendUrl, {waitUntil: 'load'});
+    await page.goto('/', {waitUntil: 'load'});
 
     const email = utils.getRandomString() + '@email.com';
     const password = 'aaabbb';
@@ -199,7 +199,7 @@ test.describe('Logout tests', () => {
   test('should not be able to navigate to home page after logout', async({ page }) => {
     await page.locator('#logout-button').click();
     await page.waitForSelector('#front-page-container');
-    await page.goto(utils.frontendUrl +'/home', {waitUntil: 'load'});
+    await page.goto('/home', {waitUntil: 'load'});
     await expect(page.locator('#front-page-container')).toBeVisible();
     expect(page.url()).toContain('/login');
   });

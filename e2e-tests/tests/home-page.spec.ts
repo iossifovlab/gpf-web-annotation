@@ -1,11 +1,11 @@
 import { test, expect } from '@playwright/test';
-import * as utils from './utils';
+import * as utils from '../utils';
 import fs from 'fs';
 
 
 test.describe('Create job tests', () => {
   test.beforeEach(async({ page }) => {
-    await page.goto(utils.frontendUrl, {waitUntil: 'load'});
+    await page.goto('/', {waitUntil: 'load'});
 
     const email = utils.getRandomString() + '@email.com';
     const password = 'aaabbb';
