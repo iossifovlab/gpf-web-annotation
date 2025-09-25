@@ -1,8 +1,18 @@
 import datetime
 import pathlib
 import textwrap
+import requests
+
 
 import pytest
+from celery import shared_task
+from pytest_mock import MockerFixture
+from pytest_celery.vendors.rabbitmq.api import RabbitMQTestBroker
+from pytest_celery.api.broker import CeleryBrokerCluster
+from dae.genomic_resources.repository import GR_CONF_FILE_NAME
+from dae.genomic_resources.repository_factory import \
+    build_genomic_resource_repository
+from dae.testing import setup_directories
 from django.core.files.base import ContentFile
 from django.http.response import FileResponse
 from django.test import Client
@@ -79,8 +89,10 @@ def test_get_all_jobs_admin_user(admin_client: Client) -> None:
     assert job["owner"] == "admin@example.com"
 
 
-def test_create_job(user_client: Client, mocker) -> None:
-    mocker.patch("web_annotation.views.run_job")
+def test_create_job(user_client: Client, mocker: MockerFixture) -> None:
+    mocker.patch(
+        "web_annotation.tasks.create_annotation.delay",
+    )
     user = User.objects.get(email="user@example.com")
 
     assert Job.objects.filter(owner=user).count() == 1
@@ -91,7 +103,7 @@ def test_create_job(user_client: Client, mocker) -> None:
         ##contig=<ID=chr1>
         #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
         chr1	1	.	C	A	.	.	.
-    """)
+    """).strip()
 
     response = user_client.post(
         "/api/jobs/create",
@@ -117,20 +129,21 @@ def test_create_job(user_client: Client, mocker) -> None:
     assert not result_path.exists()
 
 
-@pytest.mark.xfail(reason="outdated mock")
 def test_create_job_calls_annotation_runner(
     user_client: Client,
-    mocker,
+    mocker: MockerFixture,
 ) -> None:
-    mocked_run_job = mocker.patch("web_annotation.views.run_job")
+    mocked_run_job = mocker.patch(
+        "web_annotation.tasks.create_annotation.delay",
+    )
 
-    annotation_config = "sample_annotator: sample_resource"
+    annotation_config = "- sample_annotator: sample_resource"
     vcf = textwrap.dedent("""
         ##fileformat=VCFv4.1
         ##contig=<ID=chr1>
         #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
         chr1	1	.	C	A	.	.	.
-    """)
+    """).strip("\n")
 
     assert mocked_run_job.call_count == 0
 
@@ -142,7 +155,6 @@ def test_create_job_calls_annotation_runner(
     assert response.status_code == 204
 
     assert mocked_run_job.call_count == 1
-
 
 
 def test_create_job_bad_config(user_client: Client) -> None:
@@ -243,3 +255,50 @@ def test_job_file_input_not_owner(user_client: Client) -> None:
 def test_job_file_input_non_existent(user_client: Client) -> None:
     response: FileResponse = user_client.get("/api/jobs/13/file/input")  # type: ignore
     assert response.status_code == 404
+
+
+class ServerMock():
+    @property
+    def url(self):
+        return "http://localhost:8000"
+
+    def __str__(self):
+        return "http://localhost:8000"
+
+
+def test_annotate_with_position_score(
+    transactional_db: None,
+) -> None:
+    session = requests.Session()
+
+    login_url = "http://localhost:8000/api/login"
+
+    body = {
+        "email": "admin@example.com",
+        "password": "secret",
+    }
+
+    response = session.post(
+        login_url, json=body,
+        timeout=30)
+
+    assert response.status_code == 200
+
+    annotation_config = "- allele_score: hg38/scores/CADD_v1.4"
+    vcf = textwrap.dedent("""
+##fileformat=VCFv4.2
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##contig=<ID=chr14>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	mom	dad	prb
+chr14	21403214	.	T	C	.	.	.	GT	0/0	0/0	0/1
+chr14	21393217	.	ACT	A	.	.	.	GT	0/1	0/0	0/1
+chr14	21391016	.	A	AT	.	.	.	GT	0/1	0/1	0/1
+    """).strip()
+
+    response = session.post(
+        "http://localhost:8000/api/jobs/create",
+        files={
+            "config": ContentFile(annotation_config), "data": ContentFile(vcf)
+        },
+        headers={"X-Csrftoken": session.cookies["csrftoken"]}
+    )

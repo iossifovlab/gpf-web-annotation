@@ -192,3 +192,9 @@ JOB_INPUT_STORAGE_DIR = f"{DATA_STORAGE_DIR}/job-inputs"
 JOB_RESULT_STORAGE_DIR = f"{DATA_STORAGE_DIR}/job-results"
 
 PIPELINES_STORAGE_DIR = f"{DATA_STORAGE_DIR}/pipelines"
+
+LIMITS = {
+    "daily_jobs": 5,
+    "filesize": "64M",
+    "variant_count": 1000,
+}

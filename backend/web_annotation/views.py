@@ -3,24 +3,27 @@ import logging
 from pathlib import Path
 
 import magic
-import yaml
+from pysam import VariantFile
+
 from django.contrib.auth import authenticate, login, logout
 from django.conf import settings
+from django.core.files.uploadedfile import UploadedFile
 from django.http.response import FileResponse
 from django.shortcuts import get_object_or_404
-from rest_framework import permissions, views
+from django.utils import timezone
+from rest_framework import permissions, views, generics
 from rest_framework.parsers import MultiPartParser, JSONParser
+from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework import generics
 
-from dae.annotation.annotation_config import AnnotationConfigParser
+from dae.annotation.annotation_config import AnnotationConfigParser, \
+    AnnotationConfigurationError
 from dae.genomic_resources.repository_factory import \
     build_genomic_resource_repository
 from dae.genomic_resources.repository import GenomicResourceRepo
 from dae.genomic_resources.implementations.annotation_pipeline_impl import \
     AnnotationPipelineImplementation
 
-from .annotation import run_job
 from .serializers import JobSerializer, UserSerializer
 from .models import Job, User
 from .permissions import IsOwner, has_job_permission
@@ -46,10 +49,33 @@ PIPELINES = get_pipelines(GRR)
 
 
 class AnnotationBaseView(views.APIView):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self.grr = GRR
+        self._grr = GRR
         self.pipelines = PIPELINES
+        self.filesize_limit = self._convert_size(settings.LIMITS["filesize"])
+        self.daily_job_limit = settings.LIMITS["daily_jobs"]
+        self.variants_limit = settings.LIMITS["variant_count"]
+
+    @property
+    def grr(self):
+        return self.get_grr()
+
+    def get_grr(self):
+        return self._grr
+
+    @staticmethod
+    def _convert_size(filesize: str) -> int:
+        """Convert a human readable filesize string to bytes."""
+        filesize = filesize.upper()
+        units: dict[str, int] = {
+            "KB": 10**3, "MB": 10**6, "GB": 10**9, "TB": 10**12,
+            "K": 10**3, "M": 10**6, "G": 10**9, "T": 10**12,
+        }
+        for unit, mult in units.items():
+            if filesize.endswith(unit):
+                return int(filesize.rstrip(f"{unit}")) * mult
+        return int(filesize)
 
 
 class JobAll(generics.ListAPIView):
@@ -76,7 +102,23 @@ class JobCreate(AnnotationBaseView):
     parser_classes = [MultiPartParser]
     permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request):
+    def check_valid_upload_size(self, file: UploadedFile) -> bool:
+        assert file.size is not None
+        return file.size < self.filesize_limit
+
+    def check_if_user_can_create(self, user: User) -> bool:
+        today = timezone.now().replace(
+            hour=0, minute=0, second=0, microsecond=0)
+        jobs_made = Job.objects.filter(
+            created__gte=today, owner__exact=user.pk)
+        if len(jobs_made) > self.daily_job_limit:
+            return False
+        return True
+
+    def check_variants_limit(self, file: VariantFile) -> bool:
+        return len(list(file.fetch())) < self.variants_limit
+
+    def post(self, request: Request) -> Response:
         job_name = f"job-{int(time.time())}"
 
         config_filename = f"{job_name}.yaml"
@@ -93,26 +135,56 @@ class JobCreate(AnnotationBaseView):
                 if "ASCII text" not in magic.from_buffer(content):
                     return Response(status=views.status.HTTP_400_BAD_REQUEST)
             except UnicodeDecodeError:
-                return Response(status=views.status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"reason": "Invalid pipeline configuration file"},
+                    status=views.status.HTTP_400_BAD_REQUEST,
+                )
+
+        try:
+            AnnotationConfigParser.parse_str(content, grr=self.grr)
+        except AnnotationConfigurationError as e:
+            return Response(
+                {"reason": str(e)},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
 
         # TODO Verify validity of config
+        # Handle input VCF file
+        data_filename = f"{job_name}.vcf"
+        uploaded_file = request.FILES["data"]
+        if not self.check_valid_upload_size(uploaded_file):
+            return Response(
+                status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
+        try:
+            vcf = uploaded_file.read().decode()
+        except UnicodeDecodeError:
+            return Response(
+                {"reason": "Invalid VCF file"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+        input_path = Path(settings.JOB_INPUT_STORAGE_DIR, data_filename)
+        input_path.parent.mkdir(parents=True, exist_ok=True)
+        input_path.write_text(vcf)
+
+        try:
+            vcf = VariantFile(str(input_path.absolute()), "r")
+        except ValueError:
+            return Response(
+                {"reason": "Invalid VCF file"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        records = list(vcf.fetch())
+
+        if len(records) > self.variants_limit:
+            return Response(
+                status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
+
         config_path = Path(
             settings.ANNOTATION_CONFIG_STORAGE_DIR, config_filename)
         config_path.parent.mkdir(parents=True, exist_ok=True)
         config_path.write_text(content)
 
-        # Handle input VCF file
-        data_filename = f"{job_name}.vcf"
-        content = request.FILES["data"].read()
-        if "Variant Call Format" not in magic.from_buffer(content):
-            return Response(
-                data={"reason": "Invalid variant file."},
-                status=views.status.HTTP_400_BAD_REQUEST,
-            )
-        # TODO Verify if valid VCF (?)
-        input_path = Path(settings.JOB_INPUT_STORAGE_DIR, data_filename)
-        input_path.parent.mkdir(parents=True, exist_ok=True)
-        input_path.write_text(content.decode())
 
         result_path = Path(settings.JOB_RESULT_STORAGE_DIR, data_filename)
 
@@ -131,7 +203,7 @@ class JobCreate(AnnotationBaseView):
 class JobGetFile(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request, pk: int, file: str):
+    def get(self, request: Request, pk: int, file: str) -> Response:
         job = get_object_or_404(Job, id=pk)
         if not has_job_permission(job, request.user):
             return Response(status=views.status.HTTP_403_FORBIDDEN)
@@ -163,7 +235,7 @@ class UserDetail(generics.RetrieveAPIView):
 
 
 class UserInfo(views.APIView):
-    def get(self, request):
+    def get(self, request: Request) -> Response:
         user = request.user
         if not user.is_authenticated:
             return Response({"loggedIn": False})
@@ -177,7 +249,7 @@ class UserInfo(views.APIView):
 
 
 class Logout(views.APIView):
-    def get(self, request):
+    def get(self, request: Request) -> Response:
         logout(request)
         return Response(views.status.HTTP_204_NO_CONTENT)
 
@@ -185,7 +257,7 @@ class Logout(views.APIView):
 class Login(views.APIView):
     parser_classes = [JSONParser]
 
-    def post(self, request):
+    def post(self, request: Request) -> Response:
         if "email" not in request.data:
             return Response(
                 {"error": "An email is required to log in"},
@@ -216,7 +288,7 @@ class Login(views.APIView):
 class Registration(views.APIView):
     parser_classes = [JSONParser]
 
-    def post(self, request):
+    def post(self, request: Request) -> Response:
         if "email" not in request.data:
             return Response(
                 {"error": "An email is required to register"},
@@ -241,5 +313,8 @@ class Registration(views.APIView):
 
 class ListPipelines(AnnotationBaseView):
 
-    def get(self, request):
-        return Response(self.pipelines.values(), status=views.status.HTTP_200_OK)
+    def get(self, request: Request) -> Response:
+        return Response(
+            self.pipelines.values(),
+            status=views.status.HTTP_200_OK,
+        )
