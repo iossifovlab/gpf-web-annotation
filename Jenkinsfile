@@ -102,7 +102,7 @@ pipeline {
                         id: 'mypy', name: 'MyPy'),
                     pyLint(
                         pattern: 'results/pylint_report', reportEncoding: 'UTF-8',
-                        id: 'pylint', name: 'PyLint')
+                        id: 'pylint', name: 'PyLint'),
                     checkStyle(
                         pattern: 'frontend/reports/css-lint-report.xml',
                         reportEncoding: 'UTF-8', id: 'checkstyle-css',
