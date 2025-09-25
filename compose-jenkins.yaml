@@ -86,6 +86,8 @@ services:
     build:
       context: backend
       dockerfile: Dockerfile.dev
+      args:
+        - DOCKER_UID=${DOCKER_UID}
     depends_on:
       rabbitmq:
         condition: service_started
@@ -93,6 +95,7 @@ services:
       DJANGO_SETTINGS_MODULE: web_annotation.test_settings
       WDAE_EMAIL_HOST: mail
       RABBITMQ_HOST: rabbitmq
+      TESTING_CONTAINER: true
       GRR_DEFINITION_FILE: /grr-definition.yaml
     ports:
       - "8000:8000"
