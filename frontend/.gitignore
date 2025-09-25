@@ -45,3 +45,4 @@ Thumbs.db
 # npm package-lock
 package-lock.json
 test-reports
+reports

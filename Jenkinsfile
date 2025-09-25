@@ -49,9 +49,16 @@ pipeline {
             }
         }
 
+        stage('Run Frontend Linters') {
+            steps {
+                sh "mkdir -p frontend/reports"
+                sh "docker compose -f compose-jenkins.yaml run frontend-linters"
+            }
+        }
+
         stage('Run Frontend Tests') {
             steps {
-                sh "mkdir -p frontend/test-reports"
+                sh "mkdir -p frontend/reports"
                 sh "docker compose -f compose-jenkins.yaml run frontend-tests"
             }
         }
@@ -74,7 +81,7 @@ pipeline {
             def resultBeforeTests = currentBuild.currentResult
             junit 'results/backend-tests-junit.xml'
             sh "test ${resultBeforeTests} == ${currentBuild.currentResult}"
-            junit 'frontend/test-reports/junit-report.xml'
+            junit 'frontend/reports/junit-report.xml'
             sh "test ${resultBeforeTests} == ${currentBuild.currentResult}"
 
             recordCoverage sourceCodeEncoding: 'UTF-8',
@@ -96,6 +103,14 @@ pipeline {
                     pyLint(
                         pattern: 'results/pylint_report', reportEncoding: 'UTF-8',
                         id: 'pylint', name: 'PyLint')
+                    checkStyle(
+                        pattern: 'frontend/reports/css-lint-report.xml',
+                        reportEncoding: 'UTF-8', id: 'checkstyle-css',
+                        name: 'CSS lint'),
+                    checkStyle(
+                        pattern: 'frontend/reports/ts-lint-report.xml',
+                        reportEncoding: 'UTF-8', id: 'checkstyle-ts',
+                        name: 'TS lint'),
                 ],
                 qualityGates: [[threshold: 1, type: 'DELTA', unstable: true]]
             )

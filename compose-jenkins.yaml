@@ -135,10 +135,19 @@ services:
       context: frontend
       dockerfile: Dockerfile.dev
     volumes:
-      - ./frontend/test-reports:/test-reports
+      - ./frontend/reports:/reports
     environment:
-      JEST_JUNIT_OUTPUT_DIR: /test-reports
+      JEST_JUNIT_OUTPUT_DIR: /reports
     command: ["npm", "test"]
+
+  frontend-linters:
+    build:
+      context: frontend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./frontend/reports:/reports
+    entrypoint: /app/scripts/frontend-linters.sh
+
 
   e2e-tests:
     build:
