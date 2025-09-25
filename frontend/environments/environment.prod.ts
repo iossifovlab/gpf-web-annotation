@@ -4,7 +4,7 @@ const basePath = '';
 export const environment = {
   production: true,
   basePath: basePath,
-  apiPath: basePath + "/api",
+  apiPath: basePath + '/api',
   imgPathPrefix: '/assets',
   version: versionInfo?.version
 };
