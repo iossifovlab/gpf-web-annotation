@@ -153,6 +153,8 @@ services:
     build:
       context: e2e-tests
       dockerfile: Dockerfile.playwright
+    volumes:
+      - ./e2e-tests/reports:/reports
     depends_on:
       frontend:
         condition: service_healthy

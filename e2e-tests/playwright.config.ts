@@ -16,7 +16,7 @@ export default defineConfig({
   outputDir: './test-results',
   fullyParallel: false,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: process.env.DOCKER_COMPOSE ? [['junit', { outputFile: './test-results/results.xml' }]] : [['html']],
+  reporter: process.env.DOCKER_COMPOSE ? [['junit', { outputFile: '/reports/junit-report.xml' }]] : [['html']],
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: process.env.DOCKER_COMPOSE === '1' ? 'http://frontend' : 'http://localhost:4200',

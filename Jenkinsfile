@@ -65,6 +65,7 @@ pipeline {
 
         stage('Run E2E Tests') {
             steps {
+                sh "mkdir -p e2e-tests/reports"
                 sh "docker compose -f compose-jenkins.yaml run e2e-tests"
             }
         }
@@ -83,6 +84,9 @@ pipeline {
             sh "test ${resultBeforeTests} == ${currentBuild.currentResult}"
             junit 'frontend/reports/junit-report.xml'
             sh "test ${resultBeforeTests} == ${currentBuild.currentResult}"
+            junit 'e2e-tests/reports/junit-report.xml'
+            sh "test ${resultBeforeTests} == ${currentBuild.currentResult}"
+
 
             recordCoverage sourceCodeEncoding: 'UTF-8',
                 enabledForFailure: true,
