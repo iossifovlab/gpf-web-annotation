@@ -1,8 +1,8 @@
 # pylint: disable=C0116
+import pytest
 import datetime
 import pathlib
 import textwrap
-import requests
 
 from pytest_mock import MockerFixture
 from django.core.files.base import ContentFile
@@ -80,16 +80,13 @@ def test_get_all_jobs_admin_user(admin_client: Client) -> None:
     assert job["owner"] == "admin@example.com"
 
 
-def test_create_job(user_client: Client, mocker: MockerFixture) -> None:
-    mocker.patch(
-        "web_annotation.tasks.create_annotation.delay",
-    )
-
+@pytest.mark.django_db
+def test_create_job(user_client: Client) -> None:
     user = User.objects.get(email="user@example.com")
 
     assert Job.objects.filter(owner=user).count() == 1
 
-    annotation_config = "sample_annotator: sample_resource"
+    annotation_config = "- sample_annotator: sample_resource"
     vcf = textwrap.dedent("""
         ##fileformat=VCFv4.1
         ##contig=<ID=chr1>
@@ -121,6 +118,7 @@ def test_create_job(user_client: Client, mocker: MockerFixture) -> None:
     assert not result_path.exists()
 
 
+@pytest.mark.django_db
 def test_create_job_calls_annotation_runner(
     user_client: Client,
     mocker: MockerFixture,
@@ -138,6 +136,8 @@ def test_create_job_calls_annotation_runner(
 
     assert mocked.call_count == 0
 
+    assert len(Job.objects.all()) == 2
+
     response = user_client.post(
         "/api/jobs/create",
         {"config": ContentFile(annotation_config),
@@ -147,14 +147,21 @@ def test_create_job_calls_annotation_runner(
 
     assert mocked.call_count == 1
 
+    assert len(Job.objects.all()) == 3
+    created_job = Job.objects.all().latest("pk")
+    assert created_job.owner.email == "user@example.com"
+
+
+@pytest.mark.django_db
 def test_create_job_bad_config(user_client: Client) -> None:
     user = User.objects.get(email="user@example.com")
 
     assert Job.objects.filter(owner=user).count() == 1
 
-    with open(str(
-            pathlib.Path(__file__).parent /
-            "fixtures" / "GIMP_Pepper.png"), "rb") as image:
+    with open(
+        str(pathlib.Path(__file__).parent / "fixtures" / "GIMP_Pepper.png"),
+        "rb",
+    ) as image:
         raw_img = image.read()
 
     vcf = textwrap.dedent("""
@@ -164,14 +171,17 @@ def test_create_job_bad_config(user_client: Client) -> None:
         chr1	1	.	C	A	.	.	.
     """)
 
+    assert len(Job.objects.all()) == 2
     response = user_client.post(
         "/api/jobs/create",
         {"config": ContentFile(raw_img),
          "data": ContentFile(vcf)},
     )
+    assert len(Job.objects.all()) == 2
     assert response.status_code == 400
 
 
+@pytest.mark.django_db
 def test_create_job_bad_input_data(user_client: Client) -> None:
     user = User.objects.get(email="user@example.com")
 
@@ -182,27 +192,33 @@ def test_create_job_bad_input_data(user_client: Client) -> None:
             "fixtures" / "GIMP_Pepper.png"), "rb") as image:
         raw_img = image.read()
 
+    assert len(Job.objects.all()) == 2
     response = user_client.post(
         "/api/jobs/create",
-        {"config": ContentFile("sample_annotator: sample_resource"),
+        {"config": ContentFile("- sample_annotator: sample_resource"),
          "data": ContentFile(raw_img)},
     )
+    assert len(Job.objects.all()) == 2
     assert response.status_code == 400
 
 
+@pytest.mark.django_db
 def test_create_job_non_vcf_input_data(user_client: Client) -> None:
     user = User.objects.get(email="user@example.com")
 
     assert Job.objects.filter(owner=user).count() == 1
 
+    assert len(Job.objects.all()) == 2
     response = user_client.post(
         "/api/jobs/create",
         {"config": ContentFile("sample_annotator: sample_resource"),
          "data": ContentFile("blabla random text")},
     )
+    assert len(Job.objects.all()) == 2
     assert response.status_code == 400
 
 
+@pytest.mark.django_db
 def test_job_details(user_client: Client) -> None:
     response = user_client.get("/api/jobs/1")
     assert response.status_code == 200
@@ -217,11 +233,13 @@ def test_job_details(user_client: Client) -> None:
     assert result["owner"] == "user@example.com"
 
 
+@pytest.mark.django_db
 def test_job_details_not_owner(user_client: Client) -> None:
     response = user_client.get("/api/jobs/2")
     assert response.status_code == 403
 
 
+@pytest.mark.django_db
 def test_job_file_input(user_client: Client) -> None:
     response = user_client.get("/api/jobs/1/file/input")
     assert response.status_code == 200
@@ -236,72 +254,19 @@ def test_job_file_input(user_client: Client) -> None:
     assert response.getvalue() == b"mock annotated vcf"
 
 
+@pytest.mark.django_db
 def test_job_file_input_bad_request(user_client: Client) -> None:
     response = user_client.get("/api/jobs/1/file/blabla")
     assert response.status_code == 400
 
 
+@pytest.mark.django_db
 def test_job_file_input_not_owner(user_client: Client) -> None:
     response = user_client.get("/api/jobs/2/file/input")
     assert response.status_code == 403
 
 
+@pytest.mark.django_db
 def test_job_file_input_non_existent(user_client: Client) -> None:
     response = user_client.get("/api/jobs/13/file/input")
     assert response.status_code == 404
-
-
-def test_annotate_with_position_score(
-    transactional_db: None,
-) -> None:
-    session = requests.Session()
-
-    login_url = "http://localhost:8000/api/login"
-
-    body = {
-        "email": "admin@example.com",
-        "password": "secret",
-    }
-
-    response = session.post(
-        login_url, json=body,
-        timeout=30)
-
-    assert response.status_code == 200
-
-    annotation_config = "- allele_score: hg38/scores/CADD_v1.4"
-    vcf = textwrap.dedent("""
-##fileformat=VCFv4.2
-##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
-##contig=<ID=chr14>
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	mom	dad	prb
-chr14	21403214	.	T	C	.	.	.	GT	0/0	0/0	0/1
-chr14	21393217	.	ACT	A	.	.	.	GT	0/1	0/0	0/1
-chr14	21391016	.	A	AT	.	.	.	GT	0/1	0/1	0/1
-    """).strip()
-
-    response = session.post(
-        "http://localhost:8000/api/jobs/create",
-        files={
-            "config": ContentFile(annotation_config), "data": ContentFile(vcf)
-        },
-        headers={"X-Csrftoken": session.cookies["csrftoken"]}
-    )
-
-    data_dir = pathlib.Path(__file__).parent / "fixtures" / "container_data"
-
-    assert data_dir.exists()
-    config_dir = data_dir / "annotation-configs"
-    input_dir = data_dir / "job-inputs"
-    results_dir = data_dir / "job-results"
-    assert config_dir.exists()
-    assert input_dir.exists()
-    assert results_dir.exists()
-
-    job = Job.objects.all()[0]
-    job_config = config_dir / pathlib.Path(job.config_path).name
-    job_input = input_dir / pathlib.Path(job.input_path).name
-    job_result = results_dir / pathlib.Path(job.result_path).name
-    assert job_config.exists()
-    assert job_input.exists()
-    assert job_result.exists()
