@@ -127,6 +127,8 @@ pipeline {
                 reportName: 'gpf-web-annotation-coverage',
                 reportTitles: 'gpf-web-annotation-coverage'])
 
+            archiveArtifacts artifacts: 'e2e-tests/reports/**', fingerprint: true, allowEmptyArchive: true
+
         } finally {
           zulipNotification(
             topic: "${env.JOB_NAME}"

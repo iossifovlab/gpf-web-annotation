@@ -13,7 +13,7 @@ export default defineConfig({
   },
   globalTimeout: 1200000,
   testDir: './tests',
-  outputDir: './test-results',
+  outputDir: process.env.DOCKER_COMPOSE ? '/reports' : './test-results',
   fullyParallel: false,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: process.env.DOCKER_COMPOSE ? [['junit', { outputFile: '/reports/junit-report.xml' }]] : [['html']],
