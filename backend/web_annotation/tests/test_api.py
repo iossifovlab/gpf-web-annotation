@@ -1,10 +1,11 @@
+# pylint: disable=C0116
 import datetime
 import pathlib
 import textwrap
 
-import pytest
+import pytest_mock
+
 from django.core.files.base import ContentFile
-from django.http.response import FileResponse
 from django.test import Client
 from django.conf import settings
 
@@ -79,8 +80,11 @@ def test_get_all_jobs_admin_user(admin_client: Client) -> None:
     assert job["owner"] == "admin@example.com"
 
 
-def test_create_job(user_client: Client, mocker) -> None:
-    mocker.patch("web_annotation.views.run_job")
+def test_create_job(
+    user_client: Client,
+    mocker: pytest_mock.MockerFixture,
+) -> None:
+    mocker.patch("web_annotation.tasks.create_annotation.delay")
     user = User.objects.get(email="user@example.com")
 
     assert Job.objects.filter(owner=user).count() == 1
@@ -117,12 +121,12 @@ def test_create_job(user_client: Client, mocker) -> None:
     assert not result_path.exists()
 
 
-@pytest.mark.xfail(reason="outdated mock")
 def test_create_job_calls_annotation_runner(
     user_client: Client,
-    mocker,
+    mocker: pytest_mock.MockerFixture,
 ) -> None:
-    mocked_run_job = mocker.patch("web_annotation.views.run_job")
+    mocked = mocker.patch(
+        "web_annotation.tasks.create_annotation.delay")
 
     annotation_config = "sample_annotator: sample_resource"
     vcf = textwrap.dedent("""
@@ -132,7 +136,7 @@ def test_create_job_calls_annotation_runner(
         chr1	1	.	C	A	.	.	.
     """)
 
-    assert mocked_run_job.call_count == 0
+    assert mocked.call_count == 0
 
     response = user_client.post(
         "/api/jobs/create",
@@ -141,8 +145,7 @@ def test_create_job_calls_annotation_runner(
     )
     assert response.status_code == 204
 
-    assert mocked_run_job.call_count == 1
-
+    assert mocked.call_count == 1
 
 
 def test_create_job_bad_config(user_client: Client) -> None:
@@ -150,7 +153,9 @@ def test_create_job_bad_config(user_client: Client) -> None:
 
     assert Job.objects.filter(owner=user).count() == 1
 
-    with open(str(pathlib.Path(__file__).parent / "fixtures" / "GIMP_Pepper.png"), "rb") as image:
+    with open(str(
+            pathlib.Path(__file__).parent /
+            "fixtures" / "GIMP_Pepper.png"), "rb") as image:
         raw_img = image.read()
 
     vcf = textwrap.dedent("""
@@ -173,7 +178,9 @@ def test_create_job_bad_input_data(user_client: Client) -> None:
 
     assert Job.objects.filter(owner=user).count() == 1
 
-    with open(str(pathlib.Path(__file__).parent / "fixtures" / "GIMP_Pepper.png"), "rb") as image:
+    with open(str(
+            pathlib.Path(__file__).parent /
+            "fixtures" / "GIMP_Pepper.png"), "rb") as image:
         raw_img = image.read()
 
     response = user_client.post(
@@ -217,29 +224,29 @@ def test_job_details_not_owner(user_client: Client) -> None:
 
 
 def test_job_file_input(user_client: Client) -> None:
-    response: FileResponse = user_client.get("/api/jobs/1/file/input")  # type: ignore
+    response = user_client.get("/api/jobs/1/file/input")
     assert response.status_code == 200
     assert response.getvalue() == b"mock vcf data"
 
-    response: FileResponse = user_client.get("/api/jobs/1/file/config")  # type: ignore
+    response = user_client.get("/api/jobs/1/file/config")
     assert response.status_code == 200
     assert response.getvalue() == b"mock annotation config"
 
-    response: FileResponse = user_client.get("/api/jobs/1/file/result")  # type: ignore
+    response = user_client.get("/api/jobs/1/file/result")
     assert response.status_code == 200
     assert response.getvalue() == b"mock annotated vcf"
 
 
 def test_job_file_input_bad_request(user_client: Client) -> None:
-    response: FileResponse = user_client.get("/api/jobs/1/file/blabla")  # type: ignore
+    response = user_client.get("/api/jobs/1/file/blabla")
     assert response.status_code == 400
 
 
 def test_job_file_input_not_owner(user_client: Client) -> None:
-    response: FileResponse = user_client.get("/api/jobs/2/file/input")  # type: ignore
+    response = user_client.get("/api/jobs/2/file/input")
     assert response.status_code == 403
 
 
 def test_job_file_input_non_existent(user_client: Client) -> None:
-    response: FileResponse = user_client.get("/api/jobs/13/file/input")  # type: ignore
+    response = user_client.get("/api/jobs/13/file/input")
     assert response.status_code == 404
