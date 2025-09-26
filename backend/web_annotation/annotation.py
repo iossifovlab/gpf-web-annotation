@@ -1,14 +1,14 @@
-import fsspec
+from fsspec.asyn import reset_lock
 from dae.annotation.annotate_vcf import cli
 
 
-def run_job(
+def annotate_vcf_file(
     input_file_path: str,
     annotation_config_path: str,
     output_file_path: str,
     work_dir_path: str,
-):
-    fsspec.asyn.reset_lock()
+) -> None:
+    reset_lock()
 
     cli([
         input_file_path,

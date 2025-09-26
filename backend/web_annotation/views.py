@@ -56,6 +56,7 @@ class AnnotationBaseView(views.APIView):
         self.filesize_limit = self._convert_size(settings.LIMITS["filesize"])
         self.daily_job_limit = settings.LIMITS["daily_jobs"]
         self.variants_limit = settings.LIMITS["variant_count"]
+        self.result_storage_dir = Path(settings.JOB_RESULT_STORAGE_DIR)
 
     @property
     def grr(self):
@@ -142,7 +143,7 @@ class JobCreate(AnnotationBaseView):
 
         try:
             AnnotationConfigParser.parse_str(content, grr=self.grr)
-        except AnnotationConfigurationError as e:
+        except (AnnotationConfigurationError, KeyError) as e:
             return Response(
                 {"reason": str(e)},
                 status=views.status.HTTP_400_BAD_REQUEST,
@@ -195,7 +196,7 @@ class JobCreate(AnnotationBaseView):
                   owner=request.user)
         job.save()
 
-        create_annotation.delay(job.pk)
+        create_annotation.delay(job.pk, str(self.result_storage_dir))
 
         return Response(status=views.status.HTTP_204_NO_CONTENT)
 
