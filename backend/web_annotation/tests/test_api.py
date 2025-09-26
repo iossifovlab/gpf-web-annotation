@@ -251,15 +251,6 @@ def test_job_file_input_non_existent(user_client: Client) -> None:
     assert response.status_code == 404
 
 
-class ServerMock():
-    @property
-    def url(self):
-        return "http://localhost:8000"
-
-    def __str__(self):
-        return "http://localhost:8000"
-
-
 def test_annotate_with_position_score(
     transactional_db: None,
 ) -> None:
@@ -296,3 +287,21 @@ chr14	21391016	.	A	AT	.	.	.	GT	0/1	0/1	0/1
         },
         headers={"X-Csrftoken": session.cookies["csrftoken"]}
     )
+
+    data_dir = pathlib.Path(__file__).parent / "fixtures" / "container_data"
+
+    assert data_dir.exists()
+    config_dir = data_dir / "annotation-configs"
+    input_dir = data_dir / "job-inputs"
+    results_dir = data_dir / "job-results"
+    assert config_dir.exists()
+    assert input_dir.exists()
+    assert results_dir.exists()
+
+    job = Job.objects.all()[0]
+    job_config = config_dir / pathlib.Path(job.config_path).name
+    job_input = input_dir / pathlib.Path(job.input_path).name
+    job_result = results_dir / pathlib.Path(job.result_path).name
+    assert job_config.exists()
+    assert job_input.exists()
+    assert job_result.exists()

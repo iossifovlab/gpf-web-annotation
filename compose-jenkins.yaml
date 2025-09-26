@@ -86,8 +86,6 @@ services:
     build:
       context: backend
       dockerfile: Dockerfile.dev
-      args:
-        - DOCKER_UID=${DOCKER_UID}
     depends_on:
       rabbitmq:
         condition: service_started

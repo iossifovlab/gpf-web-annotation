@@ -8,14 +8,3 @@ COPY environment.yml .
 COPY dev-environment.yml .
 RUN mamba env update -y -n gpf --file ./environment.yml
 RUN mamba env update -y -n gpf --file ./dev-environment.yml
-
-RUN useradd \
-    --home "/test" \
-    --shell "/bin/bash" \
-    --no-create-home \
-    --uid "${DOCKER_UID}" \
-    wauser
-
-USER wauser
-
-
