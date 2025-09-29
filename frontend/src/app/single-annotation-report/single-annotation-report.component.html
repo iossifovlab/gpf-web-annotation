@@ -1,1 +1,21 @@
-<p>single-annotation-report works!</p>
+<div *ngIf="report">
+  <div id="variant">
+    <h2>Variant</h2>
+    <div id="variant-data-container">
+      <div id="variant-data-labels">
+        <span>chromosome</span>
+        <span>position</span>
+        <span>reference</span>
+        <span>alternative</span>
+        <span>variant type</span>
+      </div>
+      <div id="variant-data">
+        <span id="variant-chromosome">{{ report.variant.chromosome }}</span>
+        <span id="variant-position">{{ report.variant.position }}</span>
+        <span id="variant-reference">{{ report.variant.reference }}</span>
+        <span id="variant-alternate">{{ report.variant.alernative }}</span>
+        <span id="variant-type">{{ report.variant.variantType }}</span>
+      </div>
+    </div>
+  </div>
+</div>

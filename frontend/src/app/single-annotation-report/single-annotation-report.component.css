@@ -1,0 +1,32 @@
+#variant {
+  width: 250px;
+}
+
+#variant h2 {
+  color: #252e34;
+}
+
+#variant-data-container {
+  border: 1px solid #85a2b9;
+  background-color: #f4f7fb;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  padding: 10px 15px;
+}
+
+#variant-data-labels {
+  color: #85a2b9;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#variant-data {
+  color: #435869;
+  font-weight: bold;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
