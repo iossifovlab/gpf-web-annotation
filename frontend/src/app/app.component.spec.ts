@@ -4,6 +4,7 @@ import { UserData, UsersService } from './users.service';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, of } from 'rxjs';
+import { provideRouter } from '@angular/router';
 
 class UsersServiceMock {
   public userData = new BehaviorSubject<UserData>(null);
@@ -22,7 +23,9 @@ describe('AppComponent', () => {
       imports: [AppComponent],
       providers: [
         provideHttpClient(),
-        provideHttpClientTesting()],
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
     }).compileComponents();
 
     TestBed.overrideProvider(UsersService, {useValue: usersServiceMock});
