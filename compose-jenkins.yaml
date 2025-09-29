@@ -9,8 +9,9 @@ services:
   pg_data:
       image: busybox:latest
       command: echo "PostgreSQL data only container"
-      volumes:
-        - ./pg_data:/var/lib/postgresql/data
+      # volumes:
+      #   - ./pg_data:/var/lib/postgresql/data
+
   db:
     image: postgres
     restart: always
@@ -40,8 +41,8 @@ services:
       context: backend
       dockerfile: Dockerfile
     depends_on:
-      gpf-dev:
-        condition: service_started
+      # gpf-dev:
+      #   condition: service_started
       db:
         condition: service_healthy
       rabbitmq:
@@ -103,9 +104,6 @@ services:
     build:
       context: backend
       dockerfile: Dockerfile.dev
-    # depends_on:
-    #   rabbitmq:
-    #     condition: service_started
     environment:
       DJANGO_SETTINGS_MODULE: web_annotation.test_settings
       WDAE_EMAIL_HOST: mail
@@ -114,7 +112,6 @@ services:
     volumes:
       - .:/wd
     entrypoint: /wd/backend/scripts/backend_linters.sh
-
 
 
   frontend:
