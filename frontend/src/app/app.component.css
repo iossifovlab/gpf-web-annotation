@@ -52,3 +52,20 @@
   background: #f4f7fb;
   cursor: pointer;
 }
+
+#header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+a {
+  text-decoration: none;
+  color: #85a2b9;
+  font-size: 16px;
+}
+
+.active-link {
+  color: #435869;
+  font-weight: bold;
+}

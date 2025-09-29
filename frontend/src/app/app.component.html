@@ -13,9 +13,14 @@
       <img src="{{ environment.imgPathPrefix }}/logo-64x64.png" alt="GPF Logo" id="header-logo" />
       <span id="app-title">GPF Web Annotation</span>
     </div>
-    <div id="user-data">
-      <span id="user-email">{{ currentUserData.email }}</span>
-      <button id="logout-button" (click)="logout()">Logout</button>
+    <div id="header-right">
+      <div id="nav-links">
+        <a routerLink="/home" routerLinkActive="active-link">Jobs</a>
+      </div>
+      <div id="user-data">
+        <span id="user-email">{{ currentUserData.email }}</span>
+        <button id="logout-button" (click)="logout()">Logout</button>
+      </div>
     </div>
   </div>
   <router-outlet></router-outlet>
