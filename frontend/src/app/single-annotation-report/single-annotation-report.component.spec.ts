@@ -4,6 +4,7 @@ import { SingleAnnotationReportComponent } from './single-annotation-report.comp
 import { Observable, of } from 'rxjs';
 import { Annotator, AnnotatorType, SingleAnnotationReport, Variant } from '../single-annotation';
 import { SingleAnnotationService } from '../single-annotation.service';
+import { provideRouter } from '@angular/router';
 
 const mockReport = new SingleAnnotationReport(
   new Variant('chr14', '204000100', 'A', 'AA', 'ins'),
@@ -28,7 +29,8 @@ describe('SingleAnnotationReportComponent', () => {
         {
           provide: SingleAnnotationService,
           useValue: mockSingleAnnotationService
-        }
+        },
+        provideRouter([]),
       ]
     }).compileComponents();
 
