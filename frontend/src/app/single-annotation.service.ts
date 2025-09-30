@@ -6,14 +6,15 @@ import { SingleAnnotationReport } from './single-annotation';
 
 @Injectable()
 export class SingleAnnotationService {
-  private readonly getReportUrl = `${environment.apiPath}`;
+  private readonly getReportUrl = `${environment.apiPath}/single-annotation`;
   private readonly getGenomesUrl = `${environment.apiPath}/genomes`;
   public constructor(private http: HttpClient) { }
 
-  public getReport(): Observable<SingleAnnotationReport> {
+  public getReport(variant: string, genome: string): Observable<SingleAnnotationReport> {
     const options = { withCredentials: true };
-    return this.http.get<object>(
+    return this.http.post<object>(
       this.getReportUrl,
+      { variant: variant, genome: genome },
       options
     ).pipe(map((response: object) => SingleAnnotationReport.fromJson(response)));
   }
