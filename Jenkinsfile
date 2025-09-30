@@ -39,12 +39,14 @@ pipeline {
 
         stage('Run Backend Linters') {
             steps {
+                sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
                 sh "docker compose -f compose-jenkins.yaml run backend-linters"
             }
         }
 
         stage('Run Backend Tests') {
             steps {
+                sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
                 sh "docker compose -f compose-jenkins.yaml run backend-tests"
             }
         }
@@ -52,6 +54,7 @@ pipeline {
         stage('Run Frontend Linters') {
             steps {
                 sh "mkdir -p frontend/reports"
+                sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
                 sh "docker compose -f compose-jenkins.yaml run frontend-linters"
             }
         }
@@ -59,6 +62,7 @@ pipeline {
         stage('Run Frontend Tests') {
             steps {
                 sh "mkdir -p frontend/reports"
+                sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
                 sh "docker compose -f compose-jenkins.yaml run frontend-tests"
             }
         }
@@ -66,6 +70,7 @@ pipeline {
         stage('Run E2E Tests') {
             steps {
                 sh "mkdir -p e2e-tests/reports"
+                sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
                 sh "docker compose -f compose-jenkins.yaml run e2e-tests"
             }
         }
