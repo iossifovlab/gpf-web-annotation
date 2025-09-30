@@ -1,5 +1,6 @@
 FROM gpfwa-gpf-dev:latest
 
+ARG DOCKER_UID=1001
 COPY scripts/grr-definition.yaml /
 WORKDIR /app
 

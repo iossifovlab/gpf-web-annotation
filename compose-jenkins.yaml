@@ -93,6 +93,7 @@ services:
       DJANGO_SETTINGS_MODULE: web_annotation.test_settings
       WDAE_EMAIL_HOST: mail
       RABBITMQ_HOST: rabbitmq
+      TESTING_CONTAINER: true
       GRR_DEFINITION_FILE: /grr-definition.yaml
     ports:
       - "8000:8000"
