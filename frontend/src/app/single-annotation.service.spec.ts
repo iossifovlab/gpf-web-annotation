@@ -76,9 +76,10 @@ describe('SingleAnnotationService', () => {
       providers: [
         SingleAnnotationService,
         provideHttpClient(),
-        provideHttpClientTesting()
+        provideHttpClientTesting(),
       ]
     });
+
     service = TestBed.inject(SingleAnnotationService);
   });
 
@@ -87,14 +88,15 @@ describe('SingleAnnotationService', () => {
   });
 
   it('should check query parameters when requesting annotation report', () => {
-    const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
+    const httpGetSpy = jest.spyOn(HttpClient.prototype, 'post');
     const options = {
       withCredentials: true
     };
 
-    service.getReport();
+    service.getReport('variant', 'genome');
     expect(httpGetSpy).toHaveBeenCalledWith(
-      '//localhost:8000/api',
+      '//localhost:8000/api/single-annotation',
+      { variant: 'variant', genome: 'genome' },
       options
     );
   });
@@ -126,10 +128,10 @@ describe('SingleAnnotationService', () => {
         ),
       ]
     );
-    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'get');
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponse));
 
-    const getReport = service.getReport();
+    const getReport = service.getReport('variant', 'genome');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toStrictEqual(mockObject);
@@ -157,10 +159,10 @@ describe('SingleAnnotationService', () => {
     const mockResponseInvalidHistogram = cloneDeep(mockResponse);
     mockResponseInvalidHistogram.annotators[0].scores[0].histogram = null;
 
-    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'get');
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponseInvalidHistogram));
 
-    const getReport = service.getReport();
+    const getReport = service.getReport('variant', 'genome');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toStrictEqual(mockObject);
@@ -180,10 +182,10 @@ describe('SingleAnnotationService', () => {
     const mockResponseInvalidScore = cloneDeep(mockResponse);
     mockResponseInvalidScore.annotators[0].scores[0] = null;
 
-    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'get');
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponseInvalidScore));
 
-    const getReport = service.getReport();
+    const getReport = service.getReport('variant', 'genome');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toStrictEqual(mockObject);
@@ -203,10 +205,10 @@ describe('SingleAnnotationService', () => {
     const mockResponseInvalidScores = cloneDeep(mockResponse);
     mockResponseInvalidScores.annotators[0].scores = null;
 
-    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'get');
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponseInvalidScores));
 
-    const getReport = service.getReport();
+    const getReport = service.getReport('variant', 'genome');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toStrictEqual(mockObject);
@@ -221,10 +223,10 @@ describe('SingleAnnotationService', () => {
     const mockResponseInvalidAnnotator = cloneDeep(mockResponse);
     mockResponseInvalidAnnotator.annotators[0] = null;
 
-    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'get');
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponseInvalidAnnotator));
 
-    const getReport = service.getReport();
+    const getReport = service.getReport('variant', 'genome');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toStrictEqual(mockObject);
@@ -239,10 +241,10 @@ describe('SingleAnnotationService', () => {
     const mockResponseInvalidAnnotators = cloneDeep(mockResponse);
     mockResponseInvalidAnnotators.annotators = null;
 
-    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'get');
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponseInvalidAnnotators));
 
-    const getReport = service.getReport();
+    const getReport = service.getReport('variant', 'genome');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toStrictEqual(mockObject);
@@ -279,20 +281,20 @@ describe('SingleAnnotationService', () => {
     const mockResponseInvalidVariant = cloneDeep(mockResponse);
     mockResponseInvalidVariant.variant = null;
 
-    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'get');
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponseInvalidVariant));
 
-    const getReport = service.getReport();
+    const getReport = service.getReport('variant', 'genome');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toStrictEqual(mockObject);
   });
 
   it('should set report to undefined when report data from query response is invalid', async() => {
-    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'get');
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(null));
 
-    const getReport = service.getReport();
+    const getReport = service.getReport('variant', 'genome');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toBeUndefined();
