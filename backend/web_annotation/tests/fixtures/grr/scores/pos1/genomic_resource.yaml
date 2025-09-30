@@ -3,6 +3,7 @@ table:
     filename: data.tsv
 scores:
   - id: pos1
+    name: s1
     type: float
     desc: "test position score"
 

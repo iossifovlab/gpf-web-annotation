@@ -6,8 +6,11 @@ import textwrap
 
 from pytest_mock import MockerFixture
 from django.core.files.base import ContentFile
+from django.conf import LazySettings
+from dae.genomic_resources.repository import GenomicResourceRepo
 from django.test import Client
 from django.conf import settings
+from django.utils import timezone
 
 from web_annotation.models import Job, User
 
@@ -81,12 +84,14 @@ def test_get_all_jobs_admin_user(admin_client: Client) -> None:
 
 
 @pytest.mark.django_db
-def test_create_job(user_client: Client) -> None:
+def test_create_job(
+    user_client: Client, test_grr: GenomicResourceRepo,
+) -> None:
     user = User.objects.get(email="user@example.com")
 
     assert Job.objects.filter(owner=user).count() == 1
 
-    annotation_config = "- sample_annotator: sample_resource"
+    annotation_config = "- position_score: scores/pos1"
     vcf = textwrap.dedent("""
         ##fileformat=VCFv4.1
         ##contig=<ID=chr1>
@@ -115,7 +120,7 @@ def test_create_job(user_client: Client) -> None:
 
     result_path = pathlib.Path(job.result_path)
     assert str(result_path.parent) == settings.JOB_RESULT_STORAGE_DIR
-    assert not result_path.exists()
+    assert result_path.exists()
 
 
 @pytest.mark.django_db
@@ -126,7 +131,7 @@ def test_create_job_calls_annotation_runner(
     mocked = mocker.patch(
         "web_annotation.tasks.create_annotation.delay")
 
-    annotation_config = "- sample_annotator: sample_resource"
+    annotation_config = "- position_score: scores/pos1"
     vcf = textwrap.dedent("""
         ##fileformat=VCFv4.1
         ##contig=<ID=chr1>
@@ -270,3 +275,203 @@ def test_job_file_input_not_owner(user_client: Client) -> None:
 def test_job_file_input_non_existent(user_client: Client) -> None:
     response = user_client.get("/api/jobs/13/file/input")
     assert response.status_code == 404
+
+@pytest.mark.django_db
+def test_daily_user_quota(
+    user_client: Client,
+    mocker: MockerFixture,
+) -> None:
+    mocked_run_job = mocker.patch(
+        "web_annotation.tasks.create_annotation.delay",
+    )
+
+    annotation_config = "- position_score: scores/pos1"
+    vcf = textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        ##contig=<ID=chr1>
+        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+        chr1	1	.	C	A	.	.	.
+    """).strip("\n")
+
+    job_created_at = timezone.now() - timezone.timedelta(seconds=1)
+    user = User.objects.get(email="user@example.com")
+    for i in range(4):
+        Job(
+            input_path="test",
+            config_path="test",
+            result_path="test",
+            created=job_created_at,
+            owner=user,
+        ).save()
+    response = user_client.post(
+        "/api/jobs/create",
+        {"config": ContentFile(annotation_config),
+         "data": ContentFile(vcf)},
+    )
+    assert response.status_code == 204
+
+    response = user_client.post(
+        "/api/jobs/create",
+        {"config": ContentFile(annotation_config),
+         "data": ContentFile(vcf)},
+    )
+
+    assert response.status_code == 403
+    assert response.data["reason"] == "Daily job limit reached!"
+
+
+@pytest.mark.django_db
+def test_daily_admin_quota(
+    admin_client: Client,
+    mocker: MockerFixture,
+) -> None:
+    mocked_run_job = mocker.patch(
+        "web_annotation.tasks.create_annotation.delay",
+    )
+
+    annotation_config = "- position_score: scores/pos1"
+    vcf = textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        ##contig=<ID=chr1>
+        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+        chr1	1	.	C	A	.	.	.
+    """).strip("\n")
+
+    job_created_at = timezone.now() - timezone.timedelta(seconds=1)
+    admin = User.objects.get(email="user@example.com")
+    for i in range(4):
+        Job(
+            input_path="test",
+            config_path="test",
+            result_path="test",
+            created=job_created_at,
+            owner=admin,
+        ).save()
+    response = admin_client.post(
+        "/api/jobs/create",
+        {"config": ContentFile(annotation_config),
+         "data": ContentFile(vcf)},
+    )
+    assert response.status_code == 204
+
+    response = admin_client.post(
+        "/api/jobs/create",
+        {"config": ContentFile(annotation_config),
+         "data": ContentFile(vcf)},
+    )
+
+    assert response.status_code == 204
+
+
+@pytest.mark.django_db
+def test_filesize_limit_user(
+    user_client: Client,
+    mocker: MockerFixture,
+    settings: LazySettings,
+) -> None:
+    settings.LIMITS["filesize"] = 1
+
+    mocked_run_job = mocker.patch(
+        "web_annotation.tasks.create_annotation.delay",
+    )
+
+    annotation_config = "- position_score: scores/pos1"
+    vcf = textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        ##contig=<ID=chr1>
+        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+        chr1	1	.	C	A	.	.	.
+    """).strip("\n")
+
+    response = user_client.post(
+        "/api/jobs/create",
+        {"config": ContentFile(annotation_config),
+         "data": ContentFile(vcf)},
+    )
+    assert response.status_code == 413
+
+
+@pytest.mark.django_db
+def test_filesize_limit_admin(
+    admin_client: Client,
+    mocker: MockerFixture,
+    settings: LazySettings,
+) -> None:
+    settings.LIMITS["filesize"] = 1
+
+    mocked_run_job = mocker.patch(
+        "web_annotation.tasks.create_annotation.delay",
+    )
+
+    annotation_config = "- position_score: scores/pos1"
+    vcf = textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        ##contig=<ID=chr1>
+        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+        chr1	1	.	C	A	.	.	.
+    """).strip("\n")
+
+    response = admin_client.post(
+        "/api/jobs/create",
+        {"config": ContentFile(annotation_config),
+         "data": ContentFile(vcf)},
+    )
+    assert response.status_code == 204
+
+
+@pytest.mark.django_db
+def test_variant_limit_user(
+    user_client: Client,
+    mocker: MockerFixture,
+    settings: LazySettings,
+) -> None:
+    settings.LIMITS["variant_count"] = 1
+
+    mocked_run_job = mocker.patch(
+        "web_annotation.tasks.create_annotation.delay",
+    )
+
+    annotation_config = "- position_score: scores/pos1"
+    vcf = textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        ##contig=<ID=chr1>
+        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+        chr1	1	.	C	A	.	.	.
+        chr1	2	.	C	A	.	.	.
+    """).strip("\n")
+
+    response = user_client.post(
+        "/api/jobs/create",
+        {"config": ContentFile(annotation_config),
+         "data": ContentFile(vcf)},
+    )
+    assert response.status_code == 413
+
+
+@pytest.mark.django_db
+def test_variant_limit_admin(
+    admin_client: Client,
+    mocker: MockerFixture,
+    settings: LazySettings,
+) -> None:
+    settings.LIMITS["variant_count"] = 1
+
+    mocked_run_job = mocker.patch(
+        "web_annotation.tasks.create_annotation.delay",
+    )
+
+    annotation_config = "- position_score: scores/pos1"
+    vcf = textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        ##contig=<ID=chr1>
+        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+        chr1	1	.	C	A	.	.	.
+        chr1	2	.	C	A	.	.	.
+    """).strip("\n")
+
+    response = admin_client.post(
+        "/api/jobs/create",
+        {"config": ContentFile(annotation_config),
+         "data": ContentFile(vcf)},
+    )
+    assert response.status_code == 204
