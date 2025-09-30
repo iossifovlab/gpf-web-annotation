@@ -46,11 +46,8 @@ describe('SingleAnnotationComponent', () => {
     const routerSpy = jest.spyOn((component as any).router, 'navigate');
     component.loadReport('variant1');
     expect(routerSpy).toHaveBeenCalledWith(
-      [
-        'report',
-        { queryParams: {genome: 'hg19', variant: 'variant1'}}
-      ],
-      { relativeTo: (component as any).route }
+      ['report'],
+      { queryParams: {genome: 'hg19', variant: 'variant1'}, relativeTo: (component as any).route }
     );
   });
 });
