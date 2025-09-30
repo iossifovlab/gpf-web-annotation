@@ -2,7 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { SingleAnnotationService } from '../single-annotation.service';
 import { SingleAnnotationReport } from '../single-annotation';
 import { CommonModule } from '@angular/common';
-import { take } from 'rxjs';
+import { switchMap, take } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-single-annotation-report',
@@ -13,11 +14,30 @@ import { take } from 'rxjs';
 export class SingleAnnotationReportComponent implements OnInit {
   public report: SingleAnnotationReport = null;
 
-  public constructor(private singleAnnotationService: SingleAnnotationService) { }
+  public constructor(
+    private singleAnnotationService: SingleAnnotationService,
+    private route: ActivatedRoute,
+    private router: Router,
+  ) { }
 
   public ngOnInit(): void {
-    this.singleAnnotationService.getReport().pipe(take(1)).subscribe(report => {
+    this.route.queryParams.pipe(
+      take(1),
+      switchMap(params => {
+        return this.singleAnnotationService.getReport(
+          params['variant'] as string,
+          params['genome'] as string
+        );
+      })
+    ).subscribe(report => {
+      this.clearQueryParams();
       this.report = report;
+    });
+  }
+
+  private clearQueryParams(): void {
+    this.router.navigate([], {
+      queryParams: {},
     });
   }
 }
