@@ -4,6 +4,7 @@ import { RegistrationComponent } from './registration/registration.component';
 import { HomeComponent } from './home/home.component';
 import { authGuard } from './auth-guard';
 import { SingleAnnotationReportComponent } from './single-annotation-report/single-annotation-report.component';
+import { SingleAnnotationComponent } from './single-annotation/single-annotation.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -16,7 +17,7 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        component: HomeComponent
+        component: SingleAnnotationComponent
       },
       {
         path: 'report',
