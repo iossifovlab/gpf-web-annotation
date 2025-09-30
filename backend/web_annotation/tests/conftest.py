@@ -1,5 +1,6 @@
 import pathlib
 import shutil
+from typing import Generator
 import pytest
 import pytest_mock
 from django.test import Client
@@ -10,6 +11,7 @@ from dae.genomic_resources.repository_factory import \
 
 from web_annotation.models import Job, User
 
+
 @pytest.fixture(scope="function")
 def test_grr(mocker: pytest_mock.MockFixture) -> GenomicResourceRepo:
     grr_patch = \
@@ -18,16 +20,17 @@ def test_grr(mocker: pytest_mock.MockFixture) -> GenomicResourceRepo:
     grr_dir = pathlib.Path(__file__).parent / "fixtures" / "grr"
     grr = build_genomic_resource_repository(
         {
-            "id":"test",
+            "id": "test",
             "type": "dir",
             "directory": str(grr_dir)
         }
     )
     grr_patch.return_value = grr
+    return grr
 
 
 @pytest.fixture(scope="session", autouse=True)
-def setup_data_dirs():
+def setup_data_dirs() -> Generator[None, None, None]:
     assert not pathlib.Path(settings.DATA_STORAGE_DIR).exists()
     pathlib.Path(settings.DATA_STORAGE_DIR).mkdir()
     pathlib.Path(settings.ANNOTATION_CONFIG_STORAGE_DIR).mkdir()
@@ -39,7 +42,7 @@ def setup_data_dirs():
 
 @pytest.fixture(autouse=True)
 def setup_test_db(
-    db,
+    db: None,
     tmp_path: pathlib.Path,
 ) -> None:
     user = User.objects.create_user(

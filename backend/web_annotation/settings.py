@@ -198,3 +198,5 @@ LIMITS = {
     "filesize": "64M",
     "variant_count": 1000,
 }
+
+GRR_DIRECTORY = None

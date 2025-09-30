@@ -1,6 +1,7 @@
 import time
 import logging
 from pathlib import Path
+from typing import cast
 
 import magic
 from pysam import VariantFile
@@ -53,21 +54,29 @@ class AnnotationBaseView(views.APIView):
         super().__init__()
         self._grr = GRR
         self.pipelines = PIPELINES
-        self.filesize_limit = self._convert_size(settings.LIMITS["filesize"])
-        self.daily_job_limit = settings.LIMITS["daily_jobs"]
-        self.variants_limit = settings.LIMITS["variant_count"]
         self.result_storage_dir = Path(settings.JOB_RESULT_STORAGE_DIR)
 
     @property
-    def grr(self):
+    def grr(self) -> GenomicResourceRepo:
         return self.get_grr()
 
-    def get_grr(self):
+    def get_grr(self) -> GenomicResourceRepo:
         return self._grr
 
+    def get_grr_directory(self) -> Path | None:
+        if getattr(settings, "GRR_DIRECTORY") is not None:
+            return cast(Path, settings.GRR_DIRECTORY)
+        if self.grr.definition is None:
+            return None
+        if self.grr.definition["type"] == "dir":
+            return Path(self.grr.definition["directory"])
+        return None
+
     @staticmethod
-    def _convert_size(filesize: str) -> int:
+    def _convert_size(filesize: str | int) -> int:
         """Convert a human readable filesize string to bytes."""
+        if isinstance(filesize, int):
+            return filesize
         filesize = filesize.upper()
         units: dict[str, int] = {
             "KB": 10**3, "MB": 10**6, "GB": 10**9, "TB": 10**12,
@@ -103,24 +112,37 @@ class JobCreate(AnnotationBaseView):
     parser_classes = [MultiPartParser]
     permission_classes = [permissions.IsAuthenticated]
 
-    def check_valid_upload_size(self, file: UploadedFile) -> bool:
+    def check_valid_upload_size(self, file: UploadedFile, user: User) -> bool:
+        if user.is_superuser:
+            return True
         assert file.size is not None
-        return file.size < self.filesize_limit
+        return file.size < self._convert_size(settings.LIMITS["filesize"])
 
     def check_if_user_can_create(self, user: User) -> bool:
+        if user.is_superuser:
+            return True
         today = timezone.now().replace(
             hour=0, minute=0, second=0, microsecond=0)
         jobs_made = Job.objects.filter(
             created__gte=today, owner__exact=user.pk)
-        if len(jobs_made) > self.daily_job_limit:
+        if len(jobs_made) > settings.LIMITS["daily_jobs"]:
             return False
         return True
 
-    def check_variants_limit(self, file: VariantFile) -> bool:
-        return len(list(file.fetch())) < self.variants_limit
+    def check_variants_limit(self, file: VariantFile, user: User) -> bool:
+        if user.is_superuser:
+            return True
+        return len(list(file.fetch())) < settings.LIMITS["variant_count"]
 
     def post(self, request: Request) -> Response:
+        if not self.check_if_user_can_create(request.user):
+            return Response(
+                {"reason": "Daily job limit reached!"},
+                status=views.status.HTTP_403_FORBIDDEN,
+            )
         job_name = f"job-{int(time.time())}"
+
+        assert request.data is not None
 
         config_filename = f"{job_name}.yaml"
         if "pipeline" in request.data:
@@ -153,9 +175,10 @@ class JobCreate(AnnotationBaseView):
         # Handle input VCF file
         data_filename = f"{job_name}.vcf"
         uploaded_file = request.FILES["data"]
-        if not self.check_valid_upload_size(uploaded_file):
+        if not self.check_valid_upload_size(uploaded_file, request.user):
             return Response(
                 status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
+
         try:
             vcf = uploaded_file.read().decode()
         except UnicodeDecodeError:
@@ -175,9 +198,7 @@ class JobCreate(AnnotationBaseView):
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
 
-        records = list(vcf.fetch())
-
-        if len(records) > self.variants_limit:
+        if not self.check_variants_limit(vcf, request.user):
             return Response(
                 status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
 
@@ -196,7 +217,8 @@ class JobCreate(AnnotationBaseView):
                   owner=request.user)
         job.save()
 
-        create_annotation.delay(job.pk, str(self.result_storage_dir))
+        create_annotation.delay(
+            job.pk, str(self.result_storage_dir), self.get_grr_directory())
 
         return Response(status=views.status.HTTP_204_NO_CONTENT)
 
