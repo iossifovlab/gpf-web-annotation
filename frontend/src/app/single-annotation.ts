@@ -25,8 +25,8 @@ export class Variant {
 
 export class Annotator {
   public constructor(
-    public annotatorType: AnnotatorType,
-    public scores: Score[],
+    public details: AnnotatorDetails,
+    public attributes: Attribute[],
   ) {}
 
   public static fromJsonArray(jsonArray: object[]): Annotator[] {
@@ -42,42 +42,64 @@ export class Annotator {
     }
 
     return new Annotator(
-      json['annotator_type'] as AnnotatorType,
-      Score.fromJsonArray(json['scores'] as object[]),
+      AnnotatorDetails.fromJson(json['details'] as object),
+      Attribute.fromJsonArray(json['attributes'] as object[]),
     );
   }
 }
 
-export interface AnnotatorType {
-  name: string;
-  description: string;
-  resourceLink: string;
-}
-
-export class Score {
+export class AnnotatorDetails {
   public constructor(
     public name: string,
     public description: string,
-    public histogram: NumberHistogram,
-    public help: string,
+    public resourceId: string,
   ) {}
 
-  public static fromJsonArray(jsonArray: object[]): Score[] {
-    if (!jsonArray) {
-      return undefined;
-    }
-    return jsonArray.map((json) => Score.fromJson(json));
-  }
-
-  public static fromJson(json: object): Score {
+  public static fromJson(json: object): AnnotatorDetails {
     if (!json) {
       return undefined;
     }
 
-    return new Score(
+    return new AnnotatorDetails(
       json['name'] as string,
       json['description'] as string,
-      NumberHistogram.fromJson(json['histogram'] as object),
+      json['resource_id'] as string,
+    );
+  }
+}
+
+export interface Result {
+  value: string;
+  histogram: NumberHistogram;
+}
+
+export class Attribute {
+  public constructor(
+    public name: string,
+    public description: string,
+    public result: Result,
+    public help: string,
+  ) {}
+
+  public static fromJsonArray(jsonArray: object[]): Attribute[] {
+    if (!jsonArray) {
+      return undefined;
+    }
+    return jsonArray.map((json) => Attribute.fromJson(json));
+  }
+
+  public static fromJson(json: object): Attribute {
+    if (!json) {
+      return undefined;
+    }
+
+    return new Attribute(
+      json['name'] as string,
+      json['description'] as string,
+      {
+        value: (json['result'] as Result).value,
+        histogram: NumberHistogram.fromJson((json['result'] as Result).histogram),
+      },
       json['help'] as string,
     );
   }
