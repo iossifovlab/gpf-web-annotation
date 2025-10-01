@@ -1,6 +1,7 @@
 #!/usr/bin/bash
 
-/opt/conda/bin/conda run --no-capture-output -n gpf pip install -e /wd/backend
+/opt/conda/bin/conda run --no-capture-output -n gpf \
+    pip install --root-user-action ignore -e /wd/backend
 
 /opt/conda/bin/conda run --no-capture-output -n gpf \
     celery -A web_annotation.celery_app worker -l INFO -c 4 -D

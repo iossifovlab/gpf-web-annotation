@@ -1,6 +1,7 @@
 #!/usr/bin/bash
 
-/opt/conda/bin/conda run --no-capture-output -n gpf pip install -e /wd/backend
+/opt/conda/bin/conda run --no-capture-output -n gpf \
+    pip install --root-user-action ignore -e /wd/backend
 
 cd /wd/
 
@@ -17,6 +18,4 @@ cd /wd/
     backend/web_annotation \
     --pretty \
     --show-error-context \
-    --no-incremental \
-    > /wd/results/mypy_report || true
-
+    --no-incremental > /wd/results/mypy_report || true

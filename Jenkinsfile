@@ -36,22 +36,19 @@ pipeline {
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
                 sh "docker compose -f compose-jenkins.yaml build gpf-dev"
                 sh "docker compose -f compose-jenkins.yaml build"
-                sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
             }
         }
 
         stage('Run Backend Linters') {
             steps {
-                sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
-                sh "docker compose -f compose-jenkins.yaml run backend-linters"
-                sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
+                sh "docker compose -f compose-jenkins.yaml run  --rm --remove-orphans backend-linters"
             }
         }
 
         stage('Run Backend Tests') {
             steps {
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
-                sh "docker compose -f compose-jenkins.yaml run backend-tests"
+                sh "docker compose -f compose-jenkins.yaml run --rm --remove-orphans backend-tests"
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
             }
         }
@@ -60,7 +57,7 @@ pipeline {
             steps {
                 sh "mkdir -p frontend/reports"
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
-                sh "docker compose -f compose-jenkins.yaml run frontend-linters"
+                sh "docker compose -f compose-jenkins.yaml run --rm --remove-orphans frontend-linters"
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
             }
         }
@@ -69,7 +66,7 @@ pipeline {
             steps {
                 sh "mkdir -p frontend/reports"
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
-                sh "docker compose -f compose-jenkins.yaml run frontend-tests"
+                sh "docker compose -f compose-jenkins.yaml run --rm --remove-orphans frontend-tests"
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
             }
         }
@@ -78,7 +75,7 @@ pipeline {
             steps {
                 sh "mkdir -p e2e-tests/reports"
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
-                sh "docker compose -f compose-jenkins.yaml run e2e-tests"
+                sh "docker compose -f compose-jenkins.yaml run --rm --remove-orphans e2e-tests"
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
             }
         }
