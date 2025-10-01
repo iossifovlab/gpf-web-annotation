@@ -1,4 +1,4 @@
-<div *ngIf="report">
+<div *ngIf="report" id="report">
   <div id="variant">
     <h2>Variant</h2>
     <div id="variant-data-container">
@@ -15,6 +15,36 @@
         <span id="variant-reference">{{ report.variant.reference }}</span>
         <span id="variant-alternate">{{ report.variant.alernative }}</span>
         <span id="variant-type">{{ report.variant.variantType }}</span>
+      </div>
+    </div>
+  </div>
+  <div id="annotators">
+    <div *ngFor="let annotator of report.annotators" class="annotator">
+      <div *ngFor="let attribute of annotator.attributes" class="attribute-container">
+        <div class="attribute">
+          <div class="attribute-header">{{ attribute.name }}</div>
+          <div class="attribute-description">{{ attribute.description }}</div>
+          <div class="attribute-result"></div>
+        </div>
+      </div>
+
+      <div class="annotator-details">
+        <div>
+          <div class="annotator-label"
+            >Annotator: <span class="annotator-header">{{ annotator.details.name }}</span></div
+          >
+          <div class="annotator-description">{{ annotator.details.description }}</div>
+        </div>
+
+        <div class="resource">
+          <div class="resource-label">Resource</div>
+          <div
+            ><span class="id-label">id: </span>
+            <a [href]="annotator.details.resourceId" class="annotator-resource">{{
+              annotator.details.resourceId
+            }}</a></div
+          >
+        </div>
       </div>
     </div>
   </div>
