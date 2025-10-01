@@ -140,7 +140,7 @@ pipeline {
                 reportName: 'gpf-web-annotation-coverage',
                 reportTitles: 'gpf-web-annotation-coverage'])
 
-            archiveArtifacts artifacts: 'e2e-tests/reports/**', fingerprint: true, allowEmptyArchive: true
+            archiveArtifacts artifacts: 'e2e-tests/reports/**', fingerprint: false, allowEmptyArchive: true
 
         } finally {
           zulipNotification(
