@@ -1,0 +1,16 @@
+label {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#values-description {
+  margin: auto;
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  font-style: italic;
+  color: #acacac;
+  font-size: 14px;
+  width: 100%;
+  max-width: 500px;
+}
