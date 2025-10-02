@@ -341,3 +341,26 @@ class ListPipelines(AnnotationBaseView):
             self.pipelines.values(),
             status=views.status.HTTP_200_OK,
         )
+
+
+class AnnotationConfigValidation(AnnotationBaseView):
+    """Validate annotation config."""
+
+    def post(self, request: Request) -> Response:
+        """Validate annotation config."""
+
+        assert request.data is not None
+        assert isinstance(request.data, dict)
+
+        content = request.data.get("config")
+        assert isinstance(content, str)
+
+        try:
+            AnnotationConfigParser.parse_str(content, grr=self.grr)
+        except (AnnotationConfigurationError, KeyError) as e:
+            return Response(
+                {"reason": str(e)},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(status=views.status.HTTP_200_OK)

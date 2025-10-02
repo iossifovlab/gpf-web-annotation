@@ -475,3 +475,24 @@ def test_variant_limit_admin(
          "data": ContentFile(vcf)},
     )
     assert response.status_code == 204
+
+
+@pytest.mark.django_db
+def test_validate_annotation_config(
+    user_client: Client, test_grr: GenomicResourceRepo,
+) -> None:
+    annotation_config = "- position_score: scores/pos1"
+
+    response = user_client.post(
+        "/api/jobs/validate",
+        {"config": annotation_config},
+    )
+    assert response.status_code == 200
+
+    annotation_config = "position_score: scores/pos1"
+
+    response = user_client.post(
+        "/api/jobs/validate",
+        {"config": annotation_config},
+    )
+    assert response.status_code == 400

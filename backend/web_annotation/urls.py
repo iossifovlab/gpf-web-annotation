@@ -37,4 +37,5 @@ urlpatterns = [
     path('api/logout', views.Logout.as_view()),
     path('api/register', views.Registration.as_view()),
     path('api/user_info', views.UserInfo.as_view()),
+    path('api/jobs/validate', views.AnnotationConfigValidation.as_view()),
 ]

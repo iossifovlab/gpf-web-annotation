@@ -16,5 +16,12 @@ JOB_RESULT_STORAGE_DIR = f"{DATA_STORAGE_DIR}/job-results"
 
 CELERY_TASK_ALWAYS_EAGER = True
 
+LIMITS = {
+    "daily_jobs": 5,
+    "filesize": "64M",
+    "variant_count": 1000,
+}
+
+
 GRR_DIRECTORY = str(
     pathlib.Path(__file__).parent / "tests" / "fixtures" / "grr")
