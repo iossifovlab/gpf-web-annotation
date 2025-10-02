@@ -20,11 +20,13 @@
   </div>
   <div id="annotators">
     <div *ngFor="let annotator of report.annotators" class="annotator">
-      <div *ngFor="let attribute of annotator.attributes" class="attribute-container">
-        <div class="attribute">
-          <div class="attribute-header">{{ attribute.name }}</div>
-          <div class="attribute-description">{{ attribute.description }}</div>
-          <div class="attribute-result"></div>
+      <div class="attributes">
+        <div *ngFor="let attribute of annotator.attributes" class="attribute-container">
+          <div class="attribute">
+            <div class="attribute-header">{{ attribute.name }}</div>
+            <div class="attribute-description">{{ attribute.description }}</div>
+            <div class="attribute-result"></div>
+          </div>
         </div>
       </div>
 
