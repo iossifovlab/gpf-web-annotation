@@ -2,14 +2,14 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { SingleAnnotationReportComponent } from './single-annotation-report.component';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { Annotator, AnnotatorType, SingleAnnotationReport, Variant } from '../single-annotation';
+import { Annotator, AnnotatorDetails, SingleAnnotationReport, Variant } from '../single-annotation';
 import { SingleAnnotationService } from '../single-annotation.service';
 import { ActivatedRoute, provideRouter, Router } from '@angular/router';
 
 const mockReport = new SingleAnnotationReport(
   new Variant('chr14', '204000100', 'A', 'AA', 'ins'),
   [
-    new Annotator({} as AnnotatorType, [])
+    new Annotator(new AnnotatorDetails('allele_score', 'desc', ''), [])
   ],
 );
 class MockSingleAnnotationService {
