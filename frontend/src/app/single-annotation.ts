@@ -109,8 +109,8 @@ export class NumberHistogram {
   public constructor(
     public readonly bars: number[],
     public readonly bins: number[],
-    public readonly largeValuesDesc: string,
     public readonly smallValuesDesc: string,
+    public readonly largeValuesDesc: string,
     public readonly rangeMin: number,
     public readonly rangeMax: number,
     public readonly logScaleX: boolean,
