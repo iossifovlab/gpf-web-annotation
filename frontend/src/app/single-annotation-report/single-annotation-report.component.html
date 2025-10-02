@@ -25,7 +25,12 @@
           <div class="attribute">
             <div class="attribute-header">{{ attribute.name }}</div>
             <div class="attribute-description">{{ attribute.description }}</div>
-            <div class="attribute-result"></div>
+            <div class="attribute-result">
+              <app-number-histogram
+                *ngIf="attribute.result.histogram"
+                [histogram]="attribute.result.histogram"></app-number-histogram>
+              <div *ngIf="attribute.result.value">{{ attribute.result.value }}</div>
+            </div>
           </div>
         </div>
       </div>

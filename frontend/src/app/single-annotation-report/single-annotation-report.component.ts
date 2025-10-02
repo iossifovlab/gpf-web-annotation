@@ -4,10 +4,11 @@ import { SingleAnnotationReport } from '../single-annotation';
 import { CommonModule } from '@angular/common';
 import { switchMap, take } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
+import { NumberHistogramComponent } from '../number-histogram/number-histogram.component';
 
 @Component({
   selector: 'app-single-annotation-report',
-  imports: [CommonModule],
+  imports: [CommonModule, NumberHistogramComponent],
   templateUrl: './single-annotation-report.component.html',
   styleUrl: './single-annotation-report.component.css'
 })
