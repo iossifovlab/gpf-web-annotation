@@ -85,6 +85,7 @@
         "comma-spacing": ["warn", { "before": false, "after": true }],
         "comma-style": ["warn", "last"],
         "computed-property-spacing": ["warn", "never"],
+        "camelcase": ["warn"],
         "func-call-spacing": ["warn", "never"],
         "key-spacing": ["warn", { "beforeColon": false }],
         "keyword-spacing": ["warn", { "before": true }],
