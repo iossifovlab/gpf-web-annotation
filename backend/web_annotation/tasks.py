@@ -55,7 +55,7 @@ def run_job(job: Job, storage_dir: Path, grr_directory: Path) -> None:
             str(job.config_path),
             str(job.result_path),
             str(storage_dir),
-            str(grr_directory),
+            str(grr_directory) if grr_directory is not None else None,
         )
     except Exception:
         logger.exception("Failed to execute job")
