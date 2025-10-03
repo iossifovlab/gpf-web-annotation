@@ -6,16 +6,19 @@ from typing import cast
 import magic
 from pysam import VariantFile
 
-from django.contrib.auth import authenticate, login, logout
+from django import forms
+from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.conf import settings
 from django.core.files.uploadedfile import UploadedFile
-from django.http.response import FileResponse
-from django.shortcuts import get_object_or_404
+from django.http import HttpRequest
+from django.http.response import FileResponse, HttpResponse
+from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from rest_framework import permissions, views, generics
 from rest_framework.parsers import MultiPartParser, JSONParser
 from rest_framework.request import Request
 from rest_framework.response import Response
+from django.contrib.sessions.models import Session
 
 from dae.annotation.annotation_config import AnnotationConfigParser, \
     AnnotationConfigurationError
@@ -26,9 +29,9 @@ from dae.genomic_resources.implementations.annotation_pipeline_impl import \
     AnnotationPipelineImplementation
 
 from .serializers import JobSerializer, UserSerializer
-from .models import Job, User
+from .models import BaseVerificationCode, Job, ResetPasswordCode, User
 from .permissions import IsOwner, has_job_permission
-from .tasks import create_annotation
+from .tasks import create_annotation, send_email
 
 logger = logging.getLogger(__name__)
 
@@ -364,3 +367,144 @@ class AnnotationConfigValidation(AnnotationBaseView):
             )
 
         return Response(status=views.status.HTTP_200_OK)
+
+
+class ForgotPassword(views.APIView):  # USE
+    """View for forgotten password."""
+
+    def get(self, request: Request) -> HttpResponse:
+        form = WdaePasswordForgottenForm()
+        return render(
+            cast(HttpRequest, request),
+            "forgotten-password.html",
+            {"form": form, "show_form": True},
+        )
+
+    def post(self, request: Request) -> HttpResponse:
+        """Send a reset password email to the user."""
+        data = request.data
+        form = WdaePasswordForgottenForm(data)  # pyright: ignore
+        is_valid = form.is_valid()
+        if not is_valid:
+            return render(
+                cast(HttpRequest, request),
+                "forgotten-password.html",
+                {
+                    "form": form,
+                    "message": "Invalid email",
+                    "message_type": "warn",
+                    "show_form": True,
+                },
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+        email = form.data["email"]
+        user_model = get_user_model()
+        message = (
+            f"An e-mail has been sent to {email}"
+            " containing the reset link"
+        )
+        try:
+            user = user_model.objects.filter(email=email).first()
+            if user is None or not isinstance(user, User):
+                return render(
+                    request,  # pyright: ignore
+                    "forgotten-password.html",
+                    {
+                        "form": form,
+                        "message": "User is not a WdaeUser",
+                        "message_type": "warn",
+                        "show_form": True,
+                    },
+                    status=views.status.HTTP_400_BAD_REQUEST,
+                )
+            reset_password(user)
+            deauthenticate(user)
+
+            return render(
+                request,  # pyright: ignore
+                "forgotten-password.html",
+                {
+                    "form": form,
+                    "message": message,
+                    "message_type": "success",
+                    "show_form": False,
+                },
+            )
+        except user_model.DoesNotExist:
+            return render(
+                request,  # pyright: ignore
+                "forgotten-password.html",
+                {
+                    "form": form,
+                    "message": message,
+                    "message_type": "success",
+                    "show_form": False,
+                },
+            )
+
+class WdaePasswordForgottenForm(forms.Form):
+    email = forms.EmailField(
+        label="Email",
+        max_length=254,
+        widget=forms.EmailInput(attrs={"autocomplete": "email"}),
+    )
+
+def reset_password(user: User, by_admin: bool = False) -> None:
+    verif_code = ResetPasswordCode.create(user)
+    send_reset_email(user, verif_code, by_admin)
+
+def deauthenticate(user: User) -> None:
+    all_sessions = Session.objects.all()
+    for session in all_sessions:
+        session_data = session.get_decoded()
+        if user.pk == session_data.get("_auth_user_id"):
+            session.delete()
+
+def send_reset_email(
+    user: User, verif_path: BaseVerificationCode,
+    by_admin: bool = False,
+) -> None:
+    """Return dict with subject and message of the email."""
+    # pylint: disable=import-outside-toplevel
+    email = _create_reset_mail(
+        settings.EMAIL_VERIFICATION_ENDPOINT,  # type: ignore
+        settings.EMAIL_VERIFICATION_RESET_PATH,
+        str(verif_path.path),
+        by_admin,
+    )
+    send_email.delay(email["subject"], email["message"], [user.email])
+
+def _create_reset_mail(
+    endpoint: str, path: str, verification_path: str, by_admin: bool = False,
+) -> dict[str, str]:
+    message = (
+        "Hello. You have requested to reset your password for "
+        "your GPF account. To do so, please follow the link below:\n {link}\n"
+        "If you did not request for your GPF account password to be reset, "
+        "please ignore this email."
+    )
+    if by_admin:
+        message = (
+            "Hello. Your password has been reset by an admin. Your old "
+            "password will not work. To set a new password in "
+            "GPF: Genotype and Phenotype in Families "
+            "please follow the link below:\n {link}"
+        )
+    email_settings = {
+        "subject": "GPF: Password reset request",
+        "initial_message": message,
+        "endpoint": endpoint,
+        "path": path,
+        "verification_path": verification_path,
+    }
+
+    return _build_email_template(email_settings)
+
+def _build_email_template(email_settings: dict[str, str]) -> dict[str, str]:
+    subject = email_settings["subject"]
+    message = email_settings["initial_message"]
+    path = email_settings["path"].format(email_settings["verification_path"])
+
+    message = message.format(link=f"{email_settings['endpoint']}{path}")
+
+    return {"subject": subject, "message": message}

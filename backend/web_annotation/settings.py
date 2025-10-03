@@ -200,3 +200,32 @@ LIMITS = {
 }
 
 GRR_DIRECTORY = None
+
+# Email related settings
+RESET_PASSWORD_TIMEOUT_HOURS = 24
+
+EMAIL_HOST = os.environ.get("WDAE_EMAIL_HOST", "localhost")
+EMAIL_USE_TLS = os.environ.get("WDAE_EMAIL_USE_TLS", False)
+EMAIL_HOST_USER = os.environ.get("WDAE_EMAIL_HOST_USER", None)
+EMAIL_HOST_PASSWORD = os.environ.get("WDAE_EMAIL_HOST_PASSWORD", None)
+
+EMAIL_PORT = os.environ.get("WDAE_EMAIL_PORT", 1025)
+if EMAIL_PORT is not None:
+    EMAIL_PORT = int(EMAIL_PORT)
+
+EMAIL_SUBJECT_PREFIX = "[GPF Annotation] "
+
+DEFAULT_FROM_EMAIL = os.environ.get(
+    "WDAE_DEFAULT_FROM_EMAIL", "no-reply@iossifovlab.com")
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+EMAIL_VERIFICATION_ENDPOINT = os.environ.get(
+    "WDAE_EMAIL_VERIFICATION_ENDPOINT", "http://localhost:8000")
+EMAIL_VERIFICATION_SET_PATH = "/api/v3/users/set_password?code={}"
+EMAIL_VERIFICATION_RESET_PATH = "/api/v3/users/reset_password?code={}"
+
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    BASE_DIR / "static"
+]
