@@ -414,10 +414,10 @@ class SingleAnnotation(AnnotationBaseView):
         result = pipeline.annotate(vcf_annotatable, {})
 
         annotators_data = []
-        details = {}
-        attributes = []
 
         for annotator in pipeline.annotators:
+            details = {}
+            attributes = []
             annotator_info = annotator.get_info()
             details = {
                 "name": annotator_info.type,
