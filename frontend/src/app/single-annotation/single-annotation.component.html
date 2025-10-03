@@ -6,6 +6,8 @@
       <option *ngFor="let genome of genomes" [value]="genome">{{ genome }}</option>
     </select>
     <input #variantInput type="text" placeholder="Type variant..." />
-    <button (click)="loadReport(variantInput.value)">Go</button>
+    <button (click)="validateVariant(variantInput.value)">Go</button>
   </div>
+  <span *ngIf="validationMessage" id="validation-message">{{ validationMessage }}</span>
+  <span id="variant-examples">Example: chr1 11796321 G A</span>
 </div>

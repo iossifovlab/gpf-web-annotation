@@ -56,3 +56,12 @@ button {
   border: none;
   border-radius: 10px;
 }
+
+#validation-message {
+  color: #d74b59;
+}
+
+#variant-examples {
+  font-style: italic;
+  color: #b9d3e7;
+}
