@@ -5,10 +5,11 @@ import { CommonModule } from '@angular/common';
 import { switchMap, take } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NumberHistogramComponent } from '../number-histogram/number-histogram.component';
+import { MarkdownModule } from 'ngx-markdown';
 
 @Component({
   selector: 'app-single-annotation-report',
-  imports: [CommonModule, NumberHistogramComponent],
+  imports: [CommonModule, NumberHistogramComponent, MarkdownModule],
   templateUrl: './single-annotation-report.component.html',
   styleUrl: './single-annotation-report.component.css'
 })

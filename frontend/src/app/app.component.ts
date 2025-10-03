@@ -4,10 +4,11 @@ import { RouterModule, RouterOutlet } from '@angular/router';
 import { UserData, UsersService } from './users.service';
 import { takeWhile } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { MarkdownModule } from 'ngx-markdown';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, CommonModule, RouterModule],
+  imports: [RouterOutlet, CommonModule, RouterModule, MarkdownModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })
