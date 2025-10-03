@@ -388,7 +388,7 @@ class AnnotationConfigValidation(AnnotationBaseView):
         return Response(status=views.status.HTTP_200_OK)
 
 
-class ListGenomePipeliens(AnnotationBaseView):
+class ListGenomePipelines(AnnotationBaseView):
 
     def get(self, request: Request) -> Response:
         return Response([], status=views.status.HTTP_200_OK)
