@@ -199,4 +199,4 @@ LIMITS = {
     "variant_count": 1000,
 }
 
-GRR_DIRECTORY = None
+GRR_DEFINITION = os.environ.get("GRR_DEFINITION_FILE")
