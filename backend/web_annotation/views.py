@@ -437,4 +437,17 @@ class SingleAnnotation(AnnotationBaseView):
                 {"details": details, "attributes": attributes},
             )
 
-        return Response(annotators_data)
+        variant = {
+            "chromosome": vcf_annotatable.chrom,
+            "position": vcf_annotatable.pos,
+            "reference": vcf_annotatable.ref,
+            "alternative": vcf_annotatable.alt,
+            "variant_type": vcf_annotatable.type.name,
+        }
+
+        response_data = {
+            "variant": variant,
+            "annotators": annotators_data,
+        }
+
+        return Response(response_data)
