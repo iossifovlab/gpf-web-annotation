@@ -17,7 +17,7 @@ import { cloneDeep } from 'lodash';
 const mockResponse = {
   variant: {
     chromosome: 'chr14',
-    position: '204 000 100',
+    position: 204000100,
     reference: 'A',
     alternative: 'AA',
     // eslint-disable-next-line camelcase
@@ -101,21 +101,19 @@ describe('SingleAnnotationService', () => {
 
   it('should check query parameters when requesting annotation report', () => {
     const httpGetSpy = jest.spyOn(HttpClient.prototype, 'post');
-    const options = {
-      withCredentials: true
-    };
+    const options = { headers: { 'X-CSRFToken': '' }, withCredentials: true };
 
-    service.getReport(new Variant('chr14', '204000100', 'A', 'AA', null), 'genome');
+    service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'genome');
     expect(httpGetSpy).toHaveBeenCalledWith(
-      '//localhost:8000/api/single-annotation',
-      { variant: { chrom: 'chr14', pos: '204000100', ref: 'A', alt: 'AA'}, genome: 'genome' },
+      '//localhost:8000/api/single_annotate',
+      { variant: { chrom: 'chr14', pos: 204000100, ref: 'A', alt: 'AA'}, genome: 'genome' },
       options
     );
   });
 
   it('should get single annotation report', async() => {
     const mockObject = new SingleAnnotationReport(
-      new Variant('chr14', '204 000 100', 'A', 'AA', 'ins'),
+      new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
       [
         new Annotator(
           new AnnotatorDetails('allele_score', 'description', 'link'),
@@ -146,7 +144,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponse));
 
-    const getReport = service.getReport(new Variant('chr14', '204000100', 'A', 'AA', null), 'genome');
+    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'genome');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toStrictEqual(mockObject);
@@ -154,7 +152,7 @@ describe('SingleAnnotationService', () => {
 
   it('should set histogram of a score to undefined when histogram data from query response is invalid', async() => {
     const mockObject = new SingleAnnotationReport(
-      new Variant('chr14', '204 000 100', 'A', 'AA', 'ins'),
+      new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
       [
         new Annotator(
           new AnnotatorDetails('allele_score', 'description', 'link'),
@@ -177,7 +175,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponseInvalidHistogram));
 
-    const getReport = service.getReport(new Variant('chr14', '204000100', 'A', 'AA', null), 'genome');
+    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'genome');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toStrictEqual(mockObject);
@@ -185,7 +183,7 @@ describe('SingleAnnotationService', () => {
 
   it('should set score to undefined when score data from query response is invalid', async() => {
     const mockObject = new SingleAnnotationReport(
-      new Variant('chr14', '204 000 100', 'A', 'AA', 'ins'),
+      new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
       [
         new Annotator(
           new AnnotatorDetails('allele_score', 'description', 'link'),
@@ -200,7 +198,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponseInvalidScore));
 
-    const getReport = service.getReport(new Variant('chr14', '204000100', 'A', 'AA', null), 'genome');
+    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'genome');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toStrictEqual(mockObject);
@@ -208,7 +206,7 @@ describe('SingleAnnotationService', () => {
 
   it('should set array of scores to undefined when scores data from query response are invalid', async() => {
     const mockObject = new SingleAnnotationReport(
-      new Variant('chr14', '204 000 100', 'A', 'AA', 'ins'),
+      new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
       [
         new Annotator(
           new AnnotatorDetails('allele_score', 'description', 'link'),
@@ -223,7 +221,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponseInvalidScores));
 
-    const getReport = service.getReport(new Variant('chr14', '204000100', 'A', 'AA', null), 'genome');
+    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'genome');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toStrictEqual(mockObject);
@@ -231,7 +229,7 @@ describe('SingleAnnotationService', () => {
 
   it('should set annotator to undefined when annotator data from query response is invalid', async() => {
     const mockObject = new SingleAnnotationReport(
-      new Variant('chr14', '204 000 100', 'A', 'AA', 'ins'),
+      new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
       [undefined]
     );
 
@@ -241,7 +239,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponseInvalidAnnotator));
 
-    const getReport = service.getReport(new Variant('chr14', '204000100', 'A', 'AA', null), 'genome');
+    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'genome');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toStrictEqual(mockObject);
@@ -249,7 +247,7 @@ describe('SingleAnnotationService', () => {
 
   it('should set array of annotators to undefined when annotators from query response are invalid', async() => {
     const mockObject = new SingleAnnotationReport(
-      new Variant('chr14', '204 000 100', 'A', 'AA', 'ins'),
+      new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
       undefined
     );
 
@@ -259,7 +257,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponseInvalidAnnotators));
 
-    const getReport = service.getReport(new Variant('chr14', '204000100', 'A', 'AA', null), 'genome');
+    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'genome');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toStrictEqual(mockObject);
@@ -302,7 +300,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponseInvalidVariant));
 
-    const getReport = service.getReport(new Variant('chr14', '204000100', 'A', 'AA', null), 'genome');
+    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'genome');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toStrictEqual(mockObject);
@@ -312,7 +310,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(null));
 
-    const getReport = service.getReport(new Variant('chr14', '204000100', 'A', 'AA', null), 'genome');
+    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'genome');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toBeUndefined();
