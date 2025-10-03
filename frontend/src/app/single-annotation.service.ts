@@ -2,7 +2,9 @@ import { Injectable } from '@angular/core';
 import { map, Observable, of } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
-import { SingleAnnotationReport } from './single-annotation';
+import { SingleAnnotationReport, Variant } from './single-annotation';
+import { mockResponse } from './mockResponse';
+
 
 @Injectable()
 export class SingleAnnotationService {
@@ -10,13 +12,20 @@ export class SingleAnnotationService {
   private readonly getGenomesUrl = `${environment.apiPath}/genomes`;
   public constructor(private http: HttpClient) { }
 
-  public getReport(variant: string, genome: string): Observable<SingleAnnotationReport> {
+  public getReport(variant: Variant, genome: string): Observable<SingleAnnotationReport> {
     const options = { withCredentials: true };
+    const variantJson = {
+      chrom: variant.chromosome,
+      pos: variant.position,
+      ref: variant.reference,
+      alt: variant.alernative
+    };
     return this.http.post<object>(
       this.getReportUrl,
-      { variant: variant, genome: genome },
+      { variant: variantJson, genome: genome },
       options
     ).pipe(map((response: object) => SingleAnnotationReport.fromJson(response)));
+    // return of(SingleAnnotationReport.fromJson(mockResponse));
   }
 
   public getGenomes(): Observable<string[]> {

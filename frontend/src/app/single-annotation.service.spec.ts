@@ -105,10 +105,10 @@ describe('SingleAnnotationService', () => {
       withCredentials: true
     };
 
-    service.getReport('variant', 'genome');
+    service.getReport(new Variant('chr14', '204000100', 'A', 'AA', null), 'genome');
     expect(httpGetSpy).toHaveBeenCalledWith(
       '//localhost:8000/api/single-annotation',
-      { variant: 'variant', genome: 'genome' },
+      { variant: { chrom: 'chr14', pos: '204000100', ref: 'A', alt: 'AA'}, genome: 'genome' },
       options
     );
   });
@@ -146,7 +146,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponse));
 
-    const getReport = service.getReport('variant', 'genome');
+    const getReport = service.getReport(new Variant('chr14', '204000100', 'A', 'AA', null), 'genome');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toStrictEqual(mockObject);
@@ -177,7 +177,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponseInvalidHistogram));
 
-    const getReport = service.getReport('variant', 'genome');
+    const getReport = service.getReport(new Variant('chr14', '204000100', 'A', 'AA', null), 'genome');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toStrictEqual(mockObject);
@@ -200,7 +200,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponseInvalidScore));
 
-    const getReport = service.getReport('variant', 'genome');
+    const getReport = service.getReport(new Variant('chr14', '204000100', 'A', 'AA', null), 'genome');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toStrictEqual(mockObject);
@@ -223,7 +223,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponseInvalidScores));
 
-    const getReport = service.getReport('variant', 'genome');
+    const getReport = service.getReport(new Variant('chr14', '204000100', 'A', 'AA', null), 'genome');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toStrictEqual(mockObject);
@@ -241,7 +241,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponseInvalidAnnotator));
 
-    const getReport = service.getReport('variant', 'genome');
+    const getReport = service.getReport(new Variant('chr14', '204000100', 'A', 'AA', null), 'genome');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toStrictEqual(mockObject);
@@ -259,7 +259,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponseInvalidAnnotators));
 
-    const getReport = service.getReport('variant', 'genome');
+    const getReport = service.getReport(new Variant('chr14', '204000100', 'A', 'AA', null), 'genome');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toStrictEqual(mockObject);
@@ -302,7 +302,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponseInvalidVariant));
 
-    const getReport = service.getReport('variant', 'genome');
+    const getReport = service.getReport(new Variant('chr14', '204000100', 'A', 'AA', null), 'genome');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toStrictEqual(mockObject);
@@ -312,7 +312,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(null));
 
-    const getReport = service.getReport('variant', 'genome');
+    const getReport = service.getReport(new Variant('chr14', '204000100', 'A', 'AA', null), 'genome');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toBeUndefined();

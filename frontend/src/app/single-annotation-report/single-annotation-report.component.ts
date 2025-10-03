@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { SingleAnnotationService } from '../single-annotation.service';
-import { SingleAnnotationReport } from '../single-annotation';
+import { SingleAnnotationReport, Variant } from '../single-annotation';
 import { CommonModule } from '@angular/common';
 import { switchMap, take } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -26,7 +26,7 @@ export class SingleAnnotationReportComponent implements OnInit {
       take(1),
       switchMap(params => {
         return this.singleAnnotationService.getReport(
-          params['variant'] as string,
+          this.parseVariantToObject(params['variant'] as string),
           params['genome'] as string
         );
       })
@@ -40,5 +40,10 @@ export class SingleAnnotationReportComponent implements OnInit {
     this.router.navigate([], {
       queryParams: {},
     });
+  }
+
+  private parseVariantToObject(variant: string): Variant {
+    const variantFields = variant.split(' ');
+    return new Variant(variantFields[0], variantFields[1], variantFields[2], variantFields[3], null);
   }
 }

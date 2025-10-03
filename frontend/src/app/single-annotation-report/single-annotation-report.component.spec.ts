@@ -14,7 +14,7 @@ const mockReport = new SingleAnnotationReport(
 );
 class MockSingleAnnotationService {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getReport(variant: string, genome: string): Observable<SingleAnnotationReport> {
+  public getReport(variant: Variant, genome: string): Observable<SingleAnnotationReport> {
     return of(mockReport);
   }
 }
@@ -40,6 +40,13 @@ describe('SingleAnnotationReportComponent', () => {
     router = TestBed.inject(Router);
     fixture = TestBed.createComponent(SingleAnnotationReportComponent);
     component = fixture.componentInstance;
+
+    const activatedRoute = TestBed.inject(ActivatedRoute);
+    (activatedRoute.queryParams as BehaviorSubject<{variant: string, genome: string}>).next({
+      variant: 'chr14 204000100 A AA',
+      genome: 'hg38'
+    });
+
     fixture.detectChanges();
   });
 
@@ -54,14 +61,8 @@ describe('SingleAnnotationReportComponent', () => {
 
   it('should check if query params from url are passed to get report method', () => {
     const getReportSpy = jest.spyOn(mockSingleAnnotationService, 'getReport');
-
-    const activatedRoute = TestBed.inject(ActivatedRoute);
-    (activatedRoute.queryParams as BehaviorSubject<{variant: string, genome: string}>).next({
-      variant: 'chr14:204000100:A:AA',
-      genome: 'hg38'
-    });
     component.ngOnInit();
-    expect(getReportSpy).toHaveBeenCalledWith('chr14:204000100:A:AA', 'hg38');
+    expect(getReportSpy).toHaveBeenCalledWith(new Variant('chr14', '204000100', 'A', 'AA', null), 'hg38');
   });
 
   it('should call router.navigate to remove query params after requesting report', () => {
