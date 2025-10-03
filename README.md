@@ -54,6 +54,6 @@ npm test
 ### Running backend tests
 
 ```bash
-cd frontend
+cd backend
 pytest web_annotation/tests/
 ```
