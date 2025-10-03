@@ -28,6 +28,8 @@ urlpatterns = [
     path('api/jobs/<int:pk>', views.JobDetail.as_view()),
     path('api/jobs/<int:pk>/file/<str:file>', views.JobGetFile.as_view()),
 
+    path('api/single_annotate', views.SingleAnnotation.as_view()),
+
     path('api/pipelines', views.ListPipelines.as_view()),
 
     path('api/users', views.UserList.as_view()),
