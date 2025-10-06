@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Job } from '../job-creation/jobs';
-import { HomeComponent } from './home.component';
+import { JobsTableComponent } from './jobs-table.component';
 import { Observable } from 'rxjs/internal/Observable';
 import { of } from 'rxjs';
 import { JobsService } from '../job-creation/jobs.service';
@@ -24,20 +24,20 @@ class JobsServiceMock {
   }
 }
 
-describe('HomeComponent', () => {
-  let component: HomeComponent;
-  let fixture: ComponentFixture<HomeComponent>;
+describe('JobsTableComponent', () => {
+  let component: JobsTableComponent;
+  let fixture: ComponentFixture<JobsTableComponent>;
   const jobsServiceMock = new JobsServiceMock();
 
   beforeEach(async() => {
     await TestBed.configureTestingModule({
-      imports: [HomeComponent],
+      imports: [JobsTableComponent],
       providers: [
         { provide: JobsService, useValue: jobsServiceMock }
       ]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(HomeComponent);
+    fixture = TestBed.createComponent(JobsTableComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

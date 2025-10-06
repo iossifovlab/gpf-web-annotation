@@ -8,12 +8,12 @@ import { getStatusClassName, Job } from '../job-creation/jobs';
 import { JobDetailsComponent } from '../job-details/job-details.component';
 
 @Component({
-  selector: 'app-home',
+  selector: 'app-jobs-table',
   imports: [CommonModule],
-  templateUrl: './home.component.html',
-  styleUrl: './home.component.css'
+  templateUrl: './jobs-table.component.html',
+  styleUrl: './jobs-table.component.css'
 })
-export class HomeComponent implements OnInit, OnDestroy {
+export class JobsTableComponent implements OnInit, OnDestroy {
   public jobs: Job[] = [];
   private refreshJobsSubscription = new Subscription();
 
