@@ -2,7 +2,7 @@
 export class Variant {
   public constructor(
     public chromosome: string,
-    public position: number,
+    public position: string,
     public reference: string,
     public alernative: string,
     public variantType: string
@@ -15,7 +15,7 @@ export class Variant {
 
     return new Variant(
       json['chromosome'] as string,
-      json['position'] as number,
+      json['position'] as string,
       json['reference'] as string,
       json['alternative'] as string,
       json['variant_type'] as string,

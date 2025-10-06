@@ -3,19 +3,17 @@ import { map, Observable, of } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { SingleAnnotationReport, Variant } from './single-annotation';
-import { CookieService } from 'ngx-cookie-service';
+import { mockResponse } from './mockResponse';
 
 
 @Injectable()
 export class SingleAnnotationService {
-  private readonly getReportUrl = `${environment.apiPath}/single_annotate`;
+  private readonly getReportUrl = `${environment.apiPath}/single-annotation`;
   private readonly getGenomesUrl = `${environment.apiPath}/genomes`;
-  public constructor(private http: HttpClient, private cookieService: CookieService) { }
+  public constructor(private http: HttpClient) { }
 
   public getReport(variant: Variant, genome: string): Observable<SingleAnnotationReport> {
-    const csrfToken = this.cookieService.get('csrftoken');
-    const headers = { 'X-CSRFToken': csrfToken };
-    const options = { headers: headers, withCredentials: true };
+    const options = { withCredentials: true };
     const variantJson = {
       chrom: variant.chromosome,
       pos: variant.position,
@@ -27,6 +25,7 @@ export class SingleAnnotationService {
       { variant: variantJson, genome: genome },
       options
     ).pipe(map((response: object) => SingleAnnotationReport.fromJson(response)));
+    // return of(SingleAnnotationReport.fromJson(mockResponse));
   }
 
   public getGenomes(): Observable<string[]> {

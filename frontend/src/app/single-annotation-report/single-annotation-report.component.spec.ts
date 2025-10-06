@@ -10,7 +10,7 @@ import { HelperModalComponent } from '../helper-modal/helper-modal.component';
 import { MatDialog, MatDialogConfig, MatDialogRef } from '@angular/material/dialog';
 
 const mockReport = new SingleAnnotationReport(
-  new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
+  new Variant('chr14', '204000100', 'A', 'AA', 'ins'),
   [
     new Annotator(new AnnotatorDetails('allele_score', 'desc', ''), [])
   ],
@@ -49,7 +49,6 @@ describe('SingleAnnotationReportComponent', () => {
           useValue: mockMatDialog
         },
         provideRouter([]),
-        provideMarkdown()
       ]
     }).compileComponents();
 
@@ -78,7 +77,7 @@ describe('SingleAnnotationReportComponent', () => {
   it('should check if query params from url are passed to get report method', () => {
     const getReportSpy = jest.spyOn(mockSingleAnnotationService, 'getReport');
     component.ngOnInit();
-    expect(getReportSpy).toHaveBeenCalledWith(new Variant('chr14', 204000100, 'A', 'AA', null), 'hg38');
+    expect(getReportSpy).toHaveBeenCalledWith(new Variant('chr14', '204000100', 'A', 'AA', null), 'hg38');
   });
 
   it('should call router.navigate to remove query params after requesting report', () => {
