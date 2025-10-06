@@ -27,8 +27,11 @@
             <div class="attribute-description">{{ attribute.description }}</div>
             <div class="attribute-result">
               <app-number-histogram
-                *ngIf="attribute.result.histogram"
+                *ngIf="attribute.result.histogram && !isCategoricalHistogram(attribute.result.histogram)"
                 [histogram]="attribute.result.histogram"></app-number-histogram>
+              <app-categorical-histogram
+                *ngIf="attribute.result.histogram && isCategoricalHistogram(attribute.result.histogram)"
+                [histogram]="attribute.result.histogram"></app-categorical-histogram>
               <div class="value-result" *ngIf="attribute.result.value">{{ attribute.result.value }}</div>
             </div>
           </div>

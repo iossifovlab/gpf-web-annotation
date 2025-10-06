@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { SingleAnnotationService } from '../single-annotation.service';
-import { SingleAnnotationReport, Variant } from '../single-annotation';
+import { CategoricalHistogram, SingleAnnotationReport, Variant } from '../single-annotation';
 import { CommonModule } from '@angular/common';
 import { switchMap, take } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -8,10 +8,11 @@ import { NumberHistogramComponent } from '../number-histogram/number-histogram.c
 import { MarkdownModule } from 'ngx-markdown';
 import { HelperModalComponent } from '../helper-modal/helper-modal.component';
 import { MatDialog } from '@angular/material/dialog';
+import { CategoricalHistogramComponent } from '../categorical-histogram/categorical-histogram.component';
 
 @Component({
   selector: 'app-single-annotation-report',
-  imports: [CommonModule, NumberHistogramComponent, MarkdownModule],
+  imports: [CommonModule, NumberHistogramComponent, CategoricalHistogramComponent, MarkdownModule],
   templateUrl: './single-annotation-report.component.html',
   styleUrl: './single-annotation-report.component.css'
 })
@@ -57,5 +58,9 @@ export class SingleAnnotationReportComponent implements OnInit {
       height: '60vh',
       width: '30vw',
     });
+  }
+
+  public isCategoricalHistogram(arg: object): arg is CategoricalHistogram {
+    return arg instanceof CategoricalHistogram;
   }
 }
