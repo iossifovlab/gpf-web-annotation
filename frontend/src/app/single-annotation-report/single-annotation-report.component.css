@@ -1,5 +1,7 @@
 #report {
-  margin: 0 100px;
+  margin: 0 auto;
+  max-width: 1500px;
+  padding: 0 20px;
 }
 
 #variant {
@@ -18,6 +20,7 @@
   flex-direction: row;
   gap: 20px;
   padding: 10px 15px;
+  width: fit-content;
 }
 
 #variant-data-labels {
@@ -64,6 +67,7 @@
   max-width: 400px;
   width: 20vw;
   height: fit-content;
+  word-break: break-word;
 }
 
 .attribute-header,
@@ -107,6 +111,25 @@
   width: 55vw;
 }
 
+.value-result {
+  word-break: break-word;
+  margin-top: 20px;
+}
+
 a {
   color: #24699e;
+}
+
+a:hover {
+  color: rgb(84, 146, 194) !important;
+  cursor: pointer;
+}
+
+:host::ng-deep markdown a {
+  color: #24699e;
+}
+
+:host::ng-deep markdown a:hover {
+  color: rgb(84, 146, 194) !important;
+  cursor: pointer;
 }

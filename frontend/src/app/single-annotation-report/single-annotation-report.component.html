@@ -29,7 +29,7 @@
               <app-number-histogram
                 *ngIf="attribute.result.histogram"
                 [histogram]="attribute.result.histogram"></app-number-histogram>
-              <div *ngIf="attribute.result.value">{{ attribute.result.value }}</div>
+              <div class="value-result" *ngIf="attribute.result.value">{{ attribute.result.value }}</div>
             </div>
           </div>
         </div>
