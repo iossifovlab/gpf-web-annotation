@@ -5,6 +5,7 @@ import { BehaviorSubject, Observable, of } from 'rxjs';
 import { Annotator, AnnotatorDetails, SingleAnnotationReport, Variant } from '../single-annotation';
 import { SingleAnnotationService } from '../single-annotation.service';
 import { ActivatedRoute, provideRouter, Router } from '@angular/router';
+import { provideMarkdown } from 'ngx-markdown';
 
 const mockReport = new SingleAnnotationReport(
   new Variant('chr14', '204000100', 'A', 'AA', 'ins'),
@@ -34,6 +35,7 @@ describe('SingleAnnotationReportComponent', () => {
           useValue: mockSingleAnnotationService
         },
         provideRouter([]),
+        provideMarkdown()
       ]
     }).compileComponents();
 
