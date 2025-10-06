@@ -3,7 +3,6 @@ import { map, Observable, of } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { SingleAnnotationReport, Variant } from './single-annotation';
-import { mockResponse } from './mockResponse';
 
 
 @Injectable()
@@ -25,7 +24,6 @@ export class SingleAnnotationService {
       { variant: variantJson, genome: genome },
       options
     ).pipe(map((response: object) => SingleAnnotationReport.fromJson(response)));
-    // return of(SingleAnnotationReport.fromJson(mockResponse));
   }
 
   public getGenomes(): Observable<string[]> {
