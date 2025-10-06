@@ -44,7 +44,7 @@ export class UsersService {
     this.getUserData().pipe(take(1)).subscribe((userData: UserData) => {
       if (userData.loggedIn) {
         this.userData.next(userData);
-        this.router.navigate(['/home']);
+        this.router.navigate(['/jobs']);
       }
     });
   }

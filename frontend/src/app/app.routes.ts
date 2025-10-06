@@ -10,7 +10,7 @@ export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegistrationComponent },
-  { path: 'home', component: JobsTableComponent, canActivate: [authGuard] },
+  { path: 'jobs', component: JobsTableComponent, canActivate: [authGuard] },
   {
     path: 'single-annotation',
     canActivate: [authGuard],

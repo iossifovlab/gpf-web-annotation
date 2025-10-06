@@ -57,7 +57,7 @@ describe('LoginComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should successfully login user and navigate to home page', () => {
+  it('should successfully login user and navigate to jobs table page', () => {
     emailInput.value = 'mockEmail@email.com';
     passwordInput.value = 'mockPassword';
     const loginSpy = jest.spyOn(usersServiceMock, 'loginUser');
@@ -65,7 +65,7 @@ describe('LoginComponent', () => {
 
     component.login();
     expect(loginSpy).toHaveBeenCalledWith('mockEmail@email.com', 'mockPassword');
-    expect(navigateSpy).toHaveBeenCalledWith(['/home']);
+    expect(navigateSpy).toHaveBeenCalledWith(['/jobs']);
   });
 
   it('should clear inputs when login is successful', () => {

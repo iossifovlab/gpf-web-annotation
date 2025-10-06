@@ -33,7 +33,7 @@ export class LoginComponent implements OnInit {
     this.usersService.loginUser(email, password).subscribe({
       next: () => {
         this.cleanInputs();
-        this.router.navigate(['/home']);
+        this.router.navigate(['/jobs']);
       },
       error: (error: HttpErrorResponse) => {
         this.responseMessage = (error.error as {error: string})['error'] || 'Login failed!';
