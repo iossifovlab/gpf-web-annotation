@@ -13,7 +13,7 @@ test.describe('Basic tests', () => {
 
   test('should check if user is redirected to login page after ' +
       'trying to access page without being logged in', async({ page }) => {
-    await page.goto('/home', {waitUntil: 'load'});
+    await page.goto('/jobs', {waitUntil: 'load'});
     await expect(page.locator('app-login')).toBeVisible();
     expect(page.url()).toContain('/login');
   });
@@ -109,7 +109,7 @@ test.describe('Registration tests', () => {
     await page.locator('#email').pressSequentially(randomEmail);
     await page.locator('#password').pressSequentially('password123');
     await page.getByRole('button', { name: 'Login' }).click();
-    await expect(page.locator('app-home')).toBeVisible();
+    await expect(page.locator('app-jobs-table')).toBeVisible();
   });
 });
 
@@ -118,14 +118,14 @@ test.describe('Login tests', () => {
     await page.goto('/', {waitUntil: 'load'});
   });
 
-  test('should check if home page is visible after successful login', async({ page }) => {
+  test('should check if jobs table page is visible after successful login', async({ page }) => {
     const randomEmail = `${utils.getRandomString()}@email.com`;
     await utils.registerUser(page, randomEmail, 'password123'); // need to register user first
 
     await page.locator('#email').pressSequentially(randomEmail);
     await page.locator('#password').pressSequentially('password123');
     await page.getByRole('button', { name: 'Login' }).click();
-    await expect(page.locator('app-home')).toBeVisible();
+    await expect(page.locator('app-jobs-table')).toBeVisible();
     await expect(page.locator('#user-data')).toBeVisible();
   });
 
@@ -136,7 +136,7 @@ test.describe('Login tests', () => {
     await page.locator('#email').pressSequentially(randomEmail);
     await page.locator('#password').pressSequentially('password123');
     await page.getByRole('button', { name: 'Login' }).click();
-    await page.waitForSelector('app-home');
+    await page.waitForSelector('app-jobs-table');
 
     await page.getByRole('button', { name: 'Logout' }).click();
     await expect(page.locator('app-login')).toBeVisible();
@@ -147,21 +147,21 @@ test.describe('Login tests', () => {
     await page.locator('#password').pressSequentially('nonexistentpassword');
     await page.getByRole('button', { name: 'Login' }).click();
     await expect(page.getByText('Invalid login credentials')).toBeVisible();
-    await expect(page.locator('app-home')).not.toBeVisible();
+    await expect(page.locator('app-jobs-table')).not.toBeVisible();
   });
 
   test('should show error message when trying to login without email', async({ page }) => {
     await page.locator('#password').pressSequentially('nonexistentpassword');
     await page.getByRole('button', { name: 'Login' }).click();
     await expect(page.getByText('Invalid login credentials')).toBeVisible();
-    await expect(page.locator('app-home')).not.toBeVisible();
+    await expect(page.locator('app-jobs-table')).not.toBeVisible();
   });
 
   test('should show error message when trying to login without password', async({ page }) => {
     await page.locator('#email').pressSequentially('nonexistent@email.com');
     await page.getByRole('button', { name: 'Login' }).click();
     await expect(page.getByText('Invalid login credentials')).toBeVisible();
-    await expect(page.locator('app-home')).not.toBeVisible();
+    await expect(page.locator('app-jobs-table')).not.toBeVisible();
   });
 });
 
@@ -196,10 +196,10 @@ test.describe('Logout tests', () => {
     await expect(page.locator('#front-page-container')).toBeVisible();
   });
 
-  test('should not be able to navigate to home page after logout', async({ page }) => {
+  test('should not be able to navigate to jobs table page after logout', async({ page }) => {
     await page.locator('#logout-button').click();
     await page.waitForSelector('#front-page-container');
-    await page.goto('/home', {waitUntil: 'load'});
+    await page.goto('/jobs', {waitUntil: 'load'});
     await expect(page.locator('#front-page-container')).toBeVisible();
     expect(page.url()).toContain('/login');
   });
