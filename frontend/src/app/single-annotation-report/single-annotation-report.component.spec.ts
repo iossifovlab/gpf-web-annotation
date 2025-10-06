@@ -6,6 +6,8 @@ import { Annotator, AnnotatorDetails, SingleAnnotationReport, Variant } from '..
 import { SingleAnnotationService } from '../single-annotation.service';
 import { ActivatedRoute, provideRouter, Router } from '@angular/router';
 import { provideMarkdown } from 'ngx-markdown';
+import { HelperModalComponent } from '../helper-modal/helper-modal.component';
+import { MatDialog, MatDialogConfig, MatDialogRef } from '@angular/material/dialog';
 
 const mockReport = new SingleAnnotationReport(
   new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
@@ -20,11 +22,19 @@ class MockSingleAnnotationService {
   }
 }
 
+class MatDialogMock {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public open(component: HelperModalComponent, config: MatDialogConfig<string>): MatDialogRef<HelperModalComponent> {
+    return null;
+  }
+}
+
 describe('SingleAnnotationReportComponent', () => {
   let component: SingleAnnotationReportComponent;
   let fixture: ComponentFixture<SingleAnnotationReportComponent>;
   const mockSingleAnnotationService = new MockSingleAnnotationService();
   let router: Router;
+  const mockMatDialog = new MatDialogMock();
 
   beforeEach(async() => {
     await TestBed.configureTestingModule({
@@ -33,6 +43,10 @@ describe('SingleAnnotationReportComponent', () => {
         {
           provide: SingleAnnotationService,
           useValue: mockSingleAnnotationService
+        },
+        {
+          provide: MatDialog,
+          useValue: mockMatDialog
         },
         provideRouter([]),
         provideMarkdown()
@@ -71,5 +85,17 @@ describe('SingleAnnotationReportComponent', () => {
     const navigateSpy = jest.spyOn(router, 'navigate');
     component.ngOnInit();
     expect(navigateSpy).toHaveBeenCalledWith([], { queryParams: {} });
+  });
+
+  it('should open modal on icon click', () => {
+    const openModalSpy = jest.spyOn(mockMatDialog, 'open').mockImplementation(() => null);
+    component.showHelp('mock markdown content');
+    expect(openModalSpy).toHaveBeenCalledWith(
+      HelperModalComponent, {
+        data: 'mock markdown content',
+        height: '60vh',
+        width: '30vw',
+      }
+    );
   });
 });
