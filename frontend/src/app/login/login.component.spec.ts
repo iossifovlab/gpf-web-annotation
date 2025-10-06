@@ -65,7 +65,7 @@ describe('LoginComponent', () => {
 
     component.login();
     expect(loginSpy).toHaveBeenCalledWith('mockEmail@email.com', 'mockPassword');
-    expect(navigateSpy).toHaveBeenCalledWith(['/jobs']);
+    expect(navigateSpy).toHaveBeenCalledWith(['/single-annotation']);
   });
 
   it('should clear inputs when login is successful', () => {

@@ -12,6 +12,7 @@ test.describe('Create job tests', () => {
     await utils.registerUser(page, email, password);
 
     await utils.loginUser(page, email, password);
+    await page.getByRole('link', {name: 'Jobs'}).click();
   });
 
   test('should create job with pipeline and input file', async({ page }) => {

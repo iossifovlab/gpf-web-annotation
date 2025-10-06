@@ -109,7 +109,7 @@ test.describe('Registration tests', () => {
     await page.locator('#email').pressSequentially(randomEmail);
     await page.locator('#password').pressSequentially('password123');
     await page.getByRole('button', { name: 'Login' }).click();
-    await expect(page.locator('app-jobs-table')).toBeVisible();
+    await expect(page.locator('app-single-annotation')).toBeVisible();
   });
 });
 
@@ -125,7 +125,7 @@ test.describe('Login tests', () => {
     await page.locator('#email').pressSequentially(randomEmail);
     await page.locator('#password').pressSequentially('password123');
     await page.getByRole('button', { name: 'Login' }).click();
-    await expect(page.locator('app-jobs-table')).toBeVisible();
+    await expect(page.locator('app-single-annotation')).toBeVisible();
     await expect(page.locator('#user-data')).toBeVisible();
   });
 
@@ -136,7 +136,7 @@ test.describe('Login tests', () => {
     await page.locator('#email').pressSequentially(randomEmail);
     await page.locator('#password').pressSequentially('password123');
     await page.getByRole('button', { name: 'Login' }).click();
-    await page.waitForSelector('app-jobs-table');
+    await page.waitForSelector('app-single-annotation');
 
     await page.getByRole('button', { name: 'Logout' }).click();
     await expect(page.locator('app-login')).toBeVisible();
@@ -147,21 +147,21 @@ test.describe('Login tests', () => {
     await page.locator('#password').pressSequentially('nonexistentpassword');
     await page.getByRole('button', { name: 'Login' }).click();
     await expect(page.getByText('Invalid login credentials')).toBeVisible();
-    await expect(page.locator('app-jobs-table')).not.toBeVisible();
+    await expect(page.locator('app-single-annotation')).not.toBeVisible();
   });
 
   test('should show error message when trying to login without email', async({ page }) => {
     await page.locator('#password').pressSequentially('nonexistentpassword');
     await page.getByRole('button', { name: 'Login' }).click();
     await expect(page.getByText('Invalid login credentials')).toBeVisible();
-    await expect(page.locator('app-jobs-table')).not.toBeVisible();
+    await expect(page.locator('app-single-annotation')).not.toBeVisible();
   });
 
   test('should show error message when trying to login without password', async({ page }) => {
     await page.locator('#email').pressSequentially('nonexistent@email.com');
     await page.getByRole('button', { name: 'Login' }).click();
     await expect(page.getByText('Invalid login credentials')).toBeVisible();
-    await expect(page.locator('app-jobs-table')).not.toBeVisible();
+    await expect(page.locator('app-single-annotation')).not.toBeVisible();
   });
 });
 

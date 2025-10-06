@@ -100,6 +100,15 @@ describe('UsersService', () => {
     expect(service.userData.value).toStrictEqual(userDataMockResult);
   });
 
+  it('should navigate to single annotation page on auto login', () => {
+    const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
+    httpGetSpy.mockReturnValue(of({ email: 'mockEmail', isAdmin: false, loggedIn: true }));
+    const navigateSpy = jest.spyOn(router, 'navigate');
+
+    service.autoLogin();
+    expect(navigateSpy).toHaveBeenCalledWith(['/single-annotation']);
+  });
+
   it('should check params of logout query', () => {
     const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
     httpGetSpy.mockReturnValue(of({}));
