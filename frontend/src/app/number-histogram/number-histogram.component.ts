@@ -17,6 +17,8 @@ interface BinBar {
 })
 export class NumberHistogramComponent implements OnInit {
   @Input() public histogram: NumberHistogram = null;
+  @Input() public singleScoreValue: number;
+
   @ViewChild('histogramContainer', {static: true}) public histogramContainer: ElementRef;
 
   public xLabels: Array<number>;
@@ -27,7 +29,6 @@ export class NumberHistogramComponent implements OnInit {
 
   private svg: d3.Selection<SVGElement, unknown, null, undefined>;
 
-  public singleScoreValue: number;
 
   public scaleXAxis: d3.ScaleThreshold<number, number, never>;
   public scaleYAxis: d3.ScaleLinear<number, number, never>

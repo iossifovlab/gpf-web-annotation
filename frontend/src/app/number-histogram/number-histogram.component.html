@@ -9,7 +9,7 @@
         <g #histogramContainer style="transform: 'translate(0px, 0px)'"></g>
         <g *ngIf="singleScoreValue">
           <!-- prettier-ignore -->
-          <text [attr.x]="scaleXAxis(singleScoreValue)" [attr.y]="-10" class="small" text-anchor="middle">{{ singleScoreValue }}</text>
+          <text [attr.x]="scaleXAxis(singleScoreValue)" [attr.y]="-10" class="small single-score-value" text-anchor="middle">{{ singleScoreValue }}</text>
           <line
             class="single-score-marker"
             style="stroke: rgb(255, 0, 0); stroke-width: 2"

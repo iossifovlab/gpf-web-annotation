@@ -63,4 +63,15 @@ export class SingleAnnotationReportComponent implements OnInit {
   public isCategoricalHistogram(arg: object): arg is CategoricalHistogram {
     return arg instanceof CategoricalHistogram;
   }
+
+  public getValueAsNumber(value: string | number): number {
+    if (typeof value === 'number') {
+      return value;
+    }
+    const parsed = Number(value);
+    if (isNaN(parsed)) {
+      return null;
+    }
+    return parsed;
+  }
 }

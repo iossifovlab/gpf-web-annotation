@@ -28,11 +28,14 @@
             <div class="attribute-result">
               <app-number-histogram
                 *ngIf="attribute.result.histogram && !isCategoricalHistogram(attribute.result.histogram)"
-                [histogram]="attribute.result.histogram"></app-number-histogram>
+                [histogram]="attribute.result.histogram"
+                [singleScoreValue]="getValueAsNumber(attribute.result.value)"></app-number-histogram>
               <app-categorical-histogram
                 *ngIf="attribute.result.histogram && isCategoricalHistogram(attribute.result.histogram)"
                 [histogram]="attribute.result.histogram"></app-categorical-histogram>
-              <div class="value-result" *ngIf="attribute.result.value">{{ attribute.result.value }}</div>
+              <div class="value-result" *ngIf="attribute.result.value && !attribute.result.histogram">{{
+                attribute.result.value
+              }}</div>
             </div>
           </div>
           <span
