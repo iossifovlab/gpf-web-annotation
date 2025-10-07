@@ -25,6 +25,7 @@
     "@angular/router": "19.2.14",
     "d3": "7.8.1",
     "ngx-cookie-service": "19.1.2",
+    "ngx-markdown": "19.1.1",
     "rxjs": "~7.8.0",
     "stylelint-checkstyle-formatter": "0.1.2",
     "tslib": "2.3.0",

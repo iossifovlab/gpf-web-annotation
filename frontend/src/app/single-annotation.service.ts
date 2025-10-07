@@ -3,16 +3,19 @@ import { map, Observable, of } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { SingleAnnotationReport, Variant } from './single-annotation';
+import { CookieService } from 'ngx-cookie-service';
 
 
 @Injectable()
 export class SingleAnnotationService {
-  private readonly getReportUrl = `${environment.apiPath}/single-annotation`;
+  private readonly getReportUrl = `${environment.apiPath}/single_annotate`;
   private readonly getGenomesUrl = `${environment.apiPath}/genomes`;
-  public constructor(private http: HttpClient) { }
+  public constructor(private http: HttpClient, private cookieService: CookieService) { }
 
   public getReport(variant: Variant, genome: string): Observable<SingleAnnotationReport> {
-    const options = { withCredentials: true };
+    const csrfToken = this.cookieService.get('csrftoken');
+    const headers = { 'X-CSRFToken': csrfToken };
+    const options = { headers: headers, withCredentials: true };
     const variantJson = {
       chrom: variant.chromosome,
       pos: variant.position,

@@ -6,6 +6,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { UsersService } from './users.service';
 import { JobsService } from './job-creation/jobs.service';
 import { SingleAnnotationService } from './single-annotation.service';
+import { provideMarkdown } from 'ngx-markdown';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -14,6 +15,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(),
     UsersService,
     JobsService,
-    SingleAnnotationService
+    SingleAnnotationService,
+    provideMarkdown(),
   ]
 };
