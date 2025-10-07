@@ -32,7 +32,8 @@
                 [singleScoreValue]="getValueAsNumber(attribute.result.value)"></app-number-histogram>
               <app-categorical-histogram
                 *ngIf="attribute.result.histogram && isCategoricalHistogram(attribute.result.histogram)"
-                [histogram]="attribute.result.histogram"></app-categorical-histogram>
+                [histogram]="attribute.result.histogram"
+                [singleScoreValue]="attribute.result.value"></app-categorical-histogram>
               <div class="value-result" *ngIf="attribute.result.value && !attribute.result.histogram">{{
                 attribute.result.value
               }}</div>

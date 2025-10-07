@@ -12,6 +12,7 @@ import { cloneDeep } from 'lodash';
 })
 export class CategoricalHistogramComponent implements OnInit {
   @Input() public histogram: CategoricalHistogram;
+  @Input() public singleScoreValue: string;
 
   @ViewChild('histogramContainer', {static: true}) public histogramContainer: ElementRef;
 
@@ -27,7 +28,6 @@ export class CategoricalHistogramComponent implements OnInit {
 
   private svg: d3.Selection<SVGElement, unknown, null, undefined>;
 
-  @Input() public singleScoreValue: string;
 
   private categoricalValueMax = 1000;
 
