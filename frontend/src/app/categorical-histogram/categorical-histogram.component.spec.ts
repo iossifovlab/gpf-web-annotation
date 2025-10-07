@@ -23,13 +23,12 @@ describe('CategoricalHistogramComponent', () => {
         { name: 'D', value: 30 },
         { name: 'E', value: 40 },
       ],
-      [],
+      ['A', 'B', 'C', 'D', 'E'],
       'largeValues',
       'smallValues',
       false,
       0
     );
-    fixture.detectChanges();
   });
 
   it('should create', () => {
@@ -75,7 +74,7 @@ describe('CategoricalHistogramComponent', () => {
     expect(svg.querySelectorAll('g')).toHaveLength(14);
     expect(svg.querySelectorAll('line')).toHaveLength(10);
     expect(svg.querySelectorAll('text')).toHaveLength(10);
-    expect(svg.querySelectorAll('text')[1].textContent).toBe('A');
+    expect(svg.querySelectorAll('text')[1].innerHTML).toBe('A<title>A</title>');
     expect(svg.querySelectorAll('text')[1].style.getPropertyValue('text-anchor')).toBe('center');
     expect(svg.querySelectorAll('text')[1].getAttribute('transform')).toBe('rotate(0)');
   });
@@ -89,7 +88,7 @@ describe('CategoricalHistogramComponent', () => {
         { name: 'D', value: 30 },
         { name: 'E', value: 40 },
       ],
-      [],
+      ['A', 'B', 'C', 'D', 'E'],
       'largeValues',
       'smallValues',
       true,
@@ -122,7 +121,7 @@ describe('CategoricalHistogramComponent', () => {
         { name: 'D', value: 30 },
         { name: 'E', value: 40 },
       ],
-      [],
+      ['A', 'B', 'C', 'D', 'E'],
       'largeValues',
       'smallValues',
       false,
@@ -131,7 +130,6 @@ describe('CategoricalHistogramComponent', () => {
     component.ngOnInit();
 
     const svg = (fixture.nativeElement as HTMLElement).querySelector('svg') as SVGElement;
-    expect(svg.querySelectorAll('text')[1].textContent).toBe('A');
     expect(svg.querySelectorAll('text')[1].style.getPropertyValue('text-anchor')).toBe('end');
     expect(svg.querySelectorAll('text')[1].getAttribute('transform')).toBe('rotate(280)');
   });
@@ -145,7 +143,7 @@ describe('CategoricalHistogramComponent', () => {
         { name: 'D', value: 30 },
         { name: 'E', value: 40 },
       ],
-      [],
+      ['A', 'B', 'C', 'D', 'E'],
       'largeValues',
       'smallValues',
       false,
@@ -154,8 +152,105 @@ describe('CategoricalHistogramComponent', () => {
     component.ngOnInit();
 
     const svg = (fixture.nativeElement as HTMLElement).querySelector('svg') as SVGElement;
-    expect(svg.querySelectorAll('text')[1].textContent).toBe('A');
     expect(svg.querySelectorAll('text')[1].style.getPropertyValue('text-anchor')).toBe('start');
     expect(svg.querySelectorAll('text')[1].getAttribute('transform')).toBe('rotate(110)');
+  });
+
+  it('should init values in correct order', () => {
+    component.histogram = new CategoricalHistogram(
+      [
+        {name: 'A', value: 10},
+        {name: 'B', value: 20},
+        {name: 'C', value: 30},
+      ],
+      ['B', 'C', 'A'],
+      'large value descriptions',
+      'small value descriptions',
+      true,
+      0
+    );
+
+    component.ngOnInit();
+    expect(component.values[0].name).toBe('B');
+    expect(component.values[1].name).toBe('C');
+    expect(component.values[2].name).toBe('A');
+  });
+
+  it('should init values with only a certain number of them displayed', () => {
+    component.histogram = new CategoricalHistogram(
+      [
+        {name: 'A', value: 10},
+        {name: 'B', value: 20},
+        {name: 'C', value: 30},
+        {name: 'D', value: 40},
+        {name: 'E', value: 50},
+      ],
+      ['A', 'B', 'C', 'D', 'E'],
+      'large value descriptions',
+      'small value descriptions',
+      true,
+      0,
+      2,
+    );
+
+    component.ngOnInit();
+    expect(component.values[0].name).toBe('A');
+    expect(component.values[1].name).toBe('B');
+    expect(component.values[2].name).toBe('Other values');
+    expect(component.values[2].value).toBe(120);
+    expect(component.xScale.domain()).toStrictEqual(['A', 'B', 'Other values']);
+    expect(component.scaleXAxis.domain()).toStrictEqual(['', 'A', 'B', 'Other values (3)']);
+  });
+
+  it('should init values with only a percent fraction of them displayed', () => {
+    component.histogram = new CategoricalHistogram(
+      [
+        {name: 'A', value: 10},
+        {name: 'B', value: 20},
+        {name: 'C', value: 30},
+        {name: 'D', value: 40},
+        {name: 'E', value: 50},
+      ],
+      ['A', 'B', 'C', 'D', 'E'],
+      'large value descriptions',
+      'small value descriptions',
+      true,
+      0,
+      null,
+      60,
+    );
+    fixture.detectChanges();
+    component.ngOnInit();
+    expect(component.values[0].name).toBe('A');
+    expect(component.values[1].name).toBe('B');
+    expect(component.values[2].name).toBe('C');
+    expect(component.values[3].name).toBe('Other values');
+    expect(component.values[3].value).toBe(90);
+    expect(component.xScale.domain()).toStrictEqual(['A', 'B', 'C', 'Other values']);
+    expect(component.scaleXAxis.domain()).toStrictEqual(['', 'A', 'B', 'C', 'Other values (2)']);
+  });
+
+  it('should shorten long labels', () => {
+    component.histogram = new CategoricalHistogram(
+      [
+        {name: 'A', value: 10},
+        {name: 'criteria_provided|_multiple_submitters|_no_conflicts', value: 20},
+        {name: 'C', value: 30},
+      ],
+      ['A', 'criteria_provided|_multiple_submitters|_no_conflicts', 'C'],
+      'large value descriptions',
+      'small value descriptions',
+      true,
+      0,
+      null,
+      null,
+    );
+
+    component.ngOnInit();
+    expect(component.values[1].name).toBe('criteria_provided|_multiple_submitters|_no_conflicts');
+    const svg = (fixture.nativeElement as HTMLElement).querySelector('svg') as SVGElement;
+    expect(svg.querySelectorAll('text')[2].innerHTML).toBe(
+      'criteria_provided|_m...<title>criteria_provided|_multiple_submitters|_no_conflicts</title>'
+    );
   });
 });

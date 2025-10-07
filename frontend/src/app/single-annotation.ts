@@ -159,6 +159,8 @@ export class CategoricalHistogram {
     public readonly smallValuesDesc: string,
     public readonly logScaleY: boolean,
     public readonly labelRotation: number,
+    public readonly displayedValuesCount: number = null,
+    public readonly displayedValuesPercent: number = null,
   ) { }
 
   public static fromJson(json: object): CategoricalHistogram {

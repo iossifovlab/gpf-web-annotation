@@ -17,23 +17,65 @@ export class CategoricalHistogramComponent implements OnInit {
 
   // Values used as histogram bars
   public values: {name: string, value: number}[] = [];
+  // Omitted values that are combined in one custom bar
+  public otherValueNames: string[] = [];
 
+  private barCount: number;
+  // private readonly defaultBarCount = 20;
+  private readonly defaultBarCount = 5;
   public labelRotation = 0;
 
   private svg: d3.Selection<SVGElement, unknown, null, undefined>;
 
   @Input() public singleScoreValue: string;
 
+  private categoricalValueMax = 1000;
+
   public xScale: d3.ScaleBand<string>;
   public scaleXAxis: d3.ScaleOrdinal<string, number, never>;
   public scaleYAxis: d3.ScaleLinear<number, number, never>
-                     | d3.ScaleLogarithmic<number, number, never>;
+                      | d3.ScaleLogarithmic<number, number, never>;
 
   public ngOnInit(): void {
+    this.calculateBarCount();
+
     this.values = cloneDeep(this.histogram.values);
+    this.formatValues();
     this.labelRotation = this.histogram.labelRotation;
 
     this.drawHistogram();
+  }
+
+  private calculateBarCount(): void {
+    this.barCount = this.histogram.values.length;
+    if (this.histogram.displayedValuesCount) {
+      this.barCount = this.histogram.displayedValuesCount;
+    } else if (this.histogram.displayedValuesPercent) {
+      this.barCount = Math.floor(this.histogram.values.length / 100 * this.histogram.displayedValuesPercent);
+    } else {
+      this.barCount = this.defaultBarCount;
+    }
+  }
+
+  // Sort and combine other values
+  private formatValues(): void {
+    this.values.sort((a, b) => {
+      if (this.histogram.valueOrder?.length) {
+        return this.histogram.valueOrder.indexOf(a.name) - this.histogram.valueOrder.indexOf(b.name);
+      }
+      if (a.value < b.value) {
+        return 1;
+      }
+      return -1;
+    });
+
+    if (this.barCount < this.values.length) {
+      const otherValues = this.values
+        .splice(this.barCount, this.values.length);
+      this.otherValueNames = otherValues.map(v => v.name);
+      const otherSum = otherValues.reduce((acc, v) => acc + v.value, 0);
+      this.values.push({name: 'Other values', value: otherSum});
+    }
   }
 
   private drawHistogram(): void {
@@ -60,7 +102,7 @@ export class CategoricalHistogramComponent implements OnInit {
     }
     this.scaleYAxis.range([height, 0]).domain([domainStart, d3.max(this.values.map(v => v.value))]);
 
-    this.redrawXAxis(svg, width, height);
+    this.drawXAxis(svg, width, height);
 
     const leftAxis = d3.axisLeft(this.scaleYAxis);
     let yAxisTicks = this.scaleYAxis.ticks(3).filter((tick) => Number.isInteger(tick));
@@ -91,7 +133,7 @@ export class CategoricalHistogramComponent implements OnInit {
     this.svg = svg;
   }
 
-  private redrawXAxis(
+  private drawXAxis(
     svg: d3.Selection<SVGElement, unknown, null, undefined>,
     width: number,
     height: number,
@@ -102,7 +144,11 @@ export class CategoricalHistogramComponent implements OnInit {
     this.values.forEach(value => {
       const leftX = this.xScale(value.name) + this.xScale.bandwidth() / 2;
       axisX.push(leftX);
-      axisVals.push(value.name);
+      if (value.name === 'Other values') {
+        axisVals.push(value.name + ` (${this.otherValueNames.length})`);
+      } else {
+        axisVals.push(value.name);
+      }
     });
 
     axisX.push(width);
@@ -114,6 +160,12 @@ export class CategoricalHistogramComponent implements OnInit {
         d3.axisBottom(this.scaleXAxis)
       ).style('font-size', '12px');
 
+
+    this.rotateLabels(svg);
+    this.addLabelsTitle(svg);
+  }
+
+  private rotateLabels(svg: d3.Selection<SVGElement, unknown, null, undefined>): void {
     let calculatedRotation = this.labelRotation;
     calculatedRotation %= 360;
     if (calculatedRotation !== 0 && calculatedRotation !== 90) {
@@ -130,5 +182,33 @@ export class CategoricalHistogramComponent implements OnInit {
       .style('text-anchor', anchorRotation)
       .attr('transform-origin', '0 9%')
       .attr('transform', `rotate(${calculatedRotation})`);
+  }
+
+  private addLabelsTitle(svg: d3.Selection<SVGElement, unknown, null, undefined>): void {
+    this.values.forEach(value => {
+      svg.selectAll('text').filter(
+        (d: unknown) => {
+          const label = d as string;
+          return label === value.name || label.includes('Other values');
+        }
+      ).each((d: unknown, i, labels) => {
+        let labelText = d as string;
+        const maxLabelLen = 20;
+        if (labelText.length > maxLabelLen) {
+          labelText = labelText.slice(0, maxLabelLen).concat('...');
+        }
+        // eslint-disable-next-line no-invalid-this
+        d3.select(labels[i]).text(labelText);
+
+        // add hover text on each label
+        if (value.name === 'Other values') {
+          // eslint-disable-next-line no-invalid-this
+          d3.select(labels[i]).append('title').text(value.name + ` (${this.otherValueNames.length})`);
+        } else {
+          // eslint-disable-next-line no-invalid-this
+          d3.select(labels[i]).append('title').text(value.name);
+        }
+      });
+    });
   }
 }
