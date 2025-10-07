@@ -6,4 +6,9 @@ scores:
     name: s1
     type: float
     desc: "test position score"
-
+    histogram:
+      type: number
+      number_of_bins: 10
+      view_range:
+        min: 0.0
+        max: 1.0

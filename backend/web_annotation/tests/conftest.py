@@ -1,10 +1,11 @@
 import pathlib
 import shutil
+import yaml
 from typing import Generator
 import pytest
 import pytest_mock
 from django.test import Client
-from django.conf import settings
+from django.conf import settings, LazySettings
 from dae.genomic_resources.repository import GenomicResourceRepo
 from dae.genomic_resources.repository_factory import \
     build_genomic_resource_repository
@@ -12,11 +13,23 @@ from dae.genomic_resources.repository_factory import \
 from web_annotation.models import Job, User
 
 
-@pytest.fixture(scope="function")
-def test_grr(mocker: pytest_mock.MockFixture) -> GenomicResourceRepo:
+@pytest.fixture(scope="function", autouse=True)
+def use_test_grr_definition(
+    test_grr: GenomicResourceRepo, tmp_path: pathlib.Path,
+    settings: LazySettings,
+    mocker: pytest_mock.MockFixture,
+) -> None:
+    grr_path = tmp_path / "grr_definition.yaml"
+    grr_path.write_text(yaml.safe_dump(test_grr.definition))
+    settings.GRR_DEFINITION = grr_path
     grr_patch = \
         mocker.patch("web_annotation.views.AnnotationBaseView.get_grr")
 
+    grr_patch.return_value = test_grr
+
+
+@pytest.fixture(scope="function")
+def test_grr() -> GenomicResourceRepo:
     grr_dir = pathlib.Path(__file__).parent / "fixtures" / "grr"
     grr = build_genomic_resource_repository(
         {
@@ -25,8 +38,8 @@ def test_grr(mocker: pytest_mock.MockFixture) -> GenomicResourceRepo:
             "directory": str(grr_dir)
         }
     )
-    grr_patch.return_value = grr
     return grr
+
 
 
 @pytest.fixture(scope="session", autouse=True)
