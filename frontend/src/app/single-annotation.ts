@@ -95,7 +95,7 @@ export class Attribute {
 
     let histogram: NumberHistogram | CategoricalHistogram;
 
-    if ((json['result'] as Result).histogram) {
+    if (Object.keys((json['result'] as Result).histogram).length !== 0) {
       histogram = this.isCategoricalHistogram(json['result'] as Result) ?
         CategoricalHistogram.fromJson((json['result'] as Result).histogram)
         : NumberHistogram.fromJson((json['result'] as Result).histogram);

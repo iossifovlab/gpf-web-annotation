@@ -16,6 +16,7 @@ export class SingleAnnotationService {
     const csrfToken = this.cookieService.get('csrftoken');
     const headers = { 'X-CSRFToken': csrfToken };
     const options = { headers: headers, withCredentials: true };
+
     const variantJson = {
       chrom: variant.chromosome,
       pos: variant.position,
