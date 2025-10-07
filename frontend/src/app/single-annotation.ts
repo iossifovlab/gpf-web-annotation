@@ -166,13 +166,18 @@ export class CategoricalHistogram {
       return undefined;
     }
 
+    const values: {name: string, value: number}[] = [];
+    Object.keys(json['values'] as object).forEach(key => {
+      values.push({name: key, value: json['values'][key]});
+    });
+
     return new CategoricalHistogram(
-      json['values'] as {name: string, value: number}[],
-      json['value_order'] as string[],
-      json['large_values_desc'] as string,
-      json['small_values_desc'] as string,
-      json['y_log_scale'] as boolean,
-      json['label_rotation'] as number,
+      values,
+      json['config']['value_order'] as string[],
+      json['config']['large_values_desc'] as string,
+      json['config']['small_values_desc'] as string,
+      json['config']['y_log_scale'] as boolean,
+      json['config']['label_rotation'] as number,
     );
   }
 }
