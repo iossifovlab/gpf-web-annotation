@@ -1,7 +1,7 @@
 import time
 import logging
 from pathlib import Path
-from typing import cast
+from typing import cast, Any
 
 import magic
 from pysam import VariantFile
@@ -21,10 +21,13 @@ from dae.annotation.annotation_config import AnnotationConfigParser, \
     AnnotationConfigurationError
 from dae.annotation.annotation_factory import load_pipeline_from_grr
 from dae.annotation.annotation_pipeline import AnnotationPipeline
+from dae.genomic_resources.genomic_scores import build_score_from_resource
+from dae.gene_scores.gene_scores import build_gene_score_from_resource
 from dae.annotation.annotatable import VCFAllele
 from dae.genomic_resources.repository_factory import \
     build_genomic_resource_repository
-from dae.genomic_resources.repository import GenomicResourceRepo
+from dae.genomic_resources.repository import GenomicResourceRepo, \
+    GenomicResource
 from dae.genomic_resources.implementations.annotation_pipeline_impl import \
     AnnotationPipelineImplementation
 
@@ -34,6 +37,38 @@ from .permissions import IsOwner, has_job_permission
 from .tasks import create_annotation
 
 logger = logging.getLogger(__name__)
+
+
+def get_histogram_genomic_score(
+    resource: GenomicResource, score: str,
+) -> dict[str, Any]:
+    if resource.get_type() not in [
+        "allele_score", "position_score",
+    ]:
+        raise ValueError(f"{resource.resource_id} is not a genomic score!")
+    return build_score_from_resource(
+        resource).get_score_histogram(score).to_dict()
+
+def get_histogram_gene_score(
+    resource: GenomicResource, score: str,
+) -> dict[str, Any]:
+    if resource.get_type() != "gene_score":
+        raise ValueError(f"{resource.resource_id} is not a genomic score!")
+    return build_gene_score_from_resource(
+        resource).get_score_histogram(score).to_dict()
+
+
+def get_histogram_not_supported(
+    resource: GenomicResource, score: str,
+) -> dict[str, Any]:
+    return {}
+
+
+HISTOGRAM_GETTERS = {
+    "allele_score": get_histogram_genomic_score,
+    "position_score": get_histogram_genomic_score,
+    "gene_score": get_histogram_gene_score,
+}
 
 
 def get_pipelines(grr: GenomicResourceRepo) -> dict[str, dict[str, str]]:
@@ -240,7 +275,10 @@ class JobCreate(AnnotationBaseView):
         job.save()
 
         create_annotation.delay(
-            job.pk, str(self.result_storage_dir), self.get_grr_definition())
+            job.pk,
+            str(self.result_storage_dir),
+            str(self.get_grr_definition()),
+        )
 
         return Response(status=views.status.HTTP_204_NO_CONTENT)
 
@@ -426,11 +464,20 @@ class SingleAnnotation(AnnotationBaseView):
                     r.resource_id for r in annotator_info.resources),
             }
             for attribute_info in annotator.attributes:
+                resource = self.grr.get_resource(
+                    list(annotator.resource_ids)[0])
+                histogram_getter = HISTOGRAM_GETTERS.get(
+                    resource.get_type(), get_histogram_not_supported,
+                )
+                histogram_data = histogram_getter(
+                    resource, attribute_info.source
+                )
                 attributes.append({
                     "name": attribute_info.name,
                     "description": attribute_info.description,
                     "result": {
                         "value": str(result[attribute_info.name]),
+                        "histogram": histogram_data,
                     },
                 })
             annotators_data.append(

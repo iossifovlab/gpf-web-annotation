@@ -496,3 +496,80 @@ def test_validate_annotation_config(
         {"config": annotation_config},
     )
     assert response.status_code == 400
+
+def test_single_annotation(admin_client: Client) -> None:
+    response = admin_client.post(
+        "/api/single_annotate",
+        {
+            "genome": "hg38",
+            "variant": {
+                "chrom": "chr1", "pos": 1, "ref": "C", "alt": "A",
+            }
+        },
+        content_type="application/json",
+    )
+
+    data = response.data
+    assert "variant" in data
+    assert "annotators" in data
+
+    variant_data = data["variant"]
+    annotators_data = data["annotators"]
+
+    assert variant_data == {
+        "chromosome": "chr1",
+        "position": 1,
+        "reference": "C",
+        "alternative": "A",
+        "variant_type": "SUBSTITUTION",
+    }
+    assert len(annotators_data) == 1
+    assert annotators_data[0] == {
+        "details": {
+            "name": "position_score",
+            "description": (
+                "\n\nAnnotator to use with genomic scores depending on genomic"
+                " position like\nphastCons, phyloP, FitCons2, etc.\n"
+                "\n<a href=\"https://www.iossifovlab.com/gpfuserdocs/"
+                "administration/annotation.html#position-score\" "
+                "target=\"_blank\">More info</a>\n\n"
+            ),
+            "resource_id": "scores/pos1",
+        },
+        "attributes": [
+            {
+                "name": "pos1",
+                "description": "test position score",
+                "result": {
+                    "value": "0.1",
+                    "histogram": {
+                        "config": {
+                            "type": "number",
+                            "view_range": {"min": 0.0, "max": 1.0},
+                            "number_of_bins": 10,
+                            "x_log_scale": False,
+                            "y_log_scale": False,
+                            "x_min_log": None
+                        },
+                        "bins": [
+                            pytest.approx(0.0),
+                            pytest.approx(0.1),
+                            pytest.approx(0.2),
+                            pytest.approx(0.3),
+                            pytest.approx(0.4),
+                            pytest.approx(0.5),
+                            pytest.approx(0.6),
+                            pytest.approx(0.7),
+                            pytest.approx(0.8),
+                            pytest.approx(0.9),
+                            pytest.approx(1.0),
+                        ],
+                        "bars": [0, 3, 2, 1, 4, 1, 0, 0, 1, 1],
+                        "out_of_range_bins": [0, 0],
+                        "min_value": 0.1,
+                        "max_value": 0.9
+                    }
+                }
+            }
+        ]
+    }
