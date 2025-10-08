@@ -14,7 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.urls import path, include
+from django.urls import path, include, re_path
 
 from web_annotation import views
 
@@ -30,6 +30,10 @@ urlpatterns = [
 
     path('api/genomes', views.ListGenomePipelines.as_view()),
     path('api/single_annotate', views.SingleAnnotation.as_view()),
+    re_path(
+        r'api/histograms/(?P<resource_id>.+)',
+        views.HistogramView.as_view(),
+    ),
 
     path('api/pipelines', views.ListPipelines.as_view()),
 

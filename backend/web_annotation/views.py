@@ -487,20 +487,23 @@ class SingleAnnotation(AnnotationBaseView):
                     r.resource_id for r in annotator_info.resources),
             }
             for attribute_info in annotator.attributes:
+                if attribute_info.internal:
+                    continue
                 resource = self.grr.get_resource(
                     list(annotator.resource_ids)[0])
-                histogram_getter = HISTOGRAM_GETTERS.get(
-                    resource.get_type(), get_histogram_not_supported,
+                histogram_path = (
+                    f"histograms/{resource.resource_id}"
+                    f"?score_id={attribute_info.source}"
                 )
-                histogram_data = histogram_getter(
-                    resource, attribute_info.source
-                )
+                value = result[attribute_info.name]
+                if attribute_info.type in ["object", "annotatable"]:
+                    value = str(value)
                 attributes.append({
                     "name": attribute_info.name,
                     "description": attribute_info.description,
                     "result": {
-                        "value": str(result[attribute_info.name]),
-                        "histogram": histogram_data,
+                        "value": value,
+                        "histogram": histogram_path,
                     },
                 })
             annotators_data.append(
@@ -715,3 +718,27 @@ class PasswordReset(views.APIView):
             verif_code.delete()
         redirect_uri = request.session.get("redirect_url")
         return HttpResponseRedirect(redirect_uri)
+
+class HistogramView(AnnotationBaseView):
+    def get(self, request: Request, resource_id: str) -> Response:
+        try:
+            resource = self.grr.get_resource(resource_id)
+        except ValueError:
+            return Response(status=views.status.HTTP_404_NOT_FOUND)
+
+        score_id = request.query_params.get("score_id")
+        if score_id is None:
+            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+
+        histogram_getter = HISTOGRAM_GETTERS.get(
+            resource.get_type(), get_histogram_not_supported,
+        )
+
+        histogram_data = histogram_getter(
+            resource, score_id,
+        )
+
+        if histogram_data == {}:
+            return Response(status=views.status.HTTP_404_NOT_FOUND)
+
+        return Response(histogram_data)
