@@ -2,6 +2,7 @@ import logging
 import time
 from pathlib import Path
 from typing import Any, cast
+from datetime import datetime
 
 import magic
 from dae.annotation.annotatable import VCFAllele
@@ -37,6 +38,8 @@ from django.http.response import (
 )
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.decorators.http import last_modified
 from pysam import VariantFile
 from rest_framework import generics, permissions, views
 from rest_framework.parsers import JSONParser, MultiPartParser
@@ -92,6 +95,13 @@ HISTOGRAM_GETTERS = {
     "position_score": get_histogram_genomic_score,
     "gene_score": get_histogram_gene_score,
 }
+
+STARTUP_TIME = timezone.now()
+
+
+def always_cache(*args, **kwargs) -> datetime:
+    """Function to enable a view to always be cached, due to static data."""
+    return STARTUP_TIME
 
 
 def get_pipelines(grr: GenomicResourceRepo) -> dict[str, dict[str, str]]:
@@ -720,6 +730,8 @@ class PasswordReset(views.APIView):
         return HttpResponseRedirect(redirect_uri)
 
 class HistogramView(AnnotationBaseView):
+
+    @method_decorator(last_modified(always_cache))
     def get(self, request: Request, resource_id: str) -> Response:
         try:
             resource = self.grr.get_resource(resource_id)
