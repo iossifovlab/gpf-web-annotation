@@ -541,35 +541,43 @@ def test_single_annotation(admin_client: Client) -> None:
                 "name": "pos1",
                 "description": "test position score",
                 "result": {
-                    "value": "0.1",
-                    "histogram": {
-                        "config": {
-                            "type": "number",
-                            "view_range": {"min": 0.0, "max": 1.0},
-                            "number_of_bins": 10,
-                            "x_log_scale": False,
-                            "y_log_scale": False,
-                            "x_min_log": None
-                        },
-                        "bins": [
-                            pytest.approx(0.0),
-                            pytest.approx(0.1),
-                            pytest.approx(0.2),
-                            pytest.approx(0.3),
-                            pytest.approx(0.4),
-                            pytest.approx(0.5),
-                            pytest.approx(0.6),
-                            pytest.approx(0.7),
-                            pytest.approx(0.8),
-                            pytest.approx(0.9),
-                            pytest.approx(1.0),
-                        ],
-                        "bars": [0, 3, 2, 1, 4, 1, 0, 0, 1, 1],
-                        "out_of_range_bins": [0, 0],
-                        "min_value": 0.1,
-                        "max_value": 0.9
-                    }
+                    "value": 0.1,
+                    "histogram": "histograms/scores/pos1?score_id=pos1"
                 }
             }
         ]
+    }
+
+
+def test_histogram_view(admin_client: Client) -> None:
+    response = admin_client.get("/api/histograms/scores/pos1?score_id=pos1")
+
+    assert response.status_code == 200
+    data = response.data
+    assert data == {
+        "config": {
+            "type": "number",
+            "view_range": {"min": 0.0, "max": 1.0},
+            "number_of_bins": 10,
+            "x_log_scale": False,
+            "y_log_scale": False,
+            "x_min_log": None
+        },
+        "bins": [
+            pytest.approx(0.0),
+            pytest.approx(0.1),
+            pytest.approx(0.2),
+            pytest.approx(0.3),
+            pytest.approx(0.4),
+            pytest.approx(0.5),
+            pytest.approx(0.6),
+            pytest.approx(0.7),
+            pytest.approx(0.8),
+            pytest.approx(0.9),
+            pytest.approx(1.0),
+        ],
+        "bars": [0, 3, 2, 1, 4, 1, 0, 0, 1, 1],
+        "out_of_range_bins": [0, 0],
+        "min_value": 0.1,
+        "max_value": 0.9,
     }
