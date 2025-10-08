@@ -462,7 +462,10 @@ class AnnotationConfigValidation(AnnotationBaseView):
 class ListGenomePipelines(AnnotationBaseView):
 
     def get(self, request: Request) -> Response:
-        return Response([], status=views.status.HTTP_200_OK)
+        return Response(
+            list(self.genome_pipelines.keys()),
+            status=views.status.HTTP_200_OK,
+        )
 
 
 class SingleAnnotation(AnnotationBaseView):

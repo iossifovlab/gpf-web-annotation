@@ -581,3 +581,11 @@ def test_histogram_view(admin_client: Client) -> None:
         "min_value": 0.1,
         "max_value": 0.9,
     }
+
+
+def test_genomes_view(admin_client: Client) -> None:
+    response = admin_client.get("/api/genomes")
+
+    assert response.status_code == 200
+    assert len(response.data) == 1
+    assert response.data[0] == "hg38"
