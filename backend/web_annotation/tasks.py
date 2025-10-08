@@ -43,7 +43,7 @@ def update_job_success(job: Job) -> None:
     job.save()
 
 
-def run_job(job: Job, storage_dir: Path, grr_directory: Path) -> None:
+def run_job(job: Job, storage_dir: Path, grr_definition: Path) -> None:
     try:
         logger.debug("Running job")
         logger.debug(job.input_path)
@@ -55,7 +55,7 @@ def run_job(job: Job, storage_dir: Path, grr_directory: Path) -> None:
             str(job.config_path),
             str(job.result_path),
             str(storage_dir),
-            str(grr_directory) if grr_directory is not None else None,
+            str(grr_definition) if grr_definition is not None else None,
         )
     except Exception:
         logger.exception("Failed to execute job")
@@ -67,10 +67,10 @@ def run_job(job: Job, storage_dir: Path, grr_directory: Path) -> None:
 @shared_task
 def create_annotation(
     job_pk: int, storage_dir: Path,
-    grr_directory: Path,
+    grr_definition: Path,
 ) -> None:
     """Task for running annotation."""
     job = get_job(job_pk)
     update_job_in_progress(job)
 
-    run_job(job, storage_dir, grr_directory)
+    run_job(job, storage_dir, grr_definition)

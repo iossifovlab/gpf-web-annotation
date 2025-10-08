@@ -1,0 +1,15 @@
+- md5: 42b339e8ab0c06d4d81ed02eed8cc92a
+  name: data.tsv
+  size: 127
+- md5: 6a2192fbdaec5ca785f2bf279d9105a5
+  name: genomic_resource.yaml
+  size: 244
+- md5: 098dc44620ed96224e13f25f0106d363
+  name: statistics/histogram_pos1.json
+  size: 535
+- md5: 6d876eb8ea109df9972ef350bd5a9be2
+  name: statistics/histogram_pos1.png
+  size: 12735
+- md5: abbc56e50926d656c972f58745bab075
+  name: statistics/stats_hash
+  size: 612

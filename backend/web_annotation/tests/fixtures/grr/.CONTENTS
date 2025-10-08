@@ -1,0 +1,48 @@
+- config:
+    filename: test_pipeline.yaml
+    type: annotation_pipeline
+  id: pipeline/test_pipeline
+  manifest:
+  - md5: e107c1a722e7aed3aff0e3c075c8b0d4
+    name: genomic_resource.yaml
+    size: 56
+  - md5: 6a99c575ab87f8c7d1ed1e52e7e349ce
+    name: statistics/stats_hash
+    size: 11
+  - md5: fb8e370216d6008ce9970b91b36c9b65
+    name: test_pipeline.yaml
+    size: 30
+  version: '0'
+- config:
+    scores:
+    - desc: test position score
+      histogram:
+        number_of_bins: 10
+        type: number
+        view_range:
+          max: 1.0
+          min: 0.0
+      id: pos1
+      name: s1
+      type: float
+    table:
+      filename: data.tsv
+    type: position_score
+  id: scores/pos1
+  manifest:
+  - md5: 42b339e8ab0c06d4d81ed02eed8cc92a
+    name: data.tsv
+    size: 127
+  - md5: 6a2192fbdaec5ca785f2bf279d9105a5
+    name: genomic_resource.yaml
+    size: 244
+  - md5: 0bdeda8634efc9bf94aa88a634a01447
+    name: statistics/histogram_pos1.json
+    size: 535
+  - md5: 2ba2767058aaef36b9bb4211b6ea509b
+    name: statistics/histogram_pos1.png
+    size: 10915
+  - md5: 3674e8d558b37e215e4360e1e7af000e
+    name: statistics/stats_hash
+    size: 612
+  version: '0'

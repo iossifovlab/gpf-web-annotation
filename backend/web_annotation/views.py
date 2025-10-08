@@ -1,7 +1,7 @@
 import time
 import logging
 from pathlib import Path
-from typing import cast
+from typing import cast, Any
 
 import magic
 from pysam import VariantFile
@@ -19,9 +19,15 @@ from rest_framework.response import Response
 
 from dae.annotation.annotation_config import AnnotationConfigParser, \
     AnnotationConfigurationError
+from dae.annotation.annotation_factory import load_pipeline_from_grr
+from dae.annotation.annotation_pipeline import AnnotationPipeline
+from dae.genomic_resources.genomic_scores import build_score_from_resource
+from dae.gene_scores.gene_scores import build_gene_score_from_resource
+from dae.annotation.annotatable import VCFAllele
 from dae.genomic_resources.repository_factory import \
     build_genomic_resource_repository
-from dae.genomic_resources.repository import GenomicResourceRepo
+from dae.genomic_resources.repository import GenomicResourceRepo, \
+    GenomicResource
 from dae.genomic_resources.implementations.annotation_pipeline_impl import \
     AnnotationPipelineImplementation
 
@@ -31,6 +37,38 @@ from .permissions import IsOwner, has_job_permission
 from .tasks import create_annotation
 
 logger = logging.getLogger(__name__)
+
+
+def get_histogram_genomic_score(
+    resource: GenomicResource, score: str,
+) -> dict[str, Any]:
+    if resource.get_type() not in [
+        "allele_score", "position_score",
+    ]:
+        raise ValueError(f"{resource.resource_id} is not a genomic score!")
+    return build_score_from_resource(
+        resource).get_score_histogram(score).to_dict()
+
+def get_histogram_gene_score(
+    resource: GenomicResource, score: str,
+) -> dict[str, Any]:
+    if resource.get_type() != "gene_score":
+        raise ValueError(f"{resource.resource_id} is not a genomic score!")
+    return build_gene_score_from_resource(
+        resource).get_score_histogram(score).to_dict()
+
+
+def get_histogram_not_supported(
+    resource: GenomicResource, score: str,
+) -> dict[str, Any]:
+    return {}
+
+
+HISTOGRAM_GETTERS = {
+    "allele_score": get_histogram_genomic_score,
+    "position_score": get_histogram_genomic_score,
+    "gene_score": get_histogram_gene_score,
+}
 
 
 def get_pipelines(grr: GenomicResourceRepo) -> dict[str, dict[str, str]]:
@@ -45,7 +83,23 @@ def get_pipelines(grr: GenomicResourceRepo) -> dict[str, dict[str, str]]:
     return pipelines
 
 
-GRR = build_genomic_resource_repository()
+def get_genome_pipelines(
+    grr: GenomicResourceRepo,
+) -> dict[str, AnnotationPipeline]:
+    if (
+        getattr(settings, "GENOME_PIPELINES") is None
+        or settings.GENOME_PIPELINES is None
+    ):
+        return {}
+    pipelines: dict[str, AnnotationPipelineImplementation] = {}
+    for genome, pipeline_id in settings.GENOME_PIPELINES.items():
+        pipeline_resource = grr.get_resource(pipeline_id)
+        pipeline = load_pipeline_from_grr(grr, pipeline_resource)
+        pipelines[genome] = pipeline
+    return pipelines
+
+
+GRR = build_genomic_resource_repository(file_name=settings.GRR_DEFINITION)
 PIPELINES = get_pipelines(GRR)
 
 
@@ -54,6 +108,7 @@ class AnnotationBaseView(views.APIView):
         super().__init__()
         self._grr = GRR
         self.pipelines = PIPELINES
+        self.genome_pipelines = get_genome_pipelines(self._grr)
         self.result_storage_dir = Path(settings.JOB_RESULT_STORAGE_DIR)
 
     @property
@@ -63,14 +118,16 @@ class AnnotationBaseView(views.APIView):
     def get_grr(self) -> GenomicResourceRepo:
         return self._grr
 
-    def get_grr_directory(self) -> Path | None:
-        if getattr(settings, "GRR_DIRECTORY") is not None:
-            return cast(Path, settings.GRR_DIRECTORY)
-        if self.grr.definition is None:
-            return None
-        if self.grr.definition["type"] == "dir":
-            return Path(self.grr.definition["directory"])
-        return None
+    def get_grr_definition(self) -> Path | None:
+        path = settings.GRR_DEFINITION
+        if path is None:
+            return path
+        return Path(path)
+
+    def get_genome_pipeline(
+        self, genome: str,
+    ) -> AnnotationPipeline:
+        return self.genome_pipelines[genome]
 
     @staticmethod
     def _convert_size(filesize: str | int) -> int:
@@ -218,7 +275,10 @@ class JobCreate(AnnotationBaseView):
         job.save()
 
         create_annotation.delay(
-            job.pk, str(self.result_storage_dir), self.get_grr_directory())
+            job.pk,
+            str(self.result_storage_dir),
+            str(self.get_grr_definition()),
+        )
 
         return Response(status=views.status.HTTP_204_NO_CONTENT)
 
@@ -364,3 +424,77 @@ class AnnotationConfigValidation(AnnotationBaseView):
             )
 
         return Response(status=views.status.HTTP_200_OK)
+
+
+class ListGenomePipelines(AnnotationBaseView):
+
+    def get(self, request: Request) -> Response:
+        return Response([], status=views.status.HTTP_200_OK)
+
+
+class SingleAnnotation(AnnotationBaseView):
+    def post(self, request: Request) -> Response:
+
+        if "variant" not in request.data:
+            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+        if "genome" not in request.data:
+            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+        variant = request.data["variant"]
+        genome = request.data["genome"]
+
+        pipeline = self.get_genome_pipeline(genome)
+
+        vcf_annotatable = VCFAllele(
+            variant["chrom"], variant["pos"],
+            variant["ref"], variant["alt"],
+        )
+
+        result = pipeline.annotate(vcf_annotatable, {})
+
+        annotators_data = []
+
+        for annotator in pipeline.annotators:
+            details = {}
+            attributes = []
+            annotator_info = annotator.get_info()
+            details = {
+                "name": annotator_info.type,
+                "description": annotator_info.documentation,
+                "resource_id": ", ".join(
+                    r.resource_id for r in annotator_info.resources),
+            }
+            for attribute_info in annotator.attributes:
+                resource = self.grr.get_resource(
+                    list(annotator.resource_ids)[0])
+                histogram_getter = HISTOGRAM_GETTERS.get(
+                    resource.get_type(), get_histogram_not_supported,
+                )
+                histogram_data = histogram_getter(
+                    resource, attribute_info.source
+                )
+                attributes.append({
+                    "name": attribute_info.name,
+                    "description": attribute_info.description,
+                    "result": {
+                        "value": str(result[attribute_info.name]),
+                        "histogram": histogram_data,
+                    },
+                })
+            annotators_data.append(
+                {"details": details, "attributes": attributes},
+            )
+
+        variant = {
+            "chromosome": vcf_annotatable.chrom,
+            "position": vcf_annotatable.pos,
+            "reference": vcf_annotatable.ref,
+            "alternative": vcf_annotatable.alt,
+            "variant_type": vcf_annotatable.type.name,
+        }
+
+        response_data = {
+            "variant": variant,
+            "annotators": annotators_data,
+        }
+
+        return Response(response_data)

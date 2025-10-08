@@ -7,7 +7,7 @@ def annotate_vcf_file(
     annotation_config_path: str,
     output_file_path: str,
     work_dir_path: str,
-    grr_directory: str | None,
+    grr_definition: str | None,
 ) -> None:
     reset_lock()
 
@@ -19,7 +19,7 @@ def annotate_vcf_file(
         "-j 1",
         "-vv",
     ]
-    if grr_directory is not None:
-        args.extend(["--grr-directory", grr_directory])
+    if grr_definition is not None:
+        args.extend(["--grr-filename", grr_definition])
 
     cli(args)
