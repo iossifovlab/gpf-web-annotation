@@ -38,7 +38,7 @@ export class NumberHistogramComponent implements OnInit {
     this.drawHistogram();
   }
 
-  public get xLabelsWithDefaultValue(): number[] {
+  public xLabelsWithDefaultValue(): number[] {
     if (this.xLabels === undefined) {
       if (this.histogram.bins.length < 10) {
         return this.histogram.bins.slice(0, -1);
@@ -126,28 +126,13 @@ export class NumberHistogramComponent implements OnInit {
     axisVals.push(this.histogram.bins[this.histogram.bins.length - 1]);
 
     this.scaleXAxis = d3.scaleThreshold().range(axisX).domain(axisVals);
-    const formatter = this.createFormatterFunction(5);
 
     svg.append('g')
       .attr('transform', `translate(0,${height})`)
       .call(
         d3.axisBottom(this.scaleXAxis)
-          .tickValues(this.xLabelsWithDefaultValue)
-          .tickFormat((_, i) => formatter(this.xLabelsWithDefaultValue[i]))
+          .tickValues(this.xLabelsWithDefaultValue())
+          .tickFormat((_, i) => this.xLabelsWithDefaultValue()[i].toString())
       ).style('font-size', '12px');
-  }
-
-  private createFormatterFunction(digitCount: number): (num: number) => string {
-    // used to add e-6 scientific notation
-    const rx = /\.0+$|(\.[0-9]*[1-9])0+$/;
-    return (num) => {
-      if (num !== 1E-6) {
-        return num.toString();
-      }
-      let value = num / 1E-6;
-      value = Number(value.toFixed(digitCount));
-      value = Number(String(value).replace(rx, '$1'));
-      return `${value}e-6`;
-    };
   }
 }
