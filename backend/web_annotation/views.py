@@ -504,10 +504,13 @@ class SingleAnnotation(AnnotationBaseView):
                     continue
                 resource = self.grr.get_resource(
                     list(annotator.resource_ids)[0])
-                histogram_path = (
-                    f"histograms/{resource.resource_id}"
-                    f"?score_id={attribute_info.source}"
-                )
+                if resource.get_type() in HISTOGRAM_GETTERS.keys():
+                    histogram_path = (
+                        f"histograms/{resource.resource_id}"
+                        f"?score_id={attribute_info.source}"
+                    )
+                else:
+                    histogram_path = None
                 value = result[attribute_info.name]
                 if attribute_info.type in ["object", "annotatable"]:
                     value = str(value)
@@ -519,6 +522,8 @@ class SingleAnnotation(AnnotationBaseView):
                         "histogram": histogram_path,
                     },
                 })
+            if len(attributes) == 0:
+                continue
             annotators_data.append(
                 {"details": details, "attributes": attributes},
             )
