@@ -211,4 +211,11 @@ export class CategoricalHistogramComponent implements OnInit {
       });
     });
   }
+
+  public getCoordinate(): number {
+    const xAxisValues = this.scaleXAxis.domain();
+    const fullOtherValues = xAxisValues.find(v => v.includes('Other values'));
+    return this.otherValueNames.includes(this.singleScoreValue) ?
+      this.scaleXAxis(fullOtherValues) : this.scaleXAxis(this.singleScoreValue);
+  }
 }
