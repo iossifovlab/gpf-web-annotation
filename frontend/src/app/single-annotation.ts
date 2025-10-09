@@ -70,7 +70,7 @@ export class AnnotatorDetails {
 
 export interface Result {
   value: string;
-  histogram: NumberHistogram | CategoricalHistogram;
+  histogramLink: string;
 }
 
 export class Attribute {
@@ -93,27 +93,15 @@ export class Attribute {
       return undefined;
     }
 
-    let histogram: NumberHistogram | CategoricalHistogram;
-
-    if (Object.keys((json['result'] as Result).histogram).length !== 0) {
-      histogram = this.isCategoricalHistogram(json['result'] as Result) ?
-        CategoricalHistogram.fromJson((json['result'] as Result).histogram)
-        : NumberHistogram.fromJson((json['result'] as Result).histogram);
-    }
-
     return new Attribute(
       json['name'] as string,
       json['description'] as string,
       {
-        value: (json['result'] as Result).value,
-        histogram: histogram,
+        value: json['result']['value'],
+        histogramLink: json['result']['histogram'],
       },
       json['help'] as string,
     );
-  }
-
-  private static isCategoricalHistogram(result: Result): boolean {
-    return result.histogram['config']['type'] === 'categorical';
   }
 }
 
@@ -155,8 +143,8 @@ export class CategoricalHistogram {
   public constructor(
     public readonly values: {name: string, value: number}[],
     public readonly valueOrder: string[],
-    public readonly largeValuesDesc: string,
     public readonly smallValuesDesc: string,
+    public readonly largeValuesDesc: string,
     public readonly logScaleY: boolean,
     public readonly labelRotation: number,
     public readonly displayedValuesCount: number = null,
@@ -176,8 +164,8 @@ export class CategoricalHistogram {
     return new CategoricalHistogram(
       values,
       json['config']['value_order'] as string[],
-      json['config']['large_values_desc'] as string,
-      json['config']['small_values_desc'] as string,
+      json['small_values_desc'] as string,
+      json['large_values_desc'] as string,
       json['config']['y_log_scale'] as boolean,
       json['config']['label_rotation'] as number,
     );
