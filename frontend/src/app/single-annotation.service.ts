@@ -46,6 +46,6 @@ export class SingleAnnotationService {
   }
 
   public getGenomes(): Observable<string[]> {
-    return of(['hg38', 'hg19']);
+    return this.http.get<string[]>(this.getGenomesUrl, { withCredentials: true });
   }
 }
