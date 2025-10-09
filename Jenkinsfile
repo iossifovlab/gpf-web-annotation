@@ -13,6 +13,9 @@ pipeline {
         stage('Start') {
             steps {
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
+                sh "rm -rf conda-channel"
+                sh "rm -rf results"
+
                 zulipSend(
                 message: "Started build #${env.BUILD_NUMBER} of project ${env.JOB_NAME} (${env.BUILD_URL})",
                 topic: "${env.JOB_NAME}")
@@ -100,7 +103,7 @@ pipeline {
 
 
             recordCoverage sourceCodeEncoding: 'UTF-8',
-                enabledForFailure: true,
+                enabledForFailure: false,
                 sourceCodeRetention: 'LAST_BUILD',
                 tools: [
                     [parser: 'COBERTURA', pattern: 'results/backend-coverage.xml']
