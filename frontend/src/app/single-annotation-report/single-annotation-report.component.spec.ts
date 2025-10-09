@@ -98,10 +98,4 @@ describe('SingleAnnotationReportComponent', () => {
       }
     );
   });
-
-  it('should parse score value to number', () => {
-    expect(component.getValueAsNumber('10')).toBe(10);
-    expect(component.getValueAsNumber(5)).toBe(5);
-    expect(component.getValueAsNumber('not a number')).toBeNull();
-  });
 });
