@@ -227,4 +227,12 @@ describe('NumberHistogramComponent', () => {
     component.xLabels = [5, 15, 25];
     expect(component.xLabelsWithDefaultValue()).toStrictEqual([5, 15, 25]);
   });
+  it('should format score value', () => {
+    component.singleScoreValue = 0.123456789;
+    fixture.detectChanges();
+    const svg = (fixture.nativeElement as HTMLElement).querySelector('svg') as SVGElement;
+
+    const valueText = svg.querySelector('.single-score-value');
+    expect(valueText.innerHTML).toBe('0.123');
+  });
 });
