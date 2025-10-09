@@ -267,7 +267,7 @@ describe('CategoricalHistogramComponent', () => {
     expect(redLine.getAttribute('style')).toBe('stroke: rgb(255, 0, 0); stroke-width: 2;');
 
     const valueText = svg.querySelector('.single-score-value');
-    expect(valueText.textContent).toBe('Pathogenic');
+    expect(valueText.innerHTML).toBe('Pathogenic<title>Pathogenic</title>');
     expect(valueText.getAttribute('x')).toBe('450');
     expect(valueText.getAttribute('text-anchor')).toBe('middle');
   });
@@ -340,5 +340,14 @@ describe('CategoricalHistogramComponent', () => {
 
     component.singleScoreValue = 'E';
     expect(component.getCoordinate()).toBe(370.16129032258067);
+  });
+
+  it('should format score value', () => {
+    component.singleScoreValue = 'criteria_provided|_single_submitter';
+    fixture.detectChanges();
+    const svg = (fixture.nativeElement as HTMLElement).querySelector('svg') as SVGElement;
+
+    const valueText = svg.querySelector('.single-score-value');
+    expect(valueText.innerHTML).toBe('criteria_provided|_s...<title>criteria_provided|_single_submitter</title>');
   });
 });
