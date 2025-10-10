@@ -30,7 +30,7 @@ export class RegistrationComponent {
     const password = (this.password.nativeElement as HTMLInputElement).value;
     this.usersService.registerUser(email, password).subscribe({
       next: () => {
-        this.responseMessage = 'Registration successful!';
+        this.responseMessage = 'Registration successful! Please check your email to verify your account.';
         this.cleanInputs();
         this.router.navigate(['/login']);
       },

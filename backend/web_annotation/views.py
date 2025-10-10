@@ -27,9 +27,7 @@ from django.contrib.auth import (
     login,
     logout,
 )
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.uploadedfile import UploadedFile
-from django.db import models
 from django.http import HttpRequest
 from django.http.response import (
     FileResponse,
@@ -47,13 +45,17 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from web_annotation.utils import (
-    WdaePasswordForgottenForm,
-    WdaeResetPasswordForm,
+    PasswordForgottenForm,
+    ResetPasswordForm,
+    check_request_verification_path,
     deauthenticate,
     reset_password,
+    verify_user,
 )
 
 from .models import (
+    AccountConfirmationCode,
+    BaseVerificationCode,
     Job,
     ResetPasswordCode,
     User,
@@ -402,9 +404,12 @@ class Login(views.APIView):
 
 
 class Registration(views.APIView):
+    """Registration related view."""
     parser_classes = [JSONParser]
 
     def post(self, request: Request) -> Response:
+        """Register a new user."""
+        assert isinstance(request.data, dict)
         if "email" not in request.data:
             return Response(
                 {"error": "An email is required to register"},
@@ -414,16 +419,17 @@ class Registration(views.APIView):
                 {"error": "A password is required to register"},
                 status=views.status.HTTP_400_BAD_REQUEST)
 
-        email = request.data["email"]
-        password = request.data["password"]
+        email = str(request.data["email"])
+        password = str(request.data["password"])
 
         if User.objects.filter(email=email).exists():
             return Response(
                 {"error": "This email is already in use"},
                 status=views.status.HTTP_400_BAD_REQUEST)
 
-        user = User.objects.create_user(email, email, password)
+        user = User.objects.create_user(email, email, password, is_active=False)
         user.save()
+        verify_user(user, str(request.data["redirect"]))
         return Response(status=views.status.HTTP_200_OK)
 
 
@@ -544,11 +550,44 @@ class SingleAnnotation(AnnotationBaseView):
         return Response(response_data)
 
 
+class ConfirmAccount(views.APIView):  # USE
+    """View for forgotten password."""
+    verification_code_model = cast(BaseVerificationCode, AccountConfirmationCode)
+    code_type = "confirmation"
+
+    def get(self, request: Request) -> HttpResponse:
+        """Render the password reset form."""
+
+        verif_code, msg = \
+            check_request_verification_path(
+                request.GET.get("code"),
+                request,
+                self.code_type,
+                self.verification_code_model,
+            )
+
+        if msg is not None:
+            if verif_code is not None:
+                verif_code.delete()
+            return HttpResponse(
+                {"message": msg},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+        assert verif_code is not None
+        user: User = verif_code.user
+        if verif_code is not None:
+            verif_code.delete()
+            user.activate()
+        redirect_uri = request.GET.get("redirect")
+
+        return HttpResponseRedirect(redirect_uri)
+
+
 class ForgotPassword(views.APIView):  # USE
     """View for forgotten password."""
 
     def get(self, request: Request) -> HttpResponse:
-        form = WdaePasswordForgottenForm()
+        form = PasswordForgottenForm()
         request.session["redirect_url"] = request.GET.get("redirect", "")
         request.session.modified = True
 
@@ -561,7 +600,7 @@ class ForgotPassword(views.APIView):  # USE
     def post(self, request: Request) -> HttpResponse:
         """Send a reset password email to the user."""
         data = request.data
-        form = WdaePasswordForgottenForm(data)  # pyright: ignore
+        form = PasswordForgottenForm(data)  # pyright: ignore
         is_valid = form.is_valid()
         if not is_valid:
             return render(
@@ -589,7 +628,7 @@ class ForgotPassword(views.APIView):  # USE
                     "forgotten-password.html",
                     {
                         "form": form,
-                        "message": "User is not a WdaeUser",
+                        "message": "User is not a GPFWA User",
                         "message_type": "warn",
                         "show_form": True,
                     },
@@ -625,51 +664,21 @@ class ForgotPassword(views.APIView):  # USE
 class PasswordReset(views.APIView):
     """Reset password view."""
 
-    verification_code_model = cast(models.Model, ResetPasswordCode)
+    verification_code_model = cast(BaseVerificationCode, ResetPasswordCode)
+
     template = "reset-password.html"
-    form = cast(forms.Form, WdaeResetPasswordForm)
+    form = cast(forms.Form, ResetPasswordForm)
     code_type = "reset"
-
-    def _check_request_verification_path(
-        self, verification_path: str, request: Request,
-    ) -> tuple[ResetPasswordCode | None, str | None]:
-        """
-        Check, validate and return a verification path from a request.
-
-        Returns a tuple of the model instance and the error message if any.
-        When the instance is not found, None is returned.
-        """
-
-        if verification_path is None:
-            verification_path = request.session.get(f"{self.code_type}_code")
-        if verification_path is None:
-            return None, f"No {self.code_type} code provided"
-        try:
-            assert verification_path is not None
-            assert self.verification_code_model is not None
-            verif_code = \
-                self.verification_code_model.objects.get(  # type: ignore
-                    path=verification_path)
-        except ObjectDoesNotExist:
-            return None, f"Invalid {self.code_type} code"
-
-        if not isinstance(verif_code, (ResetPasswordCode)):
-            return None, f"Invalid {self.code_type} code"
-
-        is_valid = verif_code.validate()  # pyright: ignore
-
-        if not is_valid:
-            return verif_code, f"Expired {self.code_type} code"
-
-        return verif_code, None
 
     def get(self, request: Request) -> HttpResponse:
         """Render the password reset form."""
 
         verif_code, msg = \
-            self._check_request_verification_path(
+            check_request_verification_path(
                 request.GET.get("code"),
                 request,
+                self.code_type,
+                self.verification_code_model,
             )
 
         if msg is not None:
@@ -700,9 +709,11 @@ class PasswordReset(views.APIView):
     def post(self, request: Request) -> HttpResponse:
         """Handle the password reset form."""
         verif_code, msg = \
-            self._check_request_verification_path(
+            check_request_verification_path(
                 request.POST.get("code"),
                 request,
+                self.code_type,
+                self.verification_code_model,
             )
         assert self.template is not None
         if msg is not None:
@@ -730,10 +741,15 @@ class PasswordReset(views.APIView):
             )
 
         new_password = form.cleaned_data["new_password1"]
-        deauthenticate(user)
+        if not user.is_active:
+            user.activate()
+        else:
+            deauthenticate(user)
         user.change_password(new_password)
+
         if verif_code is not None:
             verif_code.delete()
+
         redirect_uri = request.session.get("redirect_url")
         return HttpResponseRedirect(redirect_uri)
 

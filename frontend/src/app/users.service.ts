@@ -63,7 +63,8 @@ export class UsersService {
       this.registerUrl,
       {
         email: email,
-        password: password
+        password: password,
+        redirect: window.location.origin,
       },
     );
   }
