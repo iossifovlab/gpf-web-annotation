@@ -30,9 +30,7 @@
                 *ngIf="attribute.result.histogramLink"
                 [histogramUrl]="attribute.result.histogramLink"
                 [value]="attribute.result.value"></app-histogram-wrapper>
-              <div class="value-result" *ngIf="attribute.result.value && !attribute.result.histogramLink">{{
-                attribute.result.value
-              }}</div>
+              <div class="value-result" *ngIf="!attribute.result.histogramLink">{{ attribute.result.value }}</div>
             </div>
           </div>
           <span

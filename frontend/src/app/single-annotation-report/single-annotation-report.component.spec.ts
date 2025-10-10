@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { SingleAnnotationReportComponent } from './single-annotation-report.component';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { Annotator, AnnotatorDetails, SingleAnnotationReport, Variant } from '../single-annotation';
+import { Annotator, AnnotatorDetails, Attribute, Result, SingleAnnotationReport, Variant } from '../single-annotation';
 import { SingleAnnotationService } from '../single-annotation.service';
 import { ActivatedRoute, provideRouter, Router } from '@angular/router';
 import { provideMarkdown } from 'ngx-markdown';
@@ -97,5 +97,27 @@ describe('SingleAnnotationReportComponent', () => {
         width: '30vw',
       }
     );
+  });
+
+  it('should display true, false and 0 when there is no histogram', () => {
+    const report = new SingleAnnotationReport(
+      new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
+      [
+        new Annotator(new AnnotatorDetails('allele_score', 'desc', ''), [
+          new Attribute('attr1', 'desc1', {value: 'true', histogramLink: null} as Result, ''),
+          new Attribute('attr2', 'desc2', {value: 'false', histogramLink: null} as Result, ''),
+          new Attribute('attr3', 'desc3', {value: 0, histogramLink: null} as Result, ''),
+        ])
+      ],
+    );
+
+    component.report = report;
+    fixture.detectChanges();
+
+    const allValueElements = (fixture.nativeElement as HTMLElement).querySelectorAll('.value-result');
+    expect(allValueElements).toHaveLength(3);
+    expect(allValueElements[0].innerHTML).toBe('true');
+    expect(allValueElements[1].innerHTML).toBe('false');
+    expect(allValueElements[2].innerHTML).toBe('0');
   });
 });

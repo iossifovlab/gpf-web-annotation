@@ -69,7 +69,7 @@ export class AnnotatorDetails {
 }
 
 export interface Result {
-  value: string;
+  value: string | number;
   histogramLink: string;
 }
 
@@ -91,6 +91,10 @@ export class Attribute {
   public static fromJson(json: object): Attribute {
     if (!json) {
       return undefined;
+    }
+
+    if (typeof json['result']['value'] === 'boolean') {
+      json['result']['value'] = json['result']['value'].toString();
     }
 
     return new Attribute(
