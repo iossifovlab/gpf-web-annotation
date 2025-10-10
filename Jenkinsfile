@@ -12,6 +12,7 @@ pipeline {
     stages {
         stage('Start') {
             steps {
+                sh "docker compose -f compose-jenkins.yaml run --rm --entrypoint '/bin/bash -c' backend-tests 'rm -rf /wd/results'"
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
                 sh "rm -rf conda-channel"
                 sh "rm -rf results"
@@ -46,6 +47,7 @@ pipeline {
             steps {
                 sh "docker compose -f compose-jenkins.yaml run  --rm --remove-orphans backend-linters || true"
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
+                sh "cp backend/results/* results/ || true"
             }
         }
 
@@ -54,6 +56,7 @@ pipeline {
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
                 sh "docker compose -f compose-jenkins.yaml run --rm --remove-orphans backend-tests || true"
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
+                sh "cp backend/results/* results/ || true"
             }
         }
 
