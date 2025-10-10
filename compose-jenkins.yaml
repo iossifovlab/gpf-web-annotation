@@ -156,6 +156,8 @@ services:
     volumes:
       - ./e2e-tests/reports:/reports
     depends_on:
+      mail:
+        condition: service_started
       frontend:
         condition: service_healthy
     environment:

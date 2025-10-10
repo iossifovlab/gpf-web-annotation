@@ -28,7 +28,7 @@ export default defineConfig({
       mode: 'retain-on-failure',
       size: { width: 1920, height: 1080 }
     },
-    actionTimeout: 30000
+    actionTimeout: 10000
   },
   projects: [
     {

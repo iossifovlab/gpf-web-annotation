@@ -73,7 +73,6 @@ pipeline {
                 sh "mkdir -p frontend/reports"
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
                 sh "docker compose -f compose-jenkins.yaml run --rm --remove-orphans frontend-tests || true"
-                sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
             }
         }
 
@@ -82,7 +81,6 @@ pipeline {
                 sh "mkdir -p e2e-tests/reports"
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
                 sh "docker compose -f compose-jenkins.yaml run --rm --remove-orphans e2e-tests || true"
-                sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
             }
         }
 
