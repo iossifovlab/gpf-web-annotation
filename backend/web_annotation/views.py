@@ -741,10 +741,15 @@ class PasswordReset(views.APIView):
             )
 
         new_password = form.cleaned_data["new_password1"]
-        deauthenticate(user)
+        if not user.is_active:
+            user.activate()
+        else:
+            deauthenticate(user)
         user.change_password(new_password)
+
         if verif_code is not None:
             verif_code.delete()
+
         redirect_uri = request.session.get("redirect_url")
         return HttpResponseRedirect(redirect_uri)
 
