@@ -4,6 +4,7 @@ import logging
 from celery import shared_task
 from .models import Job
 from .annotation import annotate_vcf_file
+from django.core.mail import send_mail
 
 
 logger = logging.getLogger(__name__)
@@ -74,3 +75,33 @@ def create_annotation(
     update_job_in_progress(job)
 
     run_job(job, storage_dir, grr_definition)
+
+
+@shared_task
+def send_email(
+    subject: str,
+    message: str,
+    recipient_list: list,
+    from_email: str | None = None,
+    fail_silently: bool = False,
+) -> int:
+    """Celery task to send emails asynchronously."""
+    # pylint: disable=import-outside-toplevel
+    from django.conf import settings
+
+    if from_email is None:
+        from_email = settings.DEFAULT_FROM_EMAIL
+    mail = send_mail(
+        subject,
+        message,
+        from_email,
+        recipient_list,
+        fail_silently=fail_silently,
+    )
+
+    logger.info("email sent: to:      <%s>", str(recipient_list))
+    logger.info("email sent: from:    <%s>", str(from_email))
+    logger.info("email sent: subject:  %s", str(subject))
+    logger.info("email sent: message:  %s", str(message))
+
+    return mail
