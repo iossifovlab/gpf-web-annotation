@@ -97,7 +97,7 @@ def _create_reset_mail(
         "please ignore this email."
     )
     email_settings = {
-        "subject": "GPF: Password reset request",
+        "subject": "GPFWA: Password reset request",
         "initial_message": message,
         "endpoint": endpoint,
         "path": path,
