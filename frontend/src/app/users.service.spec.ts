@@ -46,7 +46,8 @@ describe('UsersService', () => {
       '//localhost:8000/api/register',
       {
         email: 'mockEmail@email.com',
-        password: 'mockPassword'
+        password: 'mockPassword',
+        redirect: "http://localhost",
       }
     );
 

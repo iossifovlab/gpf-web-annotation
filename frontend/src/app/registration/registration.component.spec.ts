@@ -56,7 +56,9 @@ describe('RegistrationComponent', () => {
 
     component.register();
     expect(registerSpy).toHaveBeenCalledWith('mockEmail@email.com', 'mockPassword');
-    expect(component.responseMessage).toBe('Registration successful!');
+    expect(component.responseMessage).toBe(
+      'Registration successful! Please check your email to verify your account.'
+    );
     expect(emailInput.value).toBe('');
     expect(passwordInput.value).toBe('');
   });
