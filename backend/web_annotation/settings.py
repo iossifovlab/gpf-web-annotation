@@ -226,3 +226,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / "web_annotation" / "static"
 ]
+
+GENOME_PIPELINES = {
+    "hg38": "pipeline/Autism_annotation",
+}
