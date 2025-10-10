@@ -220,7 +220,9 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 EMAIL_VERIFICATION_ENDPOINT = os.environ.get(
     "WDAE_EMAIL_VERIFICATION_ENDPOINT", "http://localhost:8000")
+EMAIL_ACCOUNT_CONFIRMATION_PATH = "/api/confirm_account?redirect={}&code={}"
 EMAIL_VERIFICATION_RESET_PATH = "/api/reset_password?redirect={}&code={}"
+
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [

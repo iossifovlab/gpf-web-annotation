@@ -18,6 +18,10 @@ class User(AbstractUser):
         self.set_password(new_password)
         self.save()
 
+    def activate(self) -> None:
+        self.is_active = True
+        self.save()
+
 
 class Job(models.Model):
     class Status(models.IntegerChoices):
@@ -100,4 +104,14 @@ class ResetPasswordCode(BaseVerificationCode):
             hours=getattr(settings, "RESET_PASSWORD_TIMEOUT_HOURS", 24))
         if timezone.now() - self.created_at > max_delta:
             return False
+        return True
+
+class AccountConfirmationCode(BaseVerificationCode):
+    """Class used for verification of password resets."""
+
+    class Meta:  # pylint: disable=too-few-public-methods
+        db_table = "account_confirmation_codes"
+
+    def validate(self) -> bool:
+        # pylint: disable=import-outside-toplevel
         return True

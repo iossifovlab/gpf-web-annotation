@@ -36,12 +36,56 @@ def test_get_user_details_unauthorized(user_client: Client) -> None:
 def test_register(client: Client) -> None:
     response = client.post(
         "/api/register",
-        {"email": "gosho@example.com",
-         "password": "secret"},
+        {
+            "email": "gosho@example.com",
+            "password": "secret",
+            "redirect": "http://testserver/",
+        },
         content_type="application/json",
     )
     assert response.status_code == 200
     assert User.objects.filter(email="gosho@example.com").exists()
+
+
+def test_register_and_activate_account(
+    client: Client,
+    mail_client: MailhogClient,
+) -> None:
+    mail_client.delete_all_messages()
+    time.sleep(0.5)
+
+    response = client.post(
+        "/api/register",
+        {
+            "email": "temp@example.com",
+            "password": "secret",
+            "redirect": "http://testserver/",
+        },
+        content_type="application/json",
+    )
+    
+    assert response.status_code == 200
+    assert User.objects.filter(email="temp@example.com").exists()
+
+    message = mail_client.find_message_to_user("temp@example.com")
+    assert "/confirm_account?redirect=http://testserver/&code=" \
+        in message["Content"]["Body"]
+
+    confirmation_link_search = re.search(
+        "new account:\r\n (.*)",
+        message["Content"]["Body"],
+    )
+    assert confirmation_link_search is not None
+
+    confirmation_link = confirmation_link_search.group(1)
+    response = client.get(confirmation_link)
+    assert response.status_code == 302
+    assert response['Location'] == "http://testserver/"
+
+    assert client.login(
+        email="temp@example.com",
+        password="secret"
+    ) is True
 
 
 def test_register_email_taken(client: Client) -> None:
@@ -213,7 +257,7 @@ def test_reset_password_email(
 @pytest.mark.django_db
 def test_load_reset_password_form(
     user_client: Client,
-    anonymous_client: Client,
+    client: Client,
     mail_client: MailhogClient,
 ) -> None:
     mail_client.delete_all_messages()
@@ -236,7 +280,7 @@ def test_load_reset_password_form(
 
     reset_password_form_link = link_search.group(1)
 
-    response = anonymous_client.get(reset_password_form_link)
+    response = client.get(reset_password_form_link)
 
     assert response.status_code == 200
 
@@ -253,7 +297,7 @@ def test_load_reset_password_form(
 @pytest.mark.django_db
 def test_reset_password_form(
     user_client: Client,
-    anonymous_client: Client,
+    client: Client,
     mail_client: MailhogClient,
 ) -> None:
     user = User.objects.create_user(
@@ -295,7 +339,7 @@ def test_reset_password_form(
     )
     assert response.status_code == 302
     assert response['Location'] == "http://testserver/"
-    assert anonymous_client.login(
+    assert client.login(
         email="temp@example.com",
         password="newsecret"
     ) is True

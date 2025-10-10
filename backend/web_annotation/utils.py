@@ -1,17 +1,57 @@
 
-from typing import Any
+from typing import Any, Type
 
 from django import forms
 from django.conf import settings
 from django.contrib.auth import password_validation
-from django.contrib.auth.models import User
 from django.contrib.sessions.models import Session
 from django.core.exceptions import ValidationError
+from django.db.models import Model, ObjectDoesNotExist
 from django.utils.translation import gettext_lazy
 from django.views.decorators.debug import sensitive_variables
+from rest_framework.views import Request
 
-from web_annotation.models import BaseVerificationCode, ResetPasswordCode
+from web_annotation.models import AccountConfirmationCode, BaseVerificationCode, ResetPasswordCode, User
 from web_annotation.tasks import send_email
+
+
+def verify_user(user: User, redirect_url: str) -> None:
+    verif_code = AccountConfirmationCode.create(user)
+    send_confirmation_email(user, verif_code, redirect_url)
+
+
+def send_confirmation_email(
+    user: User, verif_path: BaseVerificationCode, redirect_url: str,
+) -> None:
+    """Return dict with subject and message of the email."""
+    # pylint: disable=import-outside-toplevel
+    email = _create_confirmation_email(
+        settings.EMAIL_VERIFICATION_ENDPOINT,
+        settings.EMAIL_ACCOUNT_CONFIRMATION_PATH,
+        str(verif_path.path),
+        redirect_url,
+    )
+    send_email.delay(email["subject"], email["message"], [user.email])
+
+
+def _create_confirmation_email(
+    endpoint: str, path: str, verification_path: str, redirect_url: str,
+) -> dict[str, str]:
+    message = (
+        "Welcome to GPFWA: Genotype and Phenotype in Families Web Annotation! "
+        "Click the link below to activate your new account:\n {link}"
+    )
+
+    email_settings = {
+        "subject": "GPFWA: Registration validation",
+        "initial_message": message,
+        "endpoint": endpoint,
+        "path": path,
+        "verification_path": verification_path,
+        "redirect": redirect_url,
+    }
+
+    return _build_email_template(email_settings)
 
 
 class WdaePasswordForgottenForm(forms.Form):
@@ -191,3 +231,37 @@ class WdaeResetPasswordForm(SetPasswordForm):
             "The two passwords do not match.",
         ),
     }
+
+
+def check_request_verification_path(
+   verification_path: str | None,
+   request: Request,
+   code_type: str,
+   verification_code_model: BaseVerificationCode,
+) -> tuple[BaseVerificationCode | None, str | None]:
+    """
+    Check, validate and return a verification path from a request.
+
+    Returns a tuple of the model instance and the error message if any.
+    When the instance is not found, None is returned.
+    """
+
+    if verification_path is None:
+        verification_path = request.session.get(f"{code_type}_code")
+    if verification_path is None:
+        return None, f"No {code_type} code provided"
+    try:
+        assert verification_path is not None
+        assert verification_code_model is not None
+        verif_code = \
+            verification_code_model.objects.get(  # type: ignore
+                path=verification_path)
+    except ObjectDoesNotExist:
+        return None, f"Invalid {code_type} code"
+
+    is_valid = verif_code.validate()  # pyright: ignore
+
+    if not is_valid:
+        return verif_code, f"Expired {code_type} code"
+
+    return verif_code, None
