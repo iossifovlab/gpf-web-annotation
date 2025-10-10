@@ -26,11 +26,6 @@ LIMITS = {
 GRR_DIRECTORY = str(
     pathlib.Path(__file__).parent / "tests" / "fixtures" / "grr")
 
-GRR_DEFINITION = str(
-    pathlib.Path(__file__).parent / "tests" / "fixtures"
-    / "grr_definition.yaml"
-)
-
 GENOME_PIPELINES = {
     "hg38": "pipeline/test_pipeline",
 }
