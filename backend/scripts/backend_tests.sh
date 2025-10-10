@@ -20,19 +20,20 @@ while true; do
 done
 
 cd /wd/backend/
+mkdir -p /wd/backend/results
 
 /opt/conda/bin/conda run --no-capture-output -n gpf \
     py.test -v web_annotation/tests \
         --cov-config /wd/backend/coveragerc \
         --cov web_annotation \
-        --junitxml=/wd/results/backend-tests-junit.xml \
+        --junitxml=/wd/backend/results/backend-tests-junit.xml \
         --mailhog http://mail:8025
 
 /opt/conda/bin/conda run -n gpf \
     coverage xml
 
 /opt/conda/bin/conda run -n gpf \
-    coverage html --title web_annotation -d /wd/results/coverage-html
+    coverage html --title web_annotation -d /wd/backend/results/coverage-html
 
 
-cp /wd/backend/coverage.xml /wd/results/backend-coverage.xml
+cp /wd/backend/coverage.xml /wd/backend/results/backend-coverage.xml
