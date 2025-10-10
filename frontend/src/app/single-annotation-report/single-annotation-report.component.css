@@ -68,6 +68,8 @@
   width: 20vw;
   height: fit-content;
   word-break: break-word;
+  position: sticky;
+  top: 10px;
 }
 
 .attribute-header,
