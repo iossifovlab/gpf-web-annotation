@@ -93,16 +93,23 @@ export class Attribute {
       return undefined;
     }
 
+    /* eslint-disable
+      @typescript-eslint/no-unsafe-assignment,
+      @typescript-eslint/no-unsafe-member-access,
+      @typescript-eslint/no-unsafe-call */
     if (typeof json['result']['value'] === 'boolean') {
       json['result']['value'] = json['result']['value'].toString();
     }
+    /* eslint-enable */
 
     return new Attribute(
       json['name'] as string,
       json['description'] as string,
       {
+        /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
         value: json['result']['value'],
         histogramLink: json['result']['histogram'],
+        /* eslint-enable */
       },
       json['help'] as string,
     );
@@ -135,10 +142,12 @@ export class NumberHistogram {
       json['bins'] as number[],
       json['small_values_desc'] as string,
       json['large_values_desc'] as string,
+      /* eslint-disable @typescript-eslint/no-unsafe-member-access */
       json['config']['view_range']['min'] as number,
       json['config']['view_range']['max'] as number,
       json['config']['x_log_scale'] as boolean,
       json['config']['y_log_scale'] as boolean,
+      /* eslint-enable */
     );
   }
 }
@@ -162,16 +171,19 @@ export class CategoricalHistogram {
 
     const values: {name: string, value: number}[] = [];
     Object.keys(json['values'] as object).forEach(key => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       values.push({name: key, value: json['values'][key]});
     });
 
     return new CategoricalHistogram(
       values,
+      /* eslint-disable @typescript-eslint/no-unsafe-member-access */
       json['config']['value_order'] as string[],
       json['small_values_desc'] as string,
       json['large_values_desc'] as string,
       json['config']['y_log_scale'] as boolean,
       json['config']['label_rotation'] as number,
+      /* eslint-enable */
     );
   }
 }

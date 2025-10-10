@@ -1,9 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { SingleAnnotationComponent } from './single-annotation.component';
 import { Observable, of } from 'rxjs';
 import { SingleAnnotationService } from '../single-annotation.service';
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, provideRouter, Router } from '@angular/router';
 
 class SingleAnnotationServiceMock {
   public getGenomes(): Observable<string[]> {
@@ -15,6 +14,7 @@ describe('SingleAnnotationComponent', () => {
   let component: SingleAnnotationComponent;
   let fixture: ComponentFixture<SingleAnnotationComponent>;
   const singleAnnotationService = new SingleAnnotationServiceMock();
+  let router: Router;
 
   beforeEach(async() => {
     await TestBed.configureTestingModule({
@@ -25,6 +25,7 @@ describe('SingleAnnotationComponent', () => {
     }).compileComponents();
 
     TestBed.overrideProvider(SingleAnnotationService, {useValue: singleAnnotationService});
+    router = TestBed.inject(Router);
 
     fixture = TestBed.createComponent(SingleAnnotationComponent);
     component = fixture.componentInstance;
@@ -42,12 +43,14 @@ describe('SingleAnnotationComponent', () => {
   });
 
   it('should navigate to report page with and pass parameters', () => {
+    const activatedRoute = TestBed.inject(ActivatedRoute);
     component.selectedGenome = 'hg19';
-    const routerSpy = jest.spyOn((component as any).router, 'navigate');
+
+    const navigateSpy = jest.spyOn(router, 'navigate');
     component.loadReport('variant1');
-    expect(routerSpy).toHaveBeenCalledWith(
+    expect(navigateSpy).toHaveBeenCalledWith(
       ['report'],
-      { queryParams: {genome: 'hg19', variant: 'variant1'}, relativeTo: (component as any).route }
+      { queryParams: {genome: 'hg19', variant: 'variant1'}, relativeTo: activatedRoute }
     );
   });
 

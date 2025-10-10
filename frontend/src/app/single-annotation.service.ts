@@ -40,6 +40,7 @@ export class SingleAnnotationService {
       `${this.getHistogramUrl}/${histogramUrl}`,
       options
     ).pipe(map((response: object) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       return response['config']['type'] === 'number' ?
         NumberHistogram.fromJson(response) : CategoricalHistogram.fromJson(response);
     }));
