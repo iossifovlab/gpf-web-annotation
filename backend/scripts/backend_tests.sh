@@ -20,11 +20,13 @@ while true; do
 done
 
 cd /wd/backend/
+
 /opt/conda/bin/conda run --no-capture-output -n gpf \
     py.test -v web_annotation/tests \
         --cov-config /wd/backend/coveragerc \
         --cov web_annotation \
-        --junitxml=/wd/results/backend-tests-junit.xml
+        --junitxml=/wd/results/backend-tests-junit.xml \
+        --mailhog http://mail:8025
 
 /opt/conda/bin/conda run -n gpf \
     coverage xml

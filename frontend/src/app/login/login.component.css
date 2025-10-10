@@ -102,6 +102,10 @@ button:hover {
   color: #24699e;
 }
 
+#reset-password-link {
+  color: #24699e;
+}
+
 #response-message {
   color: red;
 }

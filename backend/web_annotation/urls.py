@@ -41,4 +41,14 @@ urlpatterns = [
     path('api/register', views.Registration.as_view()),
     path('api/user_info', views.UserInfo.as_view()),
     path('api/jobs/validate', views.AnnotationConfigValidation.as_view()),
+    path(
+        "api/forgotten_password",
+        views.ForgotPassword.as_view(),
+        name="forgotten_password",
+    ),
+    path(
+        "api/reset_password",
+        views.PasswordReset.as_view(),
+        name="reset_password",
+    ),
 ]

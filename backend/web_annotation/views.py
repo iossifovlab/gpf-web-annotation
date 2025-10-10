@@ -1,39 +1,62 @@
-import time
 import logging
+import time
 from pathlib import Path
-from typing import cast, Any
+from typing import Any, cast
 
 import magic
-from pysam import VariantFile
-
-from django.contrib.auth import authenticate, login, logout
+from dae.annotation.annotatable import VCFAllele
+from dae.annotation.annotation_config import (
+    AnnotationConfigParser,
+    AnnotationConfigurationError,
+)
+from dae.annotation.annotation_factory import load_pipeline_from_grr
+from dae.annotation.annotation_pipeline import AnnotationPipeline
+from dae.gene_scores.gene_scores import build_gene_score_from_resource
+from dae.genomic_resources.genomic_scores import build_score_from_resource
+from dae.genomic_resources.implementations.annotation_pipeline_impl import (
+    AnnotationPipelineImplementation,
+)
+from dae.genomic_resources.repository import GenomicResource, GenomicResourceRepo
+from dae.genomic_resources.repository_factory import build_genomic_resource_repository
+from django import forms
 from django.conf import settings
+from django.contrib.auth import (
+    authenticate,
+    get_user_model,
+    login,
+    logout,
+)
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.uploadedfile import UploadedFile
-from django.http.response import FileResponse
-from django.shortcuts import get_object_or_404
+from django.db import models
+from django.http import HttpRequest
+from django.http.response import (
+    FileResponse,
+    HttpResponse,
+    HttpResponseRedirect,
+)
+from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
-from rest_framework import permissions, views, generics
-from rest_framework.parsers import MultiPartParser, JSONParser
+from pysam import VariantFile
+from rest_framework import generics, permissions, views
+from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from dae.annotation.annotation_config import AnnotationConfigParser, \
-    AnnotationConfigurationError
-from dae.annotation.annotation_factory import load_pipeline_from_grr
-from dae.annotation.annotation_pipeline import AnnotationPipeline
-from dae.genomic_resources.genomic_scores import build_score_from_resource
-from dae.gene_scores.gene_scores import build_gene_score_from_resource
-from dae.annotation.annotatable import VCFAllele
-from dae.genomic_resources.repository_factory import \
-    build_genomic_resource_repository
-from dae.genomic_resources.repository import GenomicResourceRepo, \
-    GenomicResource
-from dae.genomic_resources.implementations.annotation_pipeline_impl import \
-    AnnotationPipelineImplementation
+from web_annotation.utils import (
+    WdaePasswordForgottenForm,
+    WdaeResetPasswordForm,
+    deauthenticate,
+    reset_password,
+)
 
-from .serializers import JobSerializer, UserSerializer
-from .models import Job, User
+from .models import (
+    Job,
+    ResetPasswordCode,
+    User,
+)
 from .permissions import IsOwner, has_job_permission
+from .serializers import JobSerializer, UserSerializer
 from .tasks import create_annotation
 
 logger = logging.getLogger(__name__)
@@ -498,3 +521,197 @@ class SingleAnnotation(AnnotationBaseView):
         }
 
         return Response(response_data)
+
+
+class ForgotPassword(views.APIView):  # USE
+    """View for forgotten password."""
+
+    def get(self, request: Request) -> HttpResponse:
+        form = WdaePasswordForgottenForm()
+        request.session["redirect_url"] = request.GET.get("redirect", "")
+        request.session.modified = True
+
+        return render(
+            cast(HttpRequest, request),
+            "forgotten-password.html",
+            {"form": form, "show_form": True},
+        )
+
+    def post(self, request: Request) -> HttpResponse:
+        """Send a reset password email to the user."""
+        data = request.data
+        form = WdaePasswordForgottenForm(data)  # pyright: ignore
+        is_valid = form.is_valid()
+        if not is_valid:
+            return render(
+                cast(HttpRequest, request),
+                "forgotten-password.html",
+                {
+                    "form": form,
+                    "message": "Invalid email",
+                    "message_type": "warn",
+                    "show_form": True,
+                },
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+        email = form.data["email"]
+        user_model = get_user_model()
+        message = (
+            f"An e-mail has been sent to {email}"
+            " containing the reset link"
+        )
+        try:
+            user = user_model.objects.filter(email=email).first()
+            if user is None or not isinstance(user, User):
+                return render(
+                    request,  # pyright: ignore
+                    "forgotten-password.html",
+                    {
+                        "form": form,
+                        "message": "User is not a WdaeUser",
+                        "message_type": "warn",
+                        "show_form": True,
+                    },
+                    status=views.status.HTTP_400_BAD_REQUEST,
+                )
+            redirect_url = request.session.get("redirect_url")
+
+            reset_password(user, redirect_url)
+
+            return render(
+                request,  # pyright: ignore
+                "forgotten-password.html",
+                {
+                    "form": form,
+                    "message": message,
+                    "message_type": "success",
+                    "show_form": False,
+                },
+            )
+        except user_model.DoesNotExist:
+            return render(
+                request,  # pyright: ignore
+                "forgotten-password.html",
+                {
+                    "form": form,
+                    "message": message,
+                    "message_type": "success",
+                    "show_form": False,
+                },
+            )
+
+
+class PasswordReset(views.APIView):
+    """Reset password view."""
+
+    verification_code_model = cast(models.Model, ResetPasswordCode)
+    template = "reset-password.html"
+    form = cast(forms.Form, WdaeResetPasswordForm)
+    code_type = "reset"
+
+    def _check_request_verification_path(
+        self, verification_path: str, request: Request,
+    ) -> tuple[ResetPasswordCode | None, str | None]:
+        """
+        Check, validate and return a verification path from a request.
+
+        Returns a tuple of the model instance and the error message if any.
+        When the instance is not found, None is returned.
+        """
+
+        if verification_path is None:
+            verification_path = request.session.get(f"{self.code_type}_code")
+        if verification_path is None:
+            return None, f"No {self.code_type} code provided"
+        try:
+            assert verification_path is not None
+            assert self.verification_code_model is not None
+            verif_code = \
+                self.verification_code_model.objects.get(  # type: ignore
+                    path=verification_path)
+        except ObjectDoesNotExist:
+            return None, f"Invalid {self.code_type} code"
+
+        if not isinstance(verif_code, (ResetPasswordCode)):
+            return None, f"Invalid {self.code_type} code"
+
+        is_valid = verif_code.validate()  # pyright: ignore
+
+        if not is_valid:
+            return verif_code, f"Expired {self.code_type} code"
+
+        return verif_code, None
+
+    def get(self, request: Request) -> HttpResponse:
+        """Render the password reset form."""
+
+        verif_code, msg = \
+            self._check_request_verification_path(
+                request.GET.get("code"),
+                request,
+            )
+
+        if msg is not None:
+            if verif_code is not None:
+                verif_code.delete()
+            assert self.template is not None
+            return render(
+                request,  # pyright: ignore
+                self.template,
+                {"message": msg},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+        assert verif_code is not None
+        user = verif_code.user
+
+        assert self.form is not None
+        # pylint: disable=not-callable
+        form = self.form(user)  # type: ignore
+        request.session[f"{self.code_type}_code"] = verif_code.path
+        request.path = request.path[:request.path.find("?")]  # pyright: ignore
+        assert self.template is not None
+        return render(
+            request,  # pyright: ignore
+            self.template,
+            {"form": form},
+        )
+
+    def post(self, request: Request) -> HttpResponse:
+        """Handle the password reset form."""
+        verif_code, msg = \
+            self._check_request_verification_path(
+                request.POST.get("code"),
+                request,
+            )
+        assert self.template is not None
+        if msg is not None:
+            if verif_code is not None:
+                verif_code.delete()
+            return render(
+                request,  # pyright: ignore
+                self.template,
+                {"message": msg},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+        assert verif_code is not None
+        user: User = verif_code.user
+        # pylint: disable=not-callable
+        form = self.form(user, data=request.data)  # type: ignore
+        is_valid = form.is_valid()
+        if not is_valid:
+            return render(
+                request,  # pyright: ignore
+                self.template,
+                {
+                    "form": form,
+                },
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        new_password = form.cleaned_data["new_password1"]
+        deauthenticate(user)
+        user.change_password(new_password)
+        if verif_code is not None:
+            verif_code.delete()
+        redirect_uri = request.session.get("redirect_url")
+        return HttpResponseRedirect(redirect_uri)

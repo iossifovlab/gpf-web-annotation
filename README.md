@@ -5,8 +5,9 @@ mamba env remove -n gpf-web-annotation
 mamba env create --name gpf-web-annotation --file ./backend/gpf/environment.yml
 mamba env update --file ./backend/environment.yml
 conda run -n gpf-web-annotation pip install -e ./backend/gpf/dae
+conda activate gpf-web-annotation
 pip install -e ./backend
-mamba env update -n gpf-web-annotation --file ../dev-environment.yml
+mamba env update -n gpf-web-annotation --file ./backend/dev-environment.yml
 ```
 
 ### Frontend Dependency Installation
@@ -55,5 +56,6 @@ npm test
 
 ```bash
 cd backend
+export DJANGO_SETTINGS_MODULE=web_annotation.test_settings
 pytest web_annotation/tests/
 ```
