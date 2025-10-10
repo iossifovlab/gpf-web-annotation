@@ -6,6 +6,8 @@
 /opt/conda/bin/conda run --no-capture-output -n gpf \
     celery -A web_annotation.celery_app worker -l INFO -c 4 -D
 
+sleep 5
+
 c=0
 while true; do
     sleep 2

@@ -47,7 +47,7 @@ pipeline {
             steps {
                 sh "docker compose -f compose-jenkins.yaml run  --rm --remove-orphans backend-linters || true"
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
-                sh "cp backend/results/* results/ || true"
+                sh "cp -r backend/results/* results/ || true"
             }
         }
 
@@ -55,8 +55,7 @@ pipeline {
             steps {
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
                 sh "docker compose -f compose-jenkins.yaml run --rm --remove-orphans backend-tests || true"
-                sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
-                sh "cp backend/results/* results/ || true"
+                sh "cp -r backend/results/* results/ || true"
             }
         }
 
