@@ -73,6 +73,8 @@ services:
     depends_on:
       rabbitmq:
         condition: service_started
+      mail:
+        condition: service_started
     environment:
       DJANGO_SETTINGS_MODULE: web_annotation.test_settings
       WDAE_EMAIL_HOST: mail
