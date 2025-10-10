@@ -54,7 +54,7 @@ def _create_confirmation_email(
     return _build_email_template(email_settings)
 
 
-class WdaePasswordForgottenForm(forms.Form):
+class PasswordForgottenForm(forms.Form):
     email = forms.EmailField(
         label="Email",
         max_length=254,
@@ -219,7 +219,7 @@ class SetPasswordForm(forms.Form):
         return user
 
 
-class WdaeResetPasswordForm(SetPasswordForm):
+class ResetPasswordForm(SetPasswordForm):
     """A form for users to reset their password when forgotten."""
 
     error_messages = {

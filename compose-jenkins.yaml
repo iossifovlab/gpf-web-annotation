@@ -51,7 +51,7 @@ services:
       - ./gpfwa_data:/data
     environment:
       DJANGO_SETTINGS_MODULE: web_annotation.settings
-      WDAE_EMAIL_HOST: mail
+      GPFWA_EMAIL_HOST: mail
       RABBITMQ_HOST: rabbitmq
       GRR_DEFINITION_FILE: /grr-definition.yaml
       GPFWA_DB_NAME: gpfwa
@@ -77,7 +77,7 @@ services:
         condition: service_started
     environment:
       DJANGO_SETTINGS_MODULE: web_annotation.test_settings
-      WDAE_EMAIL_HOST: mail
+      GPFWA_EMAIL_HOST: mail
       RABBITMQ_HOST: rabbitmq
       GRR_DEFINITION_FILE: /grr-definition.yaml
     volumes:
@@ -93,7 +93,7 @@ services:
         condition: service_started
     environment:
       DJANGO_SETTINGS_MODULE: web_annotation.test_settings
-      WDAE_EMAIL_HOST: mail
+      GPFWA_EMAIL_HOST: mail
       RABBITMQ_HOST: rabbitmq
       TESTING_CONTAINER: true
       GRR_DEFINITION_FILE: /grr-definition.yaml
@@ -109,7 +109,7 @@ services:
       dockerfile: Dockerfile.dev
     environment:
       DJANGO_SETTINGS_MODULE: web_annotation.test_settings
-      WDAE_EMAIL_HOST: mail
+      GPFWA_EMAIL_HOST: mail
       RABBITMQ_HOST: rabbitmq
       GRR_DEFINITION_FILE: /grr-definition.yaml
     volumes:

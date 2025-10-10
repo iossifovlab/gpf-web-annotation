@@ -45,8 +45,8 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from web_annotation.utils import (
-    WdaePasswordForgottenForm,
-    WdaeResetPasswordForm,
+    PasswordForgottenForm,
+    ResetPasswordForm,
     check_request_verification_path,
     deauthenticate,
     reset_password,
@@ -587,7 +587,7 @@ class ForgotPassword(views.APIView):  # USE
     """View for forgotten password."""
 
     def get(self, request: Request) -> HttpResponse:
-        form = WdaePasswordForgottenForm()
+        form = PasswordForgottenForm()
         request.session["redirect_url"] = request.GET.get("redirect", "")
         request.session.modified = True
 
@@ -600,7 +600,7 @@ class ForgotPassword(views.APIView):  # USE
     def post(self, request: Request) -> HttpResponse:
         """Send a reset password email to the user."""
         data = request.data
-        form = WdaePasswordForgottenForm(data)  # pyright: ignore
+        form = PasswordForgottenForm(data)  # pyright: ignore
         is_valid = form.is_valid()
         if not is_valid:
             return render(
@@ -628,7 +628,7 @@ class ForgotPassword(views.APIView):  # USE
                     "forgotten-password.html",
                     {
                         "form": form,
-                        "message": "User is not a WdaeUser",
+                        "message": "User is not a GPFWA User",
                         "message_type": "warn",
                         "show_form": True,
                     },
@@ -667,7 +667,7 @@ class PasswordReset(views.APIView):
     verification_code_model = cast(BaseVerificationCode, ResetPasswordCode)
 
     template = "reset-password.html"
-    form = cast(forms.Form, WdaeResetPasswordForm)
+    form = cast(forms.Form, ResetPasswordForm)
     code_type = "reset"
 
     def get(self, request: Request) -> HttpResponse:

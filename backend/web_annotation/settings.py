@@ -204,22 +204,22 @@ GRR_DEFINITION = os.environ.get("GRR_DEFINITION_FILE")
 # Email related settings
 RESET_PASSWORD_TIMEOUT_HOURS = 24
 
-EMAIL_HOST = os.environ.get("WDAE_EMAIL_HOST", "localhost")
-EMAIL_USE_TLS = os.environ.get("WDAE_EMAIL_USE_TLS", False)
-EMAIL_HOST_USER = os.environ.get("WDAE_EMAIL_HOST_USER", None)
-EMAIL_HOST_PASSWORD = os.environ.get("WDAE_EMAIL_HOST_PASSWORD", None)
+EMAIL_HOST = os.environ.get("GPFWA_EMAIL_HOST", "localhost")
+EMAIL_USE_TLS = os.environ.get("GPFWA_EMAIL_USE_TLS", False)
+EMAIL_HOST_USER = os.environ.get("GPFWA_EMAIL_HOST_USER", None)
+EMAIL_HOST_PASSWORD = os.environ.get("GPFWA_EMAIL_HOST_PASSWORD", None)
 
-EMAIL_PORT = os.environ.get("WDAE_EMAIL_PORT", 1025)
+EMAIL_PORT = os.environ.get("GPFWA_EMAIL_PORT", 1025)
 if EMAIL_PORT is not None:
     EMAIL_PORT = int(EMAIL_PORT)
 
 DEFAULT_FROM_EMAIL = os.environ.get(
-    "WDAE_DEFAULT_FROM_EMAIL", "no-reply@iossifovlab.com")
+    "GPFWA_DEFAULT_FROM_EMAIL", "no-reply@iossifovlab.com")
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 EMAIL_VERIFICATION_ENDPOINT = os.environ.get(
-    "WDAE_EMAIL_VERIFICATION_ENDPOINT", "http://localhost:8000")
+    "GPFWA_EMAIL_VERIFICATION_ENDPOINT", "http://localhost:8000")
 EMAIL_ACCOUNT_CONFIRMATION_PATH = "/api/confirm_account?redirect={}&code={}"
 EMAIL_VERIFICATION_RESET_PATH = "/api/reset_password?redirect={}&code={}"
 
