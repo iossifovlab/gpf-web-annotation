@@ -2,6 +2,7 @@ import logging
 import time
 from pathlib import Path
 from typing import Any, cast
+from datetime import datetime
 
 import magic
 from dae.annotation.annotatable import VCFAllele
@@ -37,6 +38,8 @@ from django.http.response import (
 )
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.decorators.http import last_modified
 from pysam import VariantFile
 from rest_framework import generics, permissions, views
 from rest_framework.parsers import JSONParser, MultiPartParser
@@ -92,6 +95,13 @@ HISTOGRAM_GETTERS = {
     "position_score": get_histogram_genomic_score,
     "gene_score": get_histogram_gene_score,
 }
+
+STARTUP_TIME = timezone.now()
+
+
+def always_cache(*args, **kwargs) -> datetime:
+    """Function to enable a view to always be cached, due to static data."""
+    return STARTUP_TIME
 
 
 def get_pipelines(grr: GenomicResourceRepo) -> dict[str, dict[str, str]]:
@@ -452,7 +462,10 @@ class AnnotationConfigValidation(AnnotationBaseView):
 class ListGenomePipelines(AnnotationBaseView):
 
     def get(self, request: Request) -> Response:
-        return Response([], status=views.status.HTTP_200_OK)
+        return Response(
+            list(self.genome_pipelines.keys()),
+            status=views.status.HTTP_200_OK,
+        )
 
 
 class SingleAnnotation(AnnotationBaseView):
@@ -487,22 +500,30 @@ class SingleAnnotation(AnnotationBaseView):
                     r.resource_id for r in annotator_info.resources),
             }
             for attribute_info in annotator.attributes:
+                if attribute_info.internal:
+                    continue
                 resource = self.grr.get_resource(
                     list(annotator.resource_ids)[0])
-                histogram_getter = HISTOGRAM_GETTERS.get(
-                    resource.get_type(), get_histogram_not_supported,
-                )
-                histogram_data = histogram_getter(
-                    resource, attribute_info.source
-                )
+                if resource.get_type() in HISTOGRAM_GETTERS.keys():
+                    histogram_path = (
+                        f"histograms/{resource.resource_id}"
+                        f"?score_id={attribute_info.source}"
+                    )
+                else:
+                    histogram_path = None
+                value = result[attribute_info.name]
+                if attribute_info.type in ["object", "annotatable"]:
+                    value = str(value)
                 attributes.append({
                     "name": attribute_info.name,
                     "description": attribute_info.description,
                     "result": {
-                        "value": str(result[attribute_info.name]),
-                        "histogram": histogram_data,
+                        "value": value,
+                        "histogram": histogram_path,
                     },
                 })
+            if len(attributes) == 0:
+                continue
             annotators_data.append(
                 {"details": details, "attributes": attributes},
             )
@@ -715,3 +736,29 @@ class PasswordReset(views.APIView):
             verif_code.delete()
         redirect_uri = request.session.get("redirect_url")
         return HttpResponseRedirect(redirect_uri)
+
+class HistogramView(AnnotationBaseView):
+
+    @method_decorator(last_modified(always_cache))
+    def get(self, request: Request, resource_id: str) -> Response:
+        try:
+            resource = self.grr.get_resource(resource_id)
+        except ValueError:
+            return Response(status=views.status.HTTP_404_NOT_FOUND)
+
+        score_id = request.query_params.get("score_id")
+        if score_id is None:
+            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+
+        histogram_getter = HISTOGRAM_GETTERS.get(
+            resource.get_type(), get_histogram_not_supported,
+        )
+
+        histogram_data = histogram_getter(
+            resource, score_id,
+        )
+
+        if histogram_data == {}:
+            return Response(status=views.status.HTTP_404_NOT_FOUND)
+
+        return Response(histogram_data)

@@ -1,18 +1,20 @@
 import { Component, OnInit } from '@angular/core';
 import { SingleAnnotationService } from '../single-annotation.service';
-import { CategoricalHistogram, SingleAnnotationReport, Variant } from '../single-annotation';
+import { SingleAnnotationReport, Variant } from '../single-annotation';
 import { CommonModule } from '@angular/common';
 import { switchMap, take } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
-import { NumberHistogramComponent } from '../number-histogram/number-histogram.component';
 import { MarkdownModule } from 'ngx-markdown';
 import { HelperModalComponent } from '../helper-modal/helper-modal.component';
 import { MatDialog } from '@angular/material/dialog';
-import { CategoricalHistogramComponent } from '../categorical-histogram/categorical-histogram.component';
+import { HistogramWrapperComponent } from '../histogram-wrapper/histogram-wrapper.component';
 
 @Component({
   selector: 'app-single-annotation-report',
-  imports: [CommonModule, NumberHistogramComponent, CategoricalHistogramComponent, MarkdownModule],
+  imports: [
+    CommonModule,
+    MarkdownModule,
+    HistogramWrapperComponent],
   templateUrl: './single-annotation-report.component.html',
   styleUrl: './single-annotation-report.component.css'
 })
@@ -58,20 +60,5 @@ export class SingleAnnotationReportComponent implements OnInit {
       height: '60vh',
       width: '30vw',
     });
-  }
-
-  public isCategoricalHistogram(arg: object): arg is CategoricalHistogram {
-    return arg instanceof CategoricalHistogram;
-  }
-
-  public getValueAsNumber(value: string | number): number {
-    if (typeof value === 'number') {
-      return value;
-    }
-    const parsed = Number(value);
-    if (isNaN(parsed)) {
-      return null;
-    }
-    return parsed;
   }
 }

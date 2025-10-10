@@ -3,10 +3,11 @@ import { CategoricalHistogram } from '../single-annotation';
 import { CommonModule } from '@angular/common';
 import * as d3 from 'd3';
 import { cloneDeep } from 'lodash';
+import { TextShortenPipe } from '../text-shorten.pipe';
 
 @Component({
   selector: 'app-categorical-histogram',
-  imports: [CommonModule],
+  imports: [CommonModule, TextShortenPipe],
   templateUrl: './categorical-histogram.component.html',
   styleUrl: './categorical-histogram.component.css'
 })
@@ -210,5 +211,12 @@ export class CategoricalHistogramComponent implements OnInit {
         }
       });
     });
+  }
+
+  public getCoordinate(): number {
+    const xAxisValues = this.scaleXAxis.domain();
+    const fullOtherValues = xAxisValues.find(v => v.includes('Other values'));
+    return this.otherValueNames.includes(this.singleScoreValue) ?
+      this.scaleXAxis(fullOtherValues) : this.scaleXAxis(this.singleScoreValue);
   }
 }

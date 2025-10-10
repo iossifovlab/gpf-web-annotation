@@ -267,7 +267,7 @@ describe('CategoricalHistogramComponent', () => {
     expect(redLine.getAttribute('style')).toBe('stroke: rgb(255, 0, 0); stroke-width: 2;');
 
     const valueText = svg.querySelector('.single-score-value');
-    expect(valueText.textContent).toBe('Pathogenic');
+    expect(valueText.innerHTML).toBe('Pathogenic<title>Pathogenic</title>');
     expect(valueText.getAttribute('x')).toBe('450');
     expect(valueText.getAttribute('text-anchor')).toBe('middle');
   });
@@ -281,5 +281,73 @@ describe('CategoricalHistogramComponent', () => {
 
     const valueText = svg.querySelector('.single-score-value');
     expect(valueText).toBeFalsy();
+  });
+
+  it('should get correct coordinate for x when the value is not in axis x domain', () => {
+    component.ngOnInit();
+    expect(component.getCoordinate()).toBe(450);
+  });
+
+  it('should get correct coordinate for x', () => {
+    component.singleScoreValue = 'C';
+    component.ngOnInit();
+    expect(component.getCoordinate()).toBe(225);
+
+    component.histogram = new CategoricalHistogram(
+      [
+        {name: 'A', value: 10},
+        {name: 'B', value: 20},
+        {name: 'C', value: 30},
+        {name: 'D', value: 40},
+        {name: 'E', value: 50},
+      ],
+      ['A', 'B', 'C', 'D', 'E'],
+      'large value descriptions',
+      'small value descriptions',
+      true,
+      0,
+      2,
+    );
+    component.ngOnInit();
+
+    component.singleScoreValue = 'D';
+    expect(component.getCoordinate()).toBe(370.16129032258067);
+
+    component.singleScoreValue = 'E';
+    expect(component.getCoordinate()).toBe(370.16129032258067);
+  });
+
+  it('should get correct coordinate for x when score value is on other values bar', () => {
+    component.histogram = new CategoricalHistogram(
+      [
+        {name: 'A', value: 10},
+        {name: 'B', value: 20},
+        {name: 'C', value: 30},
+        {name: 'D', value: 40},
+        {name: 'E', value: 50},
+      ],
+      ['A', 'B', 'C', 'D', 'E'],
+      'large value descriptions',
+      'small value descriptions',
+      true,
+      0,
+      2,
+    );
+    component.ngOnInit();
+
+    component.singleScoreValue = 'D';
+    expect(component.getCoordinate()).toBe(370.16129032258067);
+
+    component.singleScoreValue = 'E';
+    expect(component.getCoordinate()).toBe(370.16129032258067);
+  });
+
+  it('should format score value', () => {
+    component.singleScoreValue = 'criteria_provided|_single_submitter';
+    fixture.detectChanges();
+    const svg = (fixture.nativeElement as HTMLElement).querySelector('svg') as SVGElement;
+
+    const valueText = svg.querySelector('.single-score-value');
+    expect(valueText.innerHTML).toBe('criteria_provided|_s...<title>criteria_provided|_single_submitter</title>');
   });
 });

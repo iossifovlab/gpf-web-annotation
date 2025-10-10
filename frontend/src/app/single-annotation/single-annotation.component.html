@@ -5,7 +5,11 @@
     <select [(ngModel)]="selectedGenome">
       <option *ngFor="let genome of genomes" [value]="genome">{{ genome }}</option>
     </select>
-    <input #variantInput type="text" placeholder="Type variant..." />
+    <input
+      #variantInput
+      type="text"
+      placeholder="Type variant..."
+      (keydown.enter)="validateVariant(variantInput.value)" />
     <button (click)="validateVariant(variantInput.value)">Go</button>
   </div>
   <span *ngIf="validationMessage" id="validation-message">{{ validationMessage }}</span>

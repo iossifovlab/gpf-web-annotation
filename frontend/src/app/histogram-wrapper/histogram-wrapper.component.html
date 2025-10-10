@@ -1,0 +1,8 @@
+<app-number-histogram
+  *ngIf="isNumberHistogram(histogram)"
+  [histogram]="histogram"
+  [singleScoreValue]="getValueAsNumber(value)"></app-number-histogram>
+<app-categorical-histogram
+  *ngIf="isCategoricalHistogram(histogram)"
+  [histogram]="histogram"
+  [singleScoreValue]="value.toString()"></app-categorical-histogram>

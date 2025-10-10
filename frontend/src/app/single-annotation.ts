@@ -69,8 +69,8 @@ export class AnnotatorDetails {
 }
 
 export interface Result {
-  value: string;
-  histogram: NumberHistogram | CategoricalHistogram;
+  value: string | number;
+  histogramLink: string;
 }
 
 export class Attribute {
@@ -93,27 +93,26 @@ export class Attribute {
       return undefined;
     }
 
-    let histogram: NumberHistogram | CategoricalHistogram;
-
-    if (Object.keys((json['result'] as Result).histogram).length !== 0) {
-      histogram = this.isCategoricalHistogram(json['result'] as Result) ?
-        CategoricalHistogram.fromJson((json['result'] as Result).histogram)
-        : NumberHistogram.fromJson((json['result'] as Result).histogram);
+    /* eslint-disable
+      @typescript-eslint/no-unsafe-assignment,
+      @typescript-eslint/no-unsafe-member-access,
+      @typescript-eslint/no-unsafe-call */
+    if (typeof json['result']['value'] === 'boolean') {
+      json['result']['value'] = json['result']['value'].toString();
     }
+    /* eslint-enable */
 
     return new Attribute(
       json['name'] as string,
       json['description'] as string,
       {
-        value: (json['result'] as Result).value,
-        histogram: histogram,
+        /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+        value: json['result']['value'],
+        histogramLink: json['result']['histogram'],
+        /* eslint-enable */
       },
       json['help'] as string,
     );
-  }
-
-  private static isCategoricalHistogram(result: Result): boolean {
-    return result.histogram['config']['type'] === 'categorical';
   }
 }
 
@@ -143,10 +142,12 @@ export class NumberHistogram {
       json['bins'] as number[],
       json['small_values_desc'] as string,
       json['large_values_desc'] as string,
+      /* eslint-disable @typescript-eslint/no-unsafe-member-access */
       json['config']['view_range']['min'] as number,
       json['config']['view_range']['max'] as number,
       json['config']['x_log_scale'] as boolean,
       json['config']['y_log_scale'] as boolean,
+      /* eslint-enable */
     );
   }
 }
@@ -155,8 +156,8 @@ export class CategoricalHistogram {
   public constructor(
     public readonly values: {name: string, value: number}[],
     public readonly valueOrder: string[],
-    public readonly largeValuesDesc: string,
     public readonly smallValuesDesc: string,
+    public readonly largeValuesDesc: string,
     public readonly logScaleY: boolean,
     public readonly labelRotation: number,
     public readonly displayedValuesCount: number = null,
@@ -170,16 +171,19 @@ export class CategoricalHistogram {
 
     const values: {name: string, value: number}[] = [];
     Object.keys(json['values'] as object).forEach(key => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       values.push({name: key, value: json['values'][key]});
     });
 
     return new CategoricalHistogram(
       values,
+      /* eslint-disable @typescript-eslint/no-unsafe-member-access */
       json['config']['value_order'] as string[],
-      json['config']['large_values_desc'] as string,
-      json['config']['small_values_desc'] as string,
+      json['small_values_desc'] as string,
+      json['large_values_desc'] as string,
       json['config']['y_log_scale'] as boolean,
       json['config']['label_rotation'] as number,
+      /* eslint-enable */
     );
   }
 }
