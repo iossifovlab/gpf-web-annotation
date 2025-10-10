@@ -138,7 +138,7 @@ services:
       - ./frontend/reports:/reports
     environment:
       JEST_JUNIT_OUTPUT_DIR: /reports
-    command: ["npm", "test"]
+    command: ["npm", "test", "--", "--coverage", "--collectCoverageFrom=./src/**", "--coverageDirectory=/reports/coverage", "--ci"]
 
   frontend-linters:
     build:

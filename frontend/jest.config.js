@@ -6,7 +6,6 @@ module.exports = {
   setupFilesAfterEnv: ["<rootDir>/setup-jest.ts"],
   modulePaths: ["<rootDir>/src"],
   transformIgnorePatterns: ['node_modules/(?!' + esModules + '|.*.mjs$)'],
-  coverageReporters: ["html", "text", "text-summary", "cobertura"],
   reporters: [
     "default",
     [
@@ -14,4 +13,7 @@ module.exports = {
       { outputDirectory: "test-reports", outputName: "junit-report.xml" },
     ],
   ],
+  collectCoverage: true,
+  coverageDirectory: "<rootDir>/coverage",
+  coverageReporters: ["html", "cobertura"],
 };
