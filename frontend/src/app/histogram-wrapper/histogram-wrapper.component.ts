@@ -36,6 +36,16 @@ export class HistogramWrapperComponent implements OnInit {
     return parsed;
   }
 
+  public getValueAsString(value: string | number): string {
+    if (!value) {
+      return null;
+    }
+    if (typeof value === 'string') {
+      return value;
+    }
+    return value.toString();
+  }
+
   public isCategoricalHistogram(arg: object): arg is CategoricalHistogram {
     return arg instanceof CategoricalHistogram;
   }

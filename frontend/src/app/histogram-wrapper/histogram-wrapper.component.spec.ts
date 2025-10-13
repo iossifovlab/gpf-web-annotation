@@ -102,4 +102,11 @@ describe('HistogramWrapperComponent', () => {
     expect(component.getValueAsNumber(5)).toBe(5);
     expect(component.getValueAsNumber('not a number')).toBeNull();
   });
+
+  it('should parse score value to string', () => {
+    expect(component.getValueAsString('value')).toBe('value');
+    expect(component.getValueAsString(5)).toBe('5');
+    expect(component.getValueAsString(null)).toBeNull();
+    expect(component.getValueAsString('')).toBeNull();
+  });
 });

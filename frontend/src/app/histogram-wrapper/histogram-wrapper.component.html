@@ -5,4 +5,4 @@
 <app-categorical-histogram
   *ngIf="isCategoricalHistogram(histogram)"
   [histogram]="histogram"
-  [singleScoreValue]="value.toString()"></app-categorical-histogram>
+  [singleScoreValue]="getValueAsString(value)"></app-categorical-histogram>
