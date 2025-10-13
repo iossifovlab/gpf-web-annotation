@@ -1,0 +1,16 @@
+<div
+  class="grid-container"
+  [ngStyle]="
+    isFullData ? { 'grid-template-columns': 'repeat(4, auto)' } : { 'grid-template-columns': 'repeat(2, auto)' }
+  ">
+  <div class="grid-header">Gene</div>
+  <div *ngIf="isFullData" class="grid-header">Transript</div>
+  <div class="grid-header">Effect</div>
+  <div *ngIf="isFullData" class="grid-header">Details</div>
+  <ng-container *ngFor="let effectDetails of effectDetails">
+    <div class="grid-cell">{{ effectDetails.gene }}</div>
+    <div *ngIf="isFullData" class="grid-cell">{{ effectDetails.transcript }}</div>
+    <div class="grid-cell">{{ effectDetails.effect }}</div>
+    <div *ngIf="isFullData" class="grid-cell">{{ effectDetails.details }}</div>
+  </ng-container>
+</div>

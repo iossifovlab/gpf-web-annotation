@@ -1,0 +1,21 @@
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  margin: 25px 25px 15px;
+}
+
+.grid-header {
+  min-height: 2rem;
+  line-height: 2rem;
+  border: 1px solid #cfd8df;
+  background-color: #ecf1f6;
+  text-align: center;
+  font-weight: bold;
+}
+
+.grid-cell {
+  border: 1px solid #cfd8df;
+  text-align: center;
+  padding: 7px;
+  text-wrap: nowrap;
+}
