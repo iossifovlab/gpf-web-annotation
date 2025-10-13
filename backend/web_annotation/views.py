@@ -523,6 +523,7 @@ class SingleAnnotation(AnnotationBaseView):
                 attributes.append({
                     "name": attribute_info.name,
                     "description": attribute_info.description,
+                    "source": attribute_info.source,
                     "result": {
                         "value": value,
                         "histogram": histogram_path,
