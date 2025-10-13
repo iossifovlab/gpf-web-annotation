@@ -538,8 +538,9 @@ def test_single_annotation(admin_client: Client) -> None:
         },
         "attributes": [
             {
-                "name": "pos1",
+                "name": "position_1",
                 "description": "test position score",
+                "source": "pos1",
                 "result": {
                     "value": 0.1,
                     "histogram": "histograms/scores/pos1?score_id=pos1"
