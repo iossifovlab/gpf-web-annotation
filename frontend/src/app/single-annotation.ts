@@ -77,6 +77,7 @@ export class Attribute {
   public constructor(
     public name: string,
     public description: string,
+    public source: string,
     public result: Result,
     public help: string,
   ) {}
@@ -105,6 +106,7 @@ export class Attribute {
     return new Attribute(
       json['name'] as string,
       json['description'] as string,
+      json['source'] as string,
       {
         /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
         value: json['result']['value'],

@@ -104,9 +104,9 @@ describe('SingleAnnotationReportComponent', () => {
       new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
       [
         new Annotator(new AnnotatorDetails('allele_score', 'desc', ''), [
-          new Attribute('attr1', 'desc1', {value: 'true', histogramLink: null} as Result, ''),
-          new Attribute('attr2', 'desc2', {value: 'false', histogramLink: null} as Result, ''),
-          new Attribute('attr3', 'desc3', {value: 0, histogramLink: null} as Result, ''),
+          new Attribute('attr1', 'desc1', 'AF', {value: 'true', histogramLink: null} as Result, ''),
+          new Attribute('attr2', 'desc2', 'AF', {value: 'false', histogramLink: null} as Result, ''),
+          new Attribute('attr3', 'desc3', 'AF', {value: 0, histogramLink: null} as Result, ''),
         ])
       ],
     );

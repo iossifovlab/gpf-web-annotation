@@ -113,6 +113,11 @@
   padding-top: 0;
 }
 
+.attribute-source {
+  margin-top: 8px;
+  color: #85a2b9;
+}
+
 .attributes {
   width: 55vw;
 }
