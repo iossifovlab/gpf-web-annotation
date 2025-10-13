@@ -17,7 +17,7 @@ export class LoginComponent implements OnInit {
   @ViewChild('passwordInput') private password!: ElementRef;
   public responseMessage: string = '';
   public readonly environment = environment;
-  public readonly reset_password_url = `${environment.apiPath}/forgotten_password?redirect=${window.location.origin}`;
+  public readonly reset_password_url = `${environment.apiPath}/forgotten_password`;
 
   public constructor(private usersService: UsersService, private router: Router) {}
 

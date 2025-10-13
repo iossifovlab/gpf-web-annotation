@@ -47,7 +47,6 @@ describe('UsersService', () => {
       {
         email: 'mockEmail@email.com',
         password: 'mockPassword',
-        redirect: "http://localhost",
       }
     );
 

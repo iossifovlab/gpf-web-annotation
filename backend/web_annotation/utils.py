@@ -1,12 +1,12 @@
 
-from typing import Any, Type
+from typing import Any
 
 from django import forms
 from django.conf import settings
 from django.contrib.auth import password_validation
 from django.contrib.sessions.models import Session
 from django.core.exceptions import ValidationError
-from django.db.models import Model, ObjectDoesNotExist
+from django.db.models import ObjectDoesNotExist
 from django.utils.translation import gettext_lazy
 from django.views.decorators.debug import sensitive_variables
 from rest_framework.views import Request
@@ -15,13 +15,13 @@ from web_annotation.models import AccountConfirmationCode, BaseVerificationCode,
 from web_annotation.tasks import send_email
 
 
-def verify_user(user: User, redirect_url: str) -> None:
+def verify_user(user: User) -> None:
     verif_code = AccountConfirmationCode.create(user)
-    send_confirmation_email(user, verif_code, redirect_url)
+    send_confirmation_email(user, verif_code)
 
 
 def send_confirmation_email(
-    user: User, verif_path: BaseVerificationCode, redirect_url: str,
+    user: User, verif_path: BaseVerificationCode,
 ) -> None:
     """Return dict with subject and message of the email."""
     # pylint: disable=import-outside-toplevel
@@ -29,13 +29,12 @@ def send_confirmation_email(
         settings.EMAIL_VERIFICATION_ENDPOINT,
         settings.EMAIL_ACCOUNT_CONFIRMATION_PATH,
         str(verif_path.path),
-        redirect_url,
     )
     send_email.delay(email["subject"], email["message"], [user.email])
 
 
 def _create_confirmation_email(
-    endpoint: str, path: str, verification_path: str, redirect_url: str,
+    endpoint: str, path: str, verification_path: str,
 ) -> dict[str, str]:
     message = (
         "Welcome to GPFWA: Genotype and Phenotype in Families Web Annotation! "
@@ -48,7 +47,6 @@ def _create_confirmation_email(
         "endpoint": endpoint,
         "path": path,
         "verification_path": verification_path,
-        "redirect": redirect_url,
     }
 
     return _build_email_template(email_settings)
@@ -61,9 +59,9 @@ class PasswordForgottenForm(forms.Form):
         widget=forms.EmailInput(attrs={"autocomplete": "email"}),
     )
 
-def reset_password(user: User, redirect_url: str) -> None:
+def reset_password(user: User) -> None:
     verif_code = ResetPasswordCode.create(user)
-    send_reset_email(user, verif_code, redirect_url)
+    send_reset_email(user, verif_code)
 
 def deauthenticate(user: User) -> None:
     all_sessions = Session.objects.all()
@@ -73,7 +71,7 @@ def deauthenticate(user: User) -> None:
             session.delete()
 
 def send_reset_email(
-    user: User, verif_path: BaseVerificationCode, redirect_url: str,
+    user: User, verif_path: BaseVerificationCode,
 ) -> None:
     """Return dict with subject and message of the email."""
     # pylint: disable=import-outside-toplevel
@@ -81,12 +79,11 @@ def send_reset_email(
         settings.EMAIL_VERIFICATION_ENDPOINT,
         settings.EMAIL_VERIFICATION_RESET_PATH,
         str(verif_path.path),
-        redirect_url,
     )
     send_email.delay(email["subject"], email["message"], [user.email])
 
 def _create_reset_mail(
-    endpoint: str, path: str, verification_path: str, redirect_url: str,
+    endpoint: str, path: str, verification_path: str,
 ) -> dict[str, str]:
     """Create email template for password reset."""
     message = (
@@ -102,7 +99,6 @@ def _create_reset_mail(
         "endpoint": endpoint,
         "path": path,
         "verification_path": verification_path,
-        "redirect": redirect_url,
     }
 
     return _build_email_template(email_settings)
@@ -111,7 +107,6 @@ def _build_email_template(email_settings: dict[str, str]) -> dict[str, str]:
     subject = email_settings["subject"]
     message = email_settings["initial_message"]
     path = email_settings["path"].format(
-        email_settings["redirect"],
         email_settings["verification_path"],
     )
 

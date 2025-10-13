@@ -64,7 +64,6 @@ export class UsersService {
       {
         email: email,
         password: password,
-        redirect: window.location.origin,
       },
     );
   }

@@ -29,3 +29,6 @@ GRR_DIRECTORY = str(
 GENOME_PIPELINES = {
     "hg38": "pipeline/test_pipeline",
 }
+
+EMAIL_REDIRECT_ENDPOINT = os.environ.get(
+    "GPFWA_EMAIL_REDIRECT_ENDPOINT", "http://testserver/")

@@ -429,7 +429,7 @@ class Registration(views.APIView):
 
         user = User.objects.create_user(email, email, password)
         user.save()
-        verify_user(user, str(request.data["redirect"]))
+        verify_user(user)
         return Response(status=views.status.HTTP_200_OK)
 
 
@@ -579,8 +579,8 @@ class ConfirmAccount(views.APIView):  # USE
         if verif_code is not None:
             verif_code.delete()
             user.activate()
-        redirect_uri = request.GET.get("redirect")
 
+        redirect_uri = settings.EMAIL_REDIRECT_ENDPOINT
         return HttpResponseRedirect(redirect_uri)
 
 
@@ -589,8 +589,6 @@ class ForgotPassword(views.APIView):  # USE
 
     def get(self, request: Request) -> HttpResponse:
         form = PasswordForgottenForm()
-        request.session["redirect_url"] = request.GET.get("redirect", "")
-        request.session.modified = True
 
         return render(
             cast(HttpRequest, request),
@@ -635,9 +633,8 @@ class ForgotPassword(views.APIView):  # USE
                     },
                     status=views.status.HTTP_400_BAD_REQUEST,
                 )
-            redirect_url = request.session.get("redirect_url")
 
-            reset_password(user, redirect_url)
+            reset_password(user)
 
             return render(
                 request,  # pyright: ignore
@@ -751,8 +748,9 @@ class PasswordReset(views.APIView):
         if verif_code is not None:
             verif_code.delete()
 
-        redirect_uri = request.session.get("redirect_url")
+        redirect_uri = settings.EMAIL_REDIRECT_ENDPOINT
         return HttpResponseRedirect(redirect_uri)
+
 
 class HistogramView(AnnotationBaseView):
 

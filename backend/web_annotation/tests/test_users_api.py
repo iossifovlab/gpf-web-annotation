@@ -39,7 +39,6 @@ def test_register(client: Client) -> None:
         {
             "email": "gosho@example.com",
             "password": "secret",
-            "redirect": "http://testserver/",
         },
         content_type="application/json",
     )
@@ -58,7 +57,6 @@ def test_register_and_activate_account(
         {
             "email": "temp@example.com",
             "password": "secret",
-            "redirect": "http://testserver/",
         },
         content_type="application/json",
     )
@@ -66,7 +64,7 @@ def test_register_and_activate_account(
     assert User.objects.filter(email="temp@example.com").exists()
 
     message = mail_client.find_message_to_user("temp@example.com")
-    assert "/confirm_account?redirect=http://testserver/&code=" \
+    assert "/confirm_account?code=" \
         in message["Content"]["Body"]
 
     confirmation_link_search = re.search(
@@ -232,10 +230,6 @@ def test_reset_password_email(
 ) -> None:
     mail_client.delete_all_messages()
 
-    # Set redirect link first
-    response = client.get(
-        "/api/forgotten_password?redirect=http://testserver/",
-    )
     response = client.post(
         "/api/forgotten_password",
         {"email": "user@example.com"},
@@ -246,8 +240,7 @@ def test_reset_password_email(
     assert emails["total"] != 0
 
     message = mail_client.find_message_to_user("user@example.com")
-    assert "/reset_password?redirect=http://testserver/&code=" \
-        in message["Content"]["Body"]
+    assert "/reset_password?code=" in message["Content"]["Body"]
 
 
 @pytest.mark.django_db
@@ -300,9 +293,6 @@ def test_reset_password_form(
 
     mail_client.delete_all_messages()
 
-    response = client.get(
-        "/api/forgotten_password?redirect=http://testserver/",
-    )
     response = client.post(
         "/api/forgotten_password",
         {"email": "temp@example.com"},
@@ -322,7 +312,6 @@ def test_reset_password_form(
         "/api/reset_password",
         data={
             "code": code,
-            "redirect": "http://testserver/",
             "new_password1": "newsecret",
             "new_password2": "newsecret",
         },
@@ -369,7 +358,6 @@ def test_reset_password_form_with_invalid_code(
         "/api/reset_password",
         data={
             "code": code,
-            "redirect": "",
             "new_password1": "newsecret",
             "new_password2": "newsecret",
         },
@@ -380,7 +368,6 @@ def test_reset_password_form_with_invalid_code(
         "/api/reset_password",
         data={
             "code": code,
-            "redirect": "",
             "new_password1": "newsupersecret",
             "new_password2": "newsupersecret",
         },
@@ -401,7 +388,6 @@ def test_activation_of_account_through_reset_password(
         {
             "email": "temp@example.com",
             "password": "secret",
-            "redirect": "http://testserver/",
         },
         content_type="application/json",
     )
@@ -430,7 +416,6 @@ def test_activation_of_account_through_reset_password(
         "/api/reset_password",
         data={
             "code": code,
-            "redirect": "",
             "new_password1": "newsecret",
             "new_password2": "newsecret",
         },

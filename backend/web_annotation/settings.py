@@ -220,8 +220,10 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 EMAIL_VERIFICATION_ENDPOINT = os.environ.get(
     "GPFWA_EMAIL_VERIFICATION_ENDPOINT", "http://localhost:8000")
-EMAIL_ACCOUNT_CONFIRMATION_PATH = "/api/confirm_account?redirect={}&code={}"
-EMAIL_VERIFICATION_RESET_PATH = "/api/reset_password?redirect={}&code={}"
+EMAIL_REDIRECT_ENDPOINT = os.environ.get(
+    "GPFWA_EMAIL_REDIRECT_ENDPOINT", "http://localhost:4200")
+EMAIL_ACCOUNT_CONFIRMATION_PATH = "/api/confirm_account?code={}"
+EMAIL_VERIFICATION_RESET_PATH = "/api/reset_password?code={}"
 
 
 STATIC_URL = '/static/'
