@@ -454,15 +454,20 @@ class AnnotationConfigValidation(AnnotationBaseView):
         content = request.data.get("config")
         assert isinstance(content, str)
 
+        result = {"errors": ""}
+
         try:
             AnnotationConfigParser.parse_str(content, grr=self.grr)
         except (AnnotationConfigurationError, KeyError) as e:
-            return Response(
-                {"reason": str(e)},
-                status=views.status.HTTP_400_BAD_REQUEST,
-            )
+            error = str(e)
+            if error ==  "":
+                result = {"errors": "Invalid configuration"}
+            else:
+                result = {"errors": f"Invalid configuration, reason: {error}"}
+        except Exception:
+            result = {"errors": "Invalid configuration"}
 
-        return Response(status=views.status.HTTP_200_OK)
+        return Response(result, status=views.status.HTTP_200_OK)
 
 
 class ListGenomePipelines(AnnotationBaseView):

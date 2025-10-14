@@ -488,6 +488,7 @@ def test_validate_annotation_config(
         {"config": annotation_config},
     )
     assert response.status_code == 200
+    assert response.json() == {"errors": ""}
 
     annotation_config = "position_score: scores/pos1"
 
@@ -495,7 +496,11 @@ def test_validate_annotation_config(
         "/api/jobs/validate",
         {"config": annotation_config},
     )
-    assert response.status_code == 400
+    assert response.status_code == 200
+    assert response.json() == {
+        "errors": "Invalid configuration, reason: 'annotators'",
+    }
+
 
 def test_single_annotation(admin_client: Client) -> None:
     response = admin_client.post(
