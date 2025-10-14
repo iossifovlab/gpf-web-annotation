@@ -6,7 +6,7 @@ from typing import Any
 from celery import shared_task
 from celery.schedules import crontab
 from web_annotation.celery_app import app
-from .models import Job
+from .models import Job, JobDetails
 from .annotation import annotate_vcf_file
 from django.core.mail import send_mail
 from django.utils import timezone
@@ -15,9 +15,38 @@ from datetime import timedelta
 logger = logging.getLogger(__name__)
 
 
+def specify_job(
+    job_pk: int,
+    storage_dir: Path,
+    grr_definition: Path,
+    *,
+    chrom_col: str,
+    pos_col: str,
+    ref_col: str,
+    alt_col: str,
+) -> Job:
+    job = get_job(job_pk)
+    details = get_job_details(job_pk)
+    if job.status != Job.Status.SPECIFYING:
+        raise ValueError("Cannot specify a job that is not for specification!")
+    details.chr_col = chrom_col
+    details.pos_col = pos_col
+    details.ref_col = ref_col
+    details.alt_col = alt_col
+    job.status = Job.Status.WAITING
+    job.save()
+    details.save()
+
+    create_annotation(job.pk, storage_dir, grr_definition)
+
+    return job
+
 def get_job(job_pk: int) -> Job:
     return Job.objects.get(pk=job_pk)
 
+
+def get_job_details(job_pk: int) -> JobDetails:
+    return JobDetails.objects.get(job__pk=job_pk)
 
 def update_job_in_progress(job: Job) -> None:
     if job.status != Job.Status.WAITING:

@@ -1,4 +1,5 @@
 # pylint: disable=C0116
+from django.db.models import ObjectDoesNotExist
 import pytest
 import datetime
 import pathlib
@@ -12,7 +13,8 @@ from django.test import Client
 from django.conf import settings
 from django.utils import timezone
 
-from web_annotation.models import Job, User
+from web_annotation.models import Job, JobDetails, User
+from web_annotation.tasks import specify_job
 
 
 def test_get_jobs(
@@ -634,3 +636,34 @@ def test_upload_tsv_file(admin_client: Client) -> None:
     job = Job.objects.get(id=3)
 
     assert job.status == Job.Status.SPECIFYING
+
+@pytest.mark.django_db
+def test_specify_job(
+    mocker: MockerFixture,
+) -> None:
+    mocked = mocker.patch(
+        "web_annotation.tasks.create_annotation")
+    user = User.objects.get(email="user@example.com")
+    job = Job(
+        input_path="test",
+        config_path="test",
+        result_path="test",
+        status=Job.Status.SPECIFYING,
+        owner=user,
+    )
+    job.save()
+    job_details = JobDetails(job=job)
+    job_details.save()
+
+    specify_job(
+        job.pk, pathlib.Path("test"), pathlib.Path("test"),
+        chrom_col="chr", pos_col="pos", ref_col="ref", alt_col="alt",
+    )
+
+
+def test_specify_job_errors_on_nonexistant_job() -> None:
+    with pytest.raises(ObjectDoesNotExist):
+        specify_job(
+            999, pathlib.Path("test"), pathlib.Path("test"),
+            chrom_col="chr", pos_col="pos", ref_col="ref", alt_col="alt",
+        )
