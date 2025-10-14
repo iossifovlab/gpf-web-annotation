@@ -174,7 +174,7 @@
 
 textarea {
   width: 97%;
-  height: 90%;
+  height: 85%;
   resize: none;
   border: 2px solid #cfd8df;
   border-radius: 15px;
@@ -186,4 +186,9 @@ textarea:focus-visible {
   border-color: #85a2b9;
   outline: 0;
   box-shadow: 0 0 0 0.2rem #cfd8df;
+}
+
+.invalid-config {
+  border: 2px solid #d74b59;
+  box-shadow: 0 0 0 0.2rem #edbec3;
 }

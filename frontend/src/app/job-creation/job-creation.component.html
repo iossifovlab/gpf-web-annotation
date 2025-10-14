@@ -27,7 +27,12 @@
       </div>
     </ng-container>
     <ng-container *ngIf="view === 'text editor'">
-      <textarea id="yml-textarea" [(ngModel)]="ymlConfig"></textarea>
+      <textarea
+        id="yml-textarea"
+        [(ngModel)]="ymlConfig"
+        [ngClass]="{ 'invalid-config': configError }"
+        (change)="isConfigValid(ymlConfig)"></textarea>
+      <div id="error-message">{{ configError }}</div>
     </ng-container>
   </div>
   <div *ngIf="!file" id="file-upload-field" (dragover)="onDragOver($event)" (drop)="onDropSuccess($event)">

@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { map, Observable } from 'rxjs';
+import { catchError, map, Observable, of } from 'rxjs';
 import { Job } from './jobs';
 import { Pipeline } from './pipelines';
 import { environment } from '../../../environments/environment';
@@ -8,6 +8,7 @@ import { environment } from '../../../environments/environment';
 @Injectable()
 export class JobsService {
   private readonly createJobUrl = `${environment.apiPath}/jobs/create`;
+  private readonly validateJobConfigUrl = `${environment.apiPath}/jobs/validate`;
   private readonly getUsersJobsUrl = `${environment.apiPath}/jobs`;
   private readonly getPipelinesUrl = `${environment.apiPath}/pipelines`;
 
@@ -54,6 +55,21 @@ export class JobsService {
       this.getUsersJobsUrl + jobId,
       options
     ).pipe(map((response: object) => Job.fromJson(response)));
+  }
+
+  public validateJobConfig(config: string): Observable<string> {
+    const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
+
+    return this.http.post(
+      this.validateJobConfigUrl,
+      {config: config},
+      options
+    ).pipe(
+      map((response: object) => {
+        return response["errors"] as string;
+      }),
+
+    );
   }
 
   public getDownloadJobResultLink(jobId: number): string {

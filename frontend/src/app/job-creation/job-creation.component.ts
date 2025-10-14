@@ -21,6 +21,7 @@ export class JobCreationComponent implements OnInit {
   public pipelines : Pipeline[] = [];
   public pipelineId = '';
   public ymlConfig = '';
+  public configError = '';
 
   public constructor(private dialogRef: MatDialogRef<JobCreationComponent>, private jobsService: JobsService) { }
 
@@ -67,6 +68,15 @@ export class JobCreationComponent implements OnInit {
       const file = event.dataTransfer.files[0];
       this.onFileChange(file);
     }
+  }
+
+  public isConfigValid(config: string): void {
+    this.jobsService.validateJobConfig(this.ymlConfig).pipe(
+      take(1)
+    ).subscribe((errorReason: string) => {
+      this.configError = errorReason;
+      console.log(this.configError);
+    });
   }
 
   private isFormatValid(file: File): void {
