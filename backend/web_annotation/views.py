@@ -41,7 +41,7 @@ from django.views.decorators.http import last_modified
 from pysam import VariantFile
 from rest_framework import generics, permissions, views
 from rest_framework.parsers import JSONParser, MultiPartParser
-from rest_framework.request import Request
+from rest_framework.request import Request, QueryDict, MultiValueDict
 from rest_framework.response import Response
 
 from web_annotation.utils import (
@@ -57,6 +57,7 @@ from .models import (
     AccountConfirmationCode,
     BaseVerificationCode,
     Job,
+    JobDetails,
     ResetPasswordCode,
     User,
 )
@@ -226,6 +227,66 @@ class JobCreate(AnnotationBaseView):
             return True
         return len(list(file.fetch())) < settings.LIMITS["variant_count"]
 
+    def is_vcf_file(self, file: UploadedFile, input_path: Path):
+        assert file.name is not None
+        if file.name.endswith(".vcf"):
+            return True
+
+        try:
+            VariantFile(str(input_path.absolute()), "r")
+        except ValueError:
+            return False
+        else:
+            return True
+
+    def is_columns_file(self, file: UploadedFile, input_path: Path):
+        assert file.name is not None
+        if file.name.endswith(".tsv") or file.name.endswith(".csv"):
+            return True
+        try:
+            cols_file_content = input_path.read_text()
+        except UnicodeDecodeError:
+            return False
+        lines = cols_file_content.split("\n")
+        if len(lines) >= 2:
+            header = lines[0]
+            if len(header.split(",")) >= 4:
+                return True
+            elif len(header.split("\t")) >= 4:
+                return True
+        else:
+            return False
+
+        return True
+
+    def _get_config_raw_from_request(self, request: Request) -> str:
+        assert isinstance(request.data, QueryDict)
+        assert isinstance(request.FILES, MultiValueDict)
+        if "pipeline" in request.data:
+            pipeline_id = request.data["pipeline"]
+            if pipeline_id not in self.pipelines:
+                raise ValueError(f"Pipeline {pipeline_id} not found!")
+            content = self.pipelines[pipeline_id]["content"]
+        else:
+            config_file = request.FILES["config"]
+            assert isinstance(config_file, UploadedFile)
+            raw_content = config_file.read()
+            content = raw_content.decode()
+        return content
+
+    def _cleanup(self, job_name: str) -> None:
+        data_filename = f"{job_name}"
+        inputs = Path(settings.JOB_INPUT_STORAGE_DIR).glob(f"{data_filename}*")
+        for in_file in inputs:
+            in_file.unlink(missing_ok=True)
+        config_filename = f"{job_name}.yaml"
+        config_path = Path(
+            settings.ANNOTATION_CONFIG_STORAGE_DIR, config_filename)
+        config_path.unlink(missing_ok=True)
+        results = Path(settings.JOB_RESULT_STORAGE_DIR).glob(f"{data_filename}*")
+        for out_file in results:
+            out_file.unlink(missing_ok=True)
+
     def post(self, request: Request) -> Response:
         if not self.check_if_user_can_create(request.user):
             return Response(
@@ -235,25 +296,25 @@ class JobCreate(AnnotationBaseView):
         job_name = f"job-{int(time.time())}"
 
         assert request.data is not None
+        assert isinstance(request.data, QueryDict)
+        assert isinstance(request.FILES, MultiValueDict)
 
         config_filename = f"{job_name}.yaml"
-        if "pipeline" in request.data:
-            pipeline_id = request.data["pipeline"]
-            if pipeline_id not in self.pipelines:
-                return Response(status=views.status.HTTP_404_NOT_FOUND)
-            content = self.pipelines[pipeline_id]["content"]
-        else:
-            # Handle annotation config file
-            raw_content = request.FILES["config"].read()
-            try:
-                content = raw_content.decode()
-                if "ASCII text" not in magic.from_buffer(content):
-                    return Response(status=views.status.HTTP_400_BAD_REQUEST)
-            except UnicodeDecodeError:
-                return Response(
-                    {"reason": "Invalid pipeline configuration file"},
-                    status=views.status.HTTP_400_BAD_REQUEST,
-                )
+        try:
+            content = self._get_config_raw_from_request(request)
+        except UnicodeDecodeError:
+            return Response(
+                {"reason": "Invalid pipeline configuration file"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+        except ValueError as e:
+            return Response(
+                {"reason": str(e)},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        if "ASCII text" not in magic.from_buffer(content):
+            return Response(status=views.status.HTTP_400_BAD_REQUEST)
 
         try:
             AnnotationConfigParser.parse_str(content, grr=self.grr)
@@ -263,41 +324,6 @@ class JobCreate(AnnotationBaseView):
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
 
-        # TODO Verify validity of config
-        # Handle input VCF file
-        data_filename = f"{job_name}.vcf"
-        uploaded_file = request.FILES["data"]
-        if not self.check_valid_upload_size(uploaded_file, request.user):
-            return Response(
-                status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
-
-        try:
-            vcf = uploaded_file.read().decode()
-        except UnicodeDecodeError:
-            return Response(
-                {"reason": "Invalid VCF file"},
-                status=views.status.HTTP_400_BAD_REQUEST,
-            )
-        input_path = Path(
-            settings.JOB_INPUT_STORAGE_DIR,
-            request.user.email,
-            data_filename,
-        )
-        input_path.parent.mkdir(parents=True, exist_ok=True)
-        input_path.write_text(vcf)
-
-        try:
-            vcf = VariantFile(str(input_path.absolute()), "r")
-        except ValueError:
-            return Response(
-                {"reason": "Invalid VCF file"},
-                status=views.status.HTTP_400_BAD_REQUEST,
-            )
-
-        if not self.check_variants_limit(vcf, request.user):
-            return Response(
-                status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
-
         config_path = Path(
             settings.ANNOTATION_CONFIG_STORAGE_DIR,
             request.user.email,
@@ -306,27 +332,90 @@ class JobCreate(AnnotationBaseView):
         config_path.parent.mkdir(parents=True, exist_ok=True)
         config_path.write_text(content)
 
-        result_path = Path(
-            settings.JOB_RESULT_STORAGE_DIR,
-            request.user.email,
-            data_filename
-        )
-        result_path.parent.mkdir(parents=True, exist_ok=True)
 
-        # Create Job model instance
+        uploaded_file = request.FILES["data"]
+        assert isinstance(uploaded_file, UploadedFile)
+        if uploaded_file is None:
+            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+        if not self.check_valid_upload_size(uploaded_file, request.user):
+            return Response(
+                status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
+
+        data_filename = f"{job_name}"
+        input_path = Path(settings.JOB_INPUT_STORAGE_DIR, data_filename)
+        input_path.parent.mkdir(parents=True, exist_ok=True)
+        input_path.write_bytes(uploaded_file.read())
+        if self.is_vcf_file(uploaded_file, input_path):
+            data_filename = f"{job_name}.vcf"
+            input_path = input_path.rename(
+                Path(settings.JOB_INPUT_STORAGE_DIR / data_filename))
+        elif self.is_columns_file(uploaded_file, input_path):
+            data_filename = f"{job_name}.txt"
+            input_path = input_path.rename(
+                Path(settings.JOB_INPUT_STORAGE_DIR, data_filename))
+        else:
+            self._cleanup(job_name)
+            return Response(
+                {"reason": "File could not be identified!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        result_path = Path(settings.JOB_RESULT_STORAGE_DIR, data_filename)
+
         job = Job(input_path=input_path,
                   config_path=config_path,
                   result_path=result_path,
                   owner=request.user)
-        job.save()
 
-        create_annotation.delay(
-            job.pk,
-            str(self.result_storage_dir),
-            str(self.get_grr_definition()),
-        )
 
-        return Response(status=views.status.HTTP_204_NO_CONTENT)
+        if data_filename.endswith(".vcf"):
+            try:
+                vcf = VariantFile(str(input_path.absolute()), "r")
+            except ValueError:
+                self._cleanup(job_name)
+                return Response(
+                    {"reason": "Invalid VCF file"},
+                    status=views.status.HTTP_400_BAD_REQUEST,
+                )
+
+            if not self.check_variants_limit(vcf, request.user):
+                self._cleanup(job_name)
+                return Response(
+                    status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
+
+            job.save()
+            create_annotation.delay(
+                job.pk,
+                str(self.result_storage_dir),
+                str(self.get_grr_definition()),
+            )
+
+            return Response(status=views.status.HTTP_204_NO_CONTENT)
+        else:
+            cols_file_content = input_path.read_text()
+            lines = cols_file_content.split("\n")
+            header = lines[0]
+            if len(header.split(",")) >= 4:
+                sep = ","
+            elif len(header.split("\t")) >= 4:
+                sep = "\t"
+            columns = ";".join(header.split(sep))
+            job.status = job.Status.SPECIFYING
+            job_details = JobDetails(columns=columns, separator=sep, job=job)
+            file_header = dict(
+                zip(header.split(sep), lines[1].split(sep), strict=True)
+            )
+
+            assert file_header is not None
+            job.save()
+            job_details.save()
+            return Response(
+                {
+                    "columns": job_details.columns.split(";"),
+                    "head": file_header,
+                },
+                status=views.status.HTTP_200_OK,
+            )
 
 
 class JobGetFile(views.APIView):

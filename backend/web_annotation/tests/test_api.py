@@ -596,3 +596,41 @@ def test_genomes_view(admin_client: Client) -> None:
     assert response.status_code == 200
     assert len(response.data) == 1
     assert response.data[0] == "hg38"
+
+
+@pytest.mark.django_db
+def test_upload_tsv_file(admin_client: Client) -> None:
+
+    annotation_config = "- position_score: scores/pos1"
+    tsv = textwrap.dedent("""
+        chrom	pos	ref	alt
+        chr1	1	C	A
+    """).strip()
+
+    response = admin_client.post(
+        "/api/jobs/create",
+        {"config": ContentFile(annotation_config),
+         "data": ContentFile(tsv)},
+    )
+
+    assert response is not None
+    assert response.status_code == 200
+
+    assert response.data is not None
+
+    assert response.data == {
+        "columns": ["chrom", "pos", "ref", "alt"],
+        "head": {
+            "chrom": "chr1",
+            "pos": "1",
+            "ref": "C",
+            "alt": "A"
+        }
+    }
+
+
+    user = User.objects.get(email="admin@example.com")
+    assert Job.objects.filter(owner=user).count() == 2
+    job = Job.objects.get(id=3)
+
+    assert job.status == Job.Status.SPECIFYING
