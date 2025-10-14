@@ -119,7 +119,8 @@ def test_create_job(
     assert saved_config.read_text() == annotation_config
 
     result_path = pathlib.Path(job.result_path)
-    assert str(result_path.parent) == settings.JOB_RESULT_STORAGE_DIR
+    assert str(result_path.parent) == settings.JOB_RESULT_STORAGE_DIR \
+        + f"/{user.email}"
     assert result_path.exists()
 
 

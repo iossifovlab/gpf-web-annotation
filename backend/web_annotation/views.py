@@ -278,7 +278,11 @@ class JobCreate(AnnotationBaseView):
                 {"reason": "Invalid VCF file"},
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
-        input_path = Path(settings.JOB_INPUT_STORAGE_DIR, data_filename)
+        input_path = Path(
+            settings.JOB_INPUT_STORAGE_DIR,
+            request.user.email,
+            data_filename,
+        )
         input_path.parent.mkdir(parents=True, exist_ok=True)
         input_path.write_text(vcf)
 
@@ -295,12 +299,19 @@ class JobCreate(AnnotationBaseView):
                 status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
 
         config_path = Path(
-            settings.ANNOTATION_CONFIG_STORAGE_DIR, config_filename)
+            settings.ANNOTATION_CONFIG_STORAGE_DIR,
+            request.user.email,
+            config_filename,
+        )
         config_path.parent.mkdir(parents=True, exist_ok=True)
         config_path.write_text(content)
 
-
-        result_path = Path(settings.JOB_RESULT_STORAGE_DIR, data_filename)
+        result_path = Path(
+            settings.JOB_RESULT_STORAGE_DIR,
+            request.user.email,
+            data_filename
+        )
+        result_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Create Job model instance
         job = Job(input_path=input_path,
@@ -589,7 +600,7 @@ class ConfirmAccount(views.APIView):  # USE
         return HttpResponseRedirect(redirect_uri)
 
 
-class ForgotPassword(views.APIView):  # USE
+class ForgotPassword(views.APIView):
     """View for forgotten password."""
 
     def get(self, request: Request) -> HttpResponse:
