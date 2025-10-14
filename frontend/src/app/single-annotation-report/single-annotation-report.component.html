@@ -36,7 +36,12 @@
                 *ngIf="!attribute.result.histogramLink && !tableViewSources.includes(attribute.source)"
                 >{{ attribute.result.value }}</div
               >
-              <div *ngIf="tableViewSources.includes(attribute.source) && attribute.result.value">
+              <div
+                *ngIf="
+                  tableViewSources.includes(attribute.source) &&
+                  annotator.details.name === 'effect_annotator' &&
+                  attribute.result.value
+                ">
                 <app-effect-table
                   [rawEffectDetails]="attribute.result.value.toString()"
                   [source]="attribute.source"></app-effect-table>
