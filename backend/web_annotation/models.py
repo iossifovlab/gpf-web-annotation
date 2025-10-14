@@ -46,6 +46,10 @@ class Job(models.Model):
     is_active = models.BooleanField(default=True)
 
 class JobDetails(models.Model):
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["job"], name="unique_job_details")
+        ]
     chr_col = models.CharField(max_length=64)
     pos_col = models.CharField(max_length=64)
     ref_col = models.CharField(max_length=64)
