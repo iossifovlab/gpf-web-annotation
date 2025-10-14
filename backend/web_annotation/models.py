@@ -25,10 +25,11 @@ class User(AbstractUser):
 
 class Job(models.Model):
     class Status(models.IntegerChoices):
-        WAITING = 1
-        IN_PROGRESS = 2
-        SUCCESS = 3
-        FAILED = 4
+        SPECIFYING = 1
+        WAITING = 2
+        IN_PROGRESS = 3
+        SUCCESS = 4
+        FAILED = 5
 
     input_path = models.FilePathField(
         path=settings.JOB_INPUT_STORAGE_DIR)
@@ -44,6 +45,15 @@ class Job(models.Model):
     created_at: models.Field = models.DateTimeField(default=timezone.now)
     is_active = models.BooleanField(default=True)
 
+class JobDetails(models.Model):
+    chr_col = models.CharField(max_length=64)
+    pos_col = models.CharField(max_length=64)
+    ref_col = models.CharField(max_length=64)
+    alt_col = models.CharField(max_length=64)
+    separator = models.CharField(max_length=1)
+    columns = models.TextField()
+    job = models.ForeignKey(
+        'web_annotation.Job', related_name='details', on_delete=models.CASCADE)
 
 class BaseVerificationCode(models.Model):
     """Base class for temporary codes for verifying the user without login."""
