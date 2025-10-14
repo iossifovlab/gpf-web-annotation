@@ -33,6 +33,18 @@ def update_job_failed(job: Job) -> None:
     job.status = Job.Status.FAILED
     job.save()
 
+    # pylint: disable=import-outside-toplevel
+    from django.conf import settings
+    send_email.delay(
+        "GPFWA: Annotation job failed",
+        (
+            "Your job has failed."
+            "Visit the web site to try running it again: "
+            f"{settings.EMAIL_REDIRECT_ENDPOINT}/jobs"
+        ),
+        [job.owner.email],
+    )
+
 
 def update_job_success(job: Job) -> None:
     if job.status != Job.Status.IN_PROGRESS:
@@ -42,6 +54,18 @@ def update_job_success(job: Job) -> None:
         )
     job.status = Job.Status.SUCCESS
     job.save()
+
+    # pylint: disable=import-outside-toplevel
+    from django.conf import settings
+    send_email.delay(
+        "GPFWA: Annotation job finished successfully",
+        (
+            "Your job has finished successfully. "
+            "Visit the web site to download the results: "
+            f"{settings.EMAIL_REDIRECT_ENDPOINT}/jobs"
+        ),
+        [job.owner.email],
+    )
 
 
 def run_job(job: Job, storage_dir: Path, grr_definition: Path) -> None:
