@@ -55,6 +55,7 @@ services:
         condition: service_started
     volumes:
       - ./gpfwa-data:/data
+      - ./gpfwa-logs:/logs
     volumes_from:
       - static-data
     environment:
@@ -68,6 +69,8 @@ services:
       GPFWA_DB_HOST: db
       GPFWA_DB_PORT: 5432
       GPFWA_DATA_STORAGE: /data
+      GPFWA_LOG_DIR: /logs
+      GPFWA_SECRET_KEY: "django-insecure-3rz4n(_u+x8r+n%&xr-(vg83v8&llq7pin*x%@%y@d8af%iphk"
     healthcheck:
       test: ["CMD", "curl", "http://localhost:9001/api/user_info"]
       interval: 10s

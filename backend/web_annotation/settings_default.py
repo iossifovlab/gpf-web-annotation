@@ -18,11 +18,15 @@ APPEND_SLASH = False
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = \
-    'django-insecure-3rz4n(_u+x8r+n%&xr-(vg83v8&llq7pin*x%@%y@d8af%iphk'
+
+SECRET_KEY = os.environ.get(
+    "GPFWA_SECRET_KEY",
+    'Ohze5Led4wi5xeirochee7mai8daet4thae7ZuquahmeeXaph6Ai5Riphiazohchaed8eec'
+    'aena6jongietoh9Ohye2ahpee7iduequ5iboovo8lue1phaib',
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -90,7 +94,7 @@ else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": "db.sqlite3",
+            "NAME": "./gpfwa/db.sqlite3",
             "USER": "",
             "PASSWORD": "",
             "HOST": "",
@@ -213,4 +217,68 @@ STATIC_URL = '/static/'
 
 GENOME_PIPELINES = {
     "hg38": "pipeline/Autism_annotation",
+}
+
+
+LOG_DIR = os.environ.get("GPFWA_LOG_DIR", "./gpfwa")
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "%(levelname)s %(asctime)s %(module)s %(process)d "
+            "%(thread)d %(message)s",
+        },
+    },
+    "handlers": {
+        "console": {
+            "level": "DEBUG",
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+        "logdebug": {
+            "level": "DEBUG",
+            "class": "logging.handlers.WatchedFileHandler",
+            "filename": f"{LOG_DIR}/gpfwa-debug.log",
+            "formatter": "verbose",
+        },
+        "logcelery": {
+            "level": "DEBUG",
+            "class": "logging.handlers.WatchedFileHandler",
+            "filename": f"{LOG_DIR}/gpfwa-celery.log",
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console", "logdebug"],
+            "propagate": True,
+            "level": "INFO",
+        },
+        "celery": {
+            "handlers": ["logcelery", "console"],
+            "level": "DEBUG",
+        },
+        "impala": {
+            "handlers": ["console", "logdebug"],
+            "level": "WARNING",
+            "propagate": True,
+        },
+        "fsspec": {
+            "handlers": ["console", "logdebug"],
+            "level": "WARNING",
+            "propagate": True,
+        },
+        "matplotlib": {
+            "handlers": ["console", "logdebug"],
+            "level": "INFO",
+            "propagate": True,
+        },
+        "": {
+            "handlers": ["console", "logdebug"],
+            "level": "DEBUG",
+            "propagate": True,
+        },
+    },
 }
