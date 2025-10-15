@@ -1,10 +1,18 @@
 name: gpfwa
 services:
 
-  gpf-dev:
+  ubuntu-image:
     build:
       context: .
-      dockerfile: Dockerfile.gpf_dev
+      dockerfile: Dockerfile.ubuntu
+
+  gpf-image:
+    build:
+      context: .
+      dockerfile: Dockerfile.gpf
+    depends_on:
+      ubuntu-image:
+        condition: service_completed_successfully
 
   pg-data:
     image: busybox:latest
@@ -45,7 +53,7 @@ services:
       context: backend
       dockerfile: Dockerfile
     depends_on:
-      gpf-dev:
+      gpf-image:
         condition: service_completed_successfully
       db:
         condition: service_healthy
@@ -71,6 +79,8 @@ services:
       GPFWA_DATA_STORAGE: /data
       GPFWA_LOG_DIR: /logs
       GPFWA_SECRET_KEY: "django-insecure-3rz4n(_u+x8r+n%&xr-(vg83v8&llq7pin*x%@%y@d8af%iphk"
+      GPFWA_EMAIL_VERIFICATION_ENDPOINT: "http://localhost"
+      GPFWA_EMAIL_REDIRECT_ENDPOINT: "http://localhost"
     healthcheck:
       test: ["CMD", "curl", "http://localhost:9001/api/user_info"]
       interval: 10s
@@ -135,6 +145,8 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    volumes_from:
+      - static-data
     healthcheck:
       test: ["CMD", "curl", "http://localhost/"]
       interval: 10s

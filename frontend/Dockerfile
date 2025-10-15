@@ -17,13 +17,9 @@ COPY . .
 # Build the Angular application
 RUN npm run build 
 
-FROM ubuntu:24.04 AS runner
+FROM gpfwa-ubuntu-image AS runtime
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get update --fix-missing && \
-	DEBIAN_FRONTEND=noninteractive apt-get install -y \
-		supervisor less curl wget \
-		apache2 && \
-	DEBIAN_FRONTEND=noninteractive apt-get clean
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y apache2
 
 RUN mkdir -p /logs
 RUN mkdir -p /site

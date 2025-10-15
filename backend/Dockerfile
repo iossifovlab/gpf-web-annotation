@@ -1,4 +1,4 @@
-FROM gpfwa-gpf-dev:latest AS build
+FROM gpfwa-gpf-image:latest AS build
 
 RUN mamba install -y -n base -c conda-forge conda-pack=0.8.1
 
@@ -19,7 +19,7 @@ RUN conda-pack -n gpf -o /tmp/gpf.tar && \
 RUN /gpf/bin/conda-unpack
 
 
-FROM ubuntu:24.04 AS runtime
+FROM gpfwa-ubuntu-image AS runtime
 
 COPY --from=build /gpf /gpf
 
@@ -41,7 +41,7 @@ RUN chmod +x /*.sh
 RUN echo "source /gpf/bin/activate" >> /etc/bash.bashrc
 # Explicitly add gpf/bin to the path to aid certain tools 
 # (like dask)in finding the needed executables
-ENV PATH /gpf/bin:$PATH
+ENV PATH=/gpf/bin:$PATH
 
 EXPOSE 80 443
 

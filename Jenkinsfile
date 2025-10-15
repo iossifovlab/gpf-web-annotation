@@ -43,7 +43,8 @@ pipeline {
         stage('Build') {
             steps {
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
-                sh "docker compose -f compose-jenkins.yaml build gpf-dev"
+                sh "docker compose -f compose-jenkins.yaml build ubuntu-image"
+                sh "docker compose -f compose-jenkins.yaml build gpf-image"
                 sh "docker compose -f compose-jenkins.yaml build"
             }
         }

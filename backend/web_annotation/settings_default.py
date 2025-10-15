@@ -45,6 +45,13 @@ INSTALLED_APPS = [
     'web_annotation.apps.WebAnnotationConfig',
 ]
 
+# List of finder classes that know how to find static files in
+# various locations.
+STATICFILES_FINDERS = [
+    "django.contrib.staticfiles.finders.FileSystemFinder",
+    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
+]
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -94,7 +101,7 @@ else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": "./db.sqlite3",
+            "NAME": "db.sqlite3",
             "USER": "",
             "PASSWORD": "",
             "HOST": "",
@@ -211,6 +218,7 @@ EMAIL_REDIRECT_ENDPOINT = os.environ.get(
 
 
 STATIC_URL = '/static/'
+STATIC_ROOT = 'static-root'
 
 GENOME_PIPELINES = {
     "hg38": "pipeline/Autism_annotation",

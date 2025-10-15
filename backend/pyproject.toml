@@ -12,7 +12,7 @@ description = "A Django app to contain GPF Web Annotation."
 readme = "README.rst"
 requires-python = ">= 3.12"
 authors = [
-    {name = "Seqpipe Ltd.", email = "info@seqpipe.com"},
+    {name = "Seqpipe Ltd.", email = "lubomir.chorbadjiev@gmail.com"},
 ]
 classifiers = [
     "Environment :: Web Environment",
@@ -32,9 +32,12 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://www.seqpipe.com/"
+Homepage = "https://www.iossifovlab.com/"
 
 [tool.setuptools.packages.find]
 where = ["."]
 exclude = ["**tests*"]
 namespaces = false
+
+[tool.setuptools.package-data]
+web_annotation = ["templates/*.html", "static/*"]
