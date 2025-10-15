@@ -15,6 +15,10 @@ from web_annotation.models import AccountConfirmationCode, BaseVerificationCode,
 from web_annotation.tasks import send_email
 
 
+EMAIL_ACCOUNT_CONFIRMATION_PATH = "/api/confirm_account?code={}"
+EMAIL_VERIFICATION_RESET_PATH = "/api/reset_password?code={}"
+
+
 def verify_user(user: User) -> None:
     verif_code = AccountConfirmationCode.create(user)
     send_confirmation_email(user, verif_code)
@@ -27,7 +31,7 @@ def send_confirmation_email(
     # pylint: disable=import-outside-toplevel
     email = _create_confirmation_email(
         settings.EMAIL_VERIFICATION_ENDPOINT,
-        settings.EMAIL_ACCOUNT_CONFIRMATION_PATH,
+        EMAIL_ACCOUNT_CONFIRMATION_PATH,
         str(verif_path.path),
     )
     send_email.delay(email["subject"], email["message"], [user.email])
@@ -77,7 +81,7 @@ def send_reset_email(
     # pylint: disable=import-outside-toplevel
     email = _create_reset_mail(
         settings.EMAIL_VERIFICATION_ENDPOINT,
-        settings.EMAIL_VERIFICATION_RESET_PATH,
+        EMAIL_VERIFICATION_RESET_PATH,
         str(verif_path.path),
     )
     send_email.delay(email["subject"], email["message"], [user.email])
