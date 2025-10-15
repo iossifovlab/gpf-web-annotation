@@ -47,6 +47,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_started
+      mail:
+        condition: service_started
     volumes:
       - ./gpfwa_data:/data
     environment:

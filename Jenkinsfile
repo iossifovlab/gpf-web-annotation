@@ -5,6 +5,10 @@ pipeline {
         copyArtifactPermission('/iossifovlab/*,/seqpipe/*');
         disableConcurrentBuilds()
     }
+    environment {
+        COMPOSE_PROJECT_NAME = "gpfwa-${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
+    }
+
     triggers {
         upstream(upstreamProjects: 'iossifovlab/gpf-conda-packaging/master', threshold: hudson.model.Result.SUCCESS)
     }
@@ -12,6 +16,7 @@ pipeline {
     stages {
         stage('Start') {
             steps {
+                sh "echo 'Starting build ${COMPOSE_PROJECT_NAME}'"
                 sh "docker compose -f compose-jenkins.yaml run --rm --entrypoint '/bin/bash -c' backend-tests 'rm -rf /wd/results'"
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
                 sh "rm -rf conda-channel"
