@@ -52,7 +52,7 @@ export class JobsService {
   public getJobDetails(jobId: number): Observable<Job> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
     return this.http.get(
-      this.getUsersJobsUrl + jobId,
+      this.getUsersJobsUrl + "/" + jobId,
       options
     ).pipe(map((response: object) => Job.fromJson(response)));
   }
