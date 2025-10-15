@@ -94,7 +94,7 @@ else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": "./gpfwa/db.sqlite3",
+            "NAME": "./db.sqlite3",
             "USER": "",
             "PASSWORD": "",
             "HOST": "",
@@ -220,7 +220,7 @@ GENOME_PIPELINES = {
 }
 
 
-LOG_DIR = os.environ.get("GPFWA_LOG_DIR", "./gpfwa")
+LOG_DIR = os.environ.get("GPFWA_LOG_DIR", ".")
 
 LOGGING = {
     "version": 1,
