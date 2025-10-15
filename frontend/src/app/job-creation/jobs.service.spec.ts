@@ -7,10 +7,11 @@ import { getStatusClassName, Job } from './jobs';
 import { Pipeline } from './pipelines';
 
 const jobsMockJson = [
-  { id: 1, created: '1.10.2025', owner: 'test@email.com', status: 2 },
-  { id: 2, created: '1.10.2025', owner: 'test@email.com', status: 4 },
-  { id: 3, created: '1.10.2025', owner: 'test@email.com', status: 3 },
-  { id: 4, created: '1.10.2025', owner: 'test@email.com', status: 1 },
+  { id: 1, created: '1.10.2025', owner: 'test@email.com', status: 3 },
+  { id: 2, created: '1.10.2025', owner: 'test@email.com', status: 5 },
+  { id: 3, created: '1.10.2025', owner: 'test@email.com', status: 4 },
+  { id: 4, created: '1.10.2025', owner: 'test@email.com', status: 2 },
+  { id: 5, created: '1.10.2025', owner: 'test@email.com', status: 1 },
 ];
 
 describe('JobsService', () => {
@@ -171,6 +172,7 @@ describe('JobsService', () => {
       new Job(2, new Date('1.10.2025'), 'test@email.com', 'failed'),
       new Job(3, new Date('1.10.2025'), 'test@email.com', 'success'),
       new Job(4, new Date('1.10.2025'), 'test@email.com', 'waiting'),
+      new Job(5, new Date('1.10.2025'), 'test@email.com', 'specifying'),
     ];
 
     const getResponse = service.getJobs();
@@ -205,7 +207,7 @@ describe('JobsService', () => {
       {
         id: 16,
         created: '2025-08-26',
-        status: 1,
+        status: 2,
         owner: 'register@email.com'
       }
     ));
