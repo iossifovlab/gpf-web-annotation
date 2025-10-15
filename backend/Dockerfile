@@ -36,6 +36,13 @@ COPY ./scripts/supervisord-bootstrap.sh /
 COPY ./scripts/wait-for-it.sh /
 RUN chmod +x /*.sh
 
+# When image is run, run the code with the environment
+# activated:
+RUN echo "source /gpf/bin/activate" >> /etc/bash.bashrc
+# Explicitly add gpf/bin to the path to aid certain tools 
+# (like dask)in finding the needed executables
+ENV PATH /gpf/bin:$PATH
+
 EXPOSE 80 443
 
 ADD ./scripts/grr-definition.yaml /

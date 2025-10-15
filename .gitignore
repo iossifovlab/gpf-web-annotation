@@ -7,6 +7,7 @@ gpf
 conda-channel.tar.gz
 /conda-channel
 *.tbi
-/pg_data
-/gpfwa_data
+/gpfwa-static-data
+/gpfwa-pg-data
+/gpfwa-data
 /results

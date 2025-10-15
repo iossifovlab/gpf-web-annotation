@@ -6,11 +6,15 @@ services:
       context: .
       dockerfile: Dockerfile.gpf_dev
 
-  pg_data:
-      image: busybox:latest
-      command: echo "PostgreSQL data only container"
-      # volumes:
-      #   - ./pg_data:/var/lib/postgresql/data
+  pg-data:
+    image: busybox:latest
+    command: echo "PostgreSQL data only container"
+
+  static-data:
+    image: busybox:latest
+    command: echo "Static data only container"
+    volumes:
+      - ./gpfwa-static-data:/static
 
   db:
     image: postgres
@@ -18,7 +22,7 @@ services:
     # set shared memory limit when using docker compose
     shm_size: 128mb
     volumes_from:
-      - pg_data
+      - pg-data
     environment:
       POSTGRES_PASSWORD: secret
       POSTGRES_DB: gpfwa
@@ -41,8 +45,8 @@ services:
       context: backend
       dockerfile: Dockerfile
     depends_on:
-      # gpf-dev:
-      #   condition: service_started
+      gpf-dev:
+        condition: service_completed_successfully
       db:
         condition: service_healthy
       rabbitmq:
@@ -50,9 +54,11 @@ services:
       mail:
         condition: service_started
     volumes:
-      - ./gpfwa_data:/data
+      - ./gpfwa-data:/data
+    volumes_from:
+      - static-data
     environment:
-      DJANGO_SETTINGS_MODULE: web_annotation.settings
+      DJANGO_SETTINGS_MODULE: web_annotation.settings_gunicorn
       GPFWA_EMAIL_HOST: mail
       RABBITMQ_HOST: rabbitmq
       GRR_DEFINITION_FILE: /grr-definition.yaml

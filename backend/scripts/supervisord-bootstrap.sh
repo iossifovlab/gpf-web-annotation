@@ -9,7 +9,8 @@ set -e
 
 source /gpf/bin/activate
 
-DJANGO_SETTINGS_MODULE='web_annotation.settings' django-admin migrate
+DJANGO_SETTINGS_MODULE='web_annotation.settings_gunicorn' django-admin migrate
+DJANGO_SETTINGS_MODULE='web_annotation.settings_gunicorn' django-admin collectstatic --noinput
 
 
 supervisorctl start celery

@@ -5,13 +5,18 @@ services:
     extends:
       file: compose-jenkins.yaml
       service: gpf-dev
-    volumes:
-      - ./pg_data:/var/lib/postgresql/data
 
-  pg_data:
+  pg-data:
     extends:
       file: compose-jenkins.yaml
-      service: pg_data
+      service: pg-data
+    volumes:
+      - ./gpfwa-pg-data:/var/lib/postgresql
+
+  static-data:
+    extends:
+      file: compose-jenkins.yaml
+      service: static-data
 
   db:
     extends:
