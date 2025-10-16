@@ -17,13 +17,11 @@ pipeline {
         stage('Start') {
             steps {
                 sh "echo 'Starting build ${COMPOSE_PROJECT_NAME}'"
-                sh "docker compose -f compose-jenkins.yaml run --rm --entrypoint '/bin/bash -c' backend-tests 'rm -rf /wd/results'"
-                sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
+                sh "docker run --rm --entrypoint '/bin/bash -c' ubuntu:24.04 'rm -rf /wd/results'"
                 sh "rm -rf conda-channel"
-                sh "rm -rf results"
 
                 zulipSend(
-                message: "Started build #${env.BUILD_NUMBER} of project ${env.JOB_NAME} (${env.BUILD_URL})",
+                    message: "Started build #${env.BUILD_NUMBER} of project ${env.JOB_NAME} (${env.BUILD_URL})",
                 topic: "${env.JOB_NAME}")
             }
         }
@@ -42,10 +40,10 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
                 sh "docker compose -f compose-jenkins.yaml build ubuntu-image"
                 sh "docker compose -f compose-jenkins.yaml build gpf-image"
                 sh "docker compose -f compose-jenkins.yaml build"
+                sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
             }
         }
 
