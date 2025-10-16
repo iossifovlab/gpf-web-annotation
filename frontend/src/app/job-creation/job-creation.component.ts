@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { MatDialogRef, MatDialogActions, MatDialogContent } from '@angular/material/dialog';
 import { JobCreationView } from './jobs';
 import { JobsService } from './jobs.service';
-import { take } from 'rxjs';
+import { Observable, take } from 'rxjs';
 import { Pipeline } from './pipelines';
 import { FormsModule } from '@angular/forms';
 
@@ -71,16 +71,16 @@ export class JobCreationComponent implements OnInit {
   }
 
   public isConfigValid(config: string): void {
-    this.jobsService.validateJobConfig(this.ymlConfig).pipe(
+    this.jobsService.validateJobConfig(config).pipe(
       take(1)
     ).subscribe((errorReason: string) => {
       this.configError = errorReason;
-      console.log(this.configError);
     });
   }
 
   private isFormatValid(file: File): void {
-    if (file.type !== 'text/csv' && file.type !== 'text/vcard') {
+    const validFormats = ['text/csv', 'text/vcard', 'text/tab-separated-values'];
+    if (!validFormats.includes(file.type)) {
       this.uploadError = 'Unsupported format!';
     }
   }

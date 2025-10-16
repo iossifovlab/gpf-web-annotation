@@ -7,6 +7,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { Observable, of } from 'rxjs';
 import { Pipeline } from './pipelines';
+import { FileContent } from './jobs';
 
 
 class MatDialogRefMock {
@@ -22,7 +23,7 @@ const mockPipelines = [
 class JobsServiceMock {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public createJob(file1: File, content: string): Observable<object> {
-    return of({});
+    return of(new FileContent(['chr', 'pos'], [['1', '123']]));
   }
 
   public getAnnotationPipelines(): Observable<Pipeline[]> {
