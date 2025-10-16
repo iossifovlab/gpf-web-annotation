@@ -148,8 +148,17 @@ pipeline {
                 keepAll: true,
                 reportDir: 'results/coverage-html',
                 reportFiles: 'index.html',
-                reportName: 'gpf-web-annotation-coverage',
-                reportTitles: 'gpf-web-annotation-coverage'])
+                reportName: 'backend-coverage',
+                reportTitles: 'Backend Coverage'])
+
+            publishHTML (target : [allowMissing: true,
+                alwaysLinkToLastBuild: true,
+                keepAll: true,
+                reportDir: 'frontend/reports/coverage/',
+                reportFiles: 'index.html',
+                reportName: 'frontend-coverage',
+                reportTitles: 'Frontend Coverage'])
+
 
             archiveArtifacts artifacts: 'e2e-tests/reports/**', fingerprint: false, allowEmptyArchive: true
 
