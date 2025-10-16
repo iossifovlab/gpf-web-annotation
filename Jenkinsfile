@@ -17,7 +17,7 @@ pipeline {
         stage('Start') {
             steps {
                 sh "echo 'Starting build ${COMPOSE_PROJECT_NAME}'"
-                sh "docker run --rm --entrypoint '/bin/bash -c' ubuntu:24.04 'rm -rf /wd/results'"
+                sh "docker run --rm -v .:/wd --entrypoint '/usr/bin/bash' ubuntu:24.04 -c 'rm -rf /wd/results'"
                 sh "rm -rf conda-channel"
 
                 zulipSend(
