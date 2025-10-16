@@ -41,6 +41,8 @@ class Job(models.Model):
 
     owner = models.ForeignKey(
         'web_annotation.User', related_name='jobs', on_delete=models.CASCADE)
+    created_at: models.Field = models.DateTimeField(default=timezone.now)
+    is_active = models.BooleanField(default=True)
 
 
 class BaseVerificationCode(models.Model):

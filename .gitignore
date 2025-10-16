@@ -13,3 +13,5 @@ conda-channel.tar.gz
 /gpfwa-logs
 /gpfwa
 /results
+backend/gpfwa-debug.log
+backend/gpfwa-celery.log

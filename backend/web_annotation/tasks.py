@@ -1,11 +1,15 @@
 """Web annotation celery tasks"""
-from pathlib import Path
+import os
 import logging
+from pathlib import Path
 from celery import shared_task
+from celery.schedules import crontab
+from web_annotation.celery_app import app
 from .models import Job
 from .annotation import annotate_vcf_file
 from django.core.mail import send_mail
-
+from django.utils import timezone
+from datetime import timedelta
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +31,7 @@ def update_job_in_progress(job: Job) -> None:
 def update_job_failed(job: Job) -> None:
     if job.status != Job.Status.IN_PROGRESS:
         raise ValueError(
-            f"Attempted to mark job {job.pk} as failed,"
+            f"Attempted to mark job {job.pk} as failed, "
             f"which is not in in progress! ({job.status})",
         )
     job.status = Job.Status.FAILED
@@ -38,7 +42,7 @@ def update_job_failed(job: Job) -> None:
     send_email.delay(
         "GPFWA: Annotation job failed",
         (
-            "Your job has failed."
+            "Your job has failed. "
             "Visit the web site to try running it again: "
             f"{settings.EMAIL_REDIRECT_ENDPOINT}/jobs"
         ),
@@ -89,6 +93,21 @@ def run_job(job: Job, storage_dir: Path, grr_definition: Path) -> None:
         update_job_success(job)
 
 
+def delete_old_jobs(days_old = 0) -> None:
+    """Delete old job resources and make jobs invalid"""
+    time_delta = timezone.now() - timedelta(days=days_old)
+    old_jobs = Job.objects.filter(
+        created_at__lte = time_delta,
+    )
+
+    old_jobs.update(is_active = False)
+
+    for job in list(old_jobs):
+        os.remove(job.input_path)
+        os.remove(job.config_path)
+        os.remove(job.result_path)
+
+
 @shared_task
 def create_annotation(
     job_pk: int, storage_dir: Path,
@@ -129,3 +148,20 @@ def send_email(
     logger.info("email sent: message:  %s", str(message))
 
     return mail
+
+
+@shared_task
+def clean_old_jobs() -> None:
+    """Task for running annotation."""
+    # pylint: disable=import-outside-toplevel
+    from django.conf import settings
+    delete_old_jobs(settings.JOB_CLEANUP_INTERVAL_DAYS)
+
+
+@app.on_after_configure.connect
+def setup_periodic_tasks(sender, **kwargs):
+    sender.add_periodic_task(
+        crontab(hour=0, minute=0, day_of_month=1),
+        clean_old_jobs.s(),
+        name='delete old jobs every month',
+    )

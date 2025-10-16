@@ -181,21 +181,21 @@ class AnnotationBaseView(views.APIView):
 
 
 class JobAll(generics.ListAPIView):
-    queryset = Job.objects.all()
+    queryset = Job.objects.filter(is_active=True)
     serializer_class = JobSerializer
     permission_classes = [permissions.IsAdminUser]
 
 
 class JobList(generics.ListAPIView):
     def get_queryset(self):
-        return Job.objects.filter(owner=self.request.user)
+        return Job.objects.filter(owner=self.request.user, is_active=True)
 
     serializer_class = JobSerializer
     permission_classes = [permissions.IsAuthenticated]
 
 
 class JobDetail(generics.RetrieveAPIView, generics.DestroyAPIView):
-    queryset = Job.objects.all()
+    queryset = Job.objects.filter(is_active=True)
     serializer_class = JobSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwner]
 
@@ -333,7 +333,7 @@ class JobGetFile(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request: Request, pk: int, file: str) -> Response:
-        job = get_object_or_404(Job, id=pk)
+        job = get_object_or_404(Job, id=pk, is_active=True)
         if not has_job_permission(job, request.user):
             return Response(status=views.status.HTTP_403_FORBIDDEN)
 

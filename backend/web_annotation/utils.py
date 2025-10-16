@@ -10,8 +10,12 @@ from django.db.models import ObjectDoesNotExist
 from django.utils.translation import gettext_lazy
 from django.views.decorators.debug import sensitive_variables
 from rest_framework.views import Request
-
-from web_annotation.models import AccountConfirmationCode, BaseVerificationCode, ResetPasswordCode, User
+from web_annotation.models import (
+    AccountConfirmationCode,
+    BaseVerificationCode,
+    ResetPasswordCode,
+    User,
+)
 from web_annotation.tasks import send_email
 
 

@@ -192,6 +192,8 @@ LIMITS = {
     "variant_count": 1000,
 }
 
+JOB_CLEANUP_INTERVAL_DAYS = 30
+
 GRR_DEFINITION = os.environ.get("GRR_DEFINITION_FILE")
 
 # Email related settings
