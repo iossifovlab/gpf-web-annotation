@@ -1,3 +1,4 @@
+# pylint: disable=W0621,C0114,C0116,W0212,W0613
 import pytest
 import pathlib
 
@@ -151,7 +152,7 @@ def test_job_success_starts_email_task(
 @pytest.mark.django_db
 def test_clean_old_jobs_removes_old_jobs(
     tmp_path: pathlib.Path,
-):
+) -> None:
     user = User.objects.get(email="user@example.com")
 
     # Create two jobs with old creation date

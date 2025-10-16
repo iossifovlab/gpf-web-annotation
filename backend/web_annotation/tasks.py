@@ -2,6 +2,7 @@
 import os
 import logging
 from pathlib import Path
+from typing import Any
 from celery import shared_task
 from celery.schedules import crontab
 from web_annotation.celery_app import app
@@ -93,7 +94,7 @@ def run_job(job: Job, storage_dir: Path, grr_definition: Path) -> None:
         update_job_success(job)
 
 
-def delete_old_jobs(days_old = 0) -> None:
+def delete_old_jobs(days_old: int = 0) -> None:
     """Delete old job resources and make jobs invalid"""
     time_delta = timezone.now() - timedelta(days=days_old)
     old_jobs = Job.objects.filter(
@@ -159,7 +160,7 @@ def clean_old_jobs() -> None:
 
 
 @app.on_after_configure.connect
-def setup_periodic_tasks(sender, **kwargs):
+def setup_periodic_tasks(sender: Any, **kwargs: Any) -> None:
     sender.add_periodic_task(
         crontab(hour=0, minute=0, day_of_month=1),
         clean_old_jobs.s(),
