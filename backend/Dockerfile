@@ -20,7 +20,6 @@ RUN conda-pack -n gpf -o /tmp/gpf.tar && \
 RUN /gpf/bin/conda-unpack
 
 
-ARG COMPOSE_PROJECT_NAME=gpfwa
 FROM ${COMPOSE_PROJECT_NAME}-ubuntu-image:latest AS runtime
 
 COPY --from=build /gpf /gpf

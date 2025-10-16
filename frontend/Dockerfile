@@ -18,7 +18,7 @@ COPY . .
 # Build the Angular application
 RUN npm run build 
 
-ARG COMPOSE_PROJECT_NAME=gpfwa
+
 FROM ${COMPOSE_PROJECT_NAME}-ubuntu-image AS runtime
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y apache2
