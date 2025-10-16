@@ -1,7 +1,7 @@
 import { expect, Page } from '@playwright/test';
 
-export const mailhogUrl = 'http://mail:8025';
-// export const mailhogUrl = 'http://localhost:8025';
+// export const mailhogUrl = 'http://mail:8025';
+export const mailhogUrl = 'http://localhost:8025';
 
 export function getRandomString(): string {
   return Math.random().toString(36).substring(2, 9);
@@ -14,7 +14,9 @@ export async function registerUser(page: Page, email: string, password: string):
   await page.getByRole('button', { name: 'Create' }).click();
 
   await page.goto(mailhogUrl, {waitUntil: 'load'});
-  await page.getByText(email).click();
+  await expect(async() => {
+    await page.getByText(email).click();
+  }).toPass({intervals: [1000, 2000, 3000]});
   const href = await page.locator('#preview-plain > a').getAttribute('href');
   if (!href) {
     throw new Error('Confirmation link not found in email.');
