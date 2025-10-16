@@ -1,0 +1,18 @@
+<div id="modal-container" *ngIf="fileContent">
+  <span>Please map each column with the corresponding one.</span>
+  <div id="modal-table">
+    <div class="row">
+      <div class="header" *ngFor="let header of fileContent.columns">
+        <select (change)="onSelectName($event, header)">
+          <option value="" disabled selected hidden>- select -</option>
+          <option *ngFor="let col of columnNames" [value]="col">{{ col }}</option>
+        </select>
+        <div class="file-header">{{ header }}</div>
+      </div>
+    </div>
+    <div *ngFor="let row of fileContent.rows" class="row">
+      <span *ngFor="let cell of row" class="cell">{{ cell }}</span>
+    </div>
+  </div>
+  <button>Submit</button>
+</div>

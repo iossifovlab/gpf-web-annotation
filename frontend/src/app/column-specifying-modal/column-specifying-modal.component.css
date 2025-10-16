@@ -1,0 +1,77 @@
+#modal-container {
+  padding: 20px;
+}
+
+#modal-table {
+  display: grid;
+  /* to do */
+  grid-template-columns: repeat(12, auto);
+  margin-top: 10px;
+  margin-bottom: 30px;
+  font-size: 18px;
+  overflow-x: auto;
+}
+
+.header {
+  background-color: #85a2b9;
+  padding: 10px;
+  text-align: center;
+  height: 70px;
+}
+
+.file-header {
+  margin-top: 5px;
+  color: #252e34;
+  font-weight: 500;
+}
+
+.cell {
+  padding: 10px;
+  text-align: center;
+}
+
+.row {
+  display: contents;
+}
+
+.row:nth-child(even) {
+  color: #435869;
+  background-color: #f4f7fb;
+}
+
+.row:nth-child(odd) {
+  background-color: white;
+}
+
+select {
+  border: none;
+  border-bottom: 1px solid #252e34;
+  background-color: transparent;
+  color: #f4f7fb;
+  font-size: 20px;
+}
+
+select:focus-visible {
+  outline: none;
+}
+
+option {
+  color: #435869;
+}
+
+button {
+  padding: 10px 12px;
+  font-size: 16px;
+  white-space: nowrap;
+  border: none;
+  background: #435869;
+  border-radius: 10px;
+  color: white;
+  width: 75px;
+  float: right;
+}
+
+button:hover {
+  background: #5b778c;
+  cursor: pointer;
+}
