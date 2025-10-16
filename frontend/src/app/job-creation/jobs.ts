@@ -45,6 +45,7 @@ export type Status = 'specifying' | 'waiting' | 'in process' | 'success' | 'fail
 
 export function getStatusClassName(status: string): string {
   switch (status) {
+    case 'specifying': return 'specifying-status';
     case 'waiting': return 'waiting-status';
     case 'in process': return 'in-progress-status';
     case 'success': return 'success-status';

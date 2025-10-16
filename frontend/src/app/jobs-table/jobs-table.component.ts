@@ -42,6 +42,26 @@ export class JobsTableComponent implements OnInit, OnDestroy {
     });
   }
 
+  // to do
+  public getModalContent(): void {
+    this.openColumnMappingModal(FileContent.fromJson(mockResponse));
+  }
+
+  public openColumnMappingModal(content: FileContent): void {
+    this.dialog.open(ColumnSpecifyingModalComponent, {
+      data: content,
+      height: '20vh',
+      width: '50vw',
+      minHeight: '500px',
+      maxHeight: '1000px',
+      maxWidth: '1000px'
+    });
+
+    // specifyColumnModalRef.afterClosed().subscribe( => {
+    //
+    // });
+  }
+
   private refreshTable(): void {
     this.refreshJobsSubscription = this.jobsService.getJobs().pipe(
       repeat({ delay: 30000 }),

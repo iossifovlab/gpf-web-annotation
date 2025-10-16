@@ -28,6 +28,7 @@
       <div class="grid-cell time-info">-</div>
       <div class="grid-cell">
         <span class="status-label" [ngClass]="getStatusClass(j.status)">{{ j.status }}</span>
+        <span *ngIf="j.status === 'specifying'">Specify columns <button (click)="getModalContent()">here</button></span>
       </div>
       <div class="grid-cell">
         <a *ngIf="j.status === 'success'" id="download-result" [href]="getDownloadLink(j.id)" download
