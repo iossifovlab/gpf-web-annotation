@@ -1,6 +1,11 @@
 FROM ubuntu:24.04 AS runtime
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get update --fix-missing
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
-		supervisor curl less wget
-RUN DEBIAN_FRONTEND=noninteractive apt-get clean
+RUN DEBIAN_FRONTEND=noninteractive \
+    apt-get update && apt-get install -y --no-install-recommends \
+        apache2 \
+        curl \
+        less \
+        wget \
+		supervisor \
+    && rm -rf /var/lib/apt/lists/*
+

@@ -21,8 +21,6 @@ RUN npm run build
 
 FROM ${COMPOSE_PROJECT_NAME}-ubuntu-image AS runtime
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y apache2
-
 RUN mkdir -p /logs
 RUN mkdir -p /site
 

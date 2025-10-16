@@ -24,11 +24,6 @@ FROM ${COMPOSE_PROJECT_NAME}-ubuntu-image:latest AS runtime
 
 COPY --from=build /gpf /gpf
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get update --fix-missing
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
-		supervisor curl less
-RUN DEBIAN_FRONTEND=noninteractive apt-get clean
-
 RUN mkdir -p /logs
 
 
