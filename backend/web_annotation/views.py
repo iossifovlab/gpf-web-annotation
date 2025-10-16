@@ -301,6 +301,7 @@ class JobCreate(AnnotationBaseView):
                 {"reason": "Daily job limit reached!"},
                 status=views.status.HTTP_403_FORBIDDEN,
             )
+
         job_name = f"job-{int(time.time())}"
 
         assert request.data is not None
@@ -350,17 +351,20 @@ class JobCreate(AnnotationBaseView):
                 status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
 
         data_filename = f"{job_name}"
-        input_path = Path(settings.JOB_INPUT_STORAGE_DIR, data_filename)
+        input_path = Path(
+            settings.JOB_INPUT_STORAGE_DIR, request.user.email, data_filename)
         input_path.parent.mkdir(parents=True, exist_ok=True)
         input_path.write_bytes(uploaded_file.read())
         if self.is_vcf_file(uploaded_file, input_path):
             data_filename = f"{job_name}.vcf"
             input_path = input_path.rename(
-                Path(settings.JOB_INPUT_STORAGE_DIR, data_filename))
+                Path(settings.JOB_INPUT_STORAGE_DIR,
+                     request.user.email, data_filename))
         elif self.is_columns_file(uploaded_file, input_path):
             data_filename = f"{job_name}.txt"
             input_path = input_path.rename(
-                Path(settings.JOB_INPUT_STORAGE_DIR, data_filename))
+                Path(settings.JOB_INPUT_STORAGE_DIR,
+                     request.user.email, data_filename))
         else:
             self._cleanup(job_name)
             return Response(
@@ -368,7 +372,9 @@ class JobCreate(AnnotationBaseView):
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
 
-        result_path = Path(settings.JOB_RESULT_STORAGE_DIR, data_filename)
+        result_path = Path(
+            settings.JOB_RESULT_STORAGE_DIR, request.user.email, data_filename)
+        result_path.parent.mkdir(parents=True, exist_ok=True)
 
         job = Job(input_path=input_path,
                   config_path=config_path,
@@ -425,6 +431,7 @@ class JobCreate(AnnotationBaseView):
             job_details.save()
             return Response(
                 {
+                    "job_id": job.pk,
                     "columns": job_details.columns.split(";"),
                     "head": file_header,
                 },

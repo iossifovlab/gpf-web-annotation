@@ -122,8 +122,8 @@ def test_create_job(
     assert saved_config.read_text() == annotation_config
 
     result_path = pathlib.Path(job.result_path)
-    assert str(result_path.parent) == settings.JOB_RESULT_STORAGE_DIR \
-        + f"/{user.email}"
+    assert result_path.parent == \
+        pathlib.Path(settings.JOB_RESULT_STORAGE_DIR) / user.email
     assert result_path.exists()
 
 
@@ -622,6 +622,7 @@ def test_upload_tsv_file(admin_client: Client) -> None:
     assert response.data is not None
 
     assert response.data == {
+        "job_id": 3,
         "columns": ["chrom", "pos", "ref", "alt"],
         "head": [{
             "chrom": "chr1",
