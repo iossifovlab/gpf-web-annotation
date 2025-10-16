@@ -52,6 +52,8 @@ services:
     build:
       context: backend
       dockerfile: Dockerfile
+      args:
+        COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
     depends_on:
       gpf-image:
         condition: service_completed_successfully
@@ -91,6 +93,8 @@ services:
     build:
       context: backend
       dockerfile: Dockerfile.dev
+      args:
+        COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
     depends_on:
       rabbitmq:
         condition: service_started
@@ -109,6 +113,8 @@ services:
     build:
       context: backend
       dockerfile: Dockerfile.dev
+      args:
+        COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
     depends_on:
       rabbitmq:
         condition: service_started
@@ -128,6 +134,9 @@ services:
     build:
       context: backend
       dockerfile: Dockerfile.dev
+      args:
+        COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+
     environment:
       DJANGO_SETTINGS_MODULE: web_annotation.test_settings
       GPFWA_EMAIL_HOST: mail
@@ -142,6 +151,8 @@ services:
     build:
       context: frontend
       dockerfile: Dockerfile
+      args:
+        COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
     depends_on:
       backend:
         condition: service_healthy

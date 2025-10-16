@@ -1,4 +1,5 @@
-FROM gpfwa-gpf-image:latest AS build
+ARG COMPOSE_PROJECT_NAME=gpfwa
+FROM ${COMPOSE_PROJECT_NAME}-gpf-image:latest AS build
 
 RUN mamba install -y -n base -c conda-forge conda-pack=0.8.1
 
@@ -19,7 +20,8 @@ RUN conda-pack -n gpf -o /tmp/gpf.tar && \
 RUN /gpf/bin/conda-unpack
 
 
-FROM gpfwa-ubuntu-image AS runtime
+ARG COMPOSE_PROJECT_NAME=gpfwa
+FROM ${COMPOSE_PROJECT_NAME}-ubuntu-image:latest AS runtime
 
 COPY --from=build /gpf /gpf
 

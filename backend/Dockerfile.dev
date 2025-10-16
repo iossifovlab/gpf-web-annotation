@@ -1,6 +1,6 @@
-FROM gpfwa-gpf-dev:latest
+ARG COMPOSE_PROJECT_NAME=gpfwa
+FROM ${COMPOSE_PROJECT_NAME}-gpf-image:latest
 
-ARG DOCKER_UID=1001
 COPY scripts/grr-definition.yaml /
 WORKDIR /app
 

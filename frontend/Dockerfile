@@ -1,4 +1,5 @@
 ARG NODE_VERSION=22.14.0-alpine
+ARG COMPOSE_PROJECT_NAME=gpfwa
 
 FROM node:${NODE_VERSION} AS builder
 
@@ -17,7 +18,8 @@ COPY . .
 # Build the Angular application
 RUN npm run build 
 
-FROM gpfwa-ubuntu-image AS runtime
+ARG COMPOSE_PROJECT_NAME=gpfwa
+FROM ${COMPOSE_PROJECT_NAME}-ubuntu-image AS runtime
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y apache2
 
