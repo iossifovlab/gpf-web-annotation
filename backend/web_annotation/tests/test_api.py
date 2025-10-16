@@ -1,6 +1,7 @@
 # pylint: disable=C0116
 from django.db.models import ObjectDoesNotExist
 import pytest
+import time
 import datetime
 import pathlib
 import textwrap
@@ -34,7 +35,7 @@ def test_get_jobs(
     now = datetime.datetime.now(datetime.timezone.utc)
     assert abs(now - created) < datetime.timedelta(minutes=1)
     assert job["id"] == 1
-    assert job["status"] == 1
+    assert job["status"] == Job.Status.WAITING
     assert job["owner"] == "user@example.com"
 
     # Try with different user, expect different jobs
@@ -50,7 +51,7 @@ def test_get_jobs(
     now = datetime.datetime.now(datetime.timezone.utc)
     assert abs(now - created) < datetime.timedelta(minutes=1)
     assert job["id"] == 2
-    assert job["status"] == 1
+    assert job["status"] == Job.Status.WAITING
     assert job["owner"] == "admin@example.com"
 
 
@@ -72,7 +73,7 @@ def test_get_all_jobs_admin_user(admin_client: Client) -> None:
     now = datetime.datetime.now(datetime.timezone.utc)
     assert abs(now - created) < datetime.timedelta(minutes=1)
     assert job["id"] == 1
-    assert job["status"] == 1
+    assert job["status"] == Job.Status.WAITING
     assert job["owner"] == "user@example.com"
 
     job = result[1]
@@ -81,7 +82,7 @@ def test_get_all_jobs_admin_user(admin_client: Client) -> None:
     now = datetime.datetime.now(datetime.timezone.utc)
     assert abs(now - created) < datetime.timedelta(minutes=1)
     assert job["id"] == 2
-    assert job["status"] == 1
+    assert job["status"] == Job.Status.WAITING
     assert job["owner"] == "admin@example.com"
 
 
@@ -132,7 +133,7 @@ def test_create_job_calls_annotation_runner(
     mocker: MockerFixture,
 ) -> None:
     mocked = mocker.patch(
-        "web_annotation.tasks.create_annotation.delay")
+        "web_annotation.tasks.annotate_vcf_job.delay")
 
     annotation_config = "- position_score: scores/pos1"
     vcf = textwrap.dedent("""
@@ -237,7 +238,7 @@ def test_job_details(user_client: Client) -> None:
     now = datetime.datetime.now(datetime.timezone.utc)
     assert abs(now - created) < datetime.timedelta(minutes=1)
     assert result["id"] == 1
-    assert result["status"] == 1
+    assert result["status"] == Job.Status.WAITING
     assert result["owner"] == "user@example.com"
 
 
@@ -285,7 +286,7 @@ def test_daily_user_quota(
     mocker: MockerFixture,
 ) -> None:
     mocked_run_job = mocker.patch(
-        "web_annotation.tasks.create_annotation.delay",
+        "web_annotation.tasks.annotate_vcf_job",
     )
 
     annotation_config = "- position_score: scores/pos1"
@@ -329,7 +330,7 @@ def test_daily_admin_quota(
     mocker: MockerFixture,
 ) -> None:
     mocked_run_job = mocker.patch(
-        "web_annotation.tasks.create_annotation.delay",
+        "web_annotation.tasks.annotate_vcf_job",
     )
 
     annotation_config = "- position_score: scores/pos1"
@@ -375,7 +376,7 @@ def test_filesize_limit_user(
     settings.LIMITS["filesize"] = 1
 
     mocked_run_job = mocker.patch(
-        "web_annotation.tasks.create_annotation.delay",
+        "web_annotation.tasks.annotate_vcf_job",
     )
 
     annotation_config = "- position_score: scores/pos1"
@@ -403,7 +404,7 @@ def test_filesize_limit_admin(
     settings.LIMITS["filesize"] = 1
 
     mocked_run_job = mocker.patch(
-        "web_annotation.tasks.create_annotation.delay",
+        "web_annotation.tasks.annotate_vcf_job",
     )
 
     annotation_config = "- position_score: scores/pos1"
@@ -431,7 +432,7 @@ def test_variant_limit_user(
     settings.LIMITS["variant_count"] = 1
 
     mocked_run_job = mocker.patch(
-        "web_annotation.tasks.create_annotation.delay",
+        "web_annotation.tasks.annotate_vcf_job",
     )
 
     annotation_config = "- position_score: scores/pos1"
@@ -460,7 +461,7 @@ def test_variant_limit_admin(
     settings.LIMITS["variant_count"] = 1
 
     mocked_run_job = mocker.patch(
-        "web_annotation.tasks.create_annotation.delay",
+        "web_annotation.tasks.annotate_vcf_job",
     )
 
     annotation_config = "- position_score: scores/pos1"
@@ -622,12 +623,12 @@ def test_upload_tsv_file(admin_client: Client) -> None:
 
     assert response.data == {
         "columns": ["chrom", "pos", "ref", "alt"],
-        "head": {
+        "head": [{
             "chrom": "chr1",
             "pos": "1",
             "ref": "C",
             "alt": "A"
-        }
+        }]
     }
 
 
@@ -637,12 +638,13 @@ def test_upload_tsv_file(admin_client: Client) -> None:
 
     assert job.status == Job.Status.SPECIFYING
 
+
 @pytest.mark.django_db
 def test_specify_job(
     mocker: MockerFixture,
 ) -> None:
     mocked = mocker.patch(
-        "web_annotation.tasks.create_annotation")
+        "web_annotation.tasks.annotate_columns_job")
     user = User.objects.get(email="user@example.com")
     job = Job(
         input_path="test",
@@ -659,6 +661,146 @@ def test_specify_job(
         job.pk, pathlib.Path("test"), pathlib.Path("test"),
         chrom_col="chr", pos_col="pos", ref_col="ref", alt_col="alt",
     )
+
+
+@pytest.mark.django_db
+def test_columns_annotation_tsv(admin_client: Client) -> None:
+    annotation_config = "- position_score: scores/pos1"
+    tsv = textwrap.dedent("""
+        chrom	pos	ref	alt
+        chr1	1	C	A
+    """).strip()
+
+    response = admin_client.post(
+        "/api/jobs/create",
+        {"config": ContentFile(annotation_config),
+         "data": ContentFile(tsv)},
+    )
+
+    assert response is not None
+    assert response.status_code == 200
+    created_job = Job.objects.last()
+    assert created_job is not None
+
+    response = admin_client.post(
+        f"/api/jobs/{created_job.pk}/specify",
+        {
+            "chrom_col": "chrom",
+            "pos_col": "pos",
+            "ref_col": "ref",
+            "alt_col": "alt",
+        },
+    )
+
+    assert response is not None
+    assert response.status_code == 204
+    created_job.refresh_from_db()
+    assert created_job.status == Job.Status.SUCCESS
+
+    output = pathlib.Path(created_job.result_path).read_text()
+    lines = [line.split("\t") for line in output.strip().split("\n")]
+    assert lines == [
+        ["chrom", "pos", "ref", "alt", "pos1"],
+        ["chr1", "1", "C", "A", "0.1"],
+    ]
+
+
+@pytest.mark.django_db
+def test_columns_annotation_csv(admin_client: Client) -> None:
+    annotation_config = "- position_score: scores/pos1"
+    tsv = textwrap.dedent("""
+        chrom,pos,ref,alt
+        chr1,1,C,A
+    """).strip()
+
+    response = admin_client.post(
+        "/api/jobs/create",
+        {"config": ContentFile(annotation_config),
+         "data": ContentFile(tsv)},
+    )
+
+    assert response is not None
+    assert response.status_code == 200
+    created_job = Job.objects.last()
+    assert created_job is not None
+
+    response = admin_client.post(
+        f"/api/jobs/{created_job.pk}/specify",
+        {
+            "chrom_col": "chrom",
+            "pos_col": "pos",
+            "ref_col": "ref",
+            "alt_col": "alt",
+        },
+    )
+
+    assert response is not None
+    assert response.status_code == 204
+    created_job.refresh_from_db()
+    assert created_job.status == Job.Status.SUCCESS
+
+    output = pathlib.Path(created_job.result_path).read_text()
+    lines = [line.split(",") for line in output.strip().split("\n")]
+    assert lines == [
+        ["chrom", "pos", "ref", "alt", "pos1"],
+        ["chr1", "1", "C", "A", "0.1"],
+    ]
+
+
+@pytest.mark.django_db
+def test_columns_annotation_unsupported_sep(admin_client: Client) -> None:
+    annotation_config = "- position_score: scores/pos1"
+    input_file = textwrap.dedent("""
+        chrom;pos;ref;alt
+        chr1;1;C;A
+    """).strip()
+    response = admin_client.post(
+        "/api/jobs/create",
+        {"config": ContentFile(annotation_config),
+         "data": ContentFile(input_file)},
+    )
+
+    assert response.status_code == 400
+    assert response.data == {"reason": "File could not be identified"}
+
+
+
+@pytest.mark.django_db
+def test_columns_annotation_force_tsv_vcf(admin_client: Client) -> None:
+    annotation_config = "- position_score: scores/pos1"
+    vcf = textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        ##contig=<ID=chr1>
+        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+        chr1	1	.	C	A	.	.	.
+    """).strip("\n")
+
+
+    response = admin_client.post(
+        "/api/jobs/create",
+        {"config": ContentFile(annotation_config),
+         "data": ContentFile(vcf, name="test.tsv")},
+    )
+    assert response.status_code == 400
+
+    assert response.data == {"reason": "Invalid input file"}
+
+
+@pytest.mark.django_db
+def test_columns_annotation_invalid_vcf(admin_client: Client) -> None:
+    annotation_config = "- position_score: scores/pos1"
+    input_file = textwrap.dedent("""
+        chrom;pos;ref;alt
+        chr1;1;C;A
+    """).strip()
+    response = admin_client.post(
+        "/api/jobs/create",
+        {"config": ContentFile(annotation_config),
+         "data": ContentFile(input_file, name="test.vcf")},
+    )
+
+    assert response.status_code == 400
+    assert response.data == {"reason": "Invalid VCF file"}
 
 
 def test_specify_job_errors_on_nonexistant_job() -> None:
