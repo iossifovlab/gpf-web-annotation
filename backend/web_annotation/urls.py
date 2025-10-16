@@ -25,6 +25,7 @@ urlpatterns = [
     path('api/jobs', views.JobList.as_view()),
     path('api/jobs/all', views.JobAll.as_view()),
     path('api/jobs/create', views.JobCreate.as_view()),
+    path('api/jobs/<int:pk>/specify', views.JobSpecify.as_view()),
     path('api/jobs/<int:pk>', views.JobDetail.as_view()),
     path('api/jobs/<int:pk>/file/<str:file>', views.JobGetFile.as_view()),
 
