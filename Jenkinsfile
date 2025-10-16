@@ -97,6 +97,8 @@ pipeline {
 
 
         try {
+            discoverGitReferenceBuild(latestBuildIfNotFound: true, maxCommits: 400, skipUnknownCommits: true)
+
             def resultBeforeTests = currentBuild.currentResult
             junit 'results/backend-tests-junit.xml'
             sh "test ${resultBeforeTests} == ${currentBuild.currentResult}"
