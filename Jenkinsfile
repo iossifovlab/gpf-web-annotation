@@ -112,6 +112,12 @@ pipeline {
                 tools: [
                     [parser: 'COBERTURA', pattern: 'results/backend-coverage.xml']
                 ]
+            recordCoverage sourceCodeEncoding: 'UTF-8',
+                enabledForFailure: false,
+                sourceCodeRetention: 'LAST_BUILD',
+                tools: [
+                    [parser: 'COBERTURA', pattern: 'frontend/reports/coverage/cobertura-coverage.xml']
+                ]
 
             recordIssues(
                 enabledForFailure: true, aggregatingResults: false,
