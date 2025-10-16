@@ -1,7 +1,7 @@
 import { expect, Page } from '@playwright/test';
 
-// export const mailhogUrl = 'http://mail:8025';
-export const mailhogUrl = 'http://localhost:8025';
+export const mailhogUrl = 'http://mail:8025';
+// export const mailhogUrl = 'http://localhost:8025';
 
 export function getRandomString(): string {
   return Math.random().toString(36).substring(2, 9);
