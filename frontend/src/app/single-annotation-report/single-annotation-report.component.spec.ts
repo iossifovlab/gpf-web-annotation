@@ -95,6 +95,8 @@ describe('SingleAnnotationReportComponent', () => {
         data: 'mock markdown content',
         height: '60vh',
         width: '30vw',
+        maxWidth: '1000px',
+        minHeight: '400px',
       }
     );
   });

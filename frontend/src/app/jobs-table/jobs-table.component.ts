@@ -2,10 +2,11 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { JobCreationComponent } from '../job-creation/job-creation.component';
 import { MatDialog } from '@angular/material/dialog';
-import { JobsService } from '../job-creation/jobs.service';
+import { JobsService, mockResponse } from '../job-creation/jobs.service';
 import { repeat, Subscription, take, takeWhile } from 'rxjs';
-import { getStatusClassName, Job } from '../job-creation/jobs';
+import { FileContent, getStatusClassName, Job } from '../job-creation/jobs';
 import { JobDetailsComponent } from '../job-details/job-details.component';
+import { ColumnSpecifyingModalComponent } from '../column-specifying-modal/column-specifying-modal.component';
 
 @Component({
   selector: 'app-jobs-table',
@@ -32,6 +33,8 @@ export class JobsTableComponent implements OnInit, OnDestroy {
     const createModalRef = this.dialog.open(JobCreationComponent, {
       height: '60vh',
       width: '50vw',
+      maxWidth: '1000px',
+      minHeight: '400px'
     });
 
     createModalRef.afterClosed().subscribe(() => {
@@ -59,6 +62,8 @@ export class JobsTableComponent implements OnInit, OnDestroy {
       data: jobId,
       height: '40vh',
       width: '30vw',
+      maxWidth: '1000px',
+      minHeight: '400px'
     });
 
     detailsModalRef.afterClosed().subscribe(() => {

@@ -120,8 +120,3 @@
   color: #5b778c;
   margin-top: 5px;
 }
-
-::ng-deep .cdk-overlay-pane.mat-mdc-dialog-panel {
-  max-width: 1000px !important;
-  min-height: 400px !important;
-}
