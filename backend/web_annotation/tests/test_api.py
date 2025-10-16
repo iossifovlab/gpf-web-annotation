@@ -660,7 +660,7 @@ def test_specify_job(
 
     specify_job(
         job.pk, pathlib.Path("test"), pathlib.Path("test"),
-        chrom_col="chr", pos_col="pos", ref_col="ref", alt_col="alt",
+        col_chrom="chr", col_pos="pos", col_ref="ref", col_alt="alt",
     )
 
 
@@ -686,10 +686,10 @@ def test_columns_annotation_tsv(admin_client: Client) -> None:
     response = admin_client.post(
         f"/api/jobs/{created_job.pk}/specify",
         {
-            "chrom_col": "chrom",
-            "pos_col": "pos",
-            "ref_col": "ref",
-            "alt_col": "alt",
+            "col_chrom": "chrom",
+            "col_pos": "pos",
+            "col_ref": "ref",
+            "col_alt": "alt",
         },
     )
 
@@ -728,10 +728,10 @@ def test_columns_annotation_csv(admin_client: Client) -> None:
     response = admin_client.post(
         f"/api/jobs/{created_job.pk}/specify",
         {
-            "chrom_col": "chrom",
-            "pos_col": "pos",
-            "ref_col": "ref",
-            "alt_col": "alt",
+            "col_chrom": "chrom",
+            "col_pos": "pos",
+            "col_ref": "ref",
+            "col_alt": "alt",
         },
     )
 
@@ -808,5 +808,5 @@ def test_specify_job_errors_on_nonexistant_job() -> None:
     with pytest.raises(ObjectDoesNotExist):
         specify_job(
             999, pathlib.Path("test"), pathlib.Path("test"),
-            chrom_col="chr", pos_col="pos", ref_col="ref", alt_col="alt",
+            col_chrom="chr", col_pos="pos", col_ref="ref", col_alt="alt",
         )

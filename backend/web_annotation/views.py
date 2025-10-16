@@ -444,18 +444,18 @@ class JobSpecify(AnnotationBaseView):
         assert isinstance(request.data, QueryDict)
         if not all(
             col in request.data for col in
-            ["chrom_col", "pos_col", "ref_col", "alt_col"]
+            ["col_chrom", "col_pos", "col_ref", "col_alt"]
         ):
             return Response(status=views.status.HTTP_400_BAD_REQUEST)
 
-        chrom_col = request.data["chrom_col"]
-        assert isinstance(chrom_col, str)
-        pos_col = request.data["pos_col"]
-        assert isinstance(pos_col, str)
-        ref_col = request.data["ref_col"]
-        assert isinstance(ref_col, str)
-        alt_col = request.data["alt_col"]
-        assert isinstance(alt_col, str)
+        col_chrom = request.data["col_chrom"]
+        assert isinstance(col_chrom, str)
+        col_pos = request.data["col_pos"]
+        assert isinstance(col_pos, str)
+        col_ref = request.data["col_ref"]
+        assert isinstance(col_ref, str)
+        col_alt = request.data["col_alt"]
+        assert isinstance(col_alt, str)
         grr_definition = self.get_grr_definition()
         assert grr_definition is not None
         try:
@@ -463,10 +463,10 @@ class JobSpecify(AnnotationBaseView):
                 pk,
                 self.result_storage_dir,
                 grr_definition,
-                chrom_col=chrom_col,
-                pos_col=pos_col,
-                ref_col=ref_col,
-                alt_col=alt_col,
+                col_chrom=col_chrom,
+                col_pos=col_pos,
+                col_ref=col_ref,
+                col_alt=col_alt,
             )
             annotate_columns_job.delay(
                 job.pk, str(self.result_storage_dir), str(grr_definition))

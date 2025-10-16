@@ -20,19 +20,19 @@ def specify_job(
     storage_dir: Path,
     grr_definition: Path,
     *,
-    chrom_col: str,
-    pos_col: str,
-    ref_col: str,
-    alt_col: str,
+    col_chrom: str,
+    col_pos: str,
+    col_ref: str,
+    col_alt: str,
 ) -> Job:
     job = get_job(job_pk)
     details = get_job_details(job_pk)
     if job.status != Job.Status.SPECIFYING:
         raise ValueError("Cannot specify a job that is not for specification!")
-    details.chr_col = chrom_col
-    details.pos_col = pos_col
-    details.ref_col = ref_col
-    details.alt_col = alt_col
+    details.col_chr = col_chrom
+    details.col_pos = col_pos
+    details.col_ref = col_ref
+    details.col_alt = col_alt
     job.status = Job.Status.WAITING
     job.save()
     details.save()
@@ -152,10 +152,10 @@ def run_columns_job(
             str(job.result_path),
             storage_dir,
             details.separator,
-            details.chr_col,
-            details.pos_col,
-            details.ref_col,
-            details.alt_col,
+            details.col_chr,
+            details.col_pos,
+            details.col_ref,
+            details.col_alt,
             grr_definition if grr_definition is not None else None,
         )
     except Exception:

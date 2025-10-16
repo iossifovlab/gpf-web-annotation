@@ -50,10 +50,10 @@ class JobDetails(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["job"], name="unique_job_details")
         ]
-    chr_col = models.CharField(max_length=64)
-    pos_col = models.CharField(max_length=64)
-    ref_col = models.CharField(max_length=64)
-    alt_col = models.CharField(max_length=64)
+    col_chr = models.CharField(max_length=64)
+    col_pos = models.CharField(max_length=64)
+    col_ref = models.CharField(max_length=64)
+    col_alt = models.CharField(max_length=64)
     separator = models.CharField(max_length=1)
     columns = models.TextField()
     job = models.ForeignKey(
