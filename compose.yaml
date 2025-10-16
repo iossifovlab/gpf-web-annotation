@@ -49,6 +49,9 @@ services:
     extends:
       file: compose-jenkins.yaml
       service: backend
+    environment:
+      GPFWA_EMAIL_VERIFICATION_ENDPOINT: "http://localhost"
+      GPFWA_EMAIL_REDIRECT_ENDPOINT: "http://localhost"
     ports:
       - "9001:9001"
 

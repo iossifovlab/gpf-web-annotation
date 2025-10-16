@@ -81,8 +81,8 @@ services:
       GPFWA_DATA_STORAGE: /data
       GPFWA_LOG_DIR: /logs
       GPFWA_SECRET_KEY: "django-insecure-3rz4n(_u+x8r+n%&xr-(vg83v8&llq7pin*x%@%y@d8af%iphk"
-      GPFWA_EMAIL_VERIFICATION_ENDPOINT: "http://localhost"
-      GPFWA_EMAIL_REDIRECT_ENDPOINT: "http://localhost"
+      GPFWA_EMAIL_VERIFICATION_ENDPOINT: "http://frontend"
+      GPFWA_EMAIL_REDIRECT_ENDPOINT: "http://frontend"
     healthcheck:
       test: ["CMD", "curl", "http://localhost:9001/api/user_info"]
       interval: 10s
