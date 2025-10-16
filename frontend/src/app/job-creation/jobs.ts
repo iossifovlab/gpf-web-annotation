@@ -52,3 +52,41 @@ export function getStatusClassName(status: string): string {
   }
   return '';
 }
+
+export class FileContent {
+  public constructor(
+    public columns: string[],
+    public rows: string[][]
+  ) {}
+
+  public static fromJson(json: object): FileContent {
+    if (!json) {
+      return undefined;
+    }
+
+    return new FileContent(
+      json['columns'] as string[],
+      toMatrix(json['head'] as object[]),
+    );
+  }
+}
+
+function toMatrix(rows: object[]): string[][] {
+  const matrix: string[][] = [];
+
+  rows.forEach((r: object) => {
+    matrix.push(Object.values(r).map(c => getValueAsString(c)));
+  });
+
+  return matrix;
+}
+
+function getValueAsString(value: string | number): string {
+  if (!value) {
+    return '-';
+  }
+  if (typeof value === 'string') {
+    return value;
+  }
+  return value.toString();
+}
