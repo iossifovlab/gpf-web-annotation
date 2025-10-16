@@ -438,7 +438,12 @@ class Registration(views.APIView):
                 {"error": "This email is already in use"},
                 status=views.status.HTTP_400_BAD_REQUEST)
 
-        user = User.objects.create_user(email, email, password)
+        user = User.objects.create_user(
+            email,
+            email,
+            password,
+            is_active=settings.USERS_ACTIVATED_BY_DEFAULT,
+        )
         user.save()
         verify_user(user)
         return Response(status=views.status.HTTP_200_OK)

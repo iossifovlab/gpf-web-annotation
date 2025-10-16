@@ -199,6 +199,8 @@ GRR_DEFINITION = os.environ.get("GRR_DEFINITION_FILE")
 # Email related settings
 RESET_PASSWORD_TIMEOUT_HOURS = 24
 
+USERS_ACTIVATED_BY_DEFAULT = True
+
 EMAIL_HOST = os.environ.get("GPFWA_EMAIL_HOST", "localhost")
 EMAIL_USE_TLS = os.environ.get("GPFWA_EMAIL_USE_TLS", False)
 EMAIL_HOST_USER = os.environ.get("GPFWA_EMAIL_HOST_USER", None)
