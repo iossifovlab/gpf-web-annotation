@@ -7,7 +7,7 @@ from celery import shared_task
 from celery.schedules import crontab
 from web_annotation.celery_app import app
 from .models import Job, JobDetails
-from .annotation import annotate_vcf_file
+from .annotation import annotate_columns_file, annotate_vcf_file
 from django.core.mail import send_mail
 from django.utils import timezone
 from datetime import timedelta
@@ -36,8 +36,6 @@ def specify_job(
     job.status = Job.Status.WAITING
     job.save()
     details.save()
-
-    create_annotation(job.pk, storage_dir, grr_definition)
 
     return job
 
@@ -102,9 +100,9 @@ def update_job_success(job: Job) -> None:
     )
 
 
-def run_job(job: Job, storage_dir: Path, grr_definition: Path) -> None:
+def run_vcf_job(job: Job, storage_dir: Path, grr_definition: Path) -> None:
     try:
-        logger.debug("Running job")
+        logger.debug("Running vcf job")
         logger.debug(job.input_path)
         logger.debug(job.config_path)
         logger.debug(job.result_path)
@@ -138,8 +136,37 @@ def delete_old_jobs(days_old: int = 0) -> None:
         os.remove(job.result_path)
 
 
+def run_columns_job(
+    job: Job, details: JobDetails,
+    storage_dir: str, grr_definition: str | None,
+) -> None:
+    try:
+        logger.debug("Running vcf job")
+        logger.debug(job.input_path)
+        logger.debug(job.config_path)
+        logger.debug(job.result_path)
+        logger.debug(storage_dir)
+        annotate_columns_file(
+            str(job.input_path),
+            str(job.config_path),
+            str(job.result_path),
+            storage_dir,
+            details.separator,
+            details.chr_col,
+            details.pos_col,
+            details.ref_col,
+            details.alt_col,
+            grr_definition if grr_definition is not None else None,
+        )
+    except Exception:
+        logger.exception("Failed to execute job")
+        update_job_failed(job)
+    else:
+        update_job_success(job)
+
+
 @shared_task
-def create_annotation(
+def annotate_vcf_job(
     job_pk: int, storage_dir: Path,
     grr_definition: Path,
 ) -> None:
@@ -147,7 +174,20 @@ def create_annotation(
     job = get_job(job_pk)
     update_job_in_progress(job)
 
-    run_job(job, storage_dir, grr_definition)
+    run_vcf_job(job, storage_dir, grr_definition)
+
+
+@shared_task
+def annotate_columns_job(
+    job_pk: int, storage_dir: str,
+    grr_definition: str,
+) -> None:
+    """Task for running annotation."""
+    job = get_job(job_pk)
+    job_details = get_job_details(job_pk)
+    update_job_in_progress(job)
+
+    run_columns_job(job, job_details, storage_dir, grr_definition)
 
 
 @shared_task

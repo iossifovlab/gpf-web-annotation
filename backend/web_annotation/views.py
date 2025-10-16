@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, cast
 from datetime import datetime
 
+from django.db.models import ObjectDoesNotExist
 import magic
 from dae.annotation.annotatable import VCFAllele
 from dae.annotation.annotation_config import (
@@ -63,7 +64,7 @@ from .models import (
 )
 from .permissions import IsOwner, has_job_permission
 from .serializers import JobSerializer, UserSerializer
-from .tasks import create_annotation
+from .tasks import annotate_vcf_job, annotate_columns_job, specify_job
 
 logger = logging.getLogger(__name__)
 
@@ -131,6 +132,7 @@ def get_genome_pipelines(
     for genome, pipeline_id in settings.GENOME_PIPELINES.items():
         pipeline_resource = grr.get_resource(pipeline_id)
         pipeline = load_pipeline_from_grr(grr, pipeline_resource)
+        pipeline.open()
         pipelines[genome] = pipeline
     return pipelines
 
@@ -231,16 +233,22 @@ class JobCreate(AnnotationBaseView):
         assert file.name is not None
         if file.name.endswith(".vcf"):
             return True
+        if file.name.endswith(".tsv") or file.name.endswith(".csv"):
+            return False
 
         try:
             VariantFile(str(input_path.absolute()), "r")
         except ValueError:
+            return False
+        except OSError:
             return False
         else:
             return True
 
     def is_columns_file(self, file: UploadedFile, input_path: Path):
         assert file.name is not None
+        if file.name.endswith(".vcf"):
+            return False
         if file.name.endswith(".tsv") or file.name.endswith(".csv"):
             return True
         try:
@@ -254,10 +262,10 @@ class JobCreate(AnnotationBaseView):
                 return True
             elif len(header.split("\t")) >= 4:
                 return True
+            else:
+                return False
         else:
             return False
-
-        return True
 
     def _get_config_raw_from_request(self, request: Request) -> str:
         assert isinstance(request.data, QueryDict)
@@ -348,7 +356,7 @@ class JobCreate(AnnotationBaseView):
         if self.is_vcf_file(uploaded_file, input_path):
             data_filename = f"{job_name}.vcf"
             input_path = input_path.rename(
-                Path(settings.JOB_INPUT_STORAGE_DIR / data_filename))
+                Path(settings.JOB_INPUT_STORAGE_DIR, data_filename))
         elif self.is_columns_file(uploaded_file, input_path):
             data_filename = f"{job_name}.txt"
             input_path = input_path.rename(
@@ -356,7 +364,7 @@ class JobCreate(AnnotationBaseView):
         else:
             self._cleanup(job_name)
             return Response(
-                {"reason": "File could not be identified!"},
+                {"reason": "File could not be identified"},
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
 
@@ -384,7 +392,7 @@ class JobCreate(AnnotationBaseView):
                     status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
 
             job.save()
-            create_annotation.delay(
+            annotate_vcf_job.delay(
                 job.pk,
                 str(self.result_storage_dir),
                 str(self.get_grr_definition()),
@@ -399,12 +407,18 @@ class JobCreate(AnnotationBaseView):
                 sep = ","
             elif len(header.split("\t")) >= 4:
                 sep = "\t"
+            else:
+                self._cleanup(job_name)
+                return Response(
+                    {"reason": "Invalid input file"},
+                    status=views.status.HTTP_400_BAD_REQUEST,
+                )
             columns = ";".join(header.split(sep))
             job.status = job.Status.SPECIFYING
             job_details = JobDetails(columns=columns, separator=sep, job=job)
-            file_header = dict(
-                zip(header.split(sep), lines[1].split(sep), strict=True)
-            )
+            file_header = [dict(
+                zip(header.split(sep), line.split(sep), strict=True)
+            ) for line in lines[1:5]]
 
             assert file_header is not None
             job.save()
@@ -416,6 +430,43 @@ class JobCreate(AnnotationBaseView):
                 },
                 status=views.status.HTTP_200_OK,
             )
+
+
+class JobSpecify(AnnotationBaseView):
+    def post(self, request: Request, pk: int) -> Response:
+        assert isinstance(request.data, QueryDict)
+        if not all(
+            col in request.data for col in
+            ["chrom_col", "pos_col", "ref_col", "alt_col"]
+        ):
+            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+
+        chrom_col = request.data["chrom_col"]
+        assert isinstance(chrom_col, str)
+        pos_col = request.data["pos_col"]
+        assert isinstance(pos_col, str)
+        ref_col = request.data["ref_col"]
+        assert isinstance(ref_col, str)
+        alt_col = request.data["alt_col"]
+        assert isinstance(alt_col, str)
+        grr_definition = self.get_grr_definition()
+        assert grr_definition is not None
+        try:
+            job = specify_job(
+                pk,
+                self.result_storage_dir,
+                grr_definition,
+                chrom_col=chrom_col,
+                pos_col=pos_col,
+                ref_col=ref_col,
+                alt_col=alt_col,
+            )
+            annotate_columns_job.delay(
+                job.pk, str(self.result_storage_dir), str(grr_definition))
+
+        except ObjectDoesNotExist:
+            return Response(status=views.status.HTTP_404_NOT_FOUND)
+        return Response(status=views.status.HTTP_204_NO_CONTENT)
 
 
 class JobGetFile(views.APIView):
