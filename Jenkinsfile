@@ -83,6 +83,18 @@ pipeline {
             }
         }
 
+        stage('Build Backend image') {
+            steps {
+                sh "docker compose -f compose-jenkins.yaml build backend"
+            }
+        }
+
+        stage('Build Frontend image') {
+            steps {
+                sh "docker compose -f compose-jenkins.yaml build frontend"
+            }
+        }
+
         stage('Run E2E Tests') {
             steps {
                 sh "docker compose -f compose-jenkins.yaml build e2e-tests"
@@ -91,6 +103,7 @@ pipeline {
                 sh "docker compose -f compose-jenkins.yaml run --rm --remove-orphans e2e-tests || true"
             }
         }
+
 
     }
 
