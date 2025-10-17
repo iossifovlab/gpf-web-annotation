@@ -591,17 +591,18 @@ class ConfirmAccount(views.APIView):  # USE
         if msg is not None:
             if verif_code is not None:
                 verif_code.delete()
-            return HttpResponse(
-                {"message": msg},
-                status=views.status.HTTP_400_BAD_REQUEST,
-            )
-        assert verif_code is not None
-        user: User = verif_code.user
+
+        activated = False
         if verif_code is not None:
+            user: User = verif_code.user
             verif_code.delete()
             user.activate()
+            activated = True
 
-        redirect_uri = settings.EMAIL_REDIRECT_ENDPOINT
+        redirect_uri = (
+            f"{settings.EMAIL_REDIRECT_ENDPOINT}"
+            f"/login?activation_successful={activated}"
+        )
         return HttpResponseRedirect(redirect_uri)
 
 

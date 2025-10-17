@@ -2,9 +2,10 @@ import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { UsersService } from '../users.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { map, take } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -18,13 +19,31 @@ export class LoginComponent implements OnInit {
   public responseMessage: string = '';
   public readonly environment = environment;
   public readonly reset_password_url = `${environment.apiPath}/forgotten_password`;
+  public activationStatus: ""  | "successful"  | "failed";
 
-  public constructor(private usersService: UsersService, private router: Router) {}
+  public constructor(
+    private usersService: UsersService,
+    private router: Router,
+    private route: ActivatedRoute,
+  ) {}
 
   public ngOnInit(): void {
     if (this.usersService.isUserLoggedIn()) {
       this.usersService.autoLogin();
     }
+
+    this.route.queryParamMap.pipe(
+      map(params => params.get('activation_successful')),
+      take(1)
+    ).subscribe((status) => {
+      if (status == null) {
+        this.activationStatus = "";
+      } else if (status == "True") {
+        this.activationStatus = "successful";
+      } else {
+        this.activationStatus = "failed";
+      }
+    });
   }
 
   public login(): void {

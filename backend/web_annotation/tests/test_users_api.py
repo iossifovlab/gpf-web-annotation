@@ -76,7 +76,9 @@ def test_register_and_activate_account(
     confirmation_link = confirmation_link_search.group(1)
     response = client.get(confirmation_link)
     assert response.status_code == 302
-    assert response['Location'] == "http://testserver/"
+    assert response['Location'] == (
+        "http://testserver//login?activation_successful=True"
+    )
 
     assert client.login(
         email="temp@example.com",
