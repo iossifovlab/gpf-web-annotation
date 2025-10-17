@@ -4,7 +4,6 @@
 
 #modal-table {
   display: grid;
-  /* to do */
   grid-template-columns: repeat(12, auto);
   margin-top: 10px;
   margin-bottom: 30px;
