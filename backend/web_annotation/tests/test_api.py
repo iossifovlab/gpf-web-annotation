@@ -1,7 +1,6 @@
 # pylint: disable=C0116
 from django.db.models import ObjectDoesNotExist
 import pytest
-import time
 import datetime
 import pathlib
 import textwrap
@@ -646,6 +645,7 @@ def test_specify_job(
 ) -> None:
     mocked = mocker.patch(
         "web_annotation.tasks.annotate_columns_job")
+    assert mocked is not None
     user = User.objects.get(email="user@example.com")
     job = Job(
         input_path="test",
@@ -659,7 +659,7 @@ def test_specify_job(
     job_details.save()
 
     specify_job(
-        job.pk, pathlib.Path("test"), pathlib.Path("test"),
+        job.pk,
         col_chrom="chr", col_pos="pos", col_ref="ref", col_alt="alt",
     )
 
@@ -807,6 +807,6 @@ def test_columns_annotation_invalid_vcf(admin_client: Client) -> None:
 def test_specify_job_errors_on_nonexistant_job() -> None:
     with pytest.raises(ObjectDoesNotExist):
         specify_job(
-            999, pathlib.Path("test"), pathlib.Path("test"),
+            999,
             col_chrom="chr", col_pos="pos", col_ref="ref", col_alt="alt",
         )

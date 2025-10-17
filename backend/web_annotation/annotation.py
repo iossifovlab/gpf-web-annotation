@@ -1,3 +1,4 @@
+"""Module for annotation CLI function adaptations."""
 from fsspec.asyn import reset_lock
 from dae.annotation.annotate_vcf import cli as vcf_cli
 from dae.annotation.annotate_columns import cli as columns_cli
@@ -10,6 +11,7 @@ def annotate_vcf_file(
     work_dir_path: str,
     grr_definition: str | None,
 ) -> None:
+    """Run annotate vcf on the files from a task."""
     reset_lock()
 
     args = [
@@ -26,27 +28,29 @@ def annotate_vcf_file(
     vcf_cli(args)
 
 
-def annotate_columns_file(
+def annotate_columns_file(  # pylint: disable=too-many-arguments
     input_file_path: str,
     annotation_config_path: str,
     output_file_path: str,
     work_dir_path: str,
-    separator: str,
-    chrom_col: str,
-    pos_col: str,
-    ref_col: str,
-    alt_col: str,
     grr_definition: str | None,
+    *,
+    separator: str,
+    col_chrom: str,
+    col_pos: str,
+    col_ref: str,
+    col_alt: str,
 ) -> None:
+    """Run annotate columns on the files from a task."""
     reset_lock()
 
     args = [
         input_file_path,
         annotation_config_path,
-        "--col-chrom", chrom_col,
-        "--col-pos", pos_col,
-        "--col-ref", ref_col,
-        "--col-alt", alt_col,
+        "--col-chrom", col_chrom,
+        "--col-pos", col_pos,
+        "--col-ref", col_ref,
+        "--col-alt", col_alt,
         "--input-separator", separator,
         "--output-separator", separator,
         "-o", output_file_path,
