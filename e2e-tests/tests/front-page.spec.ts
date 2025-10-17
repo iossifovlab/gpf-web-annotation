@@ -163,6 +163,36 @@ test.describe('Login tests', () => {
     await expect(page.getByText('Invalid login credentials')).toBeVisible();
     await expect(page.locator('app-single-annotation')).not.toBeVisible();
   });
+
+  test('should reset password for user and then login', async({ page }) => {
+    const randomEmail = `${utils.getRandomString()}@email.com`;
+    await utils.registerUser(page, randomEmail, 'password123'); // need to register user first
+
+    await page.locator('#email').pressSequentially(randomEmail);
+    await page.locator('#password').pressSequentially('password123');
+    await page.getByRole('button', { name: 'Login' }).click();
+    await expect(page.locator('app-single-annotation')).toBeVisible();
+
+    await page.locator('#logout-button').click();
+    await page.locator('#reset-password-link').click();
+    await page.locator('#id_email').pressSequentially(randomEmail);
+    await page.locator('input[value="Reset password"]').click();
+    await expect(page.locator('div.message.success')).toContainText(`An e-mail has been sent to ${randomEmail}`);
+
+    const href = await utils.getLinkInEmail(page, randomEmail, 'GPFWA: Password reset request');
+    await page.goto(href, {waitUntil: 'load'});
+
+    const newPassword = 'newpassword321';
+    await page.locator('#id_new_password1').pressSequentially(newPassword);
+    await page.locator('#id_new_password2').pressSequentially(newPassword);
+    await page.locator('input[value="Reset password"]').click();
+
+    await page.locator('#email').pressSequentially(randomEmail);
+    await page.locator('#password').pressSequentially(newPassword);
+    await page.getByRole('button', { name: 'Login' }).click();
+    await expect(page.locator('app-single-annotation')).toBeVisible();
+    await expect(page.locator('#user-data')).toBeVisible();
+  });
 });
 
 test.describe('Logout tests', () => {

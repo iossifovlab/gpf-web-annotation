@@ -13,17 +13,24 @@ export async function registerUser(page: Page, email: string, password: string):
   await page.locator('#password').pressSequentially(password);
   await page.getByRole('button', { name: 'Create' }).click();
 
+  const href = await getLinkInEmail(page, email, 'GPFWA: Registration validation');
+  await page.goto(href, {waitUntil: 'load'});
+
+  await expect(page.locator('app-login')).toBeVisible();
+}
+
+export async function getLinkInEmail(page: Page, email: string, subject: string): Promise<string> {
   await page.goto(mailhogUrl, {waitUntil: 'load'});
+
   await expect(async() => {
-    await page.getByText(email).click();
+    await page.locator('div.msglist-message').filter({ hasText: email }).getByText(subject).click();
   }).toPass({intervals: [1000, 2000, 3000]});
+
   const href = await page.locator('#preview-plain > a').getAttribute('href');
   if (!href) {
     throw new Error('Confirmation link not found in email.');
   }
-  await page.goto(href, {waitUntil: 'load'});
-
-  await expect(page.locator('app-login')).toBeVisible();
+  return href;
 }
 
 export async function loginUser(page: Page, email: string, password: string): Promise<void> {
