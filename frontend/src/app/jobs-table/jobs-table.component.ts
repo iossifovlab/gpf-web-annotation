@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { JobCreationComponent } from '../job-creation/job-creation.component';
 import { MatDialog } from '@angular/material/dialog';
-import { JobsService, mockResponse } from '../job-creation/jobs.service';
+import { JobsService } from '../job-creation/jobs.service';
 import { repeat, Subscription, take, takeWhile } from 'rxjs';
 import { FileContent, getStatusClassName, Job } from '../job-creation/jobs';
 import { JobDetailsComponent } from '../job-details/job-details.component';
@@ -44,7 +44,7 @@ export class JobsTableComponent implements OnInit, OnDestroy {
 
   // to do
   public getModalContent(): void {
-    this.openColumnMappingModal(FileContent.fromJson(mockResponse));
+    // this.openColumnMappingModal(FileContent.fromJson(mockResponse));
   }
 
   public openColumnMappingModal(content: FileContent): void {
