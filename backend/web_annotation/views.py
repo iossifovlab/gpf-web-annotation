@@ -120,24 +120,33 @@ def get_pipelines(grr: GenomicResourceRepo) -> dict[str, dict[str, str]]:
     return pipelines
 
 
+
+
 def get_genome_pipelines(
     grr: GenomicResourceRepo,
 ) -> dict[str, AnnotationPipeline]:
+
     if (
         getattr(settings, "GENOME_PIPELINES") is None
         or settings.GENOME_PIPELINES is None
     ):
+        GENOME_PIPELINES = {}
         return {}
-    pipelines: dict[str, AnnotationPipelineImplementation] = {}
-    for genome, pipeline_id in settings.GENOME_PIPELINES.items():
-        pipeline_resource = grr.get_resource(pipeline_id)
-        pipeline = load_pipeline_from_grr(grr, pipeline_resource)
-        pipeline.open()
-        pipelines[genome] = pipeline
-    return pipelines
+    else:
+        pipelines: dict[str, AnnotationPipeline] = {}
+        for genome, pipeline_id in settings.GENOME_PIPELINES.items():
+            pipeline_resource = grr.get_resource(pipeline_id)
+            pipeline = load_pipeline_from_grr(grr, pipeline_resource)
+            pipeline.open()
+            pipelines[genome] = pipeline
+        GENOME_PIPELINES = pipelines
+    return GENOME_PIPELINES
 
 
 GRR = build_genomic_resource_repository(file_name=settings.GRR_DEFINITION)
+
+GENOME_PIPELINES: dict[str, AnnotationPipeline] = get_genome_pipelines(GRR)
+
 PIPELINES = get_pipelines(GRR)
 
 
@@ -146,7 +155,7 @@ class AnnotationBaseView(views.APIView):
         super().__init__()
         self._grr = GRR
         self.pipelines = PIPELINES
-        self.genome_pipelines = get_genome_pipelines(self._grr)
+        self.genome_pipelines = GENOME_PIPELINES
         self.result_storage_dir = Path(settings.JOB_RESULT_STORAGE_DIR)
 
     @property
