@@ -3,15 +3,18 @@
   <div id="modal-table">
     <div class="row">
       <div class="header" *ngFor="let header of fileContent.columns">
-        <select (change)="onSelectName($event, header)">
-          <option value="" disabled selected hidden>- select -</option>
-          <option *ngFor="let col of columnNames" [value]="col">{{ col }}</option>
-        </select>
+        <mat-form-field>
+          <mat-select matNativeControl [placeholder]="'- select -'">
+            <mat-option (click)="onSelectName('None', header)">None</mat-option>
+            <mat-option *ngFor="let col of columnNames" (click)="onSelectName(col, header)" [value]="col">{{ col }}</mat-option
+>
+          </mat-select>
+        </mat-form-field>
         <div class="file-header">{{ header }}</div>
       </div>
     </div>
     <div *ngFor="let row of fileContent.rows" class="row">
-      <span *ngFor="let cell of row" class="cell">{{ cell }}</span>
+      <span *ngFor="let cell of row" class="cell" [title]="cell">{{ cell | textShorten }}</span>
     </div>
   </div>
   <button>Submit</button>

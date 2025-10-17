@@ -2,10 +2,13 @@ import { CommonModule } from '@angular/common';
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FileContent } from '../job-creation/jobs';
+import { TextShortenPipe } from '../text-shorten.pipe';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 @Component({
   selector: 'app-column-specifying-modal',
-  imports: [CommonModule],
+  imports: [CommonModule, TextShortenPipe, MatSelectModule, MatFormFieldModule],
   templateUrl: './column-specifying-modal.component.html',
   styleUrl: './column-specifying-modal.component.css'
 })
@@ -23,8 +26,24 @@ export class ColumnSpecifyingModalComponent implements OnInit {
     this.fileContent = this.content;
   }
 
-  public onSelectName(event: Event, column: string): void {
-    const selectedName = (event.target as HTMLSelectElement).value;
+  public onSelectName(selectedName: string, column: string): void {
+    const key = this.getFileColumnKey(column);
+    if (selectedName === 'None' && key) {
+      this.mappedColumns.delete(key);
+      return;
+    }
+    if (key) {
+      this.mappedColumns.delete(key);
+    }
     this.mappedColumns.set(selectedName, column);
+  }
+
+  private getFileColumnKey(column: string): string {
+    for (const [key, value] of this.mappedColumns.entries()) {
+      if (value === column) {
+        return key;
+      }
+    }
+    return null;
   }
 }
