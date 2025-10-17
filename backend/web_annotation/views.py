@@ -1,10 +1,10 @@
+"""View classes for web annotation."""
 import logging
 import time
+from datetime import datetime
 from pathlib import Path
 from typing import Any, cast
-from datetime import datetime
 
-from django.db.models import ObjectDoesNotExist
 import magic
 from dae.annotation.annotatable import VCFAllele
 from dae.annotation.annotation_config import (
@@ -18,8 +18,10 @@ from dae.genomic_resources.genomic_scores import build_score_from_resource
 from dae.genomic_resources.implementations.annotation_pipeline_impl import (
     AnnotationPipelineImplementation,
 )
-from dae.genomic_resources.repository import GenomicResource, GenomicResourceRepo
-from dae.genomic_resources.repository_factory import build_genomic_resource_repository
+from dae.genomic_resources.repository import \
+    GenomicResource, GenomicResourceRepo
+from dae.genomic_resources.repository_factory import \
+    build_genomic_resource_repository
 from django import forms
 from django.conf import settings
 from django.contrib.auth import (
@@ -29,6 +31,7 @@ from django.contrib.auth import (
     logout,
 )
 from django.core.files.uploadedfile import UploadedFile
+from django.db.models import ObjectDoesNotExist, QuerySet
 from django.http import HttpRequest
 from django.http.response import (
     FileResponse,
@@ -72,6 +75,7 @@ logger = logging.getLogger(__name__)
 def get_histogram_genomic_score(
     resource: GenomicResource, score: str,
 ) -> dict[str, Any]:
+    """Get histogram for a genomic score."""
     if resource.get_type() not in [
         "allele_score", "position_score",
     ]:
@@ -79,9 +83,11 @@ def get_histogram_genomic_score(
     return build_score_from_resource(
         resource).get_score_histogram(score).to_dict()
 
+
 def get_histogram_gene_score(
     resource: GenomicResource, score: str,
 ) -> dict[str, Any]:
+    """Get histogram from a gene score resource."""
     if resource.get_type() != "gene_score":
         raise ValueError(f"{resource.resource_id} is not a genomic score!")
     return build_gene_score_from_resource(
@@ -89,8 +95,9 @@ def get_histogram_gene_score(
 
 
 def get_histogram_not_supported(
-    resource: GenomicResource, score: str,
+    resource: GenomicResource, score: str,  # pylint: disable=unused-argument
 ) -> dict[str, Any]:
+    """Return an empty histogram for unsupported resources."""
     return {}
 
 
@@ -103,12 +110,15 @@ HISTOGRAM_GETTERS = {
 STARTUP_TIME = timezone.now()
 
 
-def always_cache(*args, **kwargs) -> datetime:
+def always_cache(
+    *_args: list[Any], **_kwargs: dict[str, Any],
+) -> datetime:
     """Function to enable a view to always be cached, due to static data."""
     return STARTUP_TIME
 
 
 def get_pipelines(grr: GenomicResourceRepo) -> dict[str, dict[str, str]]:
+    """Return pipelines used for file annotation."""
     pipelines: dict[str, dict[str, str]] = {}
     for resource in grr.get_all_resources():
         if resource.get_type() == "annotation_pipeline":
@@ -120,11 +130,10 @@ def get_pipelines(grr: GenomicResourceRepo) -> dict[str, dict[str, str]]:
     return pipelines
 
 
-
-
 def get_genome_pipelines(
     grr: GenomicResourceRepo,
 ) -> dict[str, AnnotationPipeline]:
+    """Return genome pipelines used for single variant annotation."""
 
     if (
         getattr(settings, "GENOME_PIPELINES") is None
@@ -151,6 +160,7 @@ PIPELINES = get_pipelines(GRR)
 
 
 class AnnotationBaseView(views.APIView):
+    """Base view for views which access annotation resources."""
     def __init__(self) -> None:
         super().__init__()
         self._grr = GRR
@@ -160,12 +170,15 @@ class AnnotationBaseView(views.APIView):
 
     @property
     def grr(self) -> GenomicResourceRepo:
+        """Return annotation GRR."""
         return self.get_grr()
 
     def get_grr(self) -> GenomicResourceRepo:
+        """Return annotation GRR."""
         return self._grr
 
     def get_grr_definition(self) -> Path | None:
+        """Return annotation GRR definition."""
         path = settings.GRR_DEFINITION
         if path is None:
             return path
@@ -174,6 +187,7 @@ class AnnotationBaseView(views.APIView):
     def get_genome_pipeline(
         self, genome: str,
     ) -> AnnotationPipeline:
+        """Return pipeline used for a genome in single variant annotation."""
         return self.genome_pipelines[genome]
 
     @staticmethod
@@ -193,13 +207,15 @@ class AnnotationBaseView(views.APIView):
 
 
 class JobAll(generics.ListAPIView):
+    """Generic view for listing all jobs."""
     queryset = Job.objects.filter(is_active=True)
     serializer_class = JobSerializer
     permission_classes = [permissions.IsAdminUser]
 
 
 class JobList(generics.ListAPIView):
-    def get_queryset(self):
+    """Generic view for listing jobs for the user."""
+    def get_queryset(self) -> QuerySet:
         return Job.objects.filter(owner=self.request.user, is_active=True)
 
     serializer_class = JobSerializer
@@ -207,6 +223,7 @@ class JobList(generics.ListAPIView):
 
 
 class JobDetail(generics.RetrieveAPIView, generics.DestroyAPIView):
+    """Generic view for listing job details."""
     queryset = Job.objects.filter(is_active=True)
     serializer_class = JobSerializer
     permission_classes = [permissions.IsAuthenticated, IsOwner]
@@ -217,12 +234,16 @@ class JobCreate(AnnotationBaseView):
     permission_classes = [permissions.IsAuthenticated]
 
     def check_valid_upload_size(self, file: UploadedFile, user: User) -> bool:
+        """Check if a file upload does not exceed the upload size limit."""
         if user.is_superuser:
             return True
         assert file.size is not None
-        return file.size < self._convert_size(settings.LIMITS["filesize"])
+        return file.size < self._convert_size(
+            cast(str, settings.LIMITS["filesize"]),
+        )
 
     def check_if_user_can_create(self, user: User) -> bool:
+        """Check if a user is not limited by the daily quota."""
         if user.is_superuser:
             return True
         today = timezone.now().replace(
@@ -234,11 +255,14 @@ class JobCreate(AnnotationBaseView):
         return True
 
     def check_variants_limit(self, file: VariantFile, user: User) -> bool:
+        """Check if a variants file does not exceed the variants limit."""
         if user.is_superuser:
             return True
-        return len(list(file.fetch())) < settings.LIMITS["variant_count"]
+        return len(list(file.fetch())) < cast(
+            int, settings.LIMITS["variant_count"])
 
-    def is_vcf_file(self, file: UploadedFile, input_path: Path):
+    def is_vcf_file(self, file: UploadedFile, input_path: Path) -> bool:
+        """Check if a file is a VCF file."""
         assert file.name is not None
         if file.name.endswith(".vcf"):
             return True
@@ -254,7 +278,8 @@ class JobCreate(AnnotationBaseView):
         else:
             return True
 
-    def is_columns_file(self, file: UploadedFile, input_path: Path):
+    def is_columns_file(self, file: UploadedFile, input_path: Path) -> bool:
+        """Check if a file is a TSV or CSV file."""
         assert file.name is not None
         if file.name.endswith(".vcf"):
             return False
@@ -277,6 +302,7 @@ class JobCreate(AnnotationBaseView):
             return False
 
     def _get_config_raw_from_request(self, request: Request) -> str:
+        """Get annotation config contents from a request."""
         assert isinstance(request.data, QueryDict)
         assert isinstance(request.FILES, MultiValueDict)
         if "pipeline" in request.data:
@@ -292,6 +318,7 @@ class JobCreate(AnnotationBaseView):
         return content
 
     def _cleanup(self, job_name: str) -> None:
+        """Cleanup the files of a failed job."""
         data_filename = f"{job_name}"
         inputs = Path(settings.JOB_INPUT_STORAGE_DIR).glob(f"{data_filename}*")
         for in_file in inputs:
@@ -300,7 +327,8 @@ class JobCreate(AnnotationBaseView):
         config_path = Path(
             settings.ANNOTATION_CONFIG_STORAGE_DIR, config_filename)
         config_path.unlink(missing_ok=True)
-        results = Path(settings.JOB_RESULT_STORAGE_DIR).glob(f"{data_filename}*")
+        results = Path(
+            settings.JOB_RESULT_STORAGE_DIR).glob(f"{data_filename}*")
         for out_file in results:
             out_file.unlink(missing_ok=True)
 
@@ -350,7 +378,6 @@ class JobCreate(AnnotationBaseView):
         config_path.parent.mkdir(parents=True, exist_ok=True)
         config_path.write_text(content)
 
-
         uploaded_file = request.FILES["data"]
         assert isinstance(uploaded_file, UploadedFile)
         if uploaded_file is None:
@@ -389,7 +416,6 @@ class JobCreate(AnnotationBaseView):
                   config_path=config_path,
                   result_path=result_path,
                   owner=request.user)
-
 
         if data_filename.endswith(".vcf"):
             try:
@@ -449,6 +475,7 @@ class JobCreate(AnnotationBaseView):
 
 
 class JobSpecify(AnnotationBaseView):
+    """View for specifying a csv or tsv job's columns."""
     def post(self, request: Request, pk: int) -> Response:
         assert isinstance(request.data, QueryDict)
         if not all(
@@ -470,8 +497,6 @@ class JobSpecify(AnnotationBaseView):
         try:
             job = specify_job(
                 pk,
-                self.result_storage_dir,
-                grr_definition,
                 col_chrom=col_chrom,
                 col_pos=col_pos,
                 col_ref=col_ref,
@@ -486,9 +511,12 @@ class JobSpecify(AnnotationBaseView):
 
 
 class JobGetFile(views.APIView):
+    """View for downloading job files."""
     permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request: Request, pk: int, file: str) -> Response:
+    def get(
+        self, request: Request, pk: int, file: str,
+    ) -> Response | FileResponse:
         job = get_object_or_404(Job, id=pk, is_active=True)
         if not has_job_permission(job, request.user):
             return Response(status=views.status.HTTP_403_FORBIDDEN)
@@ -508,18 +536,21 @@ class JobGetFile(views.APIView):
 
 
 class UserList(generics.ListAPIView):
+    """Generic view for listing users."""
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAdminUser]
 
 
 class UserDetail(generics.RetrieveAPIView):
+    """Generic view for listing a user's details"""
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAdminUser]
 
 
 class UserInfo(views.APIView):
+    """View that returns the request session's user information."""
     def get(self, request: Request) -> Response:
         user = request.user
         if not user.is_authenticated:
@@ -534,12 +565,14 @@ class UserInfo(views.APIView):
 
 
 class Logout(views.APIView):
+    """View for logging out."""
     def get(self, request: Request) -> Response:
-        logout(request)
+        logout(cast(HttpRequest, request))
         return Response(views.status.HTTP_204_NO_CONTENT)
 
 
 class Login(views.APIView):
+    """View for logging in."""
     parser_classes = [JSONParser]
 
     def post(self, request: Request) -> Response:
@@ -606,6 +639,7 @@ class Registration(views.APIView):
 
 
 class ListPipelines(AnnotationBaseView):
+    """View for listing all annotation pipelines for files."""
 
     def get(self, request: Request) -> Response:
         return Response(
@@ -632,17 +666,18 @@ class AnnotationConfigValidation(AnnotationBaseView):
             AnnotationConfigParser.parse_str(content, grr=self.grr)
         except (AnnotationConfigurationError, KeyError) as e:
             error = str(e)
-            if error ==  "":
+            if error == "":
                 result = {"errors": "Invalid configuration"}
             else:
                 result = {"errors": f"Invalid configuration, reason: {error}"}
-        except Exception:
+        except Exception:  # pylint: disable=broad-exception-caught
             result = {"errors": "Invalid configuration"}
 
         return Response(result, status=views.status.HTTP_200_OK)
 
 
 class ListGenomePipelines(AnnotationBaseView):
+    """View for listing available single annotaiton genomes."""
 
     def get(self, request: Request) -> Response:
         return Response(
@@ -652,6 +687,7 @@ class ListGenomePipelines(AnnotationBaseView):
 
 
 class SingleAnnotation(AnnotationBaseView):
+    """Single annotation view."""
     def post(self, request: Request) -> Response:
 
         if "variant" not in request.data:
@@ -931,6 +967,7 @@ class PasswordReset(views.APIView):
 
 
 class HistogramView(AnnotationBaseView):
+    """View for returning histogram data."""
 
     @method_decorator(last_modified(always_cache))
     def get(self, request: Request, resource_id: str) -> Response:
