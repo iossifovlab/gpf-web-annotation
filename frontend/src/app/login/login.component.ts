@@ -18,8 +18,8 @@ export class LoginComponent implements OnInit {
   @ViewChild('passwordInput') private password!: ElementRef;
   public responseMessage: string = '';
   public readonly environment = environment;
-  public readonly reset_password_url = `${environment.apiPath}/forgotten_password`;
-  public activationStatus: ""  | "successful"  | "failed";
+  public readonly resetPasswordUrl = `${environment.apiPath}/forgotten_password`;
+  public activationStatus: '' | 'successful' | 'failed';
 
   public constructor(
     private usersService: UsersService,
@@ -36,12 +36,12 @@ export class LoginComponent implements OnInit {
       map(params => params.get('activation_successful')),
       take(1)
     ).subscribe((status) => {
-      if (status == null) {
+      if (status === null) {
         this.activationStatus = "";
-      } else if (status == "True") {
-        this.activationStatus = "successful";
+      } else if (status === 'True') {
+        this.activationStatus = 'successful';
       } else {
-        this.activationStatus = "failed";
+        this.activationStatus = 'failed';
       }
     });
   }
