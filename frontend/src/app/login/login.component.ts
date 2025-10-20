@@ -37,7 +37,7 @@ export class LoginComponent implements OnInit {
       take(1)
     ).subscribe((status) => {
       if (status === null) {
-        this.activationStatus = "";
+        this.activationStatus = '';
       } else if (status === 'True') {
         this.activationStatus = 'successful';
       } else {
