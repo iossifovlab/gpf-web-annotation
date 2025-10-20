@@ -1,8 +1,8 @@
-from .settings import *
+"""Settings module for use in integration tests."""
+# pylint: skip-file
 import os
 import pathlib
-import tempfile
-import time
+from .settings import *
 
 test_dir = pathlib.Path(__file__).absolute().parent / "tests"
 db_fixture_dir = test_dir / "fixtures" / "db"

@@ -1,34 +1,43 @@
+"""Web annotation django models."""
+
 from __future__ import annotations
 
-from django.conf import settings
+import uuid
 from datetime import timedelta
+from typing import cast
+
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from typing import cast
-import uuid
 from django.utils import timezone
 
 
 class User(AbstractUser):
+    """Model for user accounts."""
     email = models.EmailField(("email address"), unique=True)
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
     def change_password(self, new_password: str) -> None:
+        """Update user with new password."""
         self.set_password(new_password)
         self.save()
 
     def activate(self) -> None:
+        """Enable a user's account."""
         self.is_active = True
         self.save()
 
 
 class Job(models.Model):
-    class Status(models.IntegerChoices):
-        WAITING = 1
-        IN_PROGRESS = 2
-        SUCCESS = 3
-        FAILED = 4
+    """Model for storing base job data."""
+    class Status(models.IntegerChoices):  # pylint: disable=too-many-ancestors
+        """Class for job status."""
+        SPECIFYING = 1
+        WAITING = 2
+        IN_PROGRESS = 3
+        SUCCESS = 4
+        FAILED = 5
 
     input_path = models.FilePathField(
         path=settings.JOB_INPUT_STORAGE_DIR)
@@ -45,6 +54,23 @@ class Job(models.Model):
     is_active = models.BooleanField(default=True)
 
 
+class JobDetails(models.Model):
+    """Model for storing job details for tsv files."""
+    class Meta:  # pylint: disable=too-few-public-methods
+        """Meta class for details model."""
+        constraints = [
+            models.UniqueConstraint(fields=["job"], name="unique_job_details")
+        ]
+    col_chr = models.CharField(max_length=64)
+    col_pos = models.CharField(max_length=64)
+    col_ref = models.CharField(max_length=64)
+    col_alt = models.CharField(max_length=64)
+    separator = models.CharField(max_length=1)
+    columns = models.TextField()
+    job = models.ForeignKey(
+        'web_annotation.Job', related_name='details', on_delete=models.CASCADE)
+
+
 class BaseVerificationCode(models.Model):
     """Base class for temporary codes for verifying the user without login."""
 
@@ -57,9 +83,11 @@ class BaseVerificationCode(models.Model):
         return str(self.path)
 
     def validate(self) -> bool:
+        """Check whether the code is valid."""
         raise NotImplementedError
 
     class Meta:  # pylint: disable=too-few-public-methods
+        """Meta class for verification model."""
         abstract = True
 
     @classmethod
@@ -98,6 +126,7 @@ class ResetPasswordCode(BaseVerificationCode):
     """Class used for verification of password resets."""
 
     class Meta:  # pylint: disable=too-few-public-methods
+        """Meta class for reset password codes."""
         db_table = "reset_password_verification_codes"
 
     def validate(self) -> bool:
@@ -108,10 +137,12 @@ class ResetPasswordCode(BaseVerificationCode):
             return False
         return True
 
+
 class AccountConfirmationCode(BaseVerificationCode):
     """Class used for verification of password resets."""
 
     class Meta:  # pylint: disable=too-few-public-methods
+        """Meta class for account confirmation codes."""
         db_table = "account_confirmation_codes"
 
     def validate(self) -> bool:
