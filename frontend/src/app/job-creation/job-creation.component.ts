@@ -32,14 +32,15 @@ export class JobCreationComponent implements OnInit {
   }
 
   public onCreateClick(): void {
-    this.dialogRef.close(true);
     if (this.file) {
+      let createObservable: Observable<object>;
       if (this.view === 'text editor') {
-        this.jobsService.createJob(this.file, null, this.ymlConfig).subscribe();
+        createObservable = this.jobsService.createJob(this.file, null, this.ymlConfig);
         this.ymlConfig = '';
       } else {
-        this.jobsService.createJob(this.file, this.pipelineId, null).subscribe();
+        createObservable = this.jobsService.createJob(this.file, this.pipelineId, null);
       }
+      createObservable.pipe(take(1)).subscribe(resp => this.dialogRef.close(resp));
     }
   }
 

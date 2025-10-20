@@ -35,28 +35,26 @@ describe('JobsService', () => {
 
   it('should create job with config written by user', async() => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
-    httpPostSpy.mockReturnValue(of(new HttpResponse({status: 204})));
+    httpPostSpy.mockReturnValue(of(null));
 
     const mockInputFile = new File(['mockData'], 'mockInput.vcf');
 
     const postResult = service.createJob(mockInputFile, null, 'mockConfigData');
 
     const res = await lastValueFrom(postResult.pipe(take(1)));
-    const httpResponse = new HttpResponse(res);
-    expect(httpResponse.status).toBe(204);
+    expect(res).toBeNull();
   });
 
   it('should create job with config chosen from pipeline list by user', async() => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
-    httpPostSpy.mockReturnValue(of(new HttpResponse({status: 204})));
+    httpPostSpy.mockReturnValue(of(null));
 
     const mockInputFile = new File(['mockData'], 'mockInput.vcf');
 
     const postResult = service.createJob(mockInputFile, 'autism', null);
 
     const res = await lastValueFrom(postResult.pipe(take(1)));
-    const httpResponse = new HttpResponse(res);
-    expect(httpResponse.status).toBe(204);
+    expect(res).toBeNull();
   });
 
   it('should check if create query has correct parameters when config is written by user', () => {

@@ -1,10 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
-import { Job } from './jobs';
+import { FileContent, Job } from './jobs';
 import { Pipeline } from './pipelines';
 import { environment } from '../../../environments/environment';
-
 
 @Injectable()
 export class JobsService {
@@ -39,7 +38,7 @@ export class JobsService {
       this.createJobUrl,
       formData,
       options
-    );
+    ).pipe(map((response: object) => response ? FileContent.fromJson(response) : response));
   }
 
   public getJobs(): Observable<Job[]> {
