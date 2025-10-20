@@ -1,15 +1,16 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, map, Observable, of } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { Job } from './jobs';
 import { Pipeline } from './pipelines';
 import { environment } from '../../../environments/environment';
+
 
 @Injectable()
 export class JobsService {
   private readonly createJobUrl = `${environment.apiPath}/jobs/create`;
   private readonly validateJobConfigUrl = `${environment.apiPath}/jobs/validate`;
-  private readonly getUsersJobsUrl = `${environment.apiPath}/jobs`;
+  private readonly jobsUrl = `${environment.apiPath}/jobs`;
   private readonly getPipelinesUrl = `${environment.apiPath}/pipelines`;
 
   public constructor(private http: HttpClient) { }
@@ -44,7 +45,7 @@ export class JobsService {
   public getJobs(): Observable<Job[]> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
     return this.http.get<object[]>(
-      this.getUsersJobsUrl,
+      this.jobsUrl,
       options
     ).pipe(map((response: object[]) => Job.fromJsonArray(response)));
   }
@@ -52,7 +53,7 @@ export class JobsService {
   public getJobDetails(jobId: number): Observable<Job> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
     return this.http.get(
-      this.getUsersJobsUrl + "/" + jobId,
+      this.jobsUrl + '/' + jobId,
       options
     ).pipe(map((response: object) => Job.fromJson(response)));
   }
@@ -66,9 +67,8 @@ export class JobsService {
       options
     ).pipe(
       map((response: object) => {
-        return response["errors"] as string;
+        return response['errors'] as string;
       }),
-
     );
   }
 
@@ -94,7 +94,7 @@ export class JobsService {
   public deleteJob(jobId: number): Observable<object> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
     return this.http.delete(
-      `${this.getUsersJobsUrl}/${jobId}`,
+      `${this.jobsUrl}/${jobId}`,
       options
     );
   }
