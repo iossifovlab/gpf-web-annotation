@@ -19,13 +19,13 @@ export class ColumnSpecifyingModalComponent implements OnInit {
   public mappedColumns = new Map<string, string>();
 
   public constructor(
-     @Inject(MAT_DIALOG_DATA) public content: FileContent,
+     @Inject(MAT_DIALOG_DATA) public data: { content: FileContent, jobId: number },
     private dialogRef: MatDialogRef<ColumnSpecifyingModalComponent>,
     private jobsService: JobsService
   ) { }
 
   public ngOnInit(): void {
-    this.fileContent = this.content;
+    this.fileContent = this.data.content;
   }
 
   public onSelectName(selectedName: string, column: string): void {
@@ -50,6 +50,6 @@ export class ColumnSpecifyingModalComponent implements OnInit {
   }
 
   public submitColumns(): void {
-    this.jobsService.specifyColumns(this.fileContent.jobId, this.mappedColumns).subscribe();
+    this.jobsService.specifyColumns(this.data.jobId, this.mappedColumns).subscribe();
   }
 }

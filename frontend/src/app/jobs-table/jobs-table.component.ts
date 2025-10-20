@@ -43,13 +43,16 @@ export class JobsTableComponent implements OnInit, OnDestroy {
   }
 
   // to do
-  public getModalContent(): void {
-    // this.openColumnMappingModal(FileContent.fromJson(mockResponse));
+  public getModalContent(jobId: number): void {
+
   }
 
-  public openColumnMappingModal(content: FileContent): void {
+  public openColumnMappingModal(content: FileContent, jobId: number): void {
     this.dialog.open(ColumnSpecifyingModalComponent, {
-      data: content,
+      data: {
+        content: content,
+        jobId: jobId
+      },
       height: '20vh',
       width: '50vw',
       minHeight: '500px',
