@@ -98,4 +98,27 @@ export class JobsService {
       options
     );
   }
+
+  public specifyColumns(jobId: number, columns: Map<string, string>): Observable<object> {
+    const options = {
+      headers: {
+        'X-CSRFToken': this.getCSRFToken(),
+        'Content-Type': 'application/json'
+      },
+      withCredentials: true
+    };
+
+    return this.http.post(
+      `${this.jobsUrl}/${jobId}/specify`,
+      /* eslint-disable camelcase */
+      {
+        col_chrom: columns.get('chrom'),
+        col_pos: columns.get('pos'),
+        col_ref: columns.get('ref'),
+        col_alt: columns.get('alt'),
+      },
+      /* eslint-enable */
+      options
+    );
+  }
 }

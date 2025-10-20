@@ -5,6 +5,7 @@ import { FileContent } from '../job-creation/jobs';
 import { TextShortenPipe } from '../text-shorten.pipe';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { JobsService } from '../job-creation/jobs.service';
 
 @Component({
   selector: 'app-column-specifying-modal',
@@ -19,7 +20,8 @@ export class ColumnSpecifyingModalComponent implements OnInit {
 
   public constructor(
      @Inject(MAT_DIALOG_DATA) public content: FileContent,
-    private dialogRef: MatDialogRef<ColumnSpecifyingModalComponent>
+    private dialogRef: MatDialogRef<ColumnSpecifyingModalComponent>,
+    private jobsService: JobsService
   ) { }
 
   public ngOnInit(): void {
@@ -45,5 +47,9 @@ export class ColumnSpecifyingModalComponent implements OnInit {
       }
     }
     return null;
+  }
+
+  public submitColumns(): void {
+    this.jobsService.specifyColumns(this.fileContent.jobId, this.mappedColumns).subscribe();
   }
 }

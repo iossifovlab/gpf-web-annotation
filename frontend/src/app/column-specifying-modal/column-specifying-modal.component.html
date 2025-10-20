@@ -22,5 +22,5 @@
       <span *ngFor="let cell of row" class="cell" [title]="cell">{{ cell | textShorten }}</span>
     </div>
   </div>
-  <button>Submit</button>
+  <button (click)="submitColumns()">Submit</button>
 </div>
