@@ -2,6 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ColumnSpecifyingModalComponent } from './column-specifying-modal.component';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FileContent } from '../job-creation/jobs';
+import { JobsService } from '../job-creation/jobs.service';
+import { provideHttpClient } from '@angular/common/http';
 
 const mockModalContent = new FileContent(
   ['chrom', 'position', 'reference', 'alternative'],
@@ -25,8 +27,10 @@ describe('ColumnSpecifyingModalComponent', () => {
     await TestBed.configureTestingModule({
       imports: [ColumnSpecifyingModalComponent],
       providers: [
-        { provide: MAT_DIALOG_DATA, useValue: mockModalContent },
+        { provide: MAT_DIALOG_DATA, useValue: { content: mockModalContent, jobId: 1 } },
         { provide: MatDialogRef, useValue: mockMatDialogRef },
+        JobsService,
+        provideHttpClient(),
       ]
     }).compileComponents();
 
