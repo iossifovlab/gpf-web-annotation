@@ -1,6 +1,6 @@
 <div id="modal-container" *ngIf="fileContent">
   <span>Please map each column with the corresponding one.</span>
-  <div id="modal-table">
+  <div id="modal-table" [ngStyle]="{ 'grid-template-columns': `repeat(${fileContent.columns.length}, auto)` }">
     <div class="row">
       <div class="header" *ngFor="let header of fileContent.columns">
         <mat-form-field>

@@ -4,7 +4,6 @@
 
 #modal-table {
   display: grid;
-  grid-template-columns: repeat(12, auto);
   margin-top: 10px;
   margin-bottom: 30px;
   font-size: 18px;
@@ -64,7 +63,9 @@ button:hover {
 }
 
 mat-form-field {
-  width: 200px !important;
+  min-width: 85px !important;
+  width: 7vw !important;
+  max-width: 250px !important;
 }
 
 ::ng-deep .mdc-text-field {
@@ -97,6 +98,7 @@ mat-form-field {
 
 ::ng-deep .mat-mdc-select-value-text {
   color: white;
+  font-weight: 500;
 }
 
 ::ng-deep .mat-mdc-select-placeholder {
