@@ -23,11 +23,9 @@ export async function getLinkInEmail(page: Page, email: string, subject: string)
   await page.goto(mailhogUrl, {waitUntil: 'load'});
 
   await expect(async() => {
-    await page.locator('div.msglist-message')
-      .filter({ hasText: email })
-      .filter({ hasText: subject })
-      .first()
-      .click();
+    await page.locator('#search').pressSequentially(subject);
+    await page.keyboard.press('Enter');
+    await page.getByText(email).click();
   }).toPass({intervals: [1000, 2000, 3000, 4000]});
 
   const href = await page.locator('#preview-plain > a').getAttribute('href');
