@@ -1,8 +1,8 @@
 <div id="modal-container" *ngIf="fileContent">
-  <span>Please map each column with the corresponding one.</span>
+  <span id="instructions">Please map each column with the corresponding one.</span>
   <div id="modal-table" [ngStyle]="{ 'grid-template-columns': `repeat(${fileContent.columns.length}, auto)` }">
     <div class="row">
-      <div class="header" *ngFor="let header of fileContent.columns">
+      <div class="header" [id]="header + '-header'" *ngFor="let header of fileContent.columns">
         <mat-form-field>
           <mat-select matNativeControl [placeholder]="'- select -'">
             <mat-option (click)="onSelectName('None', header)">None</mat-option>
@@ -19,8 +19,8 @@
       </div>
     </div>
     <div *ngFor="let row of fileContent.rows" class="row">
-      <span *ngFor="let cell of row" class="cell" [title]="cell">{{ cell | textShorten }}</span>
+      <span *ngFor="let cell of row" class="cell" [id]="cell + '-cell'" [title]="cell">{{ cell | textShorten }}</span>
     </div>
   </div>
-  <button (click)="submitColumns()">Submit</button>
+  <button id="submit-columns" (click)="submitColumns()">Submit</button>
 </div>
