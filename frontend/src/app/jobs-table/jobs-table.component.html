@@ -28,8 +28,9 @@
       <div class="grid-cell time-info">-</div>
       <div class="grid-cell">
         <span class="status-label" [ngClass]="getStatusClass(j.status)">{{ j.status }}</span>
-        <span *ngIf="j.status === 'specifying'"
-          >Specify columns <button (click)="getModalContent(j.id)">here</button></span
+        <span class="specify-label" *ngIf="j.status === 'specifying'"
+          ><span class="material-symbols-outlined warning-icon">warning</span>Specify columns
+          <button class="specify-button" (click)="getModalContent(j.id)">here</button></span
         >
       </div>
       <div class="grid-cell">
