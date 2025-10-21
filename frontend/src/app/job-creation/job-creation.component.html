@@ -32,7 +32,7 @@
         [(ngModel)]="ymlConfig"
         [ngClass]="{ 'invalid-config': configError }"
         (change)="isConfigValid(ymlConfig)"></textarea>
-      <div id="error-message">{{ configError }}</div>
+      <div class="error-message">{{ configError }}</div>
     </ng-container>
   </div>
   <div *ngIf="!file" id="file-upload-field" (dragover)="onDragOver($event)" (drop)="onDropSuccess($event)">
@@ -53,13 +53,14 @@
       <span *ngIf="uploadError" class="material-symbols-outlined warning-icon">warning</span>
       <span *ngIf="!uploadError" class="material-symbols-outlined file-icon">article</span>
       <span>{{ file.name }}</span>
-      <span id="error-message">{{ uploadError }}</span>
+      <span class="error-message">{{ uploadError }}</span>
     </div>
     <button (click)="removeFile()" id="delete-uploaded-file">
       <span class="material-symbols-outlined delete-icon">delete</span>
     </button>
   </div>
 </mat-dialog-content>
+<span class="error-message">{{ creationError }}</span>
 <mat-dialog-actions align="center">
   <button id="create-button" mat-raised-button (click)="onCreateClick()" tabindex="1" [disabled]="disableCreate()"
     >Create</button

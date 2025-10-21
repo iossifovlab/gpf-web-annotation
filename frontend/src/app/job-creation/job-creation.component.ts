@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { MatDialogRef, MatDialogActions, MatDialogContent } from '@angular/material/dialog';
-import { JobCreationView } from './jobs';
+import { FileContent, JobCreationView } from './jobs';
 import { JobsService } from './jobs.service';
 import { Observable, take } from 'rxjs';
 import { Pipeline } from './pipelines';
@@ -22,6 +22,7 @@ export class JobCreationComponent implements OnInit {
   public pipelineId = '';
   public ymlConfig = '';
   public configError = '';
+  public creationError = '';
 
   public constructor(private dialogRef: MatDialogRef<JobCreationComponent>, private jobsService: JobsService) { }
 
@@ -40,7 +41,12 @@ export class JobCreationComponent implements OnInit {
       } else {
         createObservable = this.jobsService.createJob(this.file, this.pipelineId, null);
       }
-      createObservable.pipe(take(1)).subscribe(resp => this.dialogRef.close(resp));
+      createObservable.pipe(take(1)).subscribe({
+        next: (resp) => this.dialogRef.close(resp),
+        error: (err: Error) => {
+          this.creationError = err.message;
+        }
+      });
     }
   }
 

@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClient, HttpResponse, provideHttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpResponse, provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { lastValueFrom, of, take } from 'rxjs';
+import { lastValueFrom, of, take, throwError } from 'rxjs';
 import { JobsService } from './jobs.service';
 import { getStatusClassName, Job } from './jobs';
 import { Pipeline } from './pipelines';
@@ -55,6 +55,62 @@ describe('JobsService', () => {
 
     const res = await lastValueFrom(postResult.pipe(take(1)));
     expect(res).toBeNull();
+  });
+
+  it('should catch error 403 for daily quota limit when creating job', () => {
+    const httpError = new HttpErrorResponse({status: 403, error: {reason: 'Daily quota limit reached!'}});
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
+    httpPostSpy.mockReturnValue(of(throwError(() => httpError)));
+
+    const mockInputFile = new File(['mockData'], 'mockInput.vcf');
+
+    const postResult = service.createJob(mockInputFile, 'autism', null);
+
+    // eslint-disable-next-line jest/valid-expect
+    expect(() => lastValueFrom(postResult.pipe(take(1))))
+      .rejects.toThrow('Daily quota limit reached!');
+  });
+
+  it('should catch error 413 for upload limit when creating job', () => {
+    const httpError = new HttpErrorResponse({status: 413, error: {reason: 'Upload limit reached!'}});
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
+    httpPostSpy.mockReturnValue(of(throwError(() => httpError)));
+
+    const mockInputFile = new File(['mockData'], 'mockInput.vcf');
+
+    const postResult = service.createJob(mockInputFile, 'autism', null);
+
+    // eslint-disable-next-line jest/valid-expect
+    expect(() => lastValueFrom(postResult.pipe(take(1))))
+      .rejects.toThrow('Upload limit reached!');
+  });
+
+  it('should catch error 400 for invalid pipeline configuration file when creating job', () => {
+    const httpError = new HttpErrorResponse({status: 400, error: {reason: 'Invalid pipeline configuration file!'}});
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
+    httpPostSpy.mockReturnValue(of(throwError(() => httpError)));
+
+    const mockInputFile = new File(['mockData'], 'mockInput.vcf');
+
+    const postResult = service.createJob(mockInputFile, 'autism', null);
+
+    // eslint-disable-next-line jest/valid-expect
+    expect(() => lastValueFrom(postResult.pipe(take(1))))
+      .rejects.toThrow('Invalid pipeline configuration file!');
+  });
+
+  it('should throw default message for other error cases when creating job', () => {
+    const httpError = new HttpErrorResponse({status: 422});
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
+    httpPostSpy.mockReturnValue(of(throwError(() => httpError)));
+
+    const mockInputFile = new File(['mockData'], 'mockInput.vcf');
+
+    const postResult = service.createJob(mockInputFile, 'autism', null);
+
+    // eslint-disable-next-line jest/valid-expect
+    expect(() => lastValueFrom(postResult.pipe(take(1))))
+      .rejects.toThrow('Error occurred!');
   });
 
   it('should check if create query has correct parameters when config is written by user', () => {

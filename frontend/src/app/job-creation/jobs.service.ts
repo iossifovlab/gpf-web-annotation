@@ -1,6 +1,6 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { map, Observable } from 'rxjs';
+import { catchError, map, Observable, throwError } from 'rxjs';
 import { FileContent, Job } from './jobs';
 import { Pipeline } from './pipelines';
 import { environment } from '../../../environments/environment';
@@ -38,7 +38,17 @@ export class JobsService {
       this.createJobUrl,
       formData,
       options
-    ).pipe(map((response: object) => response ? FileContent.fromJson(response) : response));
+    ).pipe(
+      map((response: object) => response ? FileContent.fromJson(response) : response),
+      catchError((err: HttpErrorResponse) => {
+        switch (err.status) {
+          case 403: return throwError(() => new Error((err.error as {reason: string})['reason']));
+          case 413: return throwError(() => new Error('Upload limit reached!'));
+          case 400: return throwError(() => new Error((err.error as {reason: string})['reason']));
+          default: return throwError(() => new Error('Error occurred!'));
+        }
+      })
+    );
   }
 
   public getJobs(): Observable<Job[]> {

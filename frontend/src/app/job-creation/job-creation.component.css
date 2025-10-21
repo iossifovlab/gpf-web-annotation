@@ -122,7 +122,7 @@
   border: none;
 }
 
-#error-message {
+.error-message {
   font-size: 14px;
   color: #d74b59;
   font-weight: normal;
