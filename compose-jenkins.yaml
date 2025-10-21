@@ -104,7 +104,7 @@ services:
       DJANGO_SETTINGS_MODULE: web_annotation.test_settings
       GPFWA_EMAIL_HOST: mail
       RABBITMQ_HOST: rabbitmq
-      GRR_DEFINITION_FILE: /grr-definition.yaml
+      GRR_DEFINITION_FILE: /grr-definition-tests.yaml
     volumes:
       - .:/wd
     entrypoint: /wd/backend/scripts/backend_tests.sh
