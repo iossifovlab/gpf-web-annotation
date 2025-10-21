@@ -51,14 +51,17 @@ export class JobCreationComponent implements OnInit {
   }
 
   public onCancelClick(): void {
+    this.creationError = '';
     this.dialogRef.close(false);
   }
 
   public onPipelineClick(option: string): void {
+    this.creationError = '';
     this.pipelineId = option;
   }
 
   public onUpload(event: Event): void {
+    this.creationError = '';
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       this.onFileChange(input.files[0]);
@@ -78,6 +81,7 @@ export class JobCreationComponent implements OnInit {
   }
 
   public isConfigValid(config: string): void {
+    this.creationError = '';
     this.jobsService.validateJobConfig(config).pipe(
       take(1)
     ).subscribe((errorReason: string) => {
@@ -93,6 +97,7 @@ export class JobCreationComponent implements OnInit {
   }
 
   public removeFile(): void {
+    this.creationError = '';
     this.file = null;
     this.uploadError = '';
   }
