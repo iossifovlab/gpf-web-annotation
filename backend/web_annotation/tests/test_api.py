@@ -236,7 +236,7 @@ def test_job_details(user_client: Client) -> None:
     created = datetime.datetime.fromisoformat(result["created"])
     now = datetime.datetime.now(datetime.timezone.utc)
     assert abs(now - created) < datetime.timedelta(minutes=1)
-    assert result["id"] == 1
+    assert result["job_id"] == 1
     assert result["status"] == Job.Status.WAITING
     assert result["owner"] == "user@example.com"
 
@@ -707,6 +707,48 @@ def test_columns_annotation_tsv(admin_client: Client) -> None:
 
 
 @pytest.mark.django_db
+def test_columns_annotation_tsv_extra_tabs(admin_client: Client) -> None:
+    annotation_config = "- position_score: scores/pos1"
+    tsv = textwrap.dedent("""
+        chrom	pos	ref	alt	
+        chr1	1	C	A
+    """).strip()
+
+    response = admin_client.post(
+        "/api/jobs/create",
+        {"config": ContentFile(annotation_config),
+         "data": ContentFile(tsv)},
+    )
+
+    assert response is not None
+    assert response.status_code == 200
+    created_job = Job.objects.last()
+    assert created_job is not None
+
+    response = admin_client.post(
+        f"/api/jobs/{created_job.pk}/specify",
+        {
+            "col_chrom": "chrom",
+            "col_pos": "pos",
+            "col_ref": "ref",
+            "col_alt": "alt",
+        },
+    )
+
+    assert response is not None
+    assert response.status_code == 204
+    created_job.refresh_from_db()
+    assert created_job.status == Job.Status.SUCCESS
+
+    output = pathlib.Path(created_job.result_path).read_text()
+    lines = [line.split("\t") for line in output.strip().split("\n")]
+    assert lines == [
+        ["chrom", "pos", "ref", "alt", "pos1"],
+        ["chr1", "1", "C", "A", "0.1"],
+    ]
+
+
+@pytest.mark.django_db
 def test_columns_annotation_csv(admin_client: Client) -> None:
     annotation_config = "- position_score: scores/pos1"
     tsv = textwrap.dedent("""
@@ -810,3 +852,62 @@ def test_specify_job_errors_on_nonexistant_job() -> None:
             999,
             col_chrom="chr", col_pos="pos", col_ref="ref", col_alt="alt",
         )
+
+
+@pytest.mark.django_db
+def test_job_details_specify(admin_client: Client) -> None:
+    annotation_config = "- position_score: scores/pos1"
+    tsv = textwrap.dedent("""
+        chrom	pos	ref	alt
+        chr1	1	C	A
+    """).strip()
+
+    response = admin_client.post(
+        "/api/jobs/create",
+        {"config": ContentFile(annotation_config),
+         "data": ContentFile(tsv)},
+    )
+
+    assert response is not None
+    assert response.status_code == 200
+
+    assert response.data is not None
+
+    assert response.data == {
+        "job_id": 3,
+        "columns": ["chrom", "pos", "ref", "alt"],
+        "head": [{
+            "chrom": "chr1",
+            "pos": "1",
+            "ref": "C",
+            "alt": "A"
+        }]
+    }
+
+
+    user = User.objects.get(email="admin@example.com")
+    assert Job.objects.filter(owner=user).count() == 2
+    job = Job.objects.get(id=3)
+
+    assert job.status == Job.Status.SPECIFYING
+
+    response = admin_client.get("/api/jobs/3")
+
+    assert response is not None
+    assert response.status_code == 200
+    assert response.data is not None
+    response_data = response.data
+    assert response_data["job_id"] == 3
+    assert response_data["status"] == Job.Status.SPECIFYING
+    assert response_data["columns"] == ["chrom", "pos", "ref", "alt"]
+    assert response_data["owner"] == "admin@example.com"
+    assert response_data["head"] == [{
+        "chrom": "chr1",
+        "pos": "1",
+        "ref": "C",
+        "alt": "A"
+    }]
+    assert "created" in response_data
+    created = datetime.datetime.fromisoformat(response_data["created"])
+    now = datetime.datetime.now(datetime.timezone.utc)
+    assert abs(now - created) < datetime.timedelta(minutes=1)

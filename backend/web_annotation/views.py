@@ -67,7 +67,7 @@ from .models import (
 )
 from .permissions import IsOwner, has_job_permission
 from .serializers import JobSerializer, UserSerializer
-from .tasks import annotate_vcf_job, annotate_columns_job, specify_job
+from .tasks import annotate_vcf_job, annotate_columns_job, get_job, get_job_details, specify_job
 
 logger = logging.getLogger(__name__)
 
@@ -222,11 +222,42 @@ class JobList(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
 
-class JobDetail(generics.RetrieveAPIView, generics.DestroyAPIView):
-    """Generic view for listing job details."""
-    queryset = Job.objects.filter(is_active=True)
-    serializer_class = JobSerializer
-    permission_classes = [permissions.IsAuthenticated, IsOwner]
+class JobDetail(AnnotationBaseView):
+    """View for listing job details."""
+
+    permission_classes = [permissions.IsAuthenticated]
+    def get(self, request: Request, pk: int) -> Response:
+        try:
+            job = get_job(pk)
+        except ObjectDoesNotExist:
+            return Response(status=views.status.HTTP_404_NOT_FOUND)
+
+        if job.owner != request.user:
+            return Response(status=views.status.HTTP_403_FORBIDDEN)
+
+        response = {
+            "job_id": job.pk,
+            "owner": job.owner.email,
+            "created": str(job.created),
+            "status": job.status,
+        }
+        try:
+            details = get_job_details(pk)
+        except ObjectDoesNotExist:
+            return Response(response, status=views.status.HTTP_200_OK)
+
+        content = Path(job.input_path).read_text()
+        lines = list(map(str.strip, content.split("\n")))
+        header = lines[0]
+        sep = details.separator
+
+        file_header = [dict(
+            zip(header.split(sep), line.split(sep), strict=True)
+        ) for line in lines[1:5]]
+        response["columns"] = details.columns.split(";")
+        response["head"] = file_header
+
+        return Response(response, status=views.status.HTTP_200_OK)
 
 
 class JobCreate(AnnotationBaseView):
@@ -291,15 +322,13 @@ class JobCreate(AnnotationBaseView):
             return False
         lines = cols_file_content.split("\n")
         if len(lines) >= 2:
-            header = lines[0]
+            header = lines[0].strip()
             if len(header.split(",")) >= 4:
                 return True
-            elif len(header.split("\t")) >= 4:
+            if len(header.split("\t")) >= 4:
                 return True
-            else:
-                return False
-        else:
             return False
+        return False
 
     def _get_config_raw_from_request(self, request: Request) -> str:
         """Get annotation config contents from a request."""
@@ -442,7 +471,7 @@ class JobCreate(AnnotationBaseView):
             return Response(status=views.status.HTTP_204_NO_CONTENT)
         else:
             cols_file_content = input_path.read_text()
-            lines = cols_file_content.split("\n")
+            lines = list(map(str.strip, cols_file_content.split("\n")))
             header = lines[0]
             if len(header.split(",")) >= 4:
                 sep = ","
