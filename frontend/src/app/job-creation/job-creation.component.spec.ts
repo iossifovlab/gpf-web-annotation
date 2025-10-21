@@ -124,13 +124,13 @@ describe('JobCreationComponent', () => {
   it('should close modal of job creation on cancel', () => {
     const dialogSpy = jest.spyOn(mockMatDialogRef, 'close');
     component.onCancelClick();
-    expect(dialogSpy).toHaveBeenCalledWith(true);
+    expect(dialogSpy).toHaveBeenCalledWith(false);
   });
 
   it('should close modal when creating the process', () => {
     const dialogSpy = jest.spyOn(mockMatDialogRef, 'close');
     component.onCreateClick();
-    expect(dialogSpy).toHaveBeenCalledWith(true);
+    expect(dialogSpy).toHaveBeenCalledWith(false);
   });
 
   it('should create process with yml config entered by user', () => {

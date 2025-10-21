@@ -51,7 +51,7 @@ export class JobCreationComponent implements OnInit {
   }
 
   public onCancelClick(): void {
-    this.dialogRef.close(true);
+    this.dialogRef.close(false);
   }
 
   public onPipelineClick(option: string): void {
