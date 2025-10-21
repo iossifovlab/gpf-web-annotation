@@ -376,4 +376,60 @@ describe('JobsService', () => {
       options
     );
   });
+
+  it('should catch error 403 for daily quota limit when specifying columns', async() => {
+    const httpError = new HttpErrorResponse({status: 403});
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
+    httpPostSpy.mockReturnValue(throwError(() => httpError));
+
+    const postResult = service.specifyColumns(1, new Map<string, string>([
+      ['col1', 'val1'],
+      ['col2', 'val2'],
+    ]));
+
+    await expect(() => lastValueFrom(postResult.pipe(take(1))))
+      .rejects.toThrow('Quota reached!');
+  });
+
+  it('should catch error 404 for job not found when specifying columns', async() => {
+    const httpError = new HttpErrorResponse({status: 404});
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
+    httpPostSpy.mockReturnValue(throwError(() => httpError));
+
+    const postResult = service.specifyColumns(1, new Map<string, string>([
+      ['col1', 'val1'],
+      ['col2', 'val2'],
+    ]));
+
+    await expect(() => lastValueFrom(postResult.pipe(take(1))))
+      .rejects.toThrow('Job not found!');
+  });
+
+  it('should catch error 400 for invalid pipeline configuration file when specifying columns', async() => {
+    const httpError = new HttpErrorResponse({status: 400, error: {reason: 'Invalid pipeline configuration file!'}});
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
+    httpPostSpy.mockReturnValue(throwError(() => httpError));
+
+    const postResult = service.specifyColumns(1, new Map<string, string>([
+      ['col1', 'val1'],
+      ['col2', 'val2'],
+    ]));
+
+    await expect(() => lastValueFrom(postResult.pipe(take(1))))
+      .rejects.toThrow('Invalid pipeline configuration file!');
+  });
+
+  it('should throw default message for other error cases when specifying columns', async() => {
+    const httpError = new HttpErrorResponse({status: 422});
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
+    httpPostSpy.mockReturnValue(throwError(() => httpError));
+
+    const postResult = service.specifyColumns(1, new Map<string, string>([
+      ['col1', 'val1'],
+      ['col2', 'val2'],
+    ]));
+
+    await expect(() => lastValueFrom(postResult.pipe(take(1))))
+      .rejects.toThrow('Error occurred!');
+  });
 });

@@ -17,6 +17,7 @@ export class ColumnSpecifyingModalComponent implements OnInit {
   public fileContent: FileContent;
   public columnNames = ['chrom', 'pos', 'ref', 'alt'];
   public mappedColumns = new Map<string, string>();
+  public error = '';
 
   public constructor(
      @Inject(MAT_DIALOG_DATA) public data: { content: FileContent, jobId: number },
@@ -50,6 +51,11 @@ export class ColumnSpecifyingModalComponent implements OnInit {
   }
 
   public submitColumns(): void {
-    this.jobsService.specifyColumns(this.data.jobId, this.mappedColumns).subscribe();
+    this.jobsService.specifyColumns(this.data.jobId, this.mappedColumns).subscribe({
+      next: () => this.dialogRef.close(true),
+      error: (err: Error) => {
+        this.error = err.message;
+      }
+    });
   }
 }

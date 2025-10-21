@@ -128,6 +128,15 @@ export class JobsService {
       },
       /* eslint-enable */
       options
+    ).pipe(
+      catchError((err: HttpErrorResponse) => {
+        switch (err.status) {
+          case 403: return throwError(() => new Error('Quota reached!'));
+          case 404: return throwError(() => new Error('Job not found!'));
+          case 400: return throwError(() => new Error((err.error as {reason: string})['reason']));
+          default: return throwError(() => new Error('Error occurred!'));
+        }
+      })
     );
   }
 }
