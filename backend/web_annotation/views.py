@@ -248,7 +248,7 @@ class JobDetail(AnnotationBaseView):
             return Response(response, status=views.status.HTTP_200_OK)
 
         content = Path(job.input_path).read_text()
-        lines = list(map(str.strip, content.split("\n")))
+        lines = content.split("\n")
         header = lines[0]
         sep = details.separator
 
@@ -472,7 +472,7 @@ class JobCreate(AnnotationBaseView):
             return Response(status=views.status.HTTP_204_NO_CONTENT)
         else:
             cols_file_content = input_path.read_text()
-            lines = list(map(str.strip, cols_file_content.split("\n")))
+            lines = cols_file_content.split("\n")
             header = lines[0]
             if len(header.split(",")) >= 4:
                 sep = ","

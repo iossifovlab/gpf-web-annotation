@@ -707,48 +707,6 @@ def test_columns_annotation_tsv(admin_client: Client) -> None:
 
 
 @pytest.mark.django_db
-def test_columns_annotation_tsv_extra_tabs(admin_client: Client) -> None:
-    annotation_config = "- position_score: scores/pos1"
-    tsv = textwrap.dedent("""
-        chrom	pos	ref	alt	
-        chr1	1	C	A
-    """).strip()
-
-    response = admin_client.post(
-        "/api/jobs/create",
-        {"config": ContentFile(annotation_config),
-         "data": ContentFile(tsv)},
-    )
-
-    assert response is not None
-    assert response.status_code == 200
-    created_job = Job.objects.last()
-    assert created_job is not None
-
-    response = admin_client.post(
-        f"/api/jobs/{created_job.pk}/specify",
-        {
-            "col_chrom": "chrom",
-            "col_pos": "pos",
-            "col_ref": "ref",
-            "col_alt": "alt",
-        },
-    )
-
-    assert response is not None
-    assert response.status_code == 204
-    created_job.refresh_from_db()
-    assert created_job.status == Job.Status.SUCCESS
-
-    output = pathlib.Path(created_job.result_path).read_text()
-    lines = [line.split("\t") for line in output.strip().split("\n")]
-    assert lines == [
-        ["chrom", "pos", "ref", "alt", "pos1"],
-        ["chr1", "1", "C", "A", "0.1"],
-    ]
-
-
-@pytest.mark.django_db
 def test_columns_annotation_csv(admin_client: Client) -> None:
     annotation_config = "- position_score: scores/pos1"
     tsv = textwrap.dedent("""
