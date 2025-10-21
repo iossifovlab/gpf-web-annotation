@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { MatDialogRef, MatDialogActions, MatDialogContent } from '@angular/material/dialog';
-import { FileContent, JobCreationView } from './jobs';
+import { JobCreationView } from './jobs';
 import { JobsService } from './jobs.service';
 import { Observable, take } from 'rxjs';
 import { Pipeline } from './pipelines';
