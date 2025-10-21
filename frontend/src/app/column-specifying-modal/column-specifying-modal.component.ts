@@ -30,6 +30,7 @@ export class ColumnSpecifyingModalComponent implements OnInit {
   }
 
   public onSelectName(selectedName: string, column: string): void {
+    this.error = '';
     const key = this.getFileColumnKey(column);
     if (selectedName === 'None' && key) {
       this.mappedColumns.delete(key);
