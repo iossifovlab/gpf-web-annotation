@@ -18,10 +18,16 @@ logger = logging.getLogger(__name__)
 def specify_job(
     job_pk: int,
     *,
-    col_chrom: str,
-    col_pos: str,
-    col_ref: str,
-    col_alt: str,
+    col_chrom: str = "",
+    col_pos: str = "",
+    col_ref: str = "",
+    col_alt: str = "",
+    col_pos_beg: str = "",
+    col_pos_end: str = "",
+    col_cnv_type: str = "",
+    col_vcf_like: str = "",
+    col_variant: str = "",
+    col_location: str = "",
 ) -> Job:
     """Specify and update a job's annotation columns."""
     job = get_job(job_pk)
@@ -32,6 +38,12 @@ def specify_job(
     details.col_pos = col_pos
     details.col_ref = col_ref
     details.col_alt = col_alt
+    details.col_pos_beg = col_pos_beg
+    details.col_pos_end = col_pos_end
+    details.col_cnv_type = col_cnv_type
+    details.col_vcf_like = col_vcf_like
+    details.col_variant = col_variant
+    details.col_location = col_location
     job.status = Job.Status.WAITING
     job.save()
     details.save()
@@ -166,6 +178,12 @@ def run_columns_job(
             col_pos=details.col_pos,
             col_ref=details.col_ref,
             col_alt=details.col_alt,
+            col_pos_beg=details.col_pos_beg,
+            col_pos_end=details.col_pos_end,
+            col_cnv_type=details.col_cnv_type,
+            col_vcf_like=details.col_vcf_like,
+            col_variant=details.col_variant,
+            col_location=details.col_location,
         )
     except Exception:  # pylint: disable=broad-exception-caught
         logger.exception("Failed to execute job")
