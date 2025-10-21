@@ -66,7 +66,7 @@ from .models import (
     ResetPasswordCode,
     User,
 )
-from .permissions import IsOwner, has_job_permission
+from .permissions import has_job_permission
 from .serializers import JobSerializer, UserSerializer
 from .tasks import annotate_vcf_job, annotate_columns_job, get_job, get_job_details, specify_job
 
@@ -228,6 +228,12 @@ class JobDetail(AnnotationBaseView):
 
     permission_classes = [permissions.IsAuthenticated]
     def get(self, request: Request, pk: int) -> Response:
+        """
+        Get job details.
+
+        Returns extra column information for TSV/CSV jobs.
+        """
+
         try:
             job = get_job(pk)
         except ObjectDoesNotExist:
@@ -262,6 +268,8 @@ class JobDetail(AnnotationBaseView):
 
 
 class JobCreate(AnnotationBaseView):
+    """View for creating jobs."""
+
     parser_classes = [MultiPartParser]
     permission_classes = [permissions.IsAuthenticated]
 
@@ -707,9 +715,10 @@ class AnnotationConfigValidation(AnnotationBaseView):
 
 
 class ListGenomePipelines(AnnotationBaseView):
-    """View for listing available single annotaiton genomes."""
+    """View for listing available single annotation genomes."""
 
     def get(self, request: Request) -> Response:
+        """Return list of genome pipelines for single annotation."""
         return Response(
             list(self.genome_pipelines.keys()),
             status=views.status.HTTP_200_OK,
