@@ -74,6 +74,10 @@
   padding: 8px 0 5px;
 }
 
+.first-cell {
+  flex-direction: row;
+}
+
 .info-icon {
   font-size: 20px;
   color: #5b778c;
