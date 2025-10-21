@@ -47,6 +47,7 @@ from rest_framework import generics, permissions, views
 from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework.request import Request, QueryDict, MultiValueDict
 from rest_framework.response import Response
+from rest_framework.throttling import UserRateThrottle
 
 from web_annotation.utils import (
     PasswordForgottenForm,
@@ -65,9 +66,9 @@ from .models import (
     ResetPasswordCode,
     User,
 )
-from .permissions import IsOwner, has_job_permission
+from .permissions import has_job_permission
 from .serializers import JobSerializer, UserSerializer
-from .tasks import annotate_vcf_job, annotate_columns_job, specify_job
+from .tasks import annotate_vcf_job, annotate_columns_job, get_job, get_job_details, specify_job
 
 logger = logging.getLogger(__name__)
 
@@ -222,14 +223,53 @@ class JobList(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
 
-class JobDetail(generics.RetrieveAPIView, generics.DestroyAPIView):
-    """Generic view for listing job details."""
-    queryset = Job.objects.filter(is_active=True)
-    serializer_class = JobSerializer
-    permission_classes = [permissions.IsAuthenticated, IsOwner]
+class JobDetail(AnnotationBaseView):
+    """View for listing job details."""
+
+    permission_classes = [permissions.IsAuthenticated]
+    def get(self, request: Request, pk: int) -> Response:
+        """
+        Get job details.
+
+        Returns extra column information for TSV/CSV jobs.
+        """
+
+        try:
+            job = get_job(pk)
+        except ObjectDoesNotExist:
+            return Response(status=views.status.HTTP_404_NOT_FOUND)
+
+        if job.owner != request.user:
+            return Response(status=views.status.HTTP_403_FORBIDDEN)
+
+        response = {
+            "job_id": job.pk,
+            "owner": job.owner.email,
+            "created": str(job.created),
+            "status": job.status,
+        }
+        try:
+            details = get_job_details(pk)
+        except ObjectDoesNotExist:
+            return Response(response, status=views.status.HTTP_200_OK)
+
+        content = Path(job.input_path).read_text()
+        lines = content.split("\n")
+        header = lines[0]
+        sep = details.separator
+
+        file_header = [dict(
+            zip(header.split(sep), line.split(sep), strict=True)
+        ) for line in lines[1:5]]
+        response["columns"] = details.columns.split(";")
+        response["head"] = file_header
+
+        return Response(response, status=views.status.HTTP_200_OK)
 
 
 class JobCreate(AnnotationBaseView):
+    """View for creating jobs."""
+
     parser_classes = [MultiPartParser]
     permission_classes = [permissions.IsAuthenticated]
 
@@ -291,15 +331,13 @@ class JobCreate(AnnotationBaseView):
             return False
         lines = cols_file_content.split("\n")
         if len(lines) >= 2:
-            header = lines[0]
+            header = lines[0].strip()
             if len(header.split(",")) >= 4:
                 return True
-            elif len(header.split("\t")) >= 4:
+            if len(header.split("\t")) >= 4:
                 return True
-            else:
-                return False
-        else:
             return False
+        return False
 
     def _get_config_raw_from_request(self, request: Request) -> str:
         """Get annotation config contents from a request."""
@@ -677,9 +715,10 @@ class AnnotationConfigValidation(AnnotationBaseView):
 
 
 class ListGenomePipelines(AnnotationBaseView):
-    """View for listing available single annotaiton genomes."""
+    """View for listing available single annotation genomes."""
 
     def get(self, request: Request) -> Response:
+        """Return list of genome pipelines for single annotation."""
         return Response(
             list(self.genome_pipelines.keys()),
             status=views.status.HTTP_200_OK,
@@ -688,6 +727,9 @@ class ListGenomePipelines(AnnotationBaseView):
 
 class SingleAnnotation(AnnotationBaseView):
     """Single annotation view."""
+
+    throttle_classes = [UserRateThrottle]
+
     def post(self, request: Request) -> Response:
 
         if "variant" not in request.data:
