@@ -911,3 +911,30 @@ def test_job_details_specify(admin_client: Client) -> None:
     created = datetime.datetime.fromisoformat(response_data["created"])
     now = datetime.datetime.now(datetime.timezone.utc)
     assert abs(now - created) < datetime.timedelta(minutes=1)
+
+
+def test_single_annotation_throttled(user_client: Client) -> None:
+    for _ in range(10):
+        response = user_client.post(
+            "/api/single_annotate",
+            {
+                "genome": "hg38",
+                "variant": {
+                    "chrom": "chr1", "pos": 1, "ref": "C", "alt": "A",
+                }
+            },
+            content_type="application/json",
+        )
+        assert response.status_code == 200
+
+    response = user_client.post(
+        "/api/single_annotate",
+        {
+            "genome": "hg38",
+            "variant": {
+                "chrom": "chr1", "pos": 1, "ref": "C", "alt": "A",
+            }
+        },
+        content_type="application/json",
+    )
+    assert response.status_code == 429

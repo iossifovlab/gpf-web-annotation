@@ -47,6 +47,7 @@ from rest_framework import generics, permissions, views
 from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework.request import Request, QueryDict, MultiValueDict
 from rest_framework.response import Response
+from rest_framework.throttling import UserRateThrottle
 
 from web_annotation.utils import (
     PasswordForgottenForm,
@@ -717,6 +718,9 @@ class ListGenomePipelines(AnnotationBaseView):
 
 class SingleAnnotation(AnnotationBaseView):
     """Single annotation view."""
+
+    throttle_classes = [UserRateThrottle]
+
     def post(self, request: Request) -> Response:
 
         if "variant" not in request.data:
