@@ -122,13 +122,6 @@
   border: none;
 }
 
-.error-message {
-  font-size: 14px;
-  color: #d74b59;
-  font-weight: normal;
-  margin-left: 10px;
-}
-
 #create-button {
   padding: 10px 12px;
   font-size: 16px;

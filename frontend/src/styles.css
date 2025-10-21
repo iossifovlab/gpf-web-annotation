@@ -40,3 +40,10 @@ body {
   background-color: #ffedef;
   border-color: #d74b59;
 }
+
+.error-message {
+  font-size: 14px;
+  color: #d74b59;
+  font-weight: normal;
+  margin-left: 10px;
+}
