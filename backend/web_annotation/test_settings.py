@@ -26,8 +26,11 @@ LIMITS = {
 GRR_DIRECTORY = str(
     pathlib.Path(__file__).parent / "tests" / "fixtures" / "grr")
 
-GENOME_PIPELINES = {
-    "hg38": "pipeline/test_pipeline",
+GENOME_DEFINITIONS = {
+    "hg38": {
+        "pipeline_id": "pipeline/test_pipeline",
+        "reference_genome_id": "hg38/GRCh38-hg38/genome"
+    },
 }
 
 EMAIL_REDIRECT_ENDPOINT = os.environ.get(

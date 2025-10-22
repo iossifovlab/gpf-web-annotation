@@ -103,8 +103,11 @@ def test_create_job(
 
     response = user_client.post(
         "/api/jobs/create",
-        {"config": ContentFile(annotation_config),
-         "data": ContentFile(vcf)},
+        {
+            "genome": "hg38",
+            "config": ContentFile(annotation_config),
+            "data": ContentFile(vcf)
+        },
     )
     assert response.status_code == 204
 
@@ -148,8 +151,11 @@ def test_create_job_calls_annotation_runner(
 
     response = user_client.post(
         "/api/jobs/create",
-        {"config": ContentFile(annotation_config),
-         "data": ContentFile(vcf)},
+        {
+            "genome": "hg38",
+            "config": ContentFile(annotation_config),
+            "data": ContentFile(vcf)
+        },
     )
     assert response.status_code == 204
 
@@ -182,8 +188,11 @@ def test_create_job_bad_config(user_client: Client) -> None:
     assert len(Job.objects.all()) == 2
     response = user_client.post(
         "/api/jobs/create",
-        {"config": ContentFile(raw_img),
-         "data": ContentFile(vcf)},
+        {
+            "genome": "hg38",
+            "config": ContentFile(raw_img),
+            "data": ContentFile(vcf)
+        },
     )
     assert len(Job.objects.all()) == 2
     assert response.status_code == 400
@@ -203,8 +212,11 @@ def test_create_job_bad_input_data(user_client: Client) -> None:
     assert len(Job.objects.all()) == 2
     response = user_client.post(
         "/api/jobs/create",
-        {"config": ContentFile("- sample_annotator: sample_resource"),
-         "data": ContentFile(raw_img)},
+        {
+            "genome": "hg38",
+            "config": ContentFile("- sample_annotator: sample_resource"),
+            "data": ContentFile(raw_img)
+         },
     )
     assert len(Job.objects.all()) == 2
     assert response.status_code == 400
@@ -219,8 +231,11 @@ def test_create_job_non_vcf_input_data(user_client: Client) -> None:
     assert len(Job.objects.all()) == 2
     response = user_client.post(
         "/api/jobs/create",
-        {"config": ContentFile("sample_annotator: sample_resource"),
-         "data": ContentFile("blabla random text")},
+        {
+            "genome": "hg38",
+            "config": ContentFile("sample_annotator: sample_resource"),
+            "data": ContentFile("blabla random text")
+         },
     )
     assert len(Job.objects.all()) == 2
     assert response.status_code == 400
@@ -308,15 +323,21 @@ def test_daily_user_quota(
         ).save()
     response = user_client.post(
         "/api/jobs/create",
-        {"config": ContentFile(annotation_config),
-         "data": ContentFile(vcf)},
+        {
+            "genome": "hg38",
+            "config": ContentFile(annotation_config),
+            "data": ContentFile(vcf)
+        },
     )
     assert response.status_code == 204
 
     response = user_client.post(
         "/api/jobs/create",
-        {"config": ContentFile(annotation_config),
-         "data": ContentFile(vcf)},
+        {
+            "genome": "hg38",
+            "config": ContentFile(annotation_config),
+            "data": ContentFile(vcf)
+        },
     )
 
     assert response.status_code == 403
@@ -352,15 +373,21 @@ def test_daily_admin_quota(
         ).save()
     response = admin_client.post(
         "/api/jobs/create",
-        {"config": ContentFile(annotation_config),
-         "data": ContentFile(vcf)},
+        {
+            "genome": "hg38",
+            "config": ContentFile(annotation_config),
+            "data": ContentFile(vcf)
+        },
     )
     assert response.status_code == 204
 
     response = admin_client.post(
         "/api/jobs/create",
-        {"config": ContentFile(annotation_config),
-         "data": ContentFile(vcf)},
+        {
+            "genome": "hg38",
+            "config": ContentFile(annotation_config),
+            "data": ContentFile(vcf)
+         },
     )
 
     assert response.status_code == 204
@@ -388,8 +415,11 @@ def test_filesize_limit_user(
 
     response = user_client.post(
         "/api/jobs/create",
-        {"config": ContentFile(annotation_config),
-         "data": ContentFile(vcf)},
+        {
+            "genome": "hg38",
+            "config": ContentFile(annotation_config),
+            "data": ContentFile(vcf)
+        },
     )
     assert response.status_code == 413
 
@@ -416,8 +446,11 @@ def test_filesize_limit_admin(
 
     response = admin_client.post(
         "/api/jobs/create",
-        {"config": ContentFile(annotation_config),
-         "data": ContentFile(vcf)},
+        {
+            "genome": "hg38",
+            "config": ContentFile(annotation_config),
+            "data": ContentFile(vcf)
+        },
     )
     assert response.status_code == 204
 
@@ -445,8 +478,11 @@ def test_variant_limit_user(
 
     response = user_client.post(
         "/api/jobs/create",
-        {"config": ContentFile(annotation_config),
-         "data": ContentFile(vcf)},
+        {
+            "genome": "hg38",
+            "config": ContentFile(annotation_config),
+            "data": ContentFile(vcf)
+        },
     )
     assert response.status_code == 413
 
@@ -474,8 +510,11 @@ def test_variant_limit_admin(
 
     response = admin_client.post(
         "/api/jobs/create",
-        {"config": ContentFile(annotation_config),
-         "data": ContentFile(vcf)},
+        {
+            "genome": "hg38",
+            "config": ContentFile(annotation_config),
+            "data": ContentFile(vcf)
+        },
     )
     assert response.status_code == 204
 
@@ -611,8 +650,11 @@ def test_upload_tsv_file(admin_client: Client) -> None:
 
     response = admin_client.post(
         "/api/jobs/create",
-        {"config": ContentFile(annotation_config),
-         "data": ContentFile(tsv)},
+        {
+            "genome": "hg38",
+            "config": ContentFile(annotation_config),
+            "data": ContentFile(tsv)
+        },
     )
 
     assert response is not None
@@ -674,8 +716,11 @@ def test_columns_annotation_tsv(admin_client: Client) -> None:
 
     response = admin_client.post(
         "/api/jobs/create",
-        {"config": ContentFile(annotation_config),
-         "data": ContentFile(tsv)},
+        {
+            "genome": "hg38",
+            "config": ContentFile(annotation_config),
+            "data": ContentFile(tsv)
+        },
     )
 
     assert response is not None
@@ -717,8 +762,11 @@ def test_columns_annotation_csv(admin_client: Client) -> None:
 
     response = admin_client.post(
         "/api/jobs/create",
-        {"config": ContentFile(annotation_config),
-         "data": ContentFile(tsv)},
+        {
+            "genome": "hg38",
+            "config": ContentFile(annotation_config),
+            "data": ContentFile(tsv)
+         },
     )
 
     assert response is not None
@@ -759,13 +807,15 @@ def test_columns_annotation_unsupported_sep(admin_client: Client) -> None:
     """).strip()
     response = admin_client.post(
         "/api/jobs/create",
-        {"config": ContentFile(annotation_config),
-         "data": ContentFile(input_file)},
+        {
+            "genome": "hg38",
+            "config": ContentFile(annotation_config),
+            "data": ContentFile(input_file)
+        },
     )
 
     assert response.status_code == 400
     assert response.data == {"reason": "File could not be identified"}
-
 
 
 @pytest.mark.django_db
@@ -778,11 +828,13 @@ def test_columns_annotation_force_tsv_vcf(admin_client: Client) -> None:
         chr1	1	.	C	A	.	.	.
     """).strip("\n")
 
-
     response = admin_client.post(
         "/api/jobs/create",
-        {"config": ContentFile(annotation_config),
-         "data": ContentFile(vcf, name="test.tsv")},
+        {
+            "genome": "hg38",
+            "config": ContentFile(annotation_config),
+            "data": ContentFile(vcf, name="test.tsv")
+        },
     )
     assert response.status_code == 400
 
@@ -798,8 +850,11 @@ def test_columns_annotation_invalid_vcf(admin_client: Client) -> None:
     """).strip()
     response = admin_client.post(
         "/api/jobs/create",
-        {"config": ContentFile(annotation_config),
-         "data": ContentFile(input_file, name="test.vcf")},
+        {
+            "genome": "hg38",
+            "config": ContentFile(annotation_config),
+            "data": ContentFile(input_file, name="test.vcf")
+        },
     )
 
     assert response.status_code == 400
@@ -824,8 +879,11 @@ def test_job_details_specify(admin_client: Client) -> None:
 
     response = admin_client.post(
         "/api/jobs/create",
-        {"config": ContentFile(annotation_config),
-         "data": ContentFile(tsv)},
+        {
+            "genome": "hg38",
+            "config": ContentFile(annotation_config),
+            "data": ContentFile(tsv)
+        },
     )
 
     assert response is not None

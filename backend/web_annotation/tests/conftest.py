@@ -1,6 +1,7 @@
 import pathlib
 import shutil
 import yaml
+import textwrap
 import pytest
 import pytest_mock
 from django.test import Client
@@ -62,7 +63,6 @@ def test_grr() -> GenomicResourceRepo:
         }
     )
     return grr
-
 
 
 @pytest.fixture(scope="session", autouse=True)
