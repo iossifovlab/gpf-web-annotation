@@ -155,6 +155,7 @@ def run_columns_job(
         logger.debug(job.result_path)
         logger.debug(storage_dir)
         annotate_columns_file(
+            str(job.reference_genome),
             str(job.input_path),
             str(job.config_path),
             str(job.result_path),

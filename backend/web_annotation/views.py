@@ -137,20 +137,21 @@ def get_genome_pipelines(
     """Return genome pipelines used for single variant annotation."""
 
     if (
-        getattr(settings, "GENOME_PIPELINES") is None
-        or settings.GENOME_PIPELINES is None
+        getattr(settings, "GENOME_DEFINITIONS") is None
+        or settings.GENOME_DEFINITIONS is None
     ):
-        GENOME_PIPELINES = {}
+        genome_pipelines = {}
         return {}
     else:
         pipelines: dict[str, AnnotationPipeline] = {}
-        for genome, pipeline_id in settings.GENOME_PIPELINES.items():
+        for genome, definition in settings.GENOME_DEFINITIONS.items():
+            pipeline_id = definition.get("pipeline_id")
             pipeline_resource = grr.get_resource(pipeline_id)
             pipeline = load_pipeline_from_grr(grr, pipeline_resource)
             pipeline.open()
             pipelines[genome] = pipeline
-        GENOME_PIPELINES = pipelines
-    return GENOME_PIPELINES
+        genome_pipelines = pipelines
+    return genome_pipelines
 
 
 GRR = build_genomic_resource_repository(file_name=settings.GRR_DEFINITION)
@@ -383,6 +384,15 @@ class JobCreate(AnnotationBaseView):
         assert isinstance(request.data, QueryDict)
         assert isinstance(request.FILES, MultiValueDict)
 
+        if not request.data.get("genome"):
+            return Response(
+                {"reason": "Reference genome not specified!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+        reference_genome = settings.GENOME_DEFINITIONS \
+            .get(request.data.get("genome")) \
+            .get("reference_genome_id")
+
         config_filename = f"{job_name}.yaml"
         try:
             content = self._get_config_raw_from_request(request)
@@ -453,6 +463,7 @@ class JobCreate(AnnotationBaseView):
         job = Job(input_path=input_path,
                   config_path=config_path,
                   result_path=result_path,
+                  reference_genome=reference_genome,
                   owner=request.user)
 
         if data_filename.endswith(".vcf"):

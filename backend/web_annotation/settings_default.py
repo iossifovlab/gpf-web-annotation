@@ -227,8 +227,11 @@ EMAIL_REDIRECT_ENDPOINT = os.environ.get(
 STATIC_URL = '/static/'
 STATIC_ROOT = 'static-root'
 
-GENOME_PIPELINES = {
-    "hg38": "pipeline/Autism_annotation",
+GENOME_DEFINITIONS = {
+    "hg38": {
+        "pipeline_id": "pipeline/Autism_annotation",
+        "reference_genome_id": "hg38/genomes/GRCh38-hg38"
+    },
 }
 
 

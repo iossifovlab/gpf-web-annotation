@@ -29,6 +29,7 @@ def annotate_vcf_file(
 
 
 def annotate_columns_file(  # pylint: disable=too-many-arguments
+    reference_genome: str,
     input_file_path: str,
     annotation_config_path: str,
     output_file_path: str,
@@ -43,10 +44,10 @@ def annotate_columns_file(  # pylint: disable=too-many-arguments
 ) -> None:
     """Run annotate columns on the files from a task."""
     reset_lock()
-
     args = [
         input_file_path,
         annotation_config_path,
+        "--reference-genome-resource-id", reference_genome,
         "--col-chrom", col_chrom,
         "--col-pos", col_pos,
         "--col-ref", col_ref,

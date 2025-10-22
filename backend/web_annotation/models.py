@@ -45,6 +45,7 @@ class Job(models.Model):
         path=settings.ANNOTATION_CONFIG_STORAGE_DIR)
     result_path = models.FilePathField(
         path=settings.JOB_RESULT_STORAGE_DIR)
+    reference_genome=models.CharField(max_length=16, default="")
     created = models.DateTimeField(auto_now_add=True)
     status = models.IntegerField(choices=Status, default=Status.WAITING)
 
