@@ -54,9 +54,9 @@ export class JobsTableComponent implements OnInit, OnDestroy {
   public openColumnMappingModal(content: FileContent): void {
     const specifyColumnModalRef = this.dialog.open(ColumnSpecifyingModalComponent, {
       data: content,
-      height: '20vh',
+      height: 'fit-content',
       width: '50vw',
-      minHeight: '500px',
+      minHeight: '300px',
       maxHeight: '1000px',
       maxWidth: '1000px'
     });
