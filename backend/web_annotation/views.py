@@ -515,7 +515,7 @@ class JobCreate(AnnotationBaseView):
 class JobSpecify(AnnotationBaseView):
     """View for specifying a csv or tsv job's columns."""
     def post(self, request: Request, pk: int) -> Response:
-        assert isinstance(request.data, QueryDict)
+        assert isinstance(request.data, dict)
         if not all(
             col in request.data for col in
             ["col_chrom", "col_pos", "col_ref", "col_alt"]

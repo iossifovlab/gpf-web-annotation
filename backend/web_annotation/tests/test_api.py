@@ -691,6 +691,7 @@ def test_columns_annotation_tsv(admin_client: Client) -> None:
             "col_ref": "ref",
             "col_alt": "alt",
         },
+        content_type="application/json",
     )
 
     assert response is not None
@@ -733,6 +734,7 @@ def test_columns_annotation_csv(admin_client: Client) -> None:
             "col_ref": "ref",
             "col_alt": "alt",
         },
+        content_type="application/json",
     )
 
     assert response is not None
