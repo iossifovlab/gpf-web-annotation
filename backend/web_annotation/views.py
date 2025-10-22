@@ -243,7 +243,7 @@ class JobDetail(AnnotationBaseView):
             return Response(status=views.status.HTTP_403_FORBIDDEN)
 
         response = {
-            "job_id": job.pk,
+            "id": job.pk,
             "owner": job.owner.email,
             "created": str(job.created),
             "status": job.status,
@@ -504,7 +504,7 @@ class JobCreate(AnnotationBaseView):
             job_details.save()
             return Response(
                 {
-                    "job_id": job.pk,
+                    "id": job.pk,
                     "columns": job_details.columns.split(";"),
                     "head": file_header,
                 },

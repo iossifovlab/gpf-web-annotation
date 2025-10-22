@@ -236,7 +236,7 @@ def test_job_details(user_client: Client) -> None:
     created = datetime.datetime.fromisoformat(result["created"])
     now = datetime.datetime.now(datetime.timezone.utc)
     assert abs(now - created) < datetime.timedelta(minutes=1)
-    assert result["job_id"] == 1
+    assert result["id"] == 1
     assert result["status"] == Job.Status.WAITING
     assert result["owner"] == "user@example.com"
 
@@ -621,7 +621,7 @@ def test_upload_tsv_file(admin_client: Client) -> None:
     assert response.data is not None
 
     assert response.data == {
-        "job_id": 3,
+        "id": 3,
         "columns": ["chrom", "pos", "ref", "alt"],
         "head": [{
             "chrom": "chr1",
@@ -832,7 +832,7 @@ def test_job_details_specify(admin_client: Client) -> None:
     assert response.data is not None
 
     assert response.data == {
-        "job_id": 3,
+        "id": 3,
         "columns": ["chrom", "pos", "ref", "alt"],
         "head": [{
             "chrom": "chr1",
@@ -855,7 +855,7 @@ def test_job_details_specify(admin_client: Client) -> None:
     assert response.status_code == 200
     assert response.data is not None
     response_data = response.data
-    assert response_data["job_id"] == 3
+    assert response_data["id"] == 3
     assert response_data["status"] == Job.Status.SPECIFYING
     assert response_data["columns"] == ["chrom", "pos", "ref", "alt"]
     assert response_data["owner"] == "admin@example.com"
