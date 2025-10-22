@@ -45,13 +45,14 @@ export class JobsTableComponent implements OnInit, OnDestroy {
     });
   }
 
-  // to do
   public getModalContent(jobId: number): void {
-
+    this.jobsService.getFileData(jobId).pipe(take(1)).subscribe(data =>
+      this.openColumnMappingModal(data, jobId)
+    );
   }
 
   public openColumnMappingModal(content: FileContent, jobId: number): void {
-    this.dialog.open(ColumnSpecifyingModalComponent, {
+    const specifyColumnModalRef = this.dialog.open(ColumnSpecifyingModalComponent, {
       data: {
         content: content,
         jobId: jobId
@@ -63,9 +64,9 @@ export class JobsTableComponent implements OnInit, OnDestroy {
       maxWidth: '1000px'
     });
 
-    // specifyColumnModalRef.afterClosed().subscribe( => {
-    //
-    // });
+    specifyColumnModalRef.afterClosed().subscribe(() => {
+      this.refreshTable();
+    });
   }
 
   private refreshTable(): void {

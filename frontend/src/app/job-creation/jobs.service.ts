@@ -67,6 +67,16 @@ export class JobsService {
     ).pipe(map((response: object) => Job.fromJson(response)));
   }
 
+  public getFileData(jobId: number): Observable<FileContent> {
+    const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
+    return this.http.get(
+      this.jobsUrl + '/' + jobId,
+      options
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    ).pipe(map((response: object) => FileContent.fromJson({ columns: response['columns'], head: response['head']})));
+  }
+
+
   public validateJobConfig(config: string): Observable<string> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
 
