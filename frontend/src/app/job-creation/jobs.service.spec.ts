@@ -39,7 +39,7 @@ describe('JobsService', () => {
 
     const mockInputFile = new File(['mockData'], 'mockInput.vcf');
 
-    const postResult = service.createJob(mockInputFile, null, 'mockConfigData');
+    const postResult = service.createJob(mockInputFile, null, 'mockConfigData', 'hg38');
 
     const res = await lastValueFrom(postResult.pipe(take(1)));
     expect(res).toBeNull();
@@ -51,7 +51,7 @@ describe('JobsService', () => {
 
     const mockInputFile = new File(['mockData'], 'mockInput.vcf');
 
-    const postResult = service.createJob(mockInputFile, 'autism', null);
+    const postResult = service.createJob(mockInputFile, 'autism', null, null);
 
     const res = await lastValueFrom(postResult.pipe(take(1)));
     expect(res).toBeNull();
@@ -64,7 +64,7 @@ describe('JobsService', () => {
 
     const mockInputFile = new File(['mockData'], 'mockInput.vcf');
 
-    const postResult = service.createJob(mockInputFile, 'autism', null);
+    const postResult = service.createJob(mockInputFile, 'autism', null, null);
 
     await expect(() => lastValueFrom(postResult.pipe(take(1))))
       .rejects.toThrow('Daily quota limit reached!');
@@ -77,7 +77,7 @@ describe('JobsService', () => {
 
     const mockInputFile = new File(['mockData'], 'mockInput.vcf');
 
-    const postResult = service.createJob(mockInputFile, 'autism', null);
+    const postResult = service.createJob(mockInputFile, 'autism', null, null);
 
     await expect(() => lastValueFrom(postResult.pipe(take(1))))
       .rejects.toThrow('Upload limit reached!');
@@ -90,7 +90,7 @@ describe('JobsService', () => {
 
     const mockInputFile = new File(['mockData'], 'mockInput.vcf');
 
-    const postResult = service.createJob(mockInputFile, 'autism', null);
+    const postResult = service.createJob(mockInputFile, 'autism', null, null);
 
     await expect(() => lastValueFrom(postResult.pipe(take(1))))
       .rejects.toThrow('Invalid pipeline configuration file!');
@@ -103,7 +103,7 @@ describe('JobsService', () => {
 
     const mockInputFile = new File(['mockData'], 'mockInput.vcf');
 
-    const postResult = service.createJob(mockInputFile, 'autism', null);
+    const postResult = service.createJob(mockInputFile, 'autism', null, null);
 
     await expect(() => lastValueFrom(postResult.pipe(take(1))))
       .rejects.toThrow('Error occurred!');
@@ -120,6 +120,7 @@ describe('JobsService', () => {
     const formData = new FormData();
     formData.append('data', mockInputFile, 'mockInput.vcf');
     formData.append('config', mockConfigFile);
+    formData.append('genome', 'hg38');
 
     const options = {
       headers: {
@@ -128,7 +129,7 @@ describe('JobsService', () => {
       withCredentials: true
     };
 
-    service.createJob(mockInputFile, null, mockConfigCntent);
+    service.createJob(mockInputFile, null, mockConfigCntent, 'hg38');
 
     expect(httpPostSpy).toHaveBeenCalledWith(
       '//localhost:8000/api/jobs/create',
@@ -154,7 +155,7 @@ describe('JobsService', () => {
       withCredentials: true
     };
 
-    service.createJob(mockInputFile, 'autism', null);
+    service.createJob(mockInputFile, 'autism', null, null);
 
     expect(httpPostSpy).toHaveBeenCalledWith(
       '//localhost:8000/api/jobs/create',
@@ -174,6 +175,7 @@ describe('JobsService', () => {
     const formData = new FormData();
     formData.append('data', mockInputFile, 'mockInput.vcf');
     formData.append('config', mockConfigFile);
+    formData.append('genome', 'hg38');
 
     const mockCookie = 'csrftoken=EYZbFmv1i1Ie7cmT3OFHgxdv3kOR7rIt';
     document.cookie = mockCookie;
@@ -185,7 +187,7 @@ describe('JobsService', () => {
       withCredentials: true
     };
 
-    service.createJob(mockInputFile, null, mockConfigCntent);
+    service.createJob(mockInputFile, null, mockConfigCntent, 'hg38');
     expect(httpPostSpy).toHaveBeenCalledWith(
       '//localhost:8000/api/jobs/create',
       formData,

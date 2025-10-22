@@ -6,6 +6,7 @@ import { JobsService } from './jobs.service';
 import { Observable, take } from 'rxjs';
 import { Pipeline } from './pipelines';
 import { FormsModule } from '@angular/forms';
+import { SingleAnnotationService } from '../single-annotation.service';
 
 
 @Component({
@@ -19,16 +20,27 @@ export class JobCreationComponent implements OnInit {
   public uploadError = '';
   public view: JobCreationView = 'pipeline list';
   public pipelines : Pipeline[] = [];
+  public genomes : string[] = [];
+  public selectedGenome = '';
   public pipelineId = '';
   public ymlConfig = '';
   public configError = '';
   public creationError = '';
 
-  public constructor(private dialogRef: MatDialogRef<JobCreationComponent>, private jobsService: JobsService) { }
+  public constructor(
+    private dialogRef: MatDialogRef<JobCreationComponent>,
+    private jobsService: JobsService,
+    private singleAnnotationService: SingleAnnotationService,
+  ) { }
 
   public ngOnInit(): void {
     this.jobsService.getAnnotationPipelines().pipe(take(1)).subscribe(pipelines => {
       this.pipelines = pipelines;
+    });
+
+    this.singleAnnotationService.getGenomes().pipe(take(1)).subscribe((genomes) => {
+      this.genomes = genomes;
+      this.selectedGenome = genomes[0];
     });
   }
 
@@ -36,13 +48,15 @@ export class JobCreationComponent implements OnInit {
     if (this.file) {
       let createObservable: Observable<object>;
       if (this.view === 'text editor') {
-        createObservable = this.jobsService.createJob(this.file, null, this.ymlConfig);
-        this.ymlConfig = '';
+        createObservable = this.jobsService.createJob(this.file, null, this.ymlConfig, this.selectedGenome);
       } else {
-        createObservable = this.jobsService.createJob(this.file, this.pipelineId, null);
+        createObservable = this.jobsService.createJob(this.file, this.pipelineId, null, null);
       }
       createObservable.pipe(take(1)).subscribe({
-        next: (resp) => this.dialogRef.close(resp),
+        next: (resp) => {
+          this.ymlConfig = '';
+          this.dialogRef.close(resp);
+        },
         error: (err: Error) => {
           this.creationError = err.message;
         }

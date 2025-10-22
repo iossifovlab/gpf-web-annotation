@@ -27,6 +27,10 @@
       </div>
     </ng-container>
     <ng-container *ngIf="view === 'text editor'">
+      <label for="select-genome">Select genome:</label>
+      <select id="select-genome" [(ngModel)]="selectedGenome">
+        <option *ngFor="let genome of genomes" [value]="genome">{{ genome }}</option>
+      </select>
       <textarea
         id="yml-textarea"
         [(ngModel)]="ymlConfig"

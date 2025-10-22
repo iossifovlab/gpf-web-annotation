@@ -8,11 +8,18 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { Observable, of } from 'rxjs';
 import { Pipeline } from './pipelines';
 import { FileContent } from './jobs';
+import { SingleAnnotationService } from '../single-annotation.service';
 
 
 class MatDialogRefMock {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public close(value: boolean): void { }
+}
+
+class SingleAnnotationServiceMock {
+  public getGenomes(): Observable<string[]> {
+    return of(['hg38', 'hg19']);
+  }
 }
 
 const mockPipelines = [
@@ -37,6 +44,7 @@ describe('JobCreationComponent', () => {
   let templateRef: HTMLElement;
   const mockMatDialogRef = new MatDialogRefMock();
   const jobsServiceMock = new JobsServiceMock();
+  const singleAnnotationServiceMock = new SingleAnnotationServiceMock();
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -49,6 +57,10 @@ describe('JobCreationComponent', () => {
         {
           provide: JobsService,
           useValue: jobsServiceMock
+        },
+        {
+          provide: SingleAnnotationService,
+          useValue: singleAnnotationServiceMock
         },
         provideHttpClient(),
         provideHttpClientTesting()
@@ -142,7 +154,7 @@ describe('JobCreationComponent', () => {
     component.ymlConfig = 'some yml text';
     const createJob = jest.spyOn(jobsServiceMock, 'createJob');
     component.onCreateClick();
-    expect(createJob).toHaveBeenCalledWith(mockFile, null, 'some yml text');
+    expect(createJob).toHaveBeenCalledWith(mockFile, null, 'some yml text', 'hg38');
     expect(component.ymlConfig).toBe('');
   });
 
@@ -154,7 +166,7 @@ describe('JobCreationComponent', () => {
     component.onPipelineClick('autism');
     const createJob = jest.spyOn(jobsServiceMock, 'createJob');
     component.onCreateClick();
-    expect(createJob).toHaveBeenCalledWith(mockFile, 'autism', null);
+    expect(createJob).toHaveBeenCalledWith(mockFile, 'autism', null, null);
   });
 
   it('should disable Create button if no file is uploaded', () => {

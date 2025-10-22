@@ -24,7 +24,7 @@ export class JobsService {
     return res;
   }
 
-  public createJob(file: File, pipeline: string, config: string): Observable<object> {
+  public createJob(file: File, pipeline: string, config: string, genome: string): Observable<object> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
     const formData = new FormData();
     formData.append('data', file, file.name);
@@ -33,6 +33,7 @@ export class JobsService {
     } else {
       const configFile = new File([config], 'config.yml');
       formData.append('config', configFile);
+      formData.append('genome', genome);
     }
     return this.http.post(
       this.createJobUrl,
