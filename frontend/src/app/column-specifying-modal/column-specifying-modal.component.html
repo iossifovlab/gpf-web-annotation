@@ -23,6 +23,8 @@
       <span *ngFor="let cell of row" class="cell" [id]="cell + '-cell'" [title]="cell">{{ cell | textShorten }}</span>
     </div>
   </div>
-  <button id="submit-columns" (click)="submitColumns()">Submit</button>
+  <button id="submit-columns" (click)="submitColumns()" [disabled]="mappedColumns.size !== columnNames.length"
+    >Submit</button
+  >
   <span class="error-message">{{ error }}</span>
 </div>
