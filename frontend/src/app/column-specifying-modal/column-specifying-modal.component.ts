@@ -20,13 +20,13 @@ export class ColumnSpecifyingModalComponent implements OnInit {
   public error = '';
 
   public constructor(
-     @Inject(MAT_DIALOG_DATA) public data: { content: FileContent, jobId: number },
+     @Inject(MAT_DIALOG_DATA) public data: FileContent,
     private dialogRef: MatDialogRef<ColumnSpecifyingModalComponent>,
     private jobsService: JobsService
   ) { }
 
   public ngOnInit(): void {
-    this.fileContent = this.data.content;
+    this.fileContent = this.data;
   }
 
   public onSelectName(selectedName: string, column: string): void {

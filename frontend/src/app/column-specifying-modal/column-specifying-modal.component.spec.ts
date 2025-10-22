@@ -6,6 +6,7 @@ import { JobsService } from '../job-creation/jobs.service';
 import { provideHttpClient } from '@angular/common/http';
 
 const mockModalContent = new FileContent(
+  1,
   ['chrom', 'position', 'reference', 'alternative'],
   [
     ['chrom', 'position', 'reference', 'alternative'],
@@ -27,7 +28,7 @@ describe('ColumnSpecifyingModalComponent', () => {
     await TestBed.configureTestingModule({
       imports: [ColumnSpecifyingModalComponent],
       providers: [
-        { provide: MAT_DIALOG_DATA, useValue: { content: mockModalContent, jobId: 1 } },
+        { provide: MAT_DIALOG_DATA, useValue: mockModalContent },
         { provide: MatDialogRef, useValue: mockMatDialogRef },
         JobsService,
         provideHttpClient(),
@@ -49,6 +50,7 @@ describe('ColumnSpecifyingModalComponent', () => {
       ['chr1', '123', 'A', 'GG'],
     ];
     expect(component.fileContent).toStrictEqual(new FileContent(
+      1,
       ['chrom', 'position', 'reference', 'alternative'],
       mappedFileContent
     ));

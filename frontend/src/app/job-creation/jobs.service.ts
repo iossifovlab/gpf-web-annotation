@@ -73,8 +73,13 @@ export class JobsService {
     return this.http.get(
       this.jobsUrl + '/' + jobId,
       options
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    ).pipe(map((response: object) => FileContent.fromJson({ columns: response['columns'], head: response['head']})));
+    ).pipe(map((response: object) => FileContent.fromJson({
+      /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+      id: response['id'],
+      columns: response['columns'],
+      head: response['head']
+      /* eslint-enable */
+    })));
   }
 
 

@@ -40,23 +40,20 @@ export class JobsTableComponent implements OnInit, OnDestroy {
     createModalRef.afterClosed().subscribe((resp: FileContent) => {
       this.refreshTable();
       if (resp) {
-        this.openColumnMappingModal(resp, this.jobs.find(j => j.status === 'specifying').id);
+        this.openColumnMappingModal(resp);
       }
     });
   }
 
   public getModalContent(jobId: number): void {
     this.jobsService.getFileData(jobId).pipe(take(1)).subscribe(data =>
-      this.openColumnMappingModal(data, jobId)
+      this.openColumnMappingModal(data)
     );
   }
 
-  public openColumnMappingModal(content: FileContent, jobId: number): void {
+  public openColumnMappingModal(content: FileContent): void {
     const specifyColumnModalRef = this.dialog.open(ColumnSpecifyingModalComponent, {
-      data: {
-        content: content,
-        jobId: jobId
-      },
+      data: content,
       height: '20vh',
       width: '50vw',
       minHeight: '500px',
