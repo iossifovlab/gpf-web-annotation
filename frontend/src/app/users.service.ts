@@ -74,13 +74,16 @@ export class UsersService {
   }
 
   public loginUser(email: string, password: string): Observable<void> {
+    const csrfToken = this.cookieService.get('csrftoken');
+    const headers = { 'X-CSRFToken': csrfToken };
+    const options = { headers: headers, withCredentials: true };
     return this.http.post<UserData>(
       this.loginUrl,
       {
         email: email,
         password: password
       },
-      { withCredentials: true },
+      options,
     ).pipe(
       map((userData: UserData) => {
         const fullUserData = { email: userData.email, isAdmin: userData.isAdmin, loggedIn: true} as UserData;

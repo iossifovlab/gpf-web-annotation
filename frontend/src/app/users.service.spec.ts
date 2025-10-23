@@ -66,7 +66,10 @@ describe('UsersService', () => {
         email: 'mockEmail@email.com',
         password: 'mockPassword'
       },
-      { withCredentials: true }
+      {
+        headers: { 'X-CSRFToken': 'csrfMockToken' },
+        withCredentials: true
+      }
     );
   });
 
