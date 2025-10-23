@@ -7,7 +7,7 @@ import { SingleAnnotationReportComponent } from './single-annotation-report/sing
 import { SingleAnnotationComponent } from './single-annotation/single-annotation.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: '', redirectTo: 'single-annotation', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegistrationComponent },
   { path: 'jobs', component: JobsTableComponent, canActivate: [authGuard] },
