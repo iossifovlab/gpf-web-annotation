@@ -331,13 +331,15 @@ class JobCreate(AnnotationBaseView):
         except UnicodeDecodeError:
             return False
         lines = cols_file_content.split("\n")
-        if len(lines) >= 2:
+        if len(lines) > 1:
             header = lines[0].strip()
-            if len(header.split(",")) >= 4:
+            if len(header.split(",")) > 1:
                 return True
-            if len(header.split("\t")) >= 4:
+            if len(header.split("\t")) > 1:
                 return True
-            return False
+            first_line = lines[1].strip()
+            if len(first_line.split(":")) > 1:
+                return True
         return False
 
     def _get_config_raw_from_request(self, request: Request) -> str:
@@ -493,9 +495,10 @@ class JobCreate(AnnotationBaseView):
             cols_file_content = input_path.read_text()
             lines = cols_file_content.split("\n")
             header = lines[0]
-            if len(header.split(",")) >= 4:
+
+            if len(header.split(",")) > 1 or len(lines[1].split(":")) > 1:
                 sep = ","
-            elif len(header.split("\t")) >= 4:
+            elif len(header.split("\t")) > 1:
                 sep = "\t"
             else:
                 self._cleanup(job_name)
@@ -527,20 +530,44 @@ class JobSpecify(AnnotationBaseView):
     """View for specifying a csv or tsv job's columns."""
     def post(self, request: Request, pk: int) -> Response:
         assert isinstance(request.data, dict)
-        if not all(
+        if not any(
             col in request.data for col in
-            ["col_chrom", "col_pos", "col_ref", "col_alt"]
+            [
+                "col_chrom",
+                "col_pos",
+                "col_ref",
+                "col_alt",
+                "col_pos_beg",
+                "col_pos_end",
+                "col_cnv_type",
+                "col_vcf_like",
+                "col_variant",
+                "col_location",
+            ]
         ):
             return Response(status=views.status.HTTP_400_BAD_REQUEST)
 
-        col_chrom = request.data["col_chrom"]
+        col_chrom = request.data.get("col_chrom", "")
         assert isinstance(col_chrom, str)
-        col_pos = request.data["col_pos"]
+        col_pos = request.data.get("col_pos", "")
         assert isinstance(col_pos, str)
-        col_ref = request.data["col_ref"]
+        col_ref = request.data.get("col_ref", "")
         assert isinstance(col_ref, str)
-        col_alt = request.data["col_alt"]
+        col_alt = request.data.get("col_alt", "")
         assert isinstance(col_alt, str)
+        col_pos_beg = request.data.get("col_pos_beg", "")
+        assert isinstance(col_pos_beg, str)
+        col_pos_end = request.data.get("col_pos_end", "")
+        assert isinstance(col_pos_end, str)
+        col_cnv_type = request.data.get("col_cnv_type", "")
+        assert isinstance(col_cnv_type, str)
+        col_vcf_like = request.data.get("col_vcf_like", "")
+        assert isinstance(col_vcf_like, str)
+        col_variant = request.data.get("col_variant", "")
+        assert isinstance(col_variant, str)
+        col_location = request.data.get("col_location", "")
+        assert isinstance(col_location, str)
+
         grr_definition = self.get_grr_definition()
         assert grr_definition is not None
         try:
@@ -550,6 +577,12 @@ class JobSpecify(AnnotationBaseView):
                 col_pos=col_pos,
                 col_ref=col_ref,
                 col_alt=col_alt,
+                col_pos_beg=col_pos_beg,
+                col_pos_end=col_pos_end,
+                col_cnv_type=col_cnv_type,
+                col_vcf_like=col_vcf_like,
+                col_variant=col_variant,
+                col_location=col_location,
             )
             annotate_columns_job.delay(
                 job.pk, str(self.result_storage_dir), str(grr_definition))

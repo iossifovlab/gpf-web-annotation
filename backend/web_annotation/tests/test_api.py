@@ -753,12 +753,122 @@ def test_columns_annotation_tsv(admin_client: Client) -> None:
 
 
 @pytest.mark.django_db
-def test_columns_annotation_csv(admin_client: Client) -> None:
+@pytest.mark.parametrize(
+    "example_tsv,specification,expected_lines",
+    [
+        (
+            textwrap.dedent("""
+                chrom,pos,ref,alt
+                chr1,1,C,A
+            """),
+            {
+                "col_chrom": "chrom",
+                "col_pos": "pos",
+                "col_ref": "ref",
+                "col_alt": "alt",
+            },
+            [
+                ["chrom", "pos", "ref", "alt", "pos1"],
+                ["chr1", "1", "C", "A", "0.1"],
+            ]
+        ),
+        (
+            textwrap.dedent("""
+                loc,var
+                chr1:999,del(3)
+            """),
+            {
+                "col_location": "loc",
+                "col_variant": "var",
+            },
+            [
+                ['loc', 'var', 'pos1'],
+                ['chr1:999', 'del(3)', '']
+            ]
+        ),
+        (
+            textwrap.dedent("""
+                chr,ps
+                chr1,666
+            """),
+            {
+                "col_chrom": "chr",
+                "col_pos": "ps",
+            },
+            [
+                ['chr', 'ps', 'pos1'],
+                ['chr1', '666', '']
+            ]
+        ),
+        (
+            textwrap.dedent("""
+                chr,pos,vr
+                chr1,999,sub(T->C)
+            """),
+            {
+                "col_chrom": "chr",
+                "col_pos": "pos",
+                "col_variant": "vr",
+            },
+            [
+                ['chr', 'pos', 'vr', 'pos1'],
+                ['chr1', '999', 'sub(T->C)', '']
+            ]
+        ),
+        (
+            textwrap.dedent("""
+                chr,beg,end
+                chr1,5,10
+            """),
+            {
+                "col_chrom": "chr",
+                "col_pos_beg": "beg",
+                "col_pos_end": "end",
+            },
+            [
+                ['chr', 'beg', 'end', 'pos1'],
+                ['chr1', '5', '10', '0.35']
+            ]
+        ),
+        (
+            textwrap.dedent("""
+                chr,pos_beg,pos_end,cnv
+                chr1,7,20,cnv+
+            """),
+            {
+                "col_chrom": "chr",
+                "col_pos_beg": "pos_beg",
+                "col_pos_end": "pos_end",
+                "col_cnv_type": "end",
+            },
+            [
+                ['chr', 'pos_beg', 'pos_end', 'cnv', 'pos1'],
+                ['chr1', '7', '20', 'cnv+','0.483']
+            ]
+        ),
+        (
+            textwrap.dedent("""
+                vcf
+                chr1:5:C:CT
+            """),
+            {
+                "col_vcf_like": "vcf",
+            },
+            [
+                ['vcf', 'pos1'],
+                ['chr1:5:C:CT', '0.25']
+            ]
+        ),
+    ],
+)
+def test_columns_annotation_csv(
+    admin_client: Client,
+    example_tsv: str,
+    specification: dict[str, str],
+    expected_lines: list[list[str]],
+) -> None:
     annotation_config = "- position_score: scores/pos1"
-    tsv = textwrap.dedent("""
-        chrom,pos,ref,alt
-        chr1,1,C,A
-    """).strip()
+    tsv = example_tsv.strip()
 
     response = admin_client.post(
         "/api/jobs/create",
@@ -768,7 +878,6 @@ def test_columns_annotation_csv(admin_client: Client) -> None:
             "data": ContentFile(tsv)
          },
     )
-
     assert response is not None
     assert response.status_code == 200
     created_job = Job.objects.last()
@@ -776,12 +885,7 @@ def test_columns_annotation_csv(admin_client: Client) -> None:
 
     response = admin_client.post(
         f"/api/jobs/{created_job.pk}/specify",
-        {
-            "col_chrom": "chrom",
-            "col_pos": "pos",
-            "col_ref": "ref",
-            "col_alt": "alt",
-        },
+        specification,
         content_type="application/json",
     )
 
@@ -792,10 +896,7 @@ def test_columns_annotation_csv(admin_client: Client) -> None:
 
     output = pathlib.Path(created_job.result_path).read_text()
     lines = [line.split(",") for line in output.strip().split("\n")]
-    assert lines == [
-        ["chrom", "pos", "ref", "alt", "pos1"],
-        ["chr1", "1", "C", "A", "0.1"],
-    ]
+    assert lines == expected_lines
 
 
 @pytest.mark.django_db
