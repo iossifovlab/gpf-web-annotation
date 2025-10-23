@@ -1,28 +1,30 @@
-<div id="front-page-container" *ngIf="!currentUserData">
-  <div id="front-page-header">
-    <img src="{{ environment.imgPathPrefix }}/logo-64x64.png" alt="GPF Logo" id="front-page-logo" />
-    <h1>GPF Web Annotation</h1>
-    <p>{{ description }}</p>
+<div *ngIf="!isLoading">
+  <div id="front-page-container" *ngIf="!currentUserData">
+    <div id="front-page-header">
+      <img src="{{ environment.imgPathPrefix }}/logo-64x64.png" alt="GPF Logo" id="front-page-logo" />
+      <h1>GPF Web Annotation</h1>
+      <p>{{ description }}</p>
+    </div>
+    <router-outlet></router-outlet>
   </div>
-  <router-outlet></router-outlet>
-</div>
 
-<div id="app-container" *ngIf="currentUserData">
-  <div id="app-header">
-    <div>
-      <img src="{{ environment.imgPathPrefix }}/logo-64x64.png" alt="GPF Logo" id="header-logo" />
-      <span id="app-title">GPF Web Annotation</span>
-    </div>
-    <div id="header-right">
-      <div id="nav-links">
-        <a routerLink="single-annotation" routerLinkActive="active-link">Single Annotation</a>
-        <a routerLink="/jobs" routerLinkActive="active-link">Jobs</a>
+  <div id="app-container" *ngIf="currentUserData">
+    <div id="app-header">
+      <div>
+        <img src="{{ environment.imgPathPrefix }}/logo-64x64.png" alt="GPF Logo" id="header-logo" />
+        <span id="app-title">GPF Web Annotation</span>
       </div>
-      <div id="user-data">
-        <span id="user-email">{{ currentUserData.email }}</span>
-        <button id="logout-button" (click)="logout()">Logout</button>
+      <div id="header-right">
+        <div id="nav-links">
+          <a routerLink="single-annotation" routerLinkActive="active-link">Single Annotation</a>
+          <a routerLink="/jobs" routerLinkActive="active-link">Jobs</a>
+        </div>
+        <div id="user-data">
+          <span id="user-email">{{ currentUserData.email }}</span>
+          <button id="logout-button" (click)="logout()">Logout</button>
+        </div>
       </div>
     </div>
+    <router-outlet></router-outlet>
   </div>
-  <router-outlet></router-outlet>
 </div>

@@ -28,10 +28,6 @@ export class LoginComponent implements OnInit {
   ) {}
 
   public ngOnInit(): void {
-    if (this.usersService.isUserLoggedIn()) {
-      this.usersService.autoLogin();
-    }
-
     this.route.queryParamMap.pipe(
       map(params => params.get('activation_successful')),
       take(1)

@@ -92,21 +92,21 @@ describe('UsersService', () => {
   });
 
   it('should set current user after getting user data on auto login', () => {
-    const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
-    httpGetSpy.mockReturnValue(of({ email: 'mockEmail', isAdmin: false, loggedIn: true }));
-
     const userDataMockResult = { email: 'mockEmail', isAdmin: false, loggedIn: true } as UserData;
-    service.autoLogin();
+    jest.spyOn(service, 'getUserData').mockReturnValue(of(userDataMockResult));
+
+    service.autoLogin().subscribe();
     expect(service.userData.value).toStrictEqual(userDataMockResult);
   });
 
-  it('should navigate to single annotation page on auto login', () => {
-    const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
-    httpGetSpy.mockReturnValue(of({ email: 'mockEmail', isAdmin: false, loggedIn: true }));
+  it('should navigate to login page if auto login fails', () => {
     const navigateSpy = jest.spyOn(router, 'navigate');
+    const userDataMockResult = { email: 'mockEmail', isAdmin: false, loggedIn: false } as UserData;
+    jest.spyOn(service, 'getUserData').mockReturnValue(of(userDataMockResult));
 
-    service.autoLogin();
-    expect(navigateSpy).toHaveBeenCalledWith(['/single-annotation']);
+    service.autoLogin().subscribe();
+    expect(service.userData.value).toBeNull();
+    expect(navigateSpy).toHaveBeenCalledWith(['/login']);
   });
 
   it('should check params of logout query', () => {

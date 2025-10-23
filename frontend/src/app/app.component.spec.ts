@@ -8,6 +8,7 @@ import { provideRouter } from '@angular/router';
 
 class UsersServiceMock {
   public userData = new BehaviorSubject<UserData>(null);
+  public loadingUser = new BehaviorSubject<boolean>(false);
   public autoLogin(): void { }
   public logout(): Observable<object> {
     return of({});
