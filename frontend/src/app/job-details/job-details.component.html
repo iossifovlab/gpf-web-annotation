@@ -1,7 +1,7 @@
 <mat-dialog-content *ngIf="job">
   <div>
     <span class="label">Id: </span>
-    <span class="data">{{ job.id }}</span>
+    <span class="data id">{{ job.id }}</span>
   </div>
   <div>
     <span class="label">Created: </span>
@@ -16,15 +16,15 @@
   </div>
   <div>
     <span class="label">Started: </span>
-    <span class="data">-</span>
+    <span class="data started">-</span>
   </div>
   <div>
     <span class="label">Duration: </span>
-    <span class="data">-</span>
+    <span class="data duration">-</span>
   </div>
   <div *ngIf="job.status === 'success'">
     <span class="label">Annotated file: </span>
-    <a id="download-result" [href]="annotatedFileLink" download>
+    <a id="download-annotated" [href]="annotatedFileLink" download>
       <span class="material-symbols-outlined download-icon">download</span>
     </a>
   </div>
@@ -37,7 +37,7 @@
 
   <div>
     <span class="label">Config file: </span>
-    <a id="download-input" [href]="configFileLink" download>
+    <a id="download-config" [href]="configFileLink" download>
       <span class="material-symbols-outlined download-icon">download</span>
     </a>
   </div>
