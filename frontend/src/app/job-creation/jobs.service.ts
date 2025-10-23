@@ -28,12 +28,12 @@ export class JobsService {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
     const formData = new FormData();
     formData.append('data', file, file.name);
+    formData.append('genome', genome);
     if (pipeline) {
       formData.append('pipeline', pipeline);
     } else {
       const configFile = new File([config], 'config.yml');
       formData.append('config', configFile);
-      formData.append('genome', genome);
     }
     return this.http.post(
       this.createJobUrl,

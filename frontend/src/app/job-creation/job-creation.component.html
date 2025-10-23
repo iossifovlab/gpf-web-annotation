@@ -15,6 +15,10 @@
     >
   </div>
   <div id="annotation-details">
+    <label for="select-genome">Select genome:</label>
+    <select id="select-genome" [(ngModel)]="selectedGenome">
+      <option *ngFor="let genome of genomes" [value]="genome">{{ genome }}</option>
+    </select>
     <ng-container *ngIf="view === 'pipeline list'">
       <div *ngFor="let pipeline of pipelines" class="pipeline-option">
         <input
@@ -27,10 +31,6 @@
       </div>
     </ng-container>
     <ng-container *ngIf="view === 'text editor'">
-      <label for="select-genome">Select genome:</label>
-      <select id="select-genome" [(ngModel)]="selectedGenome">
-        <option *ngFor="let genome of genomes" [value]="genome">{{ genome }}</option>
-      </select>
       <textarea
         id="yml-textarea"
         [(ngModel)]="ymlConfig"

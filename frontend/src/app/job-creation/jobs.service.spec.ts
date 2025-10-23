@@ -119,8 +119,8 @@ describe('JobsService', () => {
 
     const formData = new FormData();
     formData.append('data', mockInputFile, 'mockInput.vcf');
-    formData.append('config', mockConfigFile);
     formData.append('genome', 'hg38');
+    formData.append('config', mockConfigFile);
 
     const options = {
       headers: {
@@ -146,6 +146,7 @@ describe('JobsService', () => {
 
     const formData = new FormData();
     formData.append('data', mockInputFile, 'mockInput.vcf');
+    formData.append('genome', 'hg38');
     formData.append('pipeline', 'autism');
 
     const options = {
@@ -155,7 +156,7 @@ describe('JobsService', () => {
       withCredentials: true
     };
 
-    service.createJob(mockInputFile, 'autism', null, null);
+    service.createJob(mockInputFile, 'autism', null, 'hg38');
 
     expect(httpPostSpy).toHaveBeenCalledWith(
       '//localhost:8000/api/jobs/create',
@@ -174,8 +175,8 @@ describe('JobsService', () => {
 
     const formData = new FormData();
     formData.append('data', mockInputFile, 'mockInput.vcf');
-    formData.append('config', mockConfigFile);
     formData.append('genome', 'hg38');
+    formData.append('config', mockConfigFile);
 
     const mockCookie = 'csrftoken=EYZbFmv1i1Ie7cmT3OFHgxdv3kOR7rIt';
     document.cookie = mockCookie;

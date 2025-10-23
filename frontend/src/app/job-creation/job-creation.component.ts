@@ -50,7 +50,7 @@ export class JobCreationComponent implements OnInit {
       if (this.view === 'text editor') {
         createObservable = this.jobsService.createJob(this.file, null, this.ymlConfig, this.selectedGenome);
       } else {
-        createObservable = this.jobsService.createJob(this.file, this.pipelineId, null, null);
+        createObservable = this.jobsService.createJob(this.file, this.pipelineId, null, this.selectedGenome);
       }
       createObservable.pipe(take(1)).subscribe({
         next: (resp) => {

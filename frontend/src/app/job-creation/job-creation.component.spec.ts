@@ -166,7 +166,7 @@ describe('JobCreationComponent', () => {
     component.onPipelineClick('autism');
     const createJob = jest.spyOn(jobsServiceMock, 'createJob');
     component.onCreateClick();
-    expect(createJob).toHaveBeenCalledWith(mockFile, 'autism', null, null);
+    expect(createJob).toHaveBeenCalledWith(mockFile, 'autism', null, 'hg38');
   });
 
   it('should disable Create button if no file is uploaded', () => {
