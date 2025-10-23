@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import uuid
 import os
+import pathlib
 from datetime import timedelta
 from typing import cast
 
@@ -60,7 +61,8 @@ class Job(models.Model):
         self.is_active = False
         os.remove(self.input_path)
         os.remove(self.config_path)
-        os.remove(self.result_path)
+        if pathlib.Path(self.result_path).exists():
+            os.remove(self.result_path)
         self.save()
 
 
