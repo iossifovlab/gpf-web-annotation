@@ -1057,3 +1057,43 @@ def test_single_annotation_throttled(user_client: Client) -> None:
         content_type="application/json",
     )
     assert response.status_code == 429
+
+
+@pytest.mark.django_db
+def test_job_deactivate(
+    tmp_path: pathlib.Path,
+    user_client: Client
+) -> None:
+    user = User.objects.get(email="user@example.com")
+
+    assert Job.objects.filter(is_active=True, owner=user).count() == 1
+
+    user_input = tmp_path / "user-input1.vcf"
+    user_input.write_text("mock vcf data")
+    user_config = tmp_path / "user-config1.yaml"
+    user_config.write_text("mock annotation config")
+    user_result = tmp_path / "user-result1.vcf"
+    user_result.write_text("mock annotated vcf")
+    Job(
+        input_path=user_input,
+        config_path=user_config,
+        result_path=user_result,
+        owner=user,
+    ).save()
+
+    assert Job.objects.filter(is_active=True, owner=user).count() == 2
+
+    all_jobs = user_client.get("/api/jobs")
+    assert len(all_jobs.json()) == 2
+
+    user_client.delete("/api/jobs/1")
+
+    deactivated_jobs = Job.objects.filter(is_active=False, owner=user)
+    assert deactivated_jobs.count() == 1
+
+    assert not pathlib.Path(deactivated_jobs[0].input_path).exists()
+    assert not pathlib.Path(deactivated_jobs[0].config_path).exists()
+    assert not pathlib.Path(deactivated_jobs[0].result_path).exists()
+
+    all_jobs = user_client.get("/api/jobs")
+    assert len(all_jobs.json()) == 1

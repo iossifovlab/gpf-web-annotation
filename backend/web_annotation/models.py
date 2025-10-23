@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+import os
 from datetime import timedelta
 from typing import cast
 
@@ -53,6 +54,14 @@ class Job(models.Model):
         'web_annotation.User', related_name='jobs', on_delete=models.CASCADE)
     created_at: models.Field = models.DateTimeField(default=timezone.now)
     is_active = models.BooleanField(default=True)
+
+    def deactivate(self) -> None:
+        """Diactivate a job and clean its resources."""
+        self.is_active = False
+        os.remove(self.input_path)
+        os.remove(self.config_path)
+        os.remove(self.result_path)
+        self.save()
 
 
 class JobDetails(models.Model):

@@ -267,6 +267,26 @@ class JobDetail(AnnotationBaseView):
 
         return Response(response, status=views.status.HTTP_200_OK)
 
+    permission_classes = [permissions.IsAuthenticated]
+    def delete(self, request: Request, pk: int) -> Response:
+        """
+        Delete job details.
+
+        Returns extra column information for TSV/CSV jobs.
+        """
+
+        try:
+            job = get_job(pk)
+        except ObjectDoesNotExist:
+            return Response(status=views.status.HTTP_404_NOT_FOUND)
+
+        if job.owner != request.user:
+            return Response(status=views.status.HTTP_403_FORBIDDEN)
+
+        job.deactivate()
+
+        return Response(status=views.status.HTTP_200_OK)
+
 
 class JobCreate(AnnotationBaseView):
     """View for creating jobs."""

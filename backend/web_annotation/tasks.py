@@ -147,12 +147,8 @@ def delete_old_jobs(days_old: int = 0) -> None:
         created_at__lte=time_delta,
     )
 
-    old_jobs.update(is_active=False)
-
     for job in list(old_jobs):
-        os.remove(job.input_path)
-        os.remove(job.config_path)
-        os.remove(job.result_path)
+        job.deactivate()
 
 
 def run_columns_job(

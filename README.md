@@ -25,6 +25,7 @@ Run celery
 cd backend
 conda activate gpf-web-annotation
 export DJANGO_SETTINGS_MODULE=web_annotation.settings
+export GRR_DEFINITION_FILE=~/grr_definition.yaml
 celery -A web_annotation.celery_app worker -l INFO
 ```
 
