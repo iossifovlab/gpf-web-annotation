@@ -582,6 +582,7 @@ def test_single_annotation(admin_client: Client) -> None:
                 "target=\"_blank\">More info</a>\n\n"
             ),
             "resource_id": "scores/pos1",
+            "resource_url": "http://test/scores/pos1",
         },
         "attributes": [
             {

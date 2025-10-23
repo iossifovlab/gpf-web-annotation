@@ -297,3 +297,5 @@ LOGGING = {
         },
     },
 }
+
+RESOURCES_BASE_URL = "http://grr.seqpipe.org/"
