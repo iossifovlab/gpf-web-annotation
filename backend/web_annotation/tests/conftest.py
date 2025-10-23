@@ -1,7 +1,6 @@
 import pathlib
 import shutil
 import yaml
-import textwrap
 import pytest
 import pytest_mock
 from django.test import Client
@@ -14,6 +13,15 @@ from dae.genomic_resources.repository_factory import \
 
 from web_annotation.tests.mailhog_client import MailhogClient
 from web_annotation.models import Job, User
+
+
+@pytest.fixture(autouse=True)
+def clean_genomic_context(
+    mocker: pytest_mock.MockerFixture,
+) -> None:
+    mocker.patch(
+        "dae.genomic_resources.genomic_context._REGISTERED_CONTEXTS",
+        [])
 
 
 @pytest.fixture(scope="function", autouse=True)
