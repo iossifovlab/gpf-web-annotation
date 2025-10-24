@@ -148,25 +148,27 @@ describe('JobCreationComponent', () => {
   it('should create process with yml config entered by user', () => {
     const mockFile = new File([], 'mockFile', { type: 'text/vcard' });
     component.file = mockFile;
+    component.fileSeparator = '\t';
     component.changeView('text editor');
     fixture.detectChanges();
 
     component.ymlConfig = 'some yml text';
     const createJob = jest.spyOn(jobsServiceMock, 'createJob');
     component.onCreateClick();
-    expect(createJob).toHaveBeenCalledWith(mockFile, null, 'some yml text', 'hg38');
+    expect(createJob).toHaveBeenCalledWith(mockFile, null, 'some yml text', 'hg38', '\t');
     expect(component.ymlConfig).toBe('');
   });
 
   it('should create process with pipeline', () => {
     const mockFile = new File([], 'mockFile', { type: 'text/vcard' });
     component.file = mockFile;
+    component.fileSeparator = '\t';
     fixture.detectChanges();
 
     component.onPipelineClick('autism');
     const createJob = jest.spyOn(jobsServiceMock, 'createJob');
     component.onCreateClick();
-    expect(createJob).toHaveBeenCalledWith(mockFile, 'autism', null, 'hg38');
+    expect(createJob).toHaveBeenCalledWith(mockFile, 'autism', null, 'hg38', '\t');
   });
 
   it('should disable Create button if no file is uploaded', () => {
