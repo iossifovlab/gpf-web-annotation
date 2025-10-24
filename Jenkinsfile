@@ -114,6 +114,9 @@ pipeline {
 
 
         try {
+
+            archiveArtifacts artifacts: 'e2e-tests/reports/**', fingerprint: false, allowEmptyArchive: true
+
             discoverGitReferenceBuild(latestBuildIfNotFound: true, maxCommits: 400, skipUnknownCommits: true)
 
             def resultBeforeTests = currentBuild.currentResult
@@ -178,8 +181,6 @@ pipeline {
                 reportName: 'frontend-coverage',
                 reportTitles: 'Frontend Coverage'])
 
-
-            archiveArtifacts artifacts: 'e2e-tests/reports/**', fingerprint: false, allowEmptyArchive: true
 
         } finally {
           zulipNotification(
