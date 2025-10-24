@@ -1,0 +1,41 @@
+##fileformat=VCFv4.2
+##FILTER=<ID=PASS,Description="All filters passed">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##contig=<ID=chr1>
+##contig=<ID=chr2>
+##contig=<ID=chr3>
+##pipeline_annotation_tool=GPF variant annotation.
+##INFO=<ID=dbSNP_RS,Number=A,Type=String,Description="dbSNP ID (i.e. rs number)">
+##INFO=<ID=gnomad_v4_exome_ALL_af,Number=A,Type=String,Description="Alternate allele frequency">
+##INFO=<ID=gnomad_v4_genome_ALL_af,Number=A,Type=String,Description="Alternate allele frequency">
+##INFO=<ID=CLNSIG,Number=A,Type=String,Description="Aggregate germline classification for this single variant; multiple values are separated by a vertical bar">
+##INFO=<ID=CLNDN,Number=A,Type=String,Description="ClinVar's preferred disease name for the concept specified by disease identifiers in CLNDISDB">
+##INFO=<ID=mpc,Number=A,Type=String,Description="Missense badness, PolyPhen-2, and Constraint. A deleteriousness prediction score for missense variants\"">
+##INFO=<ID=cadd_raw,Number=A,Type=String,Description="CADD raw score for functional prediction of a SNP. The larger the score  the more likely the SNP has damaging effect">
+##INFO=<ID=cadd_phred,Number=A,Type=String,Description="CADD phred-like score. This is phred-like rank score based on whole genome CADD raw scores. The larger the score the more likely the SNP has damaging effect.">
+##INFO=<ID=am_pathogenicity,Number=A,Type=String,Description="AlphaMissense Pathogenicity score is a deleteriousness score for missense variants">
+##INFO=<ID=worst_effect,Number=A,Type=String,Description="Worst effect accross all transcripts.">
+##INFO=<ID=gene_effects,Number=A,Type=String,Description="`<gene_1>:<effect_1>|...` A gene can be repeated.">
+##INFO=<ID=effect_details,Number=A,Type=String,Description="Effect details for each affected transcript. Format: `< transcript 1 >:<gene 1>:<effect 1>:<details 1>|...`">
+##INFO=<ID=worst_effect_MANE_1.3,Number=A,Type=String,Description="Worst effect accross all transcripts.">
+##INFO=<ID=effect_details_MANE_1.3,Number=A,Type=String,Description="Effect details for each affected transcript. Format: `< transcript 1 >:<gene 1>:<effect 1>:<details 1>|...`">
+##INFO=<ID=gene_effects_MANE_1.3,Number=A,Type=String,Description="`<gene_1>:<effect_1>|...` A gene can be repeated.">
+##INFO=<ID=pLI_rank_all,Number=A,Type=String,Description="Gene rank after sorting by pLI intolerance score">
+##INFO=<ID=pLI_rank_min,Number=A,Type=String,Description="Gene rank after sorting by pLI intolerance score">
+##INFO=<ID=LOEUF_rank_all,Number=A,Type=String,Description="Gene ranks after sorting by LOEUF scores">
+##INFO=<ID=LOEUF_rank_min,Number=A,Type=String,Description="Gene ranks after sorting by LOEUF scores">
+##INFO=<ID=Satterstrom Buxbaum Cell 2020 qval,Number=A,Type=String,Description="Multiple hypothesis adjusted p-value for gene-autism association">
+##INFO=<ID=Iossifov Wigler PNAS 2015 post noaut,Number=A,Type=String,Description="Probability of a gene to be associated with autism">
+##INFO=<ID=SFARI_gene_score,Number=A,Type=String,Description="Evidence strength supporting a gene's association with autism">
+##INFO=<ID=autism candidates from Iossifov PNAS 2015,Number=A,Type=String,Description="Iossifov I., et al. Low load for disruptive mutations in autism genes and their biased transmission. PNAS (2015)">
+##INFO=<ID=autism candidates from Sanders Neuron 2015,Number=A,Type=String,Description="Sanders S., et. al, Insights into Autism Spectrum Disorder Genomic Architecture and Biology from 71 Risk Loci. Neuron (2015)">
+##INFO=<ID=Yuen Scherer Nature 2017,Number=A,Type=String,Description="List of genes (unique) from paper Yuen_Scherer_Nature_2017_NEW, Supplementary Table 5. All damaging variants in ASD-risk genes.">
+##INFO=<ID=Turner Eichler ajhg 2019,Number=A,Type=String,Description="List of genes from paper Turner_Eichler_ajhg_2019, Supplementary mmc2 Excel file, Sheet: Table_S5">
+##INFO=<ID=Satterstrom Buxbaum Cell 2020 top,Number=A,Type=String,Description="List of genes (unique) from paper Satterstrom_Buxbaum_Cell_2020, Supplementary mmc2 Excel file, Sheet: 102 ASD">
+##INFO=<ID=number_of_deletions_in_SSC_affected,Number=A,Type=String,Description="The number of CNVs overlapping with the annotatable.">
+##INFO=<ID=number_of_duplications_in_SSC_affected,Number=A,Type=String,Description="The number of CNVs overlapping with the annotatable.">
+##INFO=<ID=in_a_SFARI_gene_CNV,Number=A,Type=String,Description="The number of CNVs overlapping with the annotatable.">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	mom	dad	prb
+chr1	10	.	C	T	.	.	worst_effect=intergenic;gene_effects=intergenic:intergenic;effect_details=intergenic:intergenic:intergenic:intergenic;worst_effect_MANE_1.3=intergenic;effect_details_MANE_1.3=intergenic:intergenic:intergenic:intergenic;gene_effects_MANE_1.3=intergenic:intergenic;number_of_deletions_in_SSC_affected=0;number_of_duplications_in_SSC_affected=0;in_a_SFARI_gene_CNV=0	GT	0/0	0/0	0/1
+chr2	20	.	C	T	.	.	worst_effect=intergenic;gene_effects=intergenic:intergenic;effect_details=intergenic:intergenic:intergenic:intergenic;worst_effect_MANE_1.3=intergenic;effect_details_MANE_1.3=intergenic:intergenic:intergenic:intergenic;gene_effects_MANE_1.3=intergenic:intergenic;number_of_deletions_in_SSC_affected=0;number_of_duplications_in_SSC_affected=0;in_a_SFARI_gene_CNV=0	GT	0/1	0/0	0/1
+chr3	30	.	C	T	.	.	worst_effect=intergenic;gene_effects=intergenic:intergenic;effect_details=intergenic:intergenic:intergenic:intergenic;worst_effect_MANE_1.3=intergenic;effect_details_MANE_1.3=intergenic:intergenic:intergenic:intergenic;gene_effects_MANE_1.3=intergenic:intergenic;number_of_deletions_in_SSC_affected=0;number_of_duplications_in_SSC_affected=0;in_a_SFARI_gene_CNV=0	GT	0/1	0/1	0/1
