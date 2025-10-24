@@ -15,7 +15,18 @@ import { JobsService } from '../job-creation/jobs.service';
 })
 export class ColumnSpecifyingModalComponent implements OnInit {
   public fileContent: FileContent;
-  public columnNames = ['chrom', 'pos', 'ref', 'alt'];
+  public columnNames = [
+    'location',
+    'variant',
+    'chrom',
+    'pos',
+    'position_end',
+    'position_begin',
+    'ref',
+    'alt',
+    'cnv_type',
+    'vcf_like',
+  ];
   public mappedColumns = new Map<string, string>();
   public error = '';
 

@@ -516,16 +516,18 @@ class JobCreate(AnnotationBaseView):
             lines = cols_file_content.split("\n")
             header = lines[0]
 
-            if len(header.split(",")) > 1 or len(lines[1].split(":")) > 1:
+            sep = str(request.data.get("separator"))
+            if sep ==  "":
                 sep = ","
-            elif len(header.split("\t")) > 1:
-                sep = "\t"
-            else:
-                self._cleanup(job_name)
+            if len(header.split(sep)) < len(max([l.split(sep) for l in lines], key=len)):
                 return Response(
-                    {"reason": "Invalid input file"},
+                    {"reason": (
+                        "Invalid separator, cannot "
+                        "create proper columns!"
+                    )},
                     status=views.status.HTTP_400_BAD_REQUEST,
                 )
+
             columns = ";".join(header.split(sep))
             job.status = job.Status.SPECIFYING
             job_details = JobDetails(columns=columns, separator=sep, job=job)

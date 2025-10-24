@@ -24,11 +24,18 @@ export class JobsService {
     return res;
   }
 
-  public createJob(file: File, pipeline: string, config: string, genome: string): Observable<object> {
+  public createJob(
+    file: File,
+    pipeline: string,
+    config: string,
+    genome: string,
+    fileSeparator: string,
+  ): Observable<object> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
     const formData = new FormData();
     formData.append('data', file, file.name);
     formData.append('genome', genome);
+    formData.append('separator', fileSeparator)
     if (pipeline) {
       formData.append('pipeline', pipeline);
     } else {
@@ -141,6 +148,12 @@ export class JobsService {
         col_pos: columns.get('pos'),
         col_ref: columns.get('ref'),
         col_alt: columns.get('alt'),
+        col_pos_beg: columns.get('position_begin'),
+        col_pos_end: columns.get('position_end'),
+        col_cnv_type: columns.get('cnv_type'),
+        col_vcf_like: columns.get('vcf_like'),
+        col_variant: columns.get('variant'),
+        col_location: columns.get('location'),
       },
       /* eslint-enable */
       options

@@ -17,6 +17,7 @@ import { SingleAnnotationService } from '../single-annotation.service';
 })
 export class JobCreationComponent implements OnInit {
   public file: File = null;
+  public fileSeparator: string = null;
   public uploadError = '';
   public view: JobCreationView = 'pipeline list';
   public pipelines : Pipeline[] = [];
@@ -48,9 +49,21 @@ export class JobCreationComponent implements OnInit {
     if (this.file) {
       let createObservable: Observable<object>;
       if (this.view === 'text editor') {
-        createObservable = this.jobsService.createJob(this.file, null, this.ymlConfig, this.selectedGenome);
+        createObservable = this.jobsService.createJob(
+          this.file,
+          null,
+          this.ymlConfig,
+          this.selectedGenome,
+          this.fileSeparator
+        );
       } else {
-        createObservable = this.jobsService.createJob(this.file, this.pipelineId, null, this.selectedGenome);
+        createObservable = this.jobsService.createJob(
+          this.file,
+          this.pipelineId,
+          null,
+          this.selectedGenome,
+          this.fileSeparator
+        );
       }
       createObservable.pipe(take(1)).subscribe({
         next: (resp) => {
@@ -127,8 +140,9 @@ export class JobCreationComponent implements OnInit {
   }
 
   public disableCreate(): boolean {
-    return !this.file ||
-      Boolean(this.uploadError) ||
-      (this.view === 'text editor' ? !this.ymlConfig : !this.pipelineId);
+    return !this.file
+      || Boolean(this.uploadError)
+      || (this.view === 'text editor' ? !this.ymlConfig : !this.pipelineId)
+      || (this.fileSeparator === null && !this.file?.name?.endsWith("vcf"));
   }
 }

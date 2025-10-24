@@ -193,3 +193,11 @@ select {
   background-color: white;
   margin-left: 10px;
 }
+
+.separator-list {
+  margin: 10px;
+}
+
+.separator-label {
+  padding-right: 10px;
+}

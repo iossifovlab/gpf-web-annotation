@@ -653,7 +653,8 @@ def test_upload_tsv_file(admin_client: Client) -> None:
         {
             "genome": "hg38",
             "config": ContentFile(annotation_config),
-            "data": ContentFile(tsv)
+            "data": ContentFile(tsv),
+            "separator": "\t",
         },
     )
 
@@ -719,7 +720,8 @@ def test_columns_annotation_tsv(admin_client: Client) -> None:
         {
             "genome": "hg38",
             "config": ContentFile(annotation_config),
-            "data": ContentFile(tsv)
+            "data": ContentFile(tsv),
+            "separator": "\t",
         },
     )
 
@@ -754,13 +756,13 @@ def test_columns_annotation_tsv(admin_client: Client) -> None:
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "example_tsv,specification,expected_lines",
+    "example_tsv, separator, specification,expected_lines",
     [
         (
             textwrap.dedent("""
                 chrom,pos,ref,alt
                 chr1,1,C,A
-            """),
+            """), ",",
             {
                 "col_chrom": "chrom",
                 "col_pos": "pos",
@@ -776,7 +778,7 @@ def test_columns_annotation_tsv(admin_client: Client) -> None:
             textwrap.dedent("""
                 loc,var
                 chr1:999,del(3)
-            """),
+            """), ",",
             {
                 "col_location": "loc",
                 "col_variant": "var",
@@ -790,7 +792,7 @@ def test_columns_annotation_tsv(admin_client: Client) -> None:
             textwrap.dedent("""
                 chr,ps
                 chr1,666
-            """),
+            """), ",",
             {
                 "col_chrom": "chr",
                 "col_pos": "ps",
@@ -804,7 +806,7 @@ def test_columns_annotation_tsv(admin_client: Client) -> None:
             textwrap.dedent("""
                 chr,pos,vr
                 chr1,999,sub(T->C)
-            """),
+            """), ",",
             {
                 "col_chrom": "chr",
                 "col_pos": "pos",
@@ -819,7 +821,7 @@ def test_columns_annotation_tsv(admin_client: Client) -> None:
             textwrap.dedent("""
                 chr,beg,end
                 chr1,5,10
-            """),
+            """), ",",
             {
                 "col_chrom": "chr",
                 "col_pos_beg": "beg",
@@ -834,7 +836,7 @@ def test_columns_annotation_tsv(admin_client: Client) -> None:
             textwrap.dedent("""
                 chr,pos_beg,pos_end,cnv
                 chr1,7,20,cnv+
-            """),
+            """), ",",
             {
                 "col_chrom": "chr",
                 "col_pos_beg": "pos_beg",
@@ -850,7 +852,7 @@ def test_columns_annotation_tsv(admin_client: Client) -> None:
             textwrap.dedent("""
                 vcf
                 chr1:5:C:CT
-            """),
+            """), ",",
             {
                 "col_vcf_like": "vcf",
             },
@@ -864,6 +866,7 @@ def test_columns_annotation_tsv(admin_client: Client) -> None:
 def test_columns_annotation_csv(
     admin_client: Client,
     example_tsv: str,
+    separator: str,
     specification: dict[str, str],
     expected_lines: list[list[str]],
 ) -> None:
@@ -875,7 +878,8 @@ def test_columns_annotation_csv(
         {
             "genome": "hg38",
             "config": ContentFile(annotation_config),
-            "data": ContentFile(tsv)
+            "data": ContentFile(tsv),
+            "separator": separator,
          },
     )
     assert response is not None
@@ -920,29 +924,6 @@ def test_columns_annotation_unsupported_sep(admin_client: Client) -> None:
 
 
 @pytest.mark.django_db
-def test_columns_annotation_force_tsv_vcf(admin_client: Client) -> None:
-    annotation_config = "- position_score: scores/pos1"
-    vcf = textwrap.dedent("""
-        ##fileformat=VCFv4.1
-        ##contig=<ID=chr1>
-        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
-        chr1	1	.	C	A	.	.	.
-    """).strip("\n")
-
-    response = admin_client.post(
-        "/api/jobs/create",
-        {
-            "genome": "hg38",
-            "config": ContentFile(annotation_config),
-            "data": ContentFile(vcf, name="test.tsv")
-        },
-    )
-    assert response.status_code == 400
-
-    assert response.data == {"reason": "Invalid input file"}
-
-
-@pytest.mark.django_db
 def test_columns_annotation_invalid_vcf(admin_client: Client) -> None:
     annotation_config = "- position_score: scores/pos1"
     input_file = textwrap.dedent("""
@@ -954,7 +935,8 @@ def test_columns_annotation_invalid_vcf(admin_client: Client) -> None:
         {
             "genome": "hg38",
             "config": ContentFile(annotation_config),
-            "data": ContentFile(input_file, name="test.vcf")
+            "data": ContentFile(input_file, name="test.vcf"),
+            "separator": "",
         },
     )
 
@@ -983,7 +965,8 @@ def test_job_details_specify(admin_client: Client) -> None:
         {
             "genome": "hg38",
             "config": ContentFile(annotation_config),
-            "data": ContentFile(tsv)
+            "data": ContentFile(tsv),
+            "separator": "\t",
         },
     )
 
