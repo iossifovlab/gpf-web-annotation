@@ -37,7 +37,7 @@
           (click)="getModalContent(j.id)"
           >{{ j.status }}</span
         >
-        <span class="specify-label" (click)="getModalContent(j.id)" *ngIf="j.status === 'specifying'"
+        <span class="specify-label" *ngIf="j.status === 'specifying'"
           ><span class="material-symbols-outlined warning-icon">warning</span>Specify columns
           <button class="specify-button" (click)="getModalContent(j.id)">here</button></span
         >
