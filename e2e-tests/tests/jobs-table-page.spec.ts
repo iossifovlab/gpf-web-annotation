@@ -234,3 +234,90 @@ test.describe('Job details tests', () => {
   });
 });
 
+test.describe('Jobs table tests', () => {
+  test.beforeEach(async({ page }) => {
+    await page.goto('/', {waitUntil: 'load'});
+
+    const email = utils.getRandomString() + '@email.com';
+    const password = 'aaabbb';
+    await utils.registerUser(page, email, password);
+
+    await utils.loginUser(page, email, password);
+    await page.getByRole('link', {name: 'Jobs'}).click();
+  });
+
+  test('should create job and check first row', async({ page }) => {
+    // create job
+    await page.locator('#add-job-button').click();
+    await page.getByLabel('pipeline/Autism_annotation').click();
+    await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
+    await page.locator('#create-button').click();
+
+    await expect(page.locator('.first-cell').nth(0)).not.toBeEmpty();
+    await expect(page.locator('.date').nth(0)).not.toBeEmpty();
+    await expect(page.locator('.time').nth(0)).not.toBeEmpty();
+    await expect(page.locator('.time-info').nth(1)).not.toBeEmpty();
+    await expect(page.locator('.time-info').nth(2)).not.toBeEmpty();
+    await expect(page.locator('.delete').nth(0)).not.toBeEmpty();
+
+    // wait for job to finish
+    await expect(async() => {
+      await page.reload();
+      await page.goto('/jobs', {waitUntil: 'load'});
+      await expect(page.locator('.status').nth(0)).toHaveText('success');
+      await expect(page.locator('.download').nth(0)).not.toBeEmpty();
+    }).toPass({intervals: [1000, 2000, 3000]});
+  });
+
+  test('should create job and check if download button is visible when annotation is success', async({ page }) => {
+    // create job
+    await page.locator('#add-job-button').click();
+    await page.getByLabel('pipeline/Autism_annotation').click();
+    await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
+    await page.locator('#create-button').click();
+
+    // wait for job to finish
+    await expect(async() => {
+      await page.reload();
+      await page.goto('/jobs', {waitUntil: 'load'});
+      await expect(page.locator('.status').nth(0)).toHaveText('success', {timeout: 3000});
+      await expect(page.locator('.download').nth(0)).toBeVisible({timeout: 3000});
+    }).toPass({intervals: [1000, 2000, 3000]});
+
+    const downloadPromise = page.waitForEvent('download');
+    await page.locator('.download').nth(0).click();
+    const downloadedFile = await downloadPromise;
+
+    const fixtureData = scanCSV(await downloadedFile.path(), {truncateRaggedLines: true});
+    const downloadData = scanCSV('./fixtures/job-result-1.vcf', {truncateRaggedLines: true});
+    const fixtureFrame = await fixtureData.collect();
+    const downloadFrame = await downloadData.collect();
+    expect(fixtureFrame.toString()).toEqual(downloadFrame.toString());
+  });
+
+  test('should create job and check if download button is not visible', async({ page }) => {
+    // create job
+    await page.locator('#add-job-button').click();
+    await page.getByLabel('pipeline/Autism_annotation').click();
+    await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
+    await page.locator('#create-button').click();
+
+    await expect(page.locator('.status-label').nth(0)).toBeVisible();
+    await expect(page.locator('.download').nth(0)).toBeEmpty();
+  });
+
+  test('should create job and then delete it', async({ page }) => {
+    // create job
+    await page.locator('#add-job-button').click();
+    await page.getByLabel('pipeline/Autism_annotation').click();
+    await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
+    await page.locator('#create-button').click();
+
+    const lastJobId = await page.locator('.first-cell').evaluate(el => el.textContent);
+    await expect(page.getByText(lastJobId)).toBeVisible();
+
+    await page.locator('.delete').nth(0).click();
+    await expect(page.getByText(lastJobId)).not.toBeVisible();
+  });
+});
+
