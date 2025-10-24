@@ -145,6 +145,13 @@ test.describe('Job details tests', () => {
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
     await page.locator('#create-button').click();
 
+    // wait for job to finish
+    await expect(async() => {
+      await page.reload();
+      await page.goto('/jobs', {waitUntil: 'load'});
+      await expect(page.locator('.status').nth(0)).toHaveText('success');
+    }).toPass({intervals: [1000, 2000, 3000]});
+
     await page.locator('.first-cell').getByText('info').nth(0).click();
 
     const downloadPromise = page.waitForEvent('download');
@@ -166,6 +173,13 @@ test.describe('Job details tests', () => {
     await page.locator('#yml-textarea').fill(config);
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
     await page.locator('#create-button').click();
+
+    // wait for job to finish
+    await expect(async() => {
+      await page.reload();
+      await page.goto('/jobs', {waitUntil: 'load'});
+      await expect(page.locator('.status').nth(0)).toHaveText('success');
+    }).toPass({intervals: [1000, 2000, 3000]});
 
     await page.locator('.first-cell').getByText('info').nth(0).click();
 
