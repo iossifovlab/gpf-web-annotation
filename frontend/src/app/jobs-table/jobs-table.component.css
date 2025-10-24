@@ -136,6 +136,11 @@
   align-items: center;
 }
 
+.status-label:hover,
+.specify-label:hover {
+  cursor: pointer;
+}
+
 .warning-icon {
   color: #dfb434;
   font-size: 20px;
@@ -149,6 +154,7 @@
   border-bottom: 1px solid #dfb434;
   padding: 2px;
   color: #dfb434;
+  margin-left: 6px;
 }
 
 .specify-button:hover {
