@@ -104,7 +104,7 @@ export class JobCreationComponent implements OnInit {
   }
 
   private isFormatValid(file: File): void {
-    const validFormats = ['text/csv', 'text/vcard', 'text/tab-separated-values'];
+    const validFormats = ['text/csv', 'text/vcard', 'text/tab-separated-values', 'text/plain'];
     if (!validFormats.includes(file.type)) {
       this.uploadError = 'Unsupported format!';
     }

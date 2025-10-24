@@ -210,4 +210,41 @@ describe('JobCreationComponent', () => {
     expect(getPipelinesSpy).toHaveBeenCalledWith();
     expect(component.pipelines).toStrictEqual(mockPipelines);
   });
+
+  it('should prevent default and set file when csv file is dropped', () => {
+    const mockFile = new File([], 'mockFile', { type: 'text/csv' });
+    const mockDataTransfer = { files: [mockFile] } as unknown as DataTransfer;
+    const mockEvent = { dataTransfer: mockDataTransfer, preventDefault: jest.fn() } as unknown as DragEvent;
+
+    component.onDropSuccess(mockEvent);
+
+    expect(mockEvent.preventDefault).toHaveBeenCalledWith();
+    expect(component.file).toBe(mockFile);
+    expect(component.uploadError).toBe('');
+  });
+
+  it('should prevent default and set uploadError for unsupported format on drop', () => {
+    const mockFile = new File([], 'mockFile', { type: 'application/pdf' });
+    const mockDataTransfer = { files: [mockFile] } as unknown as DataTransfer;
+    const mockEvent = { dataTransfer: mockDataTransfer, preventDefault: jest.fn() } as unknown as DragEvent;
+
+    component.onDropSuccess(mockEvent);
+
+    expect(mockEvent.preventDefault).toHaveBeenCalledWith();
+    expect(component.file).toBe(mockFile);
+    expect(component.uploadError).toBe('Unsupported format!');
+  });
+
+  it('should prevent default and do nothing if no files are dropped', () => {
+    const mockDataTransfer = { files: [] } as unknown as DataTransfer;
+    const mockEvent = { dataTransfer: mockDataTransfer, preventDefault: jest.fn() } as unknown as DragEvent;
+
+    component.file = null;
+    component.uploadError = '';
+    component.onDropSuccess(mockEvent);
+
+    expect(mockEvent.preventDefault).toHaveBeenCalledWith();
+    expect(component.file).toBeNull();
+    expect(component.uploadError).toBe('');
+  });
 });
