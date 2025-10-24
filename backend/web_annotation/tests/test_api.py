@@ -588,6 +588,7 @@ def test_single_annotation(admin_client: Client) -> None:
     assert annotators_data[0]["attributes"][0]["description"] == \
         "test position score"
     assert annotators_data[0]["attributes"][0]["source"] == "pos1"
+    assert annotators_data[0]["attributes"][0]["type"] == "float"
     assert annotators_data[0]["attributes"][0]["result"] == {
         "value": 0.1,
         "histogram": "histograms/scores/pos1?score_id=pos1"

@@ -5,6 +5,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, cast
 
+from dae.genomic_resources.histogram import Histogram, NullHistogram
 import magic
 from dae.annotation.annotatable import VCFAllele
 from dae.annotation.annotation_config import (
@@ -73,38 +74,44 @@ from .models import (
 )
 from .permissions import has_job_permission
 from .serializers import JobSerializer, UserSerializer
-from .tasks import annotate_vcf_job, annotate_columns_job, get_job, get_job_details, specify_job
+from .tasks import (
+    annotate_vcf_job,
+    annotate_columns_job,
+    get_job,
+    get_job_details,
+    specify_job,
+)
 
 logger = logging.getLogger(__name__)
 
 
 def get_histogram_genomic_score(
     resource: GenomicResource, score: str,
-) -> dict[str, Any]:
+) -> Histogram:
     """Get histogram for a genomic score."""
     if resource.get_type() not in [
         "allele_score", "position_score",
     ]:
         raise ValueError(f"{resource.resource_id} is not a genomic score!")
     return build_score_from_resource(
-        resource).get_score_histogram(score).to_dict()
+        resource).get_score_histogram(score)
 
 
 def get_histogram_gene_score(
     resource: GenomicResource, score: str,
-) -> dict[str, Any]:
+) -> Histogram:
     """Get histogram from a gene score resource."""
     if resource.get_type() != "gene_score":
         raise ValueError(f"{resource.resource_id} is not a genomic score!")
     return build_gene_score_from_resource(
-        resource).get_score_histogram(score).to_dict()
+        resource).get_score_histogram(score)
 
 
 def get_histogram_not_supported(
-    resource: GenomicResource, score: str,  # pylint: disable=unused-argument
-) -> dict[str, Any]:
+    _resource: GenomicResource, _score: str,  # pylint: disable=unused-argument
+) -> Histogram:
     """Return an empty histogram for unsupported resources."""
-    return {}
+    return NullHistogram(None)
 
 
 HISTOGRAM_GETTERS = {
@@ -112,6 +119,16 @@ HISTOGRAM_GETTERS = {
     "position_score": get_histogram_genomic_score,
     "gene_score": get_histogram_gene_score,
 }
+
+
+def has_histogram(resource: GenomicResource, score: str) -> bool:
+    """Check if a resource has a histogram for a score."""
+    histogram_getter = HISTOGRAM_GETTERS.get(
+        resource.get_type(), get_histogram_not_supported,
+    )
+    histogram = histogram_getter(resource, score)
+    return not isinstance(histogram, NullHistogram)
+
 
 STARTUP_TIME = timezone.now()
 
@@ -145,17 +162,17 @@ def get_genome_pipelines(
         getattr(settings, "GENOME_DEFINITIONS") is None
         or settings.GENOME_DEFINITIONS is None
     ):
-        genome_pipelines = {}
         return {}
-    else:
-        pipelines: dict[str, AnnotationPipeline] = {}
-        for genome, definition in settings.GENOME_DEFINITIONS.items():
-            pipeline_id = definition.get("pipeline_id")
-            pipeline_resource = grr.get_resource(pipeline_id)
-            pipeline = load_pipeline_from_grr(grr, pipeline_resource)
-            pipeline.open()
-            pipelines[genome] = pipeline
-        genome_pipelines = pipelines
+
+    pipelines: dict[str, AnnotationPipeline] = {}
+    for genome, definition in settings.GENOME_DEFINITIONS.items():
+        pipeline_id = definition.get("pipeline_id")
+        assert pipeline_id is not None
+        pipeline_resource = grr.get_resource(pipeline_id)
+        pipeline = load_pipeline_from_grr(grr, pipeline_resource)
+        pipeline.open()
+        pipelines[genome] = pipeline
+    genome_pipelines = pipelines
     return genome_pipelines
 
 
@@ -233,6 +250,7 @@ class JobDetail(AnnotationBaseView):
     """View for listing job details."""
 
     permission_classes = [permissions.IsAuthenticated]
+
     def get(self, request: Request, pk: int) -> Response:
         """
         Get job details.
@@ -272,7 +290,6 @@ class JobDetail(AnnotationBaseView):
 
         return Response(response, status=views.status.HTTP_200_OK)
 
-    permission_classes = [permissions.IsAuthenticated]
     def delete(self, request: Request, pk: int) -> Response:
         """
         Delete job details.
@@ -316,7 +333,7 @@ class JobCreate(AnnotationBaseView):
             hour=0, minute=0, second=0, microsecond=0)
         jobs_made = Job.objects.filter(
             created__gte=today, owner__exact=user.pk)
-        if len(jobs_made) > settings.LIMITS["daily_jobs"]:
+        if len(jobs_made) > cast(int, settings.LIMITS["daily_jobs"]):
             return False
         return True
 
@@ -870,7 +887,7 @@ class SingleAnnotation(AnnotationBaseView):
                     continue
                 resource = self.grr.get_resource(
                     list(annotator.resource_ids)[0])
-                if resource.get_type() in HISTOGRAM_GETTERS.keys():
+                if has_histogram(resource, attribute_info.source):
                     histogram_path = (
                         f"histograms/{resource.resource_id}"
                         f"?score_id={attribute_info.source}"
@@ -891,6 +908,7 @@ class SingleAnnotation(AnnotationBaseView):
                     "description": attribute_info.description,
                     "help": annotator_help,
                     "source": attribute_info.source,
+                    "type": attribute_info.type,
                     "result": {
                         "value": value,
                         "histogram": histogram_path,
@@ -918,9 +936,38 @@ class SingleAnnotation(AnnotationBaseView):
         return Response(response_data)
 
 
+class HistogramView(AnnotationBaseView):
+    """View for returning histogram data."""
+
+    @method_decorator(last_modified(always_cache))
+    def get(self, request: Request, resource_id: str) -> Response:
+        try:
+            resource = self.grr.get_resource(resource_id)
+        except ValueError:
+            return Response(status=views.status.HTTP_404_NOT_FOUND)
+
+        score_id = request.query_params.get("score_id")
+        if score_id is None:
+            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+
+        histogram_getter = HISTOGRAM_GETTERS.get(
+            resource.get_type(), get_histogram_not_supported,
+        )
+
+        histogram = histogram_getter(
+            resource, score_id,
+        )
+        if isinstance(histogram, NullHistogram):
+            return Response(status=views.status.HTTP_404_NOT_FOUND)
+
+        return Response(histogram.to_dict())
+
+
 class ConfirmAccount(views.APIView):  # USE
     """View for forgotten password."""
-    verification_code_model = cast(BaseVerificationCode, AccountConfirmationCode)
+    verification_code_model = cast(
+        BaseVerificationCode, AccountConfirmationCode,
+    )
     code_type = "confirmation"
 
     def get(self, request: Request) -> HttpResponse:
@@ -1118,31 +1165,3 @@ class PasswordReset(views.APIView):
 
         redirect_uri = settings.EMAIL_REDIRECT_ENDPOINT
         return HttpResponseRedirect(redirect_uri)
-
-
-class HistogramView(AnnotationBaseView):
-    """View for returning histogram data."""
-
-    @method_decorator(last_modified(always_cache))
-    def get(self, request: Request, resource_id: str) -> Response:
-        try:
-            resource = self.grr.get_resource(resource_id)
-        except ValueError:
-            return Response(status=views.status.HTTP_404_NOT_FOUND)
-
-        score_id = request.query_params.get("score_id")
-        if score_id is None:
-            return Response(status=views.status.HTTP_400_BAD_REQUEST)
-
-        histogram_getter = HISTOGRAM_GETTERS.get(
-            resource.get_type(), get_histogram_not_supported,
-        )
-
-        histogram_data = histogram_getter(
-            resource, score_id,
-        )
-
-        if histogram_data == {}:
-            return Response(status=views.status.HTTP_404_NOT_FOUND)
-
-        return Response(histogram_data)
