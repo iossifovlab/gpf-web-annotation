@@ -136,7 +136,7 @@
   align-items: center;
 }
 
-.status-label:hover,
+.specifying-status:hover,
 .specify-label:hover {
   cursor: pointer;
 }
