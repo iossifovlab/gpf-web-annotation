@@ -79,7 +79,7 @@ test.describe('Create job tests', () => {
   test('should check if create button is disabled when invalid file is uploaded', async({ page }) => {
     await page.locator('#add-job-button').click();
     await page.getByLabel('pipeline/Autism_annotation').click();
-    await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/invalid-input-file.txt');
+    await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/invalid-input-file-format.yaml');
     await expect(page.locator('#create-button')).toBeDisabled();
     await expect(page.getByText('Unsupported format!')).toBeVisible();
   });
