@@ -47,7 +47,7 @@ class Job(models.Model):
         path=settings.ANNOTATION_CONFIG_STORAGE_DIR)
     result_path = models.FilePathField(
         path=settings.JOB_RESULT_STORAGE_DIR)
-    reference_genome=models.CharField(max_length=16, default="")
+    reference_genome=models.CharField(max_length=1024, default="")
     created = models.DateTimeField(auto_now_add=True)
     status = models.IntegerField(choices=Status, default=Status.WAITING)
 
@@ -73,16 +73,16 @@ class JobDetails(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["job"], name="unique_job_details")
         ]
-    col_chr = models.CharField(max_length=64, default="")
-    col_pos = models.CharField(max_length=64, default="")
-    col_ref = models.CharField(max_length=64, default="")
-    col_alt = models.CharField(max_length=64, default="")
-    col_pos_beg = models.CharField(max_length=64, default="")
-    col_pos_end = models.CharField(max_length=64, default="")
-    col_cnv_type = models.CharField(max_length=64, default="")
-    col_vcf_like = models.CharField(max_length=64, default="")
-    col_variant = models.CharField(max_length=64, default="")
-    col_location = models.CharField(max_length=64, default="")
+    col_chr = models.CharField(max_length=1024, default="")
+    col_pos = models.CharField(max_length=1024, default="")
+    col_ref = models.CharField(max_length=1024, default="")
+    col_alt = models.CharField(max_length=1024, default="")
+    col_pos_beg = models.CharField(max_length=1024, default="")
+    col_pos_end = models.CharField(max_length=1024, default="")
+    col_cnv_type = models.CharField(max_length=1024, default="")
+    col_vcf_like = models.CharField(max_length=1024, default="")
+    col_variant = models.CharField(max_length=1024, default="")
+    col_location = models.CharField(max_length=1024, default="")
     separator = models.CharField(max_length=1)
     columns = models.TextField()
     job = models.ForeignKey(
