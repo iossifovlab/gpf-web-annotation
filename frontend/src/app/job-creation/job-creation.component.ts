@@ -147,6 +147,7 @@ export class JobCreationComponent implements OnInit {
   public disableCreate(): boolean {
     return !this.file
       || Boolean(this.uploadError)
+      || Boolean(this.configError)
       || (this.view === 'text editor' ? !this.ymlConfig : !this.pipelineId)
       || (this.fileSeparator === null && !this.file?.name?.endsWith('vcf'));
   }
