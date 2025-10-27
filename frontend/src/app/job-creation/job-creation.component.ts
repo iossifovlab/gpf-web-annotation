@@ -143,6 +143,6 @@ export class JobCreationComponent implements OnInit {
     return !this.file
       || Boolean(this.uploadError)
       || (this.view === 'text editor' ? !this.ymlConfig : !this.pipelineId)
-      || (this.fileSeparator === null && !this.file?.name?.endsWith("vcf"));
+      || (this.fileSeparator === null && !this.file?.name?.endsWith('vcf'));
   }
 }
