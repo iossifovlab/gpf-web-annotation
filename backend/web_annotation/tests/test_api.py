@@ -116,6 +116,9 @@ def test_create_job(
     job = Job.objects.get(id=3)
 
     saved_input = pathlib.Path(job.input_path)
+
+    assert job.duration is not None
+    assert job.duration < 1.0
     assert saved_input.exists()
     assert saved_input.read_text() == vcf
 
@@ -748,6 +751,8 @@ def test_columns_annotation_tsv(admin_client: Client) -> None:
     assert response.status_code == 204
     created_job.refresh_from_db()
     assert created_job.status == Job.Status.SUCCESS
+    assert created_job.duration is not None
+    assert created_job.duration < 1.0
 
     output = pathlib.Path(created_job.result_path).read_text()
     lines = [line.split("\t") for line in output.strip().split("\n")]
@@ -900,6 +905,8 @@ def test_columns_annotation_csv(
     assert response.status_code == 204
     created_job.refresh_from_db()
     assert created_job.status == Job.Status.SUCCESS
+    assert created_job.duration is not None
+    assert created_job.duration < 1.0
 
     output = pathlib.Path(created_job.result_path).read_text()
     lines = [line.split(",") for line in output.strip().split("\n")]

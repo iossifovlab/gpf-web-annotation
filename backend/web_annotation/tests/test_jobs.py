@@ -163,13 +163,15 @@ def test_clean_old_jobs_removes_old_jobs(
         user_config.write_text("mock annotation config")
         user_result = tmp_path / f"user-result{i}.vcf"
         user_result.write_text("mock annotated vcf")
-        Job(
+        job = Job(
             input_path=user_input,
             config_path=user_config,
             result_path=user_result,
             owner=user,
-            created_at = timezone.now() - timedelta(days=10),
-        ).save()
+            created=timezone.now() - timedelta(days=10),
+        )
+        job.created = timezone.now() - timedelta(days=10)
+        job.save()
 
     assert Job.objects.filter(is_active=True, owner=user).count() == 3
 

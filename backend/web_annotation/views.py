@@ -173,6 +173,7 @@ def get_genome_pipelines(
         pipeline.open()
         pipelines[genome] = pipeline
     genome_pipelines = pipelines
+
     return genome_pipelines
 
 
@@ -434,6 +435,12 @@ class JobCreate(AnnotationBaseView):
                 {"reason": "Reference genome not specified!"},
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
+
+        if genome not in settings.GENOME_DEFINITIONS:
+            return Response(
+                {"reason": f"Genome {genome} is not a valid option!"},
+                status=views.status.HTTP_404_NOT_FOUND,
+            )
         genome_definition = settings.GENOME_DEFINITIONS.get(genome)
         if not genome_definition:
             return Response(
@@ -441,6 +448,11 @@ class JobCreate(AnnotationBaseView):
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
         reference_genome = genome_definition.get("reference_genome_id")
+        if reference_genome is None:
+            return Response(
+                {"reason": "Internal genome definition is wrong"},
+                status=views.status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         config_filename = f"{job_name}.yaml"
         try:
@@ -538,43 +550,43 @@ class JobCreate(AnnotationBaseView):
             )
 
             return Response(status=views.status.HTTP_204_NO_CONTENT)
-        else:
-            cols_file_content = input_path.read_text()
-            lines = cols_file_content.split("\n")
-            header = lines[0]
 
-            sep = str(request.data.get("separator"))
-            if sep ==  "":
-                sep = ","
-            if len(header.split(sep)) < len(
-                max([line.split(sep) for line in lines], key=len)
-            ):
-                return Response(
-                    {"reason": (
-                        "Invalid separator, cannot "
-                        "create proper columns!"
-                    )},
-                    status=views.status.HTTP_400_BAD_REQUEST,
-                )
+        cols_file_content = input_path.read_text()
+        lines = cols_file_content.split("\n")
+        header = lines[0]
 
-            columns = ";".join(header.split(sep))
-            job.status = job.Status.SPECIFYING
-            job_details = JobDetails(columns=columns, separator=sep, job=job)
-            file_header = [dict(
-                zip(header.split(sep), line.split(sep), strict=True)
-            ) for line in lines[1:5]]
-
-            assert file_header is not None
-            job.save()
-            job_details.save()
+        sep = str(request.data.get("separator"))
+        if sep == "":
+            sep = ","
+        if len(header.split(sep)) < len(
+            max([line.split(sep) for line in lines], key=len)
+        ):
             return Response(
-                {
-                    "id": job.pk,
-                    "columns": job_details.columns.split(";"),
-                    "head": file_header,
-                },
-                status=views.status.HTTP_200_OK,
+                {"reason": (
+                    "Invalid separator, cannot "
+                    "create proper columns!"
+                )},
+                status=views.status.HTTP_400_BAD_REQUEST,
             )
+
+        columns = ";".join(header.split(sep))
+        job.status = job.Status.SPECIFYING
+        job_details = JobDetails(columns=columns, separator=sep, job=job)
+        file_header = [dict(
+            zip(header.split(sep), line.split(sep), strict=True)
+        ) for line in lines[1:5]]
+
+        assert file_header is not None
+        job.save()
+        job_details.save()
+        return Response(
+            {
+                "id": job.pk,
+                "columns": job_details.columns.split(";"),
+                "head": file_header,
+            },
+            status=views.status.HTTP_200_OK,
+        )
 
 
 class JobSpecify(AnnotationBaseView):
