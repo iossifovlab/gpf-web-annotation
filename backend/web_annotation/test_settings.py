@@ -3,6 +3,7 @@ from .settings import *
 import pathlib
 
 import tempfile
+import os
 import time
 
 # Dir for all data storage

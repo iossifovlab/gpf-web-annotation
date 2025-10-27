@@ -11,13 +11,11 @@ from web_annotation.models import Job, User
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_data_dirs() -> Generator[None, None, None]:
-    import pdb; pdb.set_trace()
     Path(settings.DATA_STORAGE_DIR).mkdir(exist_ok=True)
     Path(settings.ANNOTATION_CONFIG_STORAGE_DIR).mkdir(exist_ok=True)
     Path(settings.JOB_INPUT_STORAGE_DIR).mkdir(exist_ok=True)
     Path(settings.JOB_RESULT_STORAGE_DIR).mkdir(exist_ok=True)
     yield
-    import pdb; pdb.set_trace()
     shutil.rmtree(settings.DATA_STORAGE_DIR)
 
 

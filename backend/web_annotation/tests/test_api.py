@@ -571,30 +571,32 @@ def test_single_annotation(admin_client: Client) -> None:
         "variant_type": "SUBSTITUTION",
     }
     assert len(annotators_data) == 1
-    assert annotators_data[0] == {
-        "details": {
-            "name": "position_score",
-            "description": (
-                "\n\nAnnotator to use with genomic scores depending on genomic"
-                " position like\nphastCons, phyloP, FitCons2, etc.\n"
-                "\n<a href=\"https://www.iossifovlab.com/gpfuserdocs/"
-                "administration/annotation.html#position-score\" "
-                "target=\"_blank\">More info</a>\n\n"
-            ),
-            "resource_id": "scores/pos1",
-        },
-        "attributes": [
-            {
-                "name": "position_1",
-                "description": "test position score",
-                "source": "pos1",
-                "result": {
-                    "value": 0.1,
-                    "histogram": "histograms/scores/pos1?score_id=pos1"
-                }
-            }
-        ]
+    assert annotators_data[0]["details"] == {
+        "name": "position_score",
+        "description": (
+            "\n\nAnnotator to use with genomic scores depending on genomic"
+            " position like\nphastCons, phyloP, FitCons2, etc.\n"
+            "\n<a href=\"https://www.iossifovlab.com/gpfuserdocs/"
+            "administration/annotation.html#position-score\" "
+            "target=\"_blank\">More info</a>\n\n"
+        ),
+        "resource_id": "scores/pos1",
     }
+
+    assert len(annotators_data[0]["attributes"]) == 1
+    assert annotators_data[0]["attributes"][0]["name"] == "position_1"
+    assert annotators_data[0]["attributes"][0]["description"] == \
+        "test position score"
+    assert annotators_data[0]["attributes"][0]["source"] == "pos1"
+    assert annotators_data[0]["attributes"][0]["result"] == {
+        "value": 0.1,
+        "histogram": "histograms/scores/pos1?score_id=pos1"
+    }
+    assert "test position score" in annotators_data[0]["attributes"][0]["help"]
+    assert (
+        "Annotator to use with genomic "
+        "scores depending on genomic position"
+    ) in annotators_data[0]["attributes"][0]["help"]
 
 
 def test_histogram_view(admin_client: Client) -> None:

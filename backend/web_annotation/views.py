@@ -10,10 +10,14 @@ from dae.annotation.annotatable import VCFAllele
 from dae.annotation.annotation_config import (
     AnnotationConfigParser,
     AnnotationConfigurationError,
+    AttributeInfo,
 )
 from dae.annotation.annotation_factory import load_pipeline_from_grr
 from dae.annotation.annotation_pipeline import AnnotationPipeline
-from dae.gene_scores.gene_scores import build_gene_score_from_resource
+from dae.gene_scores.gene_scores import (
+    build_gene_score_from_resource,
+    _build_gene_score_help,
+)
 from dae.genomic_resources.genomic_scores import build_score_from_resource
 from dae.genomic_resources.implementations.annotation_pipeline_impl import (
     AnnotationPipelineImplementation,
@@ -22,6 +26,7 @@ from dae.genomic_resources.repository import \
     GenomicResource, GenomicResourceRepo
 from dae.genomic_resources.repository_factory import \
     build_genomic_resource_repository
+from dae.genomic_scores.scores import _build_score_help
 from django import forms
 from django.conf import settings
 from django.contrib.auth import (
@@ -519,7 +524,9 @@ class JobCreate(AnnotationBaseView):
             sep = str(request.data.get("separator"))
             if sep ==  "":
                 sep = ","
-            if len(header.split(sep)) < len(max([l.split(sep) for l in lines], key=len)):
+            if len(header.split(sep)) < len(
+                max([line.split(sep) for line in lines], key=len)
+            ):
                 return Response(
                     {"reason": (
                         "Invalid separator, cannot "
@@ -796,7 +803,34 @@ class SingleAnnotation(AnnotationBaseView):
 
     throttle_classes = [UserRateThrottle]
 
+    def generate_annotator_help(
+        self,
+        annotator: Any,
+        attribute_info: AttributeInfo,
+    ) -> str | None:
+        """Generate annotator help for gene scores and genomic scores"""
+        annotator_help = None
+        annotator_info = annotator.get_info()
+        if annotator_info.type in \
+                    {"position_score", "np_score", "allele_score"}:
+            annotator_help = _build_score_help(
+                annotator,
+                attribute_info,
+                annotator.score,
+            )
+        elif annotator_info.type == "gene_score_annotator":
+            annotator_help = ""
+            for score_def in annotator.score.score_definitions.values():
+                if score_def.score_id == attribute_info.source:
+                    annotator_help += _build_gene_score_help(
+                        score_def,
+                        annotator.score,
+                    )
+                    break
+        return annotator_help
+
     def post(self, request: Request) -> Response:
+        """View for single annotation"""
 
         if "variant" not in request.data:
             return Response(status=views.status.HTTP_400_BAD_REQUEST)
@@ -839,11 +873,18 @@ class SingleAnnotation(AnnotationBaseView):
                 else:
                     histogram_path = None
                 value = result[attribute_info.name]
+
+                annotator_help = self.generate_annotator_help(
+                    annotator,
+                    attribute_info,
+                )
+
                 if attribute_info.type in ["object", "annotatable"]:
                     value = str(value)
                 attributes.append({
                     "name": attribute_info.name,
                     "description": attribute_info.description,
+                    "help": annotator_help,
                     "source": attribute_info.source,
                     "result": {
                         "value": value,
