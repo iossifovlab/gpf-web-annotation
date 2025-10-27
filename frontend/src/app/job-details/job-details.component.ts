@@ -33,7 +33,7 @@ export class JobDetailsComponent implements OnInit {
 
   public onDelete(jobId: number): void {
     this.jobsService.deleteJob(jobId).subscribe(() => {
-      this.dialogRef.close();
+      this.dialogRef.close(true);
     });
   }
 

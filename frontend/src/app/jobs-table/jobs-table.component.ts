@@ -38,8 +38,8 @@ export class JobsTableComponent implements OnInit, OnDestroy {
     });
 
     createModalRef.afterClosed().subscribe((resp: FileContent) => {
-      this.refreshTable();
       if (resp) {
+        this.refreshTable();
         this.openColumnMappingModal(resp);
       }
     });
@@ -61,12 +61,15 @@ export class JobsTableComponent implements OnInit, OnDestroy {
       maxWidth: '1000px'
     });
 
-    specifyColumnModalRef.afterClosed().subscribe(() => {
-      this.refreshTable();
+    specifyColumnModalRef.afterClosed().subscribe(areColumnsSubmitted => {
+      if (areColumnsSubmitted) {
+        this.refreshTable();
+      }
     });
   }
 
   private refreshTable(): void {
+    this.refreshJobsSubscription.unsubscribe();
     this.refreshJobsSubscription = this.jobsService.getJobs().pipe(
       repeat({ delay: 30000 }),
       takeWhile(jobs => !this.areJobsFinished() || jobs.length !== this.jobs.length),
@@ -90,8 +93,10 @@ export class JobsTableComponent implements OnInit, OnDestroy {
       minHeight: '400px'
     });
 
-    detailsModalRef.afterClosed().subscribe(() => {
-      this.refreshTable();
+    detailsModalRef.afterClosed().subscribe(isJobDeleted => {
+      if (isJobDeleted) {
+        this.refreshTable();
+      }
     });
   }
 
