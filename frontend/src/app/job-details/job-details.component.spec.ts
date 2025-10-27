@@ -81,6 +81,6 @@ describe('JobDetailsComponent', () => {
     const closeSpy = jest.spyOn(mockMatDialogRef, 'close');
     component.onDelete(9);
     expect(deleteSpy).toHaveBeenCalledWith(9);
-    expect(closeSpy).toHaveBeenCalledWith();
+    expect(closeSpy).toHaveBeenCalledWith(true);
   });
 });
