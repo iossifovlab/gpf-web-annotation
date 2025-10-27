@@ -78,7 +78,7 @@ function toMatrix(rows: object[]): string[][] {
   const matrix: string[][] = [];
 
   rows.forEach((r: object) => {
-    matrix.push(Object.values(r).map(c => getValueAsString(c)));
+    matrix.push(Object.values(r).map((c: string | number) => getValueAsString(c)));
   });
 
   return matrix;
