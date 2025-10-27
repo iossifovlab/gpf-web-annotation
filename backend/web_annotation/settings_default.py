@@ -11,7 +11,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import os
 
-from dae.genomic_resources.repository_factory import get_default_grr_definition
+from dae.genomic_resources.repository_factory import \
+    get_default_grr_definition_path
 
 # Hristo kaza
 APPEND_SLASH = False
@@ -199,7 +200,7 @@ LIMITS = {
 
 JOB_CLEANUP_INTERVAL_DAYS = 30
 
-GRR_DEFINITION = get_default_grr_definition()
+GRR_DEFINITION = get_default_grr_definition_path()
 
 # Email related settings
 RESET_PASSWORD_TIMEOUT_HOURS = 24
