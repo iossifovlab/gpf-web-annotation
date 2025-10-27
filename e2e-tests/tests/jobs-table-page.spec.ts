@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 import * as utils from '../utils';
 import fs from 'fs';
 import { scanCSV } from 'nodejs-polars';
@@ -137,12 +137,7 @@ test.describe('Job details tests', () => {
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
     await page.locator('#create-button').click();
 
-    // wait for job to finish
-    await expect(async() => {
-      await page.reload();
-      await page.goto('/jobs', {waitUntil: 'load'});
-      await expect(page.locator('.status').nth(0)).toHaveText('success');
-    }).toPass({intervals: [1000, 2000, 3000]});
+    await waitForJobStatus(page, 'success');
 
     await page.locator('.first-cell').getByText('info').nth(0).click();
 
@@ -171,11 +166,7 @@ test.describe('Job details tests', () => {
       resp => resp.url().includes('/api/jobs/create') && resp.status() === 204
     );
 
-    // wait for job to finish
-    await expect(async() => {
-      await page.reload();
-      await expect(page.locator('.status').nth(0)).toHaveText('success');
-    }).toPass({intervals: [1000, 2000, 3000]});
+    await waitForJobStatus(page, 'success');
 
     await page.locator('.first-cell').getByText('info').nth(0).click();
 
@@ -244,12 +235,7 @@ test.describe('Job details tests', () => {
     await page.getByText('Submit').click();
     await expect(page.locator('.status-label').nth(0)).not.toContainText('specifying');
 
-    // wait for job to finish
-    await expect(async() => {
-      await page.reload();
-      await page.goto('/jobs', {waitUntil: 'load'});
-      await expect(page.locator('.status').nth(0)).toHaveText('failed', {timeout: 3000});
-    }).toPass({intervals: [1000, 2000, 3000]});
+    await waitForJobStatus(page, 'failed');
 
     await page.locator('.first-cell').getByText('info').nth(0).click();
     await expect(page.locator('app-job-details').locator('.status-label')).toHaveText('failed');
@@ -285,13 +271,7 @@ test.describe('Jobs table tests', () => {
     await expect(page.locator('.time-info').nth(2)).not.toBeEmpty();
     await expect(page.locator('.delete').nth(0)).not.toBeEmpty();
 
-    // wait for job to finish
-    await expect(async() => {
-      await page.reload();
-      await page.goto('/jobs', {waitUntil: 'load'});
-      await expect(page.locator('.status').nth(0)).toHaveText('success');
-      await expect(page.locator('.download').nth(0)).not.toBeEmpty();
-    }).toPass({intervals: [1000, 2000, 3000]});
+    await waitForJobStatus(page, 'success');
   });
 
   test('should check if download button is visible when annotation is success', async({ page }) => {
@@ -301,13 +281,7 @@ test.describe('Jobs table tests', () => {
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
     await page.locator('#create-button').click();
 
-    // wait for job to finish
-    await expect(async() => {
-      await page.reload();
-      await page.goto('/jobs', {waitUntil: 'load'});
-      await expect(page.locator('.status').nth(0)).toHaveText('success', {timeout: 3000});
-      await expect(page.locator('.download').nth(0)).toBeVisible({timeout: 3000});
-    }).toPass({intervals: [1000, 2000, 3000]});
+    await waitForJobStatus(page, 'success');
 
     const downloadPromise = page.waitForEvent('download');
     await page.locator('.download').nth(0).click();
@@ -401,13 +375,7 @@ test.describe('Jobs table tests', () => {
 
     await expect(page.locator('.download').nth(0)).toBeEmpty();
 
-    // wait for job to finish
-    await expect(async() => {
-      await page.reload();
-      await page.goto('/jobs', {waitUntil: 'load'});
-      await expect(page.locator('.status').nth(0)).toHaveText('success', {timeout: 3000});
-      await expect(page.locator('.download').nth(0)).not.toBeEmpty();
-    }).toPass({intervals: [1000, 2000, 3000]});
+    await waitForJobStatus(page, 'success');
   });
 
   test('should upload tsv file and specify columns by opening modal from table', async({ page }) => {
@@ -464,12 +432,7 @@ test.describe('Jobs table tests', () => {
     await page.getByText('Submit').click();
     await expect(page.locator('.status-label').nth(0)).not.toContainText('specifying');
 
-    // wait for job to finish
-    await expect(async() => {
-      await page.reload();
-      await page.goto('/jobs', {waitUntil: 'load'});
-      await expect(page.locator('.status').nth(0)).toHaveText('success', {timeout: 3000});
-    }).toPass({intervals: [1000, 2000, 3000]});
+    await waitForJobStatus(page, 'success');
   });
 
   test('should fail job after uploading csv file and make wrong column specification', async({ page }) => {
@@ -496,12 +459,7 @@ test.describe('Jobs table tests', () => {
     await page.getByText('Submit').click();
     await expect(page.locator('.status-label').nth(0)).not.toContainText('specifying');
 
-    // wait for job to finish
-    await expect(async() => {
-      await page.reload();
-      await page.goto('/jobs', {waitUntil: 'load'});
-      await expect(page.locator('.status').nth(0)).toHaveText('failed', {timeout: 3000});
-    }).toPass({intervals: [1000, 2000, 3000]});
+    await waitForJobStatus(page, 'failed');
 
     await expect(page.locator('.download').nth(0)).toBeEmpty();
   });
@@ -521,12 +479,7 @@ test.describe('Jobs table tests', () => {
     await page.getByText('Submit').click();
     await expect(page.locator('.status-label').nth(0)).not.toContainText('specifying');
 
-    // wait for job to finish
-    await expect(async() => {
-      await page.reload();
-      await page.goto('/jobs', {waitUntil: 'load'});
-      await expect(page.locator('.status').nth(0)).toHaveText('failed', {timeout: 3000});
-    }).toPass({intervals: [1000, 2000, 3000]});
+    await waitForJobStatus(page, 'failed');
 
     await expect(page.locator('.download').nth(0)).toBeEmpty();
   });
@@ -591,13 +544,7 @@ test.describe('Validation tests', () => {
       resp => resp.url().includes('/api/jobs/create') && resp.status() === 204
     );
 
-
-    // wait for job to finish
-    await expect(async() => {
-      await page.reload();
-      await page.goto('/jobs', {waitUntil: 'load'});
-      await expect(page.locator('.status').nth(0)).toHaveText('success', {timeout: 3000});
-    }).toPass({intervals: [1000, 2000, 3000]});
+    await waitForJobStatus(page, 'success');
   });
 
   test('should check if create button is disabled when invalid file is uploaded', async({ page }) => {
@@ -635,4 +582,12 @@ test.describe('Validation tests', () => {
     await expect(page.getByText('Upload limit reached!')).toBeVisible();
   });
 });
+
+async function waitForJobStatus(page: Page, status: string): Promise<void> {
+  await expect(async() => {
+    await page.reload();
+    await page.goto('/jobs', {waitUntil: 'load'});
+    await expect(page.locator('.status').nth(0)).toHaveText(status, {timeout: 3000});
+  }).toPass({intervals: [1000, 2000, 3000]});
+}
 
