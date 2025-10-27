@@ -50,6 +50,7 @@ class Job(models.Model):
     reference_genome = models.CharField(max_length=1024, default="")
     created = models.DateTimeField(default=timezone.now)
     status = models.IntegerField(choices=Status, default=Status.WAITING)
+    duration = models.FloatField(null=True, default=None)
 
     owner = models.ForeignKey(
         'web_annotation.User', related_name='jobs', on_delete=models.CASCADE)

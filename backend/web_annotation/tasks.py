@@ -1,6 +1,7 @@
 """Web annotation celery tasks"""
 import logging
 from pathlib import Path
+import time
 from typing import Any
 from celery import shared_task
 from celery.schedules import crontab
@@ -119,6 +120,7 @@ def update_job_success(job: Job) -> None:
 
 def run_vcf_job(job: Job, storage_dir: Path, grr_definition: Path) -> None:
     """Run a VCF annotation."""
+    start = time.time()
     try:
         logger.debug("Running vcf job")
         logger.debug(job.input_path)
@@ -136,6 +138,7 @@ def run_vcf_job(job: Job, storage_dir: Path, grr_definition: Path) -> None:
         logger.exception("Failed to execute job")
         update_job_failed(job)
     else:
+        job.duration = time.time() - start
         update_job_success(job)
 
 
@@ -155,6 +158,7 @@ def run_columns_job(
     storage_dir: str, grr_definition: str | None,
 ) -> None:
     """Run a columnar annotation."""
+    start = time.time()
     try:
         logger.debug("Running vcf job")
         logger.debug(job.input_path)
@@ -184,6 +188,7 @@ def run_columns_job(
         logger.exception("Failed to execute job")
         update_job_failed(job)
     else:
+        job.duration = time.time() - start
         update_job_success(job)
 
 
