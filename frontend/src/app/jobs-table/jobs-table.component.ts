@@ -37,12 +37,15 @@ export class JobsTableComponent implements OnInit, OnDestroy {
       minHeight: '400px'
     });
 
-    createModalRef.afterClosed().subscribe((result: {isCanceled: boolean, resp: FileContent}) => {
+    createModalRef.afterClosed().subscribe((result: {isCanceled: boolean, fileContent: FileContent}) => {
+      if (!result) {
+        return;
+      }
       if (!result.isCanceled) {
         this.refreshTable();
       }
-      if (result.resp) {
-        this.openColumnMappingModal(result.resp);
+      if (result.fileContent) {
+        this.openColumnMappingModal(result.fileContent);
       }
     });
   }
