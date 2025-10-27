@@ -143,7 +143,7 @@ def delete_old_jobs(days_old: int = 0) -> None:
     """Delete old job resources and make jobs invalid"""
     time_delta = timezone.now() - timedelta(days=days_old)
     old_jobs = Job.objects.filter(
-        created_at__lte=time_delta,
+        created__lte=time_delta,
     )
 
     for job in list(old_jobs):
