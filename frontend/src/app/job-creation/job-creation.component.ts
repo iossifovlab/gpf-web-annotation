@@ -68,7 +68,7 @@ export class JobCreationComponent implements OnInit {
       createObservable.pipe(take(1)).subscribe({
         next: (resp) => {
           this.ymlConfig = '';
-          this.dialogRef.close(resp);
+          this.dialogRef.close({isCanceled: false, fileContent: resp});
         },
         error: (err: Error) => {
           this.creationError = err.message;
@@ -79,7 +79,7 @@ export class JobCreationComponent implements OnInit {
 
   public onCancelClick(): void {
     this.creationError = '';
-    this.dialogRef.close(false);
+    this.dialogRef.close({isCanceled: true, fileContent: null});
   }
 
   public onPipelineClick(option: string): void {
