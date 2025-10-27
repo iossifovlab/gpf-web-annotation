@@ -411,14 +411,19 @@ class JobCreate(AnnotationBaseView):
         assert isinstance(request.data, QueryDict)
         assert isinstance(request.FILES, MultiValueDict)
 
-        if not request.data.get("genome"):
+        genome = request.data.get("genome")
+        if not genome:
             return Response(
                 {"reason": "Reference genome not specified!"},
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
-        reference_genome = settings.GENOME_DEFINITIONS \
-            .get(request.data.get("genome")) \
-            .get("reference_genome_id")
+        genome_definition = settings.GENOME_DEFINITIONS.get(genome)
+        if not genome_definition:
+            return Response(
+                {"reason": "Reference genome not supported!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+        reference_genome = genome_definition.get("reference_genome_id")
 
         config_filename = f"{job_name}.yaml"
         try:
