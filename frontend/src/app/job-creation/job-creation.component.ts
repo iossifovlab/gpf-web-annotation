@@ -135,7 +135,12 @@ export class JobCreationComponent implements OnInit {
   }
 
   public changeView(view: JobCreationView): void {
-    this.pipelineId = '';
+    if (view === 'pipeline list') {
+      this.ymlConfig = '';
+      this.configError = '';
+    } else {
+      this.pipelineId = '';
+    }
     this.view = view;
   }
 
