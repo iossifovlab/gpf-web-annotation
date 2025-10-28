@@ -1,0 +1,4 @@
+id: "grr.sync"                                                                                                                                                                                                                                                                                                                                                               
+type: "directory"                                                                                                                                                                                                                                                                                                                                                                 
+directory: /grr
+read_only: true

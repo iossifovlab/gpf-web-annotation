@@ -42,5 +42,6 @@ ENV PATH=/gpf/bin:$PATH
 EXPOSE 80 443
 
 ADD ./scripts/grr-definition.yaml /
+ADD ./scripts/grr-definition-dir.yaml /
 
 ENTRYPOINT ["supervisord", "-c", "/etc/supervisord.conf", "-n"]
