@@ -13,7 +13,7 @@ import { TextShortenPipe } from '../text-shorten.pipe';
 })
 export class CategoricalHistogramComponent implements OnInit {
   @Input() public histogram: CategoricalHistogram;
-  @Input() public singleScoreValue: string;
+  @Input() public scoreValues: string[] = [];
 
   @ViewChild('histogramContainer', {static: true}) public histogramContainer: ElementRef;
 
@@ -213,10 +213,10 @@ export class CategoricalHistogramComponent implements OnInit {
     });
   }
 
-  public getCoordinate(): number {
+  public getCoordinate(score: string): number {
     const xAxisValues = this.scaleXAxis.domain();
     const fullOtherValues = xAxisValues.find(v => v.includes('Other values'));
-    return this.otherValueNames.includes(this.singleScoreValue) ?
-      this.scaleXAxis(fullOtherValues) : this.scaleXAxis(this.singleScoreValue);
+    return this.otherValueNames.includes(score) ?
+      this.scaleXAxis(fullOtherValues) : this.scaleXAxis(score);
   }
 }

@@ -17,7 +17,7 @@ interface BinBar {
 })
 export class NumberHistogramComponent implements OnInit {
   @Input() public histogram: NumberHistogram = null;
-  @Input() public singleScoreValue: number;
+  @Input() public scoreValues: number[] = [];
 
   @ViewChild('histogramContainer', {static: true}) public histogramContainer: ElementRef;
 

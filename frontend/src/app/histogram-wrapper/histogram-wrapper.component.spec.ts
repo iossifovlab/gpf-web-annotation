@@ -97,16 +97,16 @@ describe('HistogramWrapperComponent', () => {
     expect(numHistogram).toBeTruthy();
   });
 
-  it('should parse score value to number', () => {
-    expect(component.getValueAsNumber('10')).toBe(10);
-    expect(component.getValueAsNumber(5)).toBe(5);
-    expect(component.getValueAsNumber('not a number')).toBeNull();
+  it('should parse score values to number array', () => {
+    expect(component.getValuesAsNumber('10')).toStrictEqual([10]);
+    expect(component.getValuesAsNumber(5)).toStrictEqual([5]);
+    expect(component.getValuesAsNumber('not a number')).toStrictEqual([]);
   });
 
-  it('should parse score value to string', () => {
-    expect(component.getValueAsString('value')).toBe('value');
-    expect(component.getValueAsString(5)).toBe('5');
-    expect(component.getValueAsString(null)).toBeNull();
-    expect(component.getValueAsString('')).toBeNull();
+  it('should parse score valuea to string array', () => {
+    expect(component.getValuesAsString('value')).toStrictEqual(['value']);
+    expect(component.getValuesAsString(5)).toStrictEqual(['5']);
+    expect(component.getValuesAsString(null)).toStrictEqual([]);
+    expect(component.getValuesAsString('')).toStrictEqual([]);
   });
 });

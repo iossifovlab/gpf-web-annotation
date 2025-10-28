@@ -12,7 +12,7 @@ import { CommonModule } from '@angular/common';
 })
 export class HistogramWrapperComponent implements OnInit {
   @Input() public histogramUrl: string;
-  @Input() public value: string | number;
+  @Input() public value: string | number | Map<string, string | number>;
   public histogram: CategoricalHistogram | NumberHistogram = null;
 
   public constructor(private singleAnnotationService: SingleAnnotationService) { }
@@ -25,25 +25,32 @@ export class HistogramWrapperComponent implements OnInit {
     }
   }
 
-  public getValueAsNumber(value: string | number): number {
+  public getValuesAsNumber(value: string | number | Map<string, string | number>): number[] {
     if (typeof value === 'number') {
-      return value;
+      return [value];
+    }
+    if (value instanceof Map) {
+      return [...value.values()].map(v => Number(v));
     }
     const parsed = Number(value);
     if (isNaN(parsed)) {
-      return null;
+      return [];
     }
-    return parsed;
+    return [parsed];
   }
 
-  public getValueAsString(value: string | number): string {
+  public getValuesAsString(value: string | number | Map<string, string | number>): string[] {
     if (!value) {
-      return null;
+      return [];
     }
     if (typeof value === 'string') {
-      return value;
+      return [value];
     }
-    return value.toString();
+
+    if (value instanceof Map) {
+      return [...value.values()].map(v => String(v));
+    }
+    return [value.toString()];
   }
 
   public isCategoricalHistogram(arg: object): arg is CategoricalHistogram {

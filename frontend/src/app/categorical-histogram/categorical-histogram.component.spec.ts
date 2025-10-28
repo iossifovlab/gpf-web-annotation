@@ -255,7 +255,7 @@ describe('CategoricalHistogramComponent', () => {
   });
 
   it('should display red mark on histogram and single score value', () => {
-    component.singleScoreValue = 'Pathogenic';
+    component.scoreValues = ['Pathogenic'];
     fixture.detectChanges();
     const svg = (fixture.nativeElement as HTMLElement).querySelector('svg') as SVGElement;
     const redLine = svg.querySelector('.single-score-marker');
@@ -273,7 +273,7 @@ describe('CategoricalHistogramComponent', () => {
   });
 
   it('should not display red mark on histogram and value when there is no value', () => {
-    component.singleScoreValue = null;
+    component.scoreValues = [];
     fixture.detectChanges();
     const svg = (fixture.nativeElement as HTMLElement).querySelector('svg') as SVGElement;
     const redLine = svg.querySelector('.single-score-marker');
@@ -285,13 +285,13 @@ describe('CategoricalHistogramComponent', () => {
 
   it('should get correct coordinate for x when the value is not in axis x domain', () => {
     component.ngOnInit();
-    expect(component.getCoordinate()).toBe(450);
+    expect(component.getCoordinate('abc')).toBe(450);
   });
 
   it('should get correct coordinate for x', () => {
-    component.singleScoreValue = 'C';
+    component.scoreValues = ['C', 'D', 'E'];
     component.ngOnInit();
-    expect(component.getCoordinate()).toBe(225);
+    expect(component.getCoordinate('C')).toBe(225);
 
     component.histogram = new CategoricalHistogram(
       [
@@ -310,11 +310,8 @@ describe('CategoricalHistogramComponent', () => {
     );
     component.ngOnInit();
 
-    component.singleScoreValue = 'D';
-    expect(component.getCoordinate()).toBe(370.16129032258067);
-
-    component.singleScoreValue = 'E';
-    expect(component.getCoordinate()).toBe(370.16129032258067);
+    expect(component.getCoordinate('D')).toBe(370.16129032258067);
+    expect(component.getCoordinate('E')).toBe(370.16129032258067);
   });
 
   it('should get correct coordinate for x when score value is on other values bar', () => {
@@ -335,15 +332,13 @@ describe('CategoricalHistogramComponent', () => {
     );
     component.ngOnInit();
 
-    component.singleScoreValue = 'D';
-    expect(component.getCoordinate()).toBe(370.16129032258067);
-
-    component.singleScoreValue = 'E';
-    expect(component.getCoordinate()).toBe(370.16129032258067);
+    component.scoreValues = ['D', 'E'];
+    expect(component.getCoordinate('D')).toBe(370.16129032258067);
+    expect(component.getCoordinate('E')).toBe(370.16129032258067);
   });
 
   it('should format score value', () => {
-    component.singleScoreValue = 'criteria_provided|_single_submitter';
+    component.scoreValues = ['criteria_provided|_single_submitter'];
     fixture.detectChanges();
     const svg = (fixture.nativeElement as HTMLElement).querySelector('svg') as SVGElement;
 

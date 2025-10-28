@@ -34,7 +34,7 @@ describe('NumberHistogramComponent', () => {
   });
 
   it('should display red mark on histogram and single score value', () => {
-    component.singleScoreValue = 2;
+    component.scoreValues = [2];
     fixture.detectChanges();
     const svg = (fixture.nativeElement as HTMLElement).querySelector('svg') as SVGElement;
     const redLine = svg.querySelector('.single-score-marker');
@@ -52,7 +52,7 @@ describe('NumberHistogramComponent', () => {
   });
 
   it('should not display red mark on histogram and value when there is no value', () => {
-    component.singleScoreValue = null;
+    component.scoreValues = [];
     fixture.detectChanges();
     const svg = (fixture.nativeElement as HTMLElement).querySelector('svg') as SVGElement;
     const redLine = svg.querySelector('.single-score-marker');
@@ -228,7 +228,7 @@ describe('NumberHistogramComponent', () => {
     expect(component.xLabelsWithDefaultValue()).toStrictEqual([5, 15, 25]);
   });
   it('should format score value', () => {
-    component.singleScoreValue = 0.123456789;
+    component.scoreValues = [0.123456789];
     fixture.detectChanges();
     const svg = (fixture.nativeElement as HTMLElement).querySelector('svg') as SVGElement;
 
