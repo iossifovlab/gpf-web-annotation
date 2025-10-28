@@ -20,12 +20,15 @@
         >{{ j.id
         }}<span class="material-symbols-outlined info-icon" mat-button (click)="openDetailsModal(j.id)">info</span></div
       >
-      <div class="grid-cell time-info">
+      <div class="grid-cell created time-info">
         <span class="date">{{ j.created.toDateString() }}</span>
         <span class="time">{{ j.created.toLocaleTimeString('en-US') }}</span>
       </div>
-      <div class="grid-cell time-info">-</div>
-      <div class="grid-cell time-info">-</div>
+      <div class="grid-cell started time-info">-</div>
+      <div class="grid-cell duration time-info">
+        <ng-container *ngIf="j.duration">{{ j.duration * 1000 | date : 'HH:mm:ss' : 'UTC' }}</ng-container>
+        <ng-container *ngIf="!j.duration">-</ng-container>
+      </div>
       <div class="grid-cell status">
         <span class="status-label" *ngIf="j.status !== 'specifying'" [ngClass]="getStatusClass(j.status)">{{
           j.status

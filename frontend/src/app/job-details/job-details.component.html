@@ -20,7 +20,10 @@
   </div>
   <div>
     <span class="label">Duration: </span>
-    <span class="data duration">-</span>
+    <span class="data duration">
+      <ng-container *ngIf="job.duration">{{ job.duration * 1000 | date : 'HH:mm:ss' : 'UTC' }}</ng-container>
+      <ng-container *ngIf="!job.duration">-</ng-container>
+    </span>
   </div>
   <div *ngIf="job.status === 'success'">
     <span class="label">Annotated file: </span>

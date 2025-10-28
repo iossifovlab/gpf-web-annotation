@@ -7,11 +7,11 @@ import { getStatusClassName, Job } from './jobs';
 import { Pipeline } from './pipelines';
 
 const jobsMockJson = [
-  { id: 1, created: '1.10.2025', owner: 'test@email.com', status: 3 },
-  { id: 2, created: '1.10.2025', owner: 'test@email.com', status: 5 },
-  { id: 3, created: '1.10.2025', owner: 'test@email.com', status: 4 },
-  { id: 4, created: '1.10.2025', owner: 'test@email.com', status: 2 },
-  { id: 5, created: '1.10.2025', owner: 'test@email.com', status: 1 },
+  { id: 1, created: '1.10.2025', owner: 'test@email.com', status: 3, duration: 4.7 },
+  { id: 2, created: '1.10.2025', owner: 'test@email.com', status: 5, duration: 2.5 },
+  { id: 3, created: '1.10.2025', owner: 'test@email.com', status: 4, duration: 2.3 },
+  { id: 4, created: '1.10.2025', owner: 'test@email.com', status: 2, duration: 1.9 },
+  { id: 5, created: '1.10.2025', owner: 'test@email.com', status: 1, duration: 5.2 },
 ];
 
 describe('JobsService', () => {
@@ -224,11 +224,11 @@ describe('JobsService', () => {
     httpGetSpy.mockReturnValue(of(jobsMockJson));
 
     const jobsMockResult = [
-      new Job(1, new Date('1.10.2025'), 'test@email.com', 'in process'),
-      new Job(2, new Date('1.10.2025'), 'test@email.com', 'failed'),
-      new Job(3, new Date('1.10.2025'), 'test@email.com', 'success'),
-      new Job(4, new Date('1.10.2025'), 'test@email.com', 'waiting'),
-      new Job(5, new Date('1.10.2025'), 'test@email.com', 'specifying'),
+      new Job(1, new Date('1.10.2025'), 'test@email.com', 'in process', 4.7),
+      new Job(2, new Date('1.10.2025'), 'test@email.com', 'failed', 2.5),
+      new Job(3, new Date('1.10.2025'), 'test@email.com', 'success', 2.3),
+      new Job(4, new Date('1.10.2025'), 'test@email.com', 'waiting', 1.9),
+      new Job(5, new Date('1.10.2025'), 'test@email.com', 'specifying', 5.2),
     ];
 
     const getResponse = service.getJobs();
@@ -264,11 +264,12 @@ describe('JobsService', () => {
         id: 16,
         created: '2025-08-26',
         status: 2,
-        owner: 'register@email.com'
+        owner: 'register@email.com',
+        duration: 3.3
       }
     ));
 
-    const job = new Job(16, new Date('2025-08-26'), 'register@email.com', 'waiting');
+    const job = new Job(16, new Date('2025-08-26'), 'register@email.com', 'waiting', 3.3);
 
     const getResponse = service.getJobDetails(16);
 
