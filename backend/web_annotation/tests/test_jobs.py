@@ -202,7 +202,7 @@ def test_clean_old_jobs_removes_old_jobs(
 
 
 @pytest.mark.django_db
-def test_create_job(
+def test_annotate_vcf(
     user_client: Client, test_grr: GenomicResourceRepo,
 ) -> None:
     user = User.objects.get(email="user@example.com")
@@ -218,7 +218,7 @@ def test_create_job(
     """).strip()
 
     response = user_client.post(
-        "/api/jobs/create",
+        "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
             "config": ContentFile(annotation_config),
@@ -249,7 +249,7 @@ def test_create_job(
 
 
 @pytest.mark.django_db
-def test_create_job_calls_annotation_runner(
+def test_annotate_vcf_calls_annotation_runner(
     user_client: Client,
     mocker: MockerFixture,
 ) -> None:
@@ -269,7 +269,7 @@ def test_create_job_calls_annotation_runner(
     assert len(Job.objects.all()) == 2
 
     response = user_client.post(
-        "/api/jobs/create",
+        "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
             "config": ContentFile(annotation_config),
@@ -286,7 +286,7 @@ def test_create_job_calls_annotation_runner(
 
 
 @pytest.mark.django_db
-def test_create_job_bad_config(user_client: Client) -> None:
+def test_annotate_vcf_bad_config(user_client: Client) -> None:
     user = User.objects.get(email="user@example.com")
 
     assert Job.objects.filter(owner=user).count() == 1
@@ -306,7 +306,7 @@ def test_create_job_bad_config(user_client: Client) -> None:
 
     assert len(Job.objects.all()) == 2
     response = user_client.post(
-        "/api/jobs/create",
+        "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
             "config": ContentFile(raw_img),
@@ -318,7 +318,7 @@ def test_create_job_bad_config(user_client: Client) -> None:
 
 
 @pytest.mark.django_db
-def test_create_job_bad_input_data(user_client: Client) -> None:
+def test_annotate_vcf_bad_input_data(user_client: Client) -> None:
     user = User.objects.get(email="user@example.com")
 
     assert Job.objects.filter(owner=user).count() == 1
@@ -330,7 +330,7 @@ def test_create_job_bad_input_data(user_client: Client) -> None:
 
     assert len(Job.objects.all()) == 2
     response = user_client.post(
-        "/api/jobs/create",
+        "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
             "config": ContentFile("- sample_annotator: sample_resource"),
@@ -342,14 +342,14 @@ def test_create_job_bad_input_data(user_client: Client) -> None:
 
 
 @pytest.mark.django_db
-def test_create_job_non_vcf_input_data(user_client: Client) -> None:
+def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
     user = User.objects.get(email="user@example.com")
 
     assert Job.objects.filter(owner=user).count() == 1
 
     assert len(Job.objects.all()) == 2
     response = user_client.post(
-        "/api/jobs/create",
+        "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
             "config": ContentFile("sample_annotator: sample_resource"),
@@ -361,131 +361,32 @@ def test_create_job_non_vcf_input_data(user_client: Client) -> None:
 
 
 @pytest.mark.django_db
-def test_upload_tsv_file(admin_client: Client) -> None:
-
-    annotation_config = "- position_score: scores/pos1"
-    tsv = textwrap.dedent("""
-        chrom	pos	ref	alt
-        chr1	1	C	A
-    """).strip()
-
-    response = admin_client.post(
-        "/api/jobs/create",
-        {
-            "genome": "hg38",
-            "config": ContentFile(annotation_config),
-            "data": ContentFile(tsv),
-            "separator": "\t",
-        },
-    )
-
-    assert response is not None
-    assert response.status_code == 200
-
-    assert response.data is not None
-
-    assert response.data == {
-        "id": 3,
-        "columns": ["chrom", "pos", "ref", "alt"],
-        "head": [{
-            "chrom": "chr1",
-            "pos": "1",
-            "ref": "C",
-            "alt": "A"
-        }]
-    }
-
-
-    user = User.objects.get(email="admin@example.com")
-    assert Job.objects.filter(owner=user).count() == 2
-    job = Job.objects.get(id=3)
-
-    assert job.status == Job.Status.SPECIFYING
-
-
-@pytest.mark.django_db
-def test_specify_job(
-    mocker: MockerFixture,
-) -> None:
-    mocked = mocker.patch(
-        "web_annotation.tasks.annotate_columns_job")
-    assert mocked is not None
-    user = User.objects.get(email="user@example.com")
-    job = Job(
-        input_path="test",
-        config_path="test",
-        result_path="test",
-        status=Job.Status.SPECIFYING,
-        owner=user,
-    )
-    job.save()
-    job_details = JobDetails(job=job)
-    job_details.save()
-
-    specify_job(
-        job.pk,
-        col_chrom="chr", col_pos="pos", col_ref="ref", col_alt="alt",
-    )
-
-
-@pytest.mark.django_db
-def test_columns_annotation_tsv(admin_client: Client) -> None:
-    annotation_config = "- position_score: scores/pos1"
-    tsv = textwrap.dedent("""
-        chrom	pos	ref	alt
-        chr1	1	C	A
-    """).strip()
-
-    response = admin_client.post(
-        "/api/jobs/create",
-        {
-            "genome": "hg38",
-            "config": ContentFile(annotation_config),
-            "data": ContentFile(tsv),
-            "separator": "\t",
-        },
-    )
-
-    assert response is not None
-    assert response.status_code == 200
-    created_job = Job.objects.last()
-    assert created_job is not None
-
-    response = admin_client.post(
-        f"/api/jobs/{created_job.pk}/specify",
-        {
-            "col_chrom": "chrom",
-            "col_pos": "pos",
-            "col_ref": "ref",
-            "col_alt": "alt",
-        },
-        content_type="application/json",
-    )
-
-    assert response is not None
-    assert response.status_code == 204
-    created_job.refresh_from_db()
-    assert created_job.status == Job.Status.SUCCESS
-    assert created_job.duration is not None
-    assert created_job.duration < 1.0
-
-    output = pathlib.Path(created_job.result_path).read_text()
-    lines = [line.split("\t") for line in output.strip().split("\n")]
-    assert lines == [
-        ["chrom", "pos", "ref", "alt", "pos1"],
-        ["chr1", "1", "C", "A", "0.1"],
-    ]
-
-
-@pytest.mark.django_db
 @pytest.mark.parametrize(
-    "example_tsv, separator, specification,expected_lines",
+    "example_tsv, separator, specification, expected_lines",
     [
+        (
+            textwrap.dedent("""
+                chrom	pos	ref	alt
+                chr1	1	C	A
+            """),
+            "\t",
+            {
+                "col_chrom": "chrom",
+                "col_pos": "pos",
+                "col_ref": "ref",
+                "col_alt": "alt",
+            },
+            [
+                ["chrom", "pos", "ref", "alt", "pos1"],
+                ["chr1", "1", "C", "A", "0.1"],
+            ]
+        ),
         (
             textwrap.dedent("""
                 chrom,pos,ref,alt
                 chr1,1,C,A
-            """), ",",
+            """),
+            ",",
             {
                 "col_chrom": "chrom",
                 "col_pos": "pos",
@@ -501,7 +402,8 @@ def test_columns_annotation_tsv(admin_client: Client) -> None:
             textwrap.dedent("""
                 loc,var
                 chr1:999,del(3)
-            """), ",",
+            """),
+            ",",
             {
                 "col_location": "loc",
                 "col_variant": "var",
@@ -515,7 +417,8 @@ def test_columns_annotation_tsv(admin_client: Client) -> None:
             textwrap.dedent("""
                 chr,ps
                 chr1,666
-            """), ",",
+            """),
+            ",",
             {
                 "col_chrom": "chr",
                 "col_pos": "ps",
@@ -529,7 +432,8 @@ def test_columns_annotation_tsv(admin_client: Client) -> None:
             textwrap.dedent("""
                 chr,pos,vr
                 chr1,999,sub(T->C)
-            """), ",",
+            """),
+            ",",
             {
                 "col_chrom": "chr",
                 "col_pos": "pos",
@@ -544,7 +448,8 @@ def test_columns_annotation_tsv(admin_client: Client) -> None:
             textwrap.dedent("""
                 chr,beg,end
                 chr1,5,10
-            """), ",",
+            """),
+            ",",
             {
                 "col_chrom": "chr",
                 "col_pos_beg": "beg",
@@ -559,7 +464,8 @@ def test_columns_annotation_tsv(admin_client: Client) -> None:
             textwrap.dedent("""
                 chr,pos_beg,pos_end,cnv
                 chr1,7,20,cnv+
-            """), ",",
+            """),
+            ",",
             {
                 "col_chrom": "chr",
                 "col_pos_beg": "pos_beg",
@@ -575,7 +481,8 @@ def test_columns_annotation_tsv(admin_client: Client) -> None:
             textwrap.dedent("""
                 vcf
                 chr1:5:C:CT
-            """), ",",
+            """),
+            ",",
             {
                 "col_vcf_like": "vcf",
             },
@@ -586,7 +493,7 @@ def test_columns_annotation_tsv(admin_client: Client) -> None:
         ),
     ],
 )
-def test_columns_annotation_csv(
+def test_annotate_columns(
     admin_client: Client,
     example_tsv: str,
     separator: str,
@@ -597,46 +504,41 @@ def test_columns_annotation_csv(
     tsv = example_tsv.strip()
 
     response = admin_client.post(
-        "/api/jobs/create",
+        "/api/jobs/annotate_columns",
         {
             "genome": "hg38",
             "config": ContentFile(annotation_config),
             "data": ContentFile(tsv),
             "separator": separator,
+            "columns": specification,
          },
-    )
-    assert response is not None
-    assert response.status_code == 200
-    created_job = Job.objects.last()
-    assert created_job is not None
-
-    response = admin_client.post(
-        f"/api/jobs/{created_job.pk}/specify",
-        specification,
-        content_type="application/json",
     )
 
     assert response is not None
     assert response.status_code == 204
-    created_job.refresh_from_db()
-    assert created_job.status == Job.Status.SUCCESS
-    assert created_job.duration is not None
-    assert created_job.duration < 1.0
 
-    output = pathlib.Path(created_job.result_path).read_text()
-    lines = [line.split(",") for line in output.strip().split("\n")]
+    user = User.objects.get(email="admin@example.com")
+    assert Job.objects.filter(owner=user).count() == 2
+    job = Job.objects.get(id=3)
+
+    assert job.status == Job.Status.SUCCESS
+    assert job.duration is not None
+    assert job.duration < 1.0
+
+    output = pathlib.Path(job.result_path).read_text()
+    lines = [line.split("\t") for line in output.strip().split("\n")]
     assert lines == expected_lines
 
 
 @pytest.mark.django_db
-def test_columns_annotation_unsupported_sep(admin_client: Client) -> None:
+def test_annotate_columns_bad_request(admin_client: Client) -> None:
     annotation_config = "- position_score: scores/pos1"
     input_file = textwrap.dedent("""
         chrom;pos;ref;alt
         chr1;1;C;A
     """).strip()
     response = admin_client.post(
-        "/api/jobs/create",
+        "/api/jobs/annotate_columns",
         {
             "genome": "hg38",
             "config": ContentFile(annotation_config),
@@ -645,97 +547,3 @@ def test_columns_annotation_unsupported_sep(admin_client: Client) -> None:
     )
 
     assert response.status_code == 400
-    assert response.data == {"reason": "File could not be identified"}
-
-
-@pytest.mark.django_db
-def test_columns_annotation_invalid_vcf(admin_client: Client) -> None:
-    annotation_config = "- position_score: scores/pos1"
-    input_file = textwrap.dedent("""
-        chrom;pos;ref;alt
-        chr1;1;C;A
-    """).strip()
-    response = admin_client.post(
-        "/api/jobs/create",
-        {
-            "genome": "hg38",
-            "config": ContentFile(annotation_config),
-            "data": ContentFile(input_file, name="test.vcf"),
-            "separator": "",
-        },
-    )
-
-    assert response.status_code == 400
-    assert response.data == {"reason": "Invalid VCF file"}
-
-
-def test_specify_job_errors_on_nonexistant_job() -> None:
-    with pytest.raises(ObjectDoesNotExist):
-        specify_job(
-            999,
-            col_chrom="chr", col_pos="pos", col_ref="ref", col_alt="alt",
-        )
-
-
-@pytest.mark.django_db
-def test_job_details_specify(admin_client: Client) -> None:
-    annotation_config = "- position_score: scores/pos1"
-    tsv = textwrap.dedent("""
-        chrom	pos	ref	alt
-        chr1	1	C	A
-    """).strip()
-
-    response = admin_client.post(
-        "/api/jobs/create",
-        {
-            "genome": "hg38",
-            "config": ContentFile(annotation_config),
-            "data": ContentFile(tsv),
-            "separator": "\t",
-        },
-    )
-
-    assert response is not None
-    assert response.status_code == 200
-
-    assert response.data is not None
-
-    assert response.data == {
-        "id": 3,
-        "columns": ["chrom", "pos", "ref", "alt"],
-        "head": [{
-            "chrom": "chr1",
-            "pos": "1",
-            "ref": "C",
-            "alt": "A"
-        }]
-    }
-
-
-    user = User.objects.get(email="admin@example.com")
-    assert Job.objects.filter(owner=user).count() == 2
-    job = Job.objects.get(id=3)
-
-    assert job.status == Job.Status.SPECIFYING
-
-    response = admin_client.get("/api/jobs/3")
-
-    assert response is not None
-    assert response.status_code == 200
-    assert response.data is not None
-    response_data = response.data
-    assert response_data["id"] == 3
-    assert response_data["status"] == Job.Status.SPECIFYING
-    assert response_data["columns"] == ["chrom", "pos", "ref", "alt"]
-    assert response_data["owner"] == "admin@example.com"
-    assert response_data["head"] == [{
-        "chrom": "chr1",
-        "pos": "1",
-        "ref": "C",
-        "alt": "A"
-    }]
-    assert "created" in response_data
-    created = datetime.datetime.fromisoformat(response_data["created"])
-    now = datetime.datetime.now(datetime.timezone.utc)
-    assert abs(now - created) < datetime.timedelta(minutes=1)
-
