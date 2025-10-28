@@ -1020,7 +1020,10 @@ class SingleAnnotation(AnnotationBaseView):
                 )
 
                 if attribute_info.type in ["object", "annotatable"]:
-                    value = str(value)
+                    if isinstance(value, dict):
+                        value = value
+                    else:
+                        value = str(value)
                 attributes.append({
                     "name": attribute_info.name,
                     "description": attribute_info.description,
