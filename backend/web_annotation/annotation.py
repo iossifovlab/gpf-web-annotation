@@ -81,9 +81,13 @@ def annotate_columns_file(  # pylint: disable=too-many-arguments
     if col_location:
         args.extend(["--col-location", col_location])
 
+    if separator is not None:
+        args.extend([
+            "--input-separator", separator,
+            "--output-separator", separator,
+        ])
+
     args.extend([
-        "--input-separator", separator,
-        "--output-separator", separator,
         "-o", output_file_path,
         "-w", work_dir_path,
         "-j 1",

@@ -482,7 +482,7 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
                 vcf
                 chr1:5:C:CT
             """),
-            ",",
+            None,
             {
                 "col_vcf_like": "vcf",
             },
@@ -496,23 +496,23 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
 def test_annotate_columns(
     admin_client: Client,
     example_tsv: str,
-    separator: str,
+    separator: str | None,
     specification: dict[str, str],
     expected_lines: list[list[str]],
 ) -> None:
     annotation_config = "- position_score: scores/pos1"
     tsv = example_tsv.strip()
 
-    response = admin_client.post(
-        "/api/jobs/annotate_columns",
-        {
-            "genome": "hg38",
-            "config": ContentFile(annotation_config),
-            "data": ContentFile(tsv),
-            "separator": separator,
-            "columns": specification,
-         },
-    )
+    params = {
+        "genome": "hg38",
+        "config": ContentFile(annotation_config),
+        "data": ContentFile(tsv),
+        **specification,
+    }
+    if separator is not None:
+        params["separator"] = separator
+
+    response = admin_client.post("/api/jobs/annotate_columns", params)
 
     assert response is not None
     assert response.status_code == 204
@@ -526,7 +526,7 @@ def test_annotate_columns(
     assert job.duration < 1.0
 
     output = pathlib.Path(job.result_path).read_text()
-    lines = [line.split("\t") for line in output.strip().split("\n")]
+    lines = [line.split(separator) for line in output.strip().split("\n")]
     assert lines == expected_lines
 
 

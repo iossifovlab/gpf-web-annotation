@@ -83,7 +83,7 @@ class JobDetails(models.Model):
     col_vcf_like = models.CharField(max_length=1024, default="")
     col_variant = models.CharField(max_length=1024, default="")
     col_location = models.CharField(max_length=1024, default="")
-    separator = models.CharField(max_length=1)
+    separator = models.CharField(max_length=1, null=True)
     columns = models.TextField()
     job = models.ForeignKey(
         'web_annotation.Job', related_name='details', on_delete=models.CASCADE)

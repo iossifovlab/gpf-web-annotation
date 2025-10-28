@@ -163,7 +163,7 @@ def test_daily_user_quota(
             owner=user,
         ).save()
     response = user_client.post(
-        "/api/jobs/create",
+        "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
             "config": ContentFile(annotation_config),
@@ -173,7 +173,7 @@ def test_daily_user_quota(
     assert response.status_code == 204
 
     response = user_client.post(
-        "/api/jobs/create",
+        "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
             "config": ContentFile(annotation_config),
@@ -213,7 +213,7 @@ def test_daily_admin_quota(
             owner=admin,
         ).save()
     response = admin_client.post(
-        "/api/jobs/create",
+        "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
             "config": ContentFile(annotation_config),
@@ -223,7 +223,7 @@ def test_daily_admin_quota(
     assert response.status_code == 204
 
     response = admin_client.post(
-        "/api/jobs/create",
+        "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
             "config": ContentFile(annotation_config),
@@ -259,7 +259,7 @@ def test_filesize_limit_user(
     """).strip("\n")
 
     response = user_client.post(
-        "/api/jobs/create",
+        "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
             "config": ContentFile(annotation_config),
@@ -292,7 +292,7 @@ def test_filesize_limit_admin(
     """).strip("\n")
 
     response = admin_client.post(
-        "/api/jobs/create",
+        "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
             "config": ContentFile(annotation_config),
@@ -328,7 +328,7 @@ def test_variant_limit_user(
     """).strip("\n")
 
     response = user_client.post(
-        "/api/jobs/create",
+        "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
             "config": ContentFile(annotation_config),
@@ -362,7 +362,7 @@ def test_variant_limit_admin(
     """).strip("\n")
 
     response = admin_client.post(
-        "/api/jobs/create",
+        "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
             "config": ContentFile(annotation_config),

@@ -1,5 +1,6 @@
 """View classes for web annotation."""
 import logging
+from math import log
 from operator import ge
 import time
 from datetime import datetime
@@ -363,6 +364,38 @@ class AnnotationBaseView(views.APIView):
         return len(list(file.fetch())) < cast(
             int, settings.LIMITS["variant_count"])
 
+    def _validate_request(self, request: Request) -> Response | None:
+        """Validate the request for creating a job."""
+        if not self.check_if_user_can_create(request.user):
+            return Response(
+                {"reason": "Daily job limit reached!"},
+                status=views.status.HTTP_403_FORBIDDEN,
+            )
+        if not request.content_type.startswith("multipart/form-data"):
+            return Response(
+                {"reason": "Invalid content type!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        assert request.data is not None
+        assert isinstance(request.data, QueryDict)
+        assert isinstance(request.FILES, MultiValueDict)
+
+        genome = request.data.get("genome")
+        if not genome:
+            return Response(
+                {"reason": "Reference genome not specified!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        if genome not in settings.GENOME_DEFINITIONS:
+            return Response(
+                {"reason": f"Genome {genome} is not a valid option!"},
+                status=views.status.HTTP_404_NOT_FOUND,
+            )
+        
+        return None
+
 
 class JobAll(generics.ListAPIView):
     """Generic view for listing all jobs."""
@@ -450,39 +483,6 @@ class AnnotateVCF(AnnotationBaseView):
     parser_classes = [MultiPartParser]
     permission_classes = [permissions.IsAuthenticated]
 
-    def _validate_request(self, request: Request) -> Response | None:
-        """Validate the request for creating a job."""
-        if not self.check_if_user_can_create(request.user):
-            return Response(
-                {"reason": "Daily job limit reached!"},
-                status=views.status.HTTP_403_FORBIDDEN,
-            )
-        if not request.content_type.startswith("multipart/form-data"):
-            return Response(
-                {"reason": "Invalid content type!"},
-                status=views.status.HTTP_400_BAD_REQUEST,
-            )
-
-        assert request.data is not None
-        assert isinstance(request.data, QueryDict)
-        assert isinstance(request.FILES, MultiValueDict)
-
-        genome = request.data.get("genome")
-        if not genome:
-            return Response(
-                {"reason": "Reference genome not specified!"},
-                status=views.status.HTTP_400_BAD_REQUEST,
-            )
-
-        if genome not in settings.GENOME_DEFINITIONS:
-            return Response(
-                {"reason": f"Genome {genome} is not a valid option!"},
-                status=views.status.HTTP_404_NOT_FOUND,
-            )
-        
-        return None
-
-
     def post(self, request: Request) -> Response:
         validation_response = self._validate_request(request)
         if validation_response is not None:
@@ -560,20 +560,33 @@ class AnnotateVCF(AnnotationBaseView):
                 status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
 
         job.save()
+        work_dir = self.result_storage_dir / request.user.email
         annotate_vcf_job.delay(
             job.pk,
-            str(self.result_storage_dir),
+            str(work_dir),
             str(self.get_grr_definition()),
         )
 
         return Response(status=views.status.HTTP_204_NO_CONTENT)
 
 
-class JobCreate(AnnotationBaseView):
+class AnnotateColumns(AnnotationBaseView):
     """View for creating jobs."""
 
     parser_classes = [MultiPartParser]
     permission_classes = [permissions.IsAuthenticated]
+    tool_columns = [
+        "col_chrom",
+        "col_pos",
+        "col_ref",
+        "col_alt",
+        "col_pos_beg",
+        "col_pos_end",
+        "col_cnv_type",
+        "col_vcf_like",
+        "col_variant",
+        "col_location",
+    ]
 
 
     def is_vcf_file(self, file: UploadedFile, input_path: Path) -> bool:
@@ -618,75 +631,33 @@ class JobCreate(AnnotationBaseView):
 
 
     def post(self, request: Request) -> Response:
-        if not self.check_if_user_can_create(request.user):
-            return Response(
-                {"reason": "Daily job limit reached!"},
-                status=views.status.HTTP_403_FORBIDDEN,
-            )
-
-        job_name = f"job-{int(time.time())}"
+        validation_response = self._validate_request(request)
+        if validation_response is not None:
+            return validation_response
 
         assert request.data is not None
         assert isinstance(request.data, QueryDict)
         assert isinstance(request.FILES, MultiValueDict)
 
-        genome = request.data.get("genome")
-        if not genome:
-            return Response(
-                {"reason": "Reference genome not specified!"},
-                status=views.status.HTTP_400_BAD_REQUEST,
-            )
-
-        if genome not in settings.GENOME_DEFINITIONS:
-            return Response(
-                {"reason": f"Genome {genome} is not a valid option!"},
-                status=views.status.HTTP_404_NOT_FOUND,
-            )
-        genome_definition = settings.GENOME_DEFINITIONS.get(genome)
-        if not genome_definition:
-            return Response(
-                {"reason": "Reference genome not supported!"},
-                status=views.status.HTTP_400_BAD_REQUEST,
-            )
-        reference_genome = genome_definition.get("reference_genome_id")
-        if reference_genome is None:
-            return Response(
-                {"reason": "Internal genome definition is wrong"},
-                status=views.status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-
-        config_filename = f"{job_name}.yaml"
         try:
-            content = self._get_config_raw_from_request(request)
-        except UnicodeDecodeError:
-            return Response(
-                {"reason": "Invalid pipeline configuration file"},
-                status=views.status.HTTP_400_BAD_REQUEST,
-            )
+            reference_genome = self.get_genome(request.data)
         except ValueError as e:
             return Response(
                 {"reason": str(e)},
-                status=views.status.HTTP_400_BAD_REQUEST,
+                status=views.status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-        if "ASCII text" not in magic.from_buffer(content):
-            return Response(status=views.status.HTTP_400_BAD_REQUEST)
-
-        try:
-            AnnotationConfigParser.parse_str(content, grr=self.grr)
-        except (AnnotationConfigurationError, KeyError) as e:
-            return Response(
-                {"reason": str(e)},
-                status=views.status.HTTP_400_BAD_REQUEST,
-            )
+        job_name = self.generate_job_name()
+        config_filename = f"{job_name}.yaml"
 
         config_path = Path(
             settings.ANNOTATION_CONFIG_STORAGE_DIR,
             request.user.email,
             config_filename,
         )
-        config_path.parent.mkdir(parents=True, exist_ok=True)
-        config_path.write_text(content)
+        save_response = self._save_annotation_config(request, config_path)
+        if save_response is not None:
+            return save_response
 
         uploaded_file = request.FILES["data"]
         assert isinstance(uploaded_file, UploadedFile)
@@ -696,22 +667,15 @@ class JobCreate(AnnotationBaseView):
             return Response(
                 status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
 
-        data_filename = f"{job_name}"
+        data_filename = f"{job_name}.vcf"
         input_path = Path(
             settings.JOB_INPUT_STORAGE_DIR, request.user.email, data_filename)
-        input_path.parent.mkdir(parents=True, exist_ok=True)
-        input_path.write_bytes(uploaded_file.read())
-        if self.is_vcf_file(uploaded_file, input_path):
-            data_filename = f"{job_name}.vcf"
-            input_path = input_path.rename(
-                Path(settings.JOB_INPUT_STORAGE_DIR,
-                     request.user.email, data_filename))
-        elif self.is_columns_file(uploaded_file, input_path):
-            data_filename = f"{job_name}.txt"
-            input_path = input_path.rename(
-                Path(settings.JOB_INPUT_STORAGE_DIR,
-                     request.user.email, data_filename))
-        else:
+
+        try:
+            self._save_input_file(request, input_path)
+        except Exception as e:
+            logger.exception("Could not write input file")
+
             self._cleanup(job_name)
             return Response(
                 {"reason": "File could not be identified"},
@@ -727,67 +691,34 @@ class JobCreate(AnnotationBaseView):
                   result_path=result_path,
                   reference_genome=reference_genome,
                   owner=request.user)
-
-        if data_filename.endswith(".vcf"):
-            try:
-                vcf = VariantFile(str(input_path.absolute()), "r")
-            except ValueError:
-                self._cleanup(job_name)
-                return Response(
-                    {"reason": "Invalid VCF file"},
-                    status=views.status.HTTP_400_BAD_REQUEST,
-                )
-
-            if not self.check_variants_limit(vcf, request.user):
-                self._cleanup(job_name)
-                return Response(
-                    status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
-
-            job.save()
-            annotate_vcf_job.delay(
-                job.pk,
-                str(self.result_storage_dir),
-                str(self.get_grr_definition()),
-            )
-
-            return Response(status=views.status.HTTP_204_NO_CONTENT)
-
-        cols_file_content = input_path.read_text()
-        lines = cols_file_content.split("\n")
-        header = lines[0]
-
-        sep = str(request.data.get("separator"))
-        if sep == "":
-            sep = ","
-        if len(header.split(sep)) < len(
-            max([line.split(sep) for line in lines], key=len)
-        ):
-            return Response(
-                {"reason": (
-                    "Invalid separator, cannot "
-                    "create proper columns!"
-                )},
-                status=views.status.HTTP_400_BAD_REQUEST,
-            )
-
-        columns = ";".join(header.split(sep))
-        job.status = job.Status.SPECIFYING
-        job_details = JobDetails(columns=columns, separator=sep, job=job)
-        file_header = [dict(
-            zip(header.split(sep), line.split(sep), strict=True)
-        ) for line in lines[1:5]]
-
-        assert file_header is not None
         job.save()
-        job_details.save()
-        return Response(
-            {
-                "id": job.pk,
-                "columns": job_details.columns.split(";"),
-                "head": file_header,
-            },
-            status=views.status.HTTP_200_OK,
-        )
+        if not any(param in self.tool_columns for param in request.data):
+            logger.debug("No column options sent in request body!")
+            return Response(
+                {"reason": "Invalid column specification!"},
+                status=views.status.HTTP_400_BAD_REQUEST)
+
+        sep = request.data.get("separator")
+        params = {"separator": sep}
+        for col in self.tool_columns:
+            params[col] = request.data.get(col, "")
+            assert isinstance(params[col], str)
+
+        grr_definition = self.get_grr_definition()
+        assert grr_definition is not None
+        try:
+            job = specify_job(job, **cast(dict[str, str], params))
+            work_dir = self.result_storage_dir / request.user.email
+            annotate_columns_job.delay(
+                job.pk, str(work_dir), str(grr_definition))
+        except ObjectDoesNotExist:
+            logger.exception("Job not found!")
+            return Response(status=views.status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.exception("Failed to annotate columns!")
+            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+
+        return Response(status=views.status.HTTP_204_NO_CONTENT)
 
 
 class JobSpecify(AnnotationBaseView):

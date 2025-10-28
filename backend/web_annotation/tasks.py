@@ -1,6 +1,5 @@
 """Web annotation celery tasks"""
 import logging
-from pathlib import Path
 import time
 from typing import Any
 from celery import shared_task
@@ -10,14 +9,16 @@ from .models import Job, JobDetails
 from .annotation import annotate_columns_file, annotate_vcf_file
 from django.core.mail import send_mail
 from django.utils import timezone
+from django.core.exceptions import ObjectDoesNotExist
 from datetime import timedelta
 
 logger = logging.getLogger(__name__)
 
 
 def specify_job(
-    job_pk: int,
+    job: Job,
     *,
+    separator: str | None = None,
     col_chrom: str = "",
     col_pos: str = "",
     col_ref: str = "",
@@ -30,10 +31,10 @@ def specify_job(
     col_location: str = "",
 ) -> Job:
     """Specify and update a job's annotation columns."""
-    job = get_job(job_pk)
-    details = get_job_details(job_pk)
-    if job.status != Job.Status.SPECIFYING:
-        raise ValueError("Cannot specify a job that is not for specification!")
+    details = get_job_details(job.pk)
+    if job.status != Job.Status.WAITING:
+        raise ValueError("Cannot specify details for jobs in execution!")
+    details.separator = separator
     details.col_chr = col_chrom
     details.col_pos = col_pos
     details.col_ref = col_ref
@@ -58,7 +59,13 @@ def get_job(job_pk: int) -> Job:
 
 def get_job_details(job_pk: int) -> JobDetails:
     """Return a job's details by job primary key."""
-    return JobDetails.objects.get(job__pk=job_pk)
+    try:
+        return JobDetails.objects.get(job__pk=job_pk)
+    except ObjectDoesNotExist:
+        job = get_job(job_pk)
+        details = JobDetails(job=job)
+        details.save()
+        return details
 
 
 def update_job_in_progress(job: Job) -> None:
