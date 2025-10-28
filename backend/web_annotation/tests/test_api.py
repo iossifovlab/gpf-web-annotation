@@ -1094,17 +1094,24 @@ def test_job_deactivate(
 
 
 @pytest.mark.parametrize("separator", [",", "\t"])
-def test_check_file_delimeter(
+def test_preview_delimeter(
     admin_client: Client,
     separator: str,
 ) -> None:
     file = textwrap.dedent("""
         chrom	pos	ref	alt
         chr1	1	C	A
+        chr1	2	C	A
+        chr1	3	C	A
+        chr1	4	C	A
+        chr1	5	C	A
+        chr1	6	C	A
+        chr1	7	C	A
+        chr1	8	C	A
     """).strip().replace("\t", separator)
 
     response = admin_client.post(
-        "/api/jobs/check_separator",
+        "/api/jobs/preview",
         {
             "data": ContentFile(file),
         },
@@ -1116,10 +1123,52 @@ def test_check_file_delimeter(
     result = response.json()
 
     assert result is not None
-    assert result == {"separator": separator}
+    assert result == {
+        "separator": separator,
+        "preview": [
+            {"chrom": "chr1", "pos": "1", "ref": "C", "alt": "A"},
+            {"chrom": "chr1", "pos": "2", "ref": "C", "alt": "A"},
+            {"chrom": "chr1", "pos": "3", "ref": "C", "alt": "A"},
+            {"chrom": "chr1", "pos": "4", "ref": "C", "alt": "A"},
+        ],
+        "columns": ["chrom", "pos", "ref", "alt"],
+    }
 
 
-def test_check_file_delimeter_unsupported(
+def test_preview_delimeter_forced(
+    admin_client: Client,
+) -> None:
+    file = textwrap.dedent("""
+        chrom	pos	ref	alt
+        chr1	1	C	A
+        chr1	2	C	A
+    """).strip()
+
+    response = admin_client.post(
+        "/api/jobs/preview",
+        {
+            "data": ContentFile(file),
+            "separator": ","
+        },
+    )
+
+    assert response is not None
+    assert response.status_code == 200
+
+    result = response.json()
+
+    assert result is not None
+    assert result == {
+        "separator": ",",
+        "preview": [
+            {"chrom	pos	ref	alt": "chr1	1	C	A"},
+            {"chrom	pos	ref	alt": "chr1	2	C	A"},
+        ],
+        "columns": ["chrom	pos	ref	alt"],
+    }
+
+
+def test_preview_delimeter_unsupported(
     admin_client: Client,
 ) -> None:
     file = textwrap.dedent("""
@@ -1128,7 +1177,7 @@ def test_check_file_delimeter_unsupported(
     """).strip()
 
     response = admin_client.post(
-        "/api/jobs/check_separator",
+        "/api/jobs/preview",
         {
             "data": ContentFile(file),
         },
@@ -1140,10 +1189,16 @@ def test_check_file_delimeter_unsupported(
     result = response.json()
 
     assert result is not None
-    assert result == {"separator": ""}
+    assert result == {
+        "separator": "",
+        "preview": [
+            {"chrom;pos;ref;alt": "chr1;1;C;A"},
+        ],
+        "columns": ["chrom;pos;ref;alt"],
+    }
 
 
-def test_check_file_delimeter_anonymous(
+def test_preview_delimeter_anonymous(
     anonymous_client: Client,
 ) -> None:
     tsv = textwrap.dedent("""
@@ -1152,7 +1207,7 @@ def test_check_file_delimeter_anonymous(
     """).strip()
 
     response = anonymous_client.post(
-        "/api/jobs/check_separator",
+        "/api/jobs/preview",
         {
             "data": ContentFile(tsv),
         },

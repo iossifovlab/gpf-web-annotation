@@ -47,8 +47,8 @@ urlpatterns = [
     path('api/user_info', views.UserInfo.as_view()),
     path('api/jobs/validate', views.AnnotationConfigValidation.as_view()),
     path(
-        'api/jobs/check_separator',
-        views.DetermineFileSeparator.as_view(),
+        'api/jobs/preview',
+        views.PreviewFileUpload.as_view(),
     ),
     path('api/confirm_account', views.ConfirmAccount.as_view()),
     path(

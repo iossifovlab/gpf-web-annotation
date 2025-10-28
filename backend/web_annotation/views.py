@@ -821,7 +821,7 @@ class AnnotationConfigValidation(AnnotationBaseView):
 
         return Response(result, status=views.status.HTTP_200_OK)
 
-class DetermineFileSeparator(AnnotationBaseView):
+class PreviewFileUpload(AnnotationBaseView):
     """Try to determine the separator of a file split into columns"""
 
     permission_classes = [permissions.IsAuthenticated]
@@ -839,10 +839,18 @@ class DetermineFileSeparator(AnnotationBaseView):
             return True
         return False
 
+    def _get_separator(self, lines: list[str]) -> str:
+        for separator in [",", "\t"]:
+            if self._check_separator(separator, lines):
+                return separator
+
+        return ""
+
 
     def post(self, request: Request) -> Response:
         """Determine the separator of a file split into columns."""
         assert isinstance(request.FILES, MultiValueDict)
+        assert isinstance(request.data, QueryDict)
 
         file = request.FILES["data"]
         assert isinstance(file, UploadedFile)
@@ -861,14 +869,26 @@ class DetermineFileSeparator(AnnotationBaseView):
         content = raw_content.decode()
         lines = content.split("\n")
 
-        for separator in [",", "\t"]:
-            if self._check_separator(separator, lines):
-                return Response(
-                    {"separator": separator},
-                    status=views.status.HTTP_200_OK,
-                )
+        if request.data.get("separator") is None:
+            separator = self._get_separator(lines)
+        else:
+            separator = str(request.data.get("separator"))
+
+        if separator != "":
+            rows = [line.split(separator) for line in lines]
+        else:
+            rows = [[line] for line in lines]
+
+        header = rows[0]
+        content = rows[1:5]
+        preview = [dict(zip(header, row, strict=True)) for row in content]
+
         return Response(
-            {"separator": ""},
+            {
+                "separator": separator,
+                "columns": rows[0],
+                "preview": preview,
+            },
             status=views.status.HTTP_200_OK,
         )
 
