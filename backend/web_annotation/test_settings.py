@@ -34,6 +34,8 @@ GENOME_DEFINITIONS = {
     },
 }
 
+RESOURCES_BASE_URL = "http://test/"
+
 EMAIL_REDIRECT_ENDPOINT = os.environ.get(
     "GPFWA_EMAIL_REDIRECT_ENDPOINT", "http://testserver/")
 
