@@ -396,6 +396,69 @@ class AnnotationBaseView(views.APIView):
         
         return None
 
+    def _create_job(self, request: Request) -> Response | tuple[str, Job]:
+        validation_response = self._validate_request(request)
+        if validation_response is not None:
+            return validation_response
+
+        assert request.data is not None
+        assert isinstance(request.data, QueryDict)
+        assert isinstance(request.FILES, MultiValueDict)
+
+        try:
+            reference_genome = self.get_genome(request.data)
+        except ValueError as e:
+            return Response(
+                {"reason": str(e)},
+                status=views.status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        job_name = self.generate_job_name()
+        config_filename = f"{job_name}.yaml"
+
+        config_path = Path(
+            settings.ANNOTATION_CONFIG_STORAGE_DIR,
+            request.user.email,
+            config_filename,
+        )
+        save_response = self._save_annotation_config(request, config_path)
+        if save_response is not None:
+            return save_response
+
+        uploaded_file = request.FILES["data"]
+        assert isinstance(uploaded_file, UploadedFile)
+        if uploaded_file is None:
+            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+        if not self.check_valid_upload_size(uploaded_file, request.user):
+            return Response(
+                status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
+
+        data_filename = f"{job_name}.vcf"
+        input_path = Path(
+            settings.JOB_INPUT_STORAGE_DIR, request.user.email, data_filename)
+
+        try:
+            self._save_input_file(request, input_path)
+        except Exception as e:
+            logger.exception("Could not write input file")
+
+            self._cleanup(job_name)
+            return Response(
+                {"reason": "File could not be identified"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        result_path = Path(
+            settings.JOB_RESULT_STORAGE_DIR, request.user.email, data_filename)
+        result_path.parent.mkdir(parents=True, exist_ok=True)
+
+        job = Job(input_path=input_path,
+                  config_path=config_path,
+                  result_path=result_path,
+                  reference_genome=reference_genome,
+                  owner=request.user)
+        return (job_name, job)
+
 
 class JobAll(generics.ListAPIView):
     """Generic view for listing all jobs."""
@@ -484,69 +547,14 @@ class AnnotateVCF(AnnotationBaseView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request: Request) -> Response:
-        validation_response = self._validate_request(request)
-        if validation_response is not None:
-            return validation_response
-
-        assert request.data is not None
-        assert isinstance(request.data, QueryDict)
-        assert isinstance(request.FILES, MultiValueDict)
+        """Run VCF annotation job."""
+        job_or_response = self._create_job(request)
+        if isinstance(job_or_response, Response):
+            return job_or_response
+        job_name, job = job_or_response
 
         try:
-            reference_genome = self.get_genome(request.data)
-        except ValueError as e:
-            return Response(
-                {"reason": str(e)},
-                status=views.status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-
-        job_name = self.generate_job_name()
-        config_filename = f"{job_name}.yaml"
-
-        config_path = Path(
-            settings.ANNOTATION_CONFIG_STORAGE_DIR,
-            request.user.email,
-            config_filename,
-        )
-        save_response = self._save_annotation_config(request, config_path)
-        if save_response is not None:
-            return save_response
-        
-        uploaded_file = request.FILES["data"]
-        assert isinstance(uploaded_file, UploadedFile)
-        if uploaded_file is None:
-            return Response(status=views.status.HTTP_400_BAD_REQUEST)
-        if not self.check_valid_upload_size(uploaded_file, request.user):
-            return Response(
-                status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
-
-        data_filename = f"{job_name}.vcf"
-        input_path = Path(
-            settings.JOB_INPUT_STORAGE_DIR, request.user.email, data_filename)
-
-        try:
-            self._save_input_file(request, input_path)
-        except Exception as e:
-            logger.exception("Could not write input file")
-
-            self._cleanup(job_name)
-            return Response(
-                {"reason": "File could not be identified"},
-                status=views.status.HTTP_400_BAD_REQUEST,
-            )
-
-        result_path = Path(
-            settings.JOB_RESULT_STORAGE_DIR, request.user.email, data_filename)
-        result_path.parent.mkdir(parents=True, exist_ok=True)
-
-        job = Job(input_path=input_path,
-                  config_path=config_path,
-                  result_path=result_path,
-                  reference_genome=reference_genome,
-                  owner=request.user)
-
-        try:
-            vcf = VariantFile(str(input_path.absolute()), "r")
+            vcf = VariantFile(job.input_path, "r")
         except (ValueError, OSError):
             self._cleanup(job_name)
             return Response(
@@ -629,69 +637,17 @@ class AnnotateColumns(AnnotationBaseView):
                 return True
         return False
 
-
     def post(self, request: Request) -> Response:
-        validation_response = self._validate_request(request)
-        if validation_response is not None:
-            return validation_response
+        """Run column annotation job."""
 
-        assert request.data is not None
-        assert isinstance(request.data, QueryDict)
-        assert isinstance(request.FILES, MultiValueDict)
+        job_or_response = self._create_job(request)
+        if isinstance(job_or_response, Response):
+            return job_or_response
+        _, job = job_or_response
 
-        try:
-            reference_genome = self.get_genome(request.data)
-        except ValueError as e:
-            return Response(
-                {"reason": str(e)},
-                status=views.status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-
-        job_name = self.generate_job_name()
-        config_filename = f"{job_name}.yaml"
-
-        config_path = Path(
-            settings.ANNOTATION_CONFIG_STORAGE_DIR,
-            request.user.email,
-            config_filename,
-        )
-        save_response = self._save_annotation_config(request, config_path)
-        if save_response is not None:
-            return save_response
-
-        uploaded_file = request.FILES["data"]
-        assert isinstance(uploaded_file, UploadedFile)
-        if uploaded_file is None:
-            return Response(status=views.status.HTTP_400_BAD_REQUEST)
-        if not self.check_valid_upload_size(uploaded_file, request.user):
-            return Response(
-                status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
-
-        data_filename = f"{job_name}.vcf"
-        input_path = Path(
-            settings.JOB_INPUT_STORAGE_DIR, request.user.email, data_filename)
-
-        try:
-            self._save_input_file(request, input_path)
-        except Exception as e:
-            logger.exception("Could not write input file")
-
-            self._cleanup(job_name)
-            return Response(
-                {"reason": "File could not be identified"},
-                status=views.status.HTTP_400_BAD_REQUEST,
-            )
-
-        result_path = Path(
-            settings.JOB_RESULT_STORAGE_DIR, request.user.email, data_filename)
-        result_path.parent.mkdir(parents=True, exist_ok=True)
-
-        job = Job(input_path=input_path,
-                  config_path=config_path,
-                  result_path=result_path,
-                  reference_genome=reference_genome,
-                  owner=request.user)
         job.save()
+
+        assert isinstance(request.data, QueryDict)
         if not any(param in self.tool_columns for param in request.data):
             logger.debug("No column options sent in request body!")
             return Response(
@@ -718,72 +674,6 @@ class AnnotateColumns(AnnotationBaseView):
             logger.exception("Failed to annotate columns!")
             return Response(status=views.status.HTTP_400_BAD_REQUEST)
 
-        return Response(status=views.status.HTTP_204_NO_CONTENT)
-
-
-class JobSpecify(AnnotationBaseView):
-    """View for specifying a csv or tsv job's columns."""
-    def post(self, request: Request, pk: int) -> Response:
-        assert isinstance(request.data, dict)
-        if not any(
-            col in request.data for col in
-            [
-                "col_chrom",
-                "col_pos",
-                "col_ref",
-                "col_alt",
-                "col_pos_beg",
-                "col_pos_end",
-                "col_cnv_type",
-                "col_vcf_like",
-                "col_variant",
-                "col_location",
-            ]
-        ):
-            return Response(status=views.status.HTTP_400_BAD_REQUEST)
-
-        col_chrom = request.data.get("col_chrom", "")
-        assert isinstance(col_chrom, str)
-        col_pos = request.data.get("col_pos", "")
-        assert isinstance(col_pos, str)
-        col_ref = request.data.get("col_ref", "")
-        assert isinstance(col_ref, str)
-        col_alt = request.data.get("col_alt", "")
-        assert isinstance(col_alt, str)
-        col_pos_beg = request.data.get("col_pos_beg", "")
-        assert isinstance(col_pos_beg, str)
-        col_pos_end = request.data.get("col_pos_end", "")
-        assert isinstance(col_pos_end, str)
-        col_cnv_type = request.data.get("col_cnv_type", "")
-        assert isinstance(col_cnv_type, str)
-        col_vcf_like = request.data.get("col_vcf_like", "")
-        assert isinstance(col_vcf_like, str)
-        col_variant = request.data.get("col_variant", "")
-        assert isinstance(col_variant, str)
-        col_location = request.data.get("col_location", "")
-        assert isinstance(col_location, str)
-
-        grr_definition = self.get_grr_definition()
-        assert grr_definition is not None
-        try:
-            job = specify_job(
-                pk,
-                col_chrom=col_chrom,
-                col_pos=col_pos,
-                col_ref=col_ref,
-                col_alt=col_alt,
-                col_pos_beg=col_pos_beg,
-                col_pos_end=col_pos_end,
-                col_cnv_type=col_cnv_type,
-                col_vcf_like=col_vcf_like,
-                col_variant=col_variant,
-                col_location=col_location,
-            )
-            annotate_columns_job.delay(
-                job.pk, str(self.result_storage_dir), str(grr_definition))
-
-        except ObjectDoesNotExist:
-            return Response(status=views.status.HTTP_404_NOT_FOUND)
         return Response(status=views.status.HTTP_204_NO_CONTENT)
 
 
