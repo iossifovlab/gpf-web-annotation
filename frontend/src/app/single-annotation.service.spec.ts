@@ -109,10 +109,11 @@ const mockResponse = {
           description: 'cadd_raw - CADD raw score for functional prediction of a SNP. The larger the score \nthe more likely the SNP has damaging effect\n',
           source: 'AF',
           result: {
-            value: '',
+            value: undefined,
             histogram: 'histograms/score?test=1',
           },
           help: '',
+          type: ''
         },
       ],
     },
@@ -162,10 +163,7 @@ describe('SingleAnnotationService', () => {
               // eslint-disable-next-line @stylistic/max-len
               'cadd_raw - CADD raw score for functional prediction of a SNP. The larger the score \nthe more likely the SNP has damaging effect\n',
               'AF',
-              {
-                value: '',
-                histogramLink: 'histograms/score?test=1',
-              } as Result,
+              new Result(null, 'histograms/score?test=1'),
               '',
             ),
           ]
@@ -275,10 +273,7 @@ describe('SingleAnnotationService', () => {
               // eslint-disable-next-line @stylistic/max-len
               'cadd_raw - CADD raw score for functional prediction of a SNP. The larger the score \nthe more likely the SNP has damaging effect\n',
               'AF',
-              {
-                value: '',
-                histogramLink: 'histograms/score?test=1',
-              },
+              new Result(null, 'histograms/score?test=1'),
               '',
             ),
           ]
@@ -369,5 +364,71 @@ describe('SingleAnnotationService', () => {
       '//localhost:8000/api/histograms/score?test=1',
       { headers: { 'X-CSRFToken': '' }, withCredentials: true }
     );
+  });
+
+  it('should get report and parse float value in attribute result correctly', async() => {
+    mockResponse.annotators[0].attributes[0].type = 'float';
+    mockResponse.annotators[0].attributes[0].result.value = 4.097;
+
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
+    httpPostSpy.mockReturnValue(of(mockResponse));
+
+    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'genome');
+
+    const res = await lastValueFrom(getReport.pipe(take(1)));
+    expect(res.annotators[0].attributes[0].result.value).toBe(4.097);
+  });
+
+  it('should get report and parse integer value in attribute result correctly', async() => {
+    mockResponse.annotators[0].attributes[0].type = 'int';
+    mockResponse.annotators[0].attributes[0].result.value = 8;
+
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
+    httpPostSpy.mockReturnValue(of(mockResponse));
+
+    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'genome');
+
+    const res = await lastValueFrom(getReport.pipe(take(1)));
+    expect(res.annotators[0].attributes[0].result.value).toBe(8);
+  });
+
+  it('should get report and parse string value in attribute result correctly', async() => {
+    mockResponse.annotators[0].attributes[0].type = 'str';
+    mockResponse.annotators[0].attributes[0].result.value = 'pathogenic';
+
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
+    httpPostSpy.mockReturnValue(of(mockResponse));
+
+    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'genome');
+
+    const res = await lastValueFrom(getReport.pipe(take(1)));
+    expect(res.annotators[0].attributes[0].result.value).toBe('pathogenic');
+  });
+
+  it('should get report and parse boolean value in attribute result correctly', async() => {
+    mockResponse.annotators[0].attributes[0].type = 'bool';
+    mockResponse.annotators[0].attributes[0].result.value = false;
+
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
+    httpPostSpy.mockReturnValue(of(mockResponse));
+
+    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'genome');
+
+    const res = await lastValueFrom(getReport.pipe(take(1)));
+    expect(res.annotators[0].attributes[0].result.value).toBe('false');
+  });
+
+  it('should get report and parse correctly object value with numbers in attribute result', async() => {
+    mockResponse.annotators[0].attributes[0].type = 'object';
+    // eslint-disable-next-line quote-props, @stylistic/quotes
+    mockResponse.annotators[0].attributes[0].result.value = {"MTHFR": 14.0, "ABC": 2.0};
+
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
+    httpPostSpy.mockReturnValue(of(mockResponse));
+
+    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'genome');
+
+    const res = await lastValueFrom(getReport.pipe(take(1)));
+    expect(res.annotators[0].attributes[0].result.value).toStrictEqual(new Map([['MTHFR', 14.0], ['ABC', 2.0]]));
   });
 });

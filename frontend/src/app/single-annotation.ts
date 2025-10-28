@@ -68,9 +68,40 @@ export class AnnotatorDetails {
   }
 }
 
-export interface Result {
-  value: string | number;
-  histogramLink: string;
+export class Result {
+  public constructor(
+    public value: string | number | Map<string, string | number>,
+    public histogramLink: string,
+  ) {}
+
+  public static fromJson(
+    json: { histogram: string, value: number | string | boolean },
+    type: string
+  ): Result {
+    if (!json) {
+      return undefined;
+    }
+
+    let resultValue: string | number | Map<string, string | number> = null;
+
+    const types = ['int', 'float', 'str'];
+    if (types.includes(type)) {
+      resultValue = json['value'] as string | number;
+    }
+
+    if (type === 'bool') {
+      resultValue = (json['value'] as boolean).toString();
+    }
+
+    if (type === 'object') {
+      resultValue = new Map<string, string | number>(Object.entries(json['value']));
+    }
+
+    return new Result(
+      resultValue,
+      json['histogram'],
+    );
+  }
 }
 
 export class Attribute {
@@ -94,25 +125,14 @@ export class Attribute {
       return undefined;
     }
 
-    /* eslint-disable
-      @typescript-eslint/no-unsafe-assignment,
-      @typescript-eslint/no-unsafe-member-access,
-      @typescript-eslint/no-unsafe-call */
-    if (typeof json['result']['value'] === 'boolean') {
-      json['result']['value'] = json['result']['value'].toString();
-    }
-    /* eslint-enable */
-
     return new Attribute(
       json['name'] as string,
       json['description'] as string,
       json['source'] as string,
-      {
-        /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
-        value: json['result']['value'],
-        histogramLink: json['result']['histogram'],
-        /* eslint-enable */
-      },
+      Result.fromJson(
+        json['result'] as { histogram: string; value: string | number | boolean; },
+        json['type'] as string
+      ),
       json['help'] as string,
     );
   }
