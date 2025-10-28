@@ -141,6 +141,11 @@ def user_client() -> Client:
     client.login(email="user@example.com", password="secret")
     return client
 
+@pytest.fixture
+def anonymous_client() -> Client:
+    client = Client()
+    return client
+
 
 @pytest.fixture
 def mail_client(mailhog_url: str, settings: LazySettings) -> MailhogClient:

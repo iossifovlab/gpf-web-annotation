@@ -1090,3 +1090,72 @@ def test_job_deactivate(
 
     all_jobs = user_client.get("/api/jobs")
     assert len(all_jobs.json()) == 1
+
+
+@pytest.mark.parametrize("separator", [",", "\t"])
+def test_check_file_delimeter(
+    admin_client: Client,
+    separator: str,
+) -> None:
+    file = textwrap.dedent("""
+        chrom	pos	ref	alt
+        chr1	1	C	A
+    """).strip().replace("\t", separator)
+
+    response = admin_client.post(
+        "/api/jobs/check_separator",
+        {
+            "data": ContentFile(file),
+        },
+    )
+
+    assert response is not None
+    assert response.status_code == 200
+
+    result = response.json()
+
+    assert result is not None
+    assert result == {"separator": separator}
+
+
+def test_check_file_delimeter_unsupported(
+    admin_client: Client,
+) -> None:
+    file = textwrap.dedent("""
+        chrom;pos;ref;alt
+        chr1;1;C;A
+    """).strip()
+
+    response = admin_client.post(
+        "/api/jobs/check_separator",
+        {
+            "data": ContentFile(file),
+        },
+    )
+
+    assert response is not None
+    assert response.status_code == 200
+
+    result = response.json()
+
+    assert result is not None
+    assert result == {"separator": ""}
+
+
+def test_check_file_delimeter_anonymous(
+    anonymous_client: Client,
+) -> None:
+    tsv = textwrap.dedent("""
+        chrom	pos	ref	alt
+        chr1	1	C	A
+    """).strip()
+
+    response = anonymous_client.post(
+        "/api/jobs/check_separator",
+        {
+            "data": ContentFile(tsv),
+        },
+    )
+
+    assert response is not None
+    assert response.status_code == 403

@@ -230,6 +230,15 @@ class AnnotationBaseView(views.APIView):
                 return int(filesize.rstrip(f"{unit}")) * mult
         return int(filesize)
 
+    def check_valid_upload_size(self, file: UploadedFile, user: User) -> bool:
+        """Check if a file upload does not exceed the upload size limit."""
+        if user.is_superuser:
+            return True
+        assert file.size is not None
+        return file.size < self._convert_size(
+            cast(str, settings.LIMITS["filesize"]),
+        )
+
 
 class JobAll(generics.ListAPIView):
     """Generic view for listing all jobs."""
@@ -317,14 +326,6 @@ class JobCreate(AnnotationBaseView):
     parser_classes = [MultiPartParser]
     permission_classes = [permissions.IsAuthenticated]
 
-    def check_valid_upload_size(self, file: UploadedFile, user: User) -> bool:
-        """Check if a file upload does not exceed the upload size limit."""
-        if user.is_superuser:
-            return True
-        assert file.size is not None
-        return file.size < self._convert_size(
-            cast(str, settings.LIMITS["filesize"]),
-        )
 
     def check_if_user_can_create(self, user: User) -> bool:
         """Check if a user is not limited by the daily quota."""
@@ -819,6 +820,57 @@ class AnnotationConfigValidation(AnnotationBaseView):
             result = {"errors": "Invalid configuration"}
 
         return Response(result, status=views.status.HTTP_200_OK)
+
+class DetermineFileSeparator(AnnotationBaseView):
+    """Try to determine the separator of a file split into columns"""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def _check_separator(self, separator: str, lines: list[str]) -> bool:
+        """Check if a separator produces consistent columns."""
+
+        lengths = [len(line.split(separator)) for line in lines]
+        longest_line_len = max(lengths)
+        shortest_line_len = min(lengths)
+
+        if longest_line_len == 0 or longest_line_len == 1:
+            return False
+        if longest_line_len == shortest_line_len:
+            return True
+        return False
+
+
+    def post(self, request: Request) -> Response:
+        """Determine the separator of a file split into columns."""
+        assert isinstance(request.FILES, MultiValueDict)
+
+        file = request.FILES["data"]
+        assert isinstance(file, UploadedFile)
+        if file is None:
+            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+        if not self.check_valid_upload_size(file, request.user):
+            return Response(
+                status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
+
+        assert file.name is not None
+
+        if file.name.endswith(".vcf"):
+            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+
+        raw_content = file.read()
+        content = raw_content.decode()
+        lines = content.split("\n")
+
+        for separator in [",", "\t"]:
+            if self._check_separator(separator, lines):
+                return Response(
+                    {"separator": separator},
+                    status=views.status.HTTP_200_OK,
+                )
+        return Response(
+            {"separator": ""},
+            status=views.status.HTTP_200_OK,
+        )
 
 
 class ListGenomePipelines(AnnotationBaseView):
