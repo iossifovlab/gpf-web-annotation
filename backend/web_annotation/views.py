@@ -1,5 +1,6 @@
 """View classes for web annotation."""
 import logging
+from operator import ge
 import time
 from datetime import datetime
 from pathlib import Path
@@ -38,7 +39,7 @@ from django.contrib.auth import (
 )
 from django.core.files.uploadedfile import UploadedFile
 from django.db.models import ObjectDoesNotExist, QuerySet
-from django.http import HttpRequest
+from django.http import HttpRequest, response
 from django.http.response import (
     FileResponse,
     HttpResponse,
@@ -239,6 +240,129 @@ class AnnotationBaseView(views.APIView):
             cast(str, settings.LIMITS["filesize"]),
         )
 
+    def check_if_user_can_create(self, user: User) -> bool:
+        """Check if a user is not limited by the daily quota."""
+        if user.is_superuser:
+            return True
+        today = timezone.now().replace(
+            hour=0, minute=0, second=0, microsecond=0)
+        jobs_made = Job.objects.filter(
+            created__gte=today, owner__exact=user.pk)
+        if len(jobs_made) > cast(int, settings.LIMITS["daily_jobs"]):
+            return False
+        return True
+
+    def _get_annotation_config(
+        self,
+        data: QueryDict,
+        files: MultiValueDict,
+    ) -> str:
+        """Get annotation config contents from a request."""
+        if "pipeline" in data:
+            pipeline_id = data["pipeline"]
+            if pipeline_id not in self.pipelines:
+                raise ValueError(f"Pipeline {pipeline_id} not found!")
+            content = self.pipelines[pipeline_id]["content"]
+        else:
+            config_file = files["config"]
+            assert isinstance(config_file, UploadedFile)
+            try:
+                raw_content = config_file.read()
+                content = raw_content.decode()
+            except UnicodeDecodeError as e:
+                raise ValueError(
+                    f"Invalid pipeline configuration file: {str(e)}") from e
+        
+        if "ASCII text" not in magic.from_buffer(content):
+            raise ValueError("Invalid pipeline configuration file!")
+
+        try:
+            AnnotationConfigParser.parse_str(content, grr=self.grr)
+        except (AnnotationConfigurationError, KeyError) as e:
+            raise ValueError(str(e)) from e
+            
+        return content
+
+    def get_genome(self, data: QueryDict) -> str:
+        """Get genome from a request."""
+        genome = data.get("genome")
+        assert genome is not None
+
+        genome_definition = settings.GENOME_DEFINITIONS.get(genome)
+        assert genome_definition is not None
+        reference_genome = genome_definition.get("reference_genome_id")
+        if reference_genome is None:
+            raise ValueError("Internal genome definition is wrong")
+        return reference_genome
+
+    def generate_job_name(self) -> str:
+        """Generate a unique job name."""
+        return f"job-{int(time.time())}"
+
+    def _save_annotation_config(
+        self,
+        request: Request,
+        config_path: Path,
+    ) -> Response | None:
+        assert isinstance(request.data, QueryDict)
+        assert isinstance(request.FILES, MultiValueDict)
+        try:
+            content = self._get_annotation_config(request.data, request.FILES)
+        except ValueError as e:
+            return Response(
+                {"reason": str(e)},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            config_path.parent.mkdir(parents=True, exist_ok=True)
+            config_path.write_text(content)
+        except Exception as e:
+            logger.exception("Could not write config file")
+            return Response(
+                {"reason": "Could not write file!"},
+                status=views.status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return None
+
+    def _save_input_file(
+        self,
+        request: Request,
+        input_path: Path,
+    ) -> None:
+        assert isinstance(request.data, QueryDict)
+        assert isinstance(request.FILES, MultiValueDict)
+        uploaded_file = request.FILES["data"]
+        assert isinstance(uploaded_file, UploadedFile)
+
+        input_path.parent.mkdir(parents=True, exist_ok=True)
+        input_path.write_bytes(uploaded_file.read())
+
+        return None
+
+    def _cleanup(self, job_name: str) -> None:
+        """Cleanup the files of a failed job."""
+        data_filename = f"{job_name}"
+        inputs = Path(settings.JOB_INPUT_STORAGE_DIR).glob(f"{data_filename}*")
+        for in_file in inputs:
+            in_file.unlink(missing_ok=True)
+        config_filename = f"{job_name}.yaml"
+        config_path = Path(
+            settings.ANNOTATION_CONFIG_STORAGE_DIR, config_filename)
+        config_path.unlink(missing_ok=True)
+        results = Path(
+            settings.JOB_RESULT_STORAGE_DIR).glob(f"{data_filename}*")
+        for out_file in results:
+            out_file.unlink(missing_ok=True)
+
+    def check_variants_limit(self, file: VariantFile, user: User) -> bool:
+        """Check if a variants file does not exceed the variants limit."""
+        if user.is_superuser:
+            return True
+        return len(list(file.fetch())) < cast(
+            int, settings.LIMITS["variant_count"])
+
 
 class JobAll(generics.ListAPIView):
     """Generic view for listing all jobs."""
@@ -320,31 +444,137 @@ class JobDetail(AnnotationBaseView):
         return Response(status=views.status.HTTP_200_OK)
 
 
+class AnnotateVCF(AnnotationBaseView):
+    """View for creating jobs."""
+
+    parser_classes = [MultiPartParser]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def _validate_request(self, request: Request) -> Response | None:
+        """Validate the request for creating a job."""
+        if not self.check_if_user_can_create(request.user):
+            return Response(
+                {"reason": "Daily job limit reached!"},
+                status=views.status.HTTP_403_FORBIDDEN,
+            )
+        if not request.content_type.startswith("multipart/form-data"):
+            return Response(
+                {"reason": "Invalid content type!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        assert request.data is not None
+        assert isinstance(request.data, QueryDict)
+        assert isinstance(request.FILES, MultiValueDict)
+
+        genome = request.data.get("genome")
+        if not genome:
+            return Response(
+                {"reason": "Reference genome not specified!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        if genome not in settings.GENOME_DEFINITIONS:
+            return Response(
+                {"reason": f"Genome {genome} is not a valid option!"},
+                status=views.status.HTTP_404_NOT_FOUND,
+            )
+        
+        return None
+
+
+    def post(self, request: Request) -> Response:
+        validation_response = self._validate_request(request)
+        if validation_response is not None:
+            return validation_response
+
+        assert request.data is not None
+        assert isinstance(request.data, QueryDict)
+        assert isinstance(request.FILES, MultiValueDict)
+
+        try:
+            reference_genome = self.get_genome(request.data)
+        except ValueError as e:
+            return Response(
+                {"reason": str(e)},
+                status=views.status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        job_name = self.generate_job_name()
+        config_filename = f"{job_name}.yaml"
+
+        config_path = Path(
+            settings.ANNOTATION_CONFIG_STORAGE_DIR,
+            request.user.email,
+            config_filename,
+        )
+        save_response = self._save_annotation_config(request, config_path)
+        if save_response is not None:
+            return save_response
+        
+        uploaded_file = request.FILES["data"]
+        assert isinstance(uploaded_file, UploadedFile)
+        if uploaded_file is None:
+            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+        if not self.check_valid_upload_size(uploaded_file, request.user):
+            return Response(
+                status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
+
+        data_filename = f"{job_name}.vcf"
+        input_path = Path(
+            settings.JOB_INPUT_STORAGE_DIR, request.user.email, data_filename)
+
+        try:
+            self._save_input_file(request, input_path)
+        except Exception as e:
+            logger.exception("Could not write input file")
+
+            self._cleanup(job_name)
+            return Response(
+                {"reason": "File could not be identified"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        result_path = Path(
+            settings.JOB_RESULT_STORAGE_DIR, request.user.email, data_filename)
+        result_path.parent.mkdir(parents=True, exist_ok=True)
+
+        job = Job(input_path=input_path,
+                  config_path=config_path,
+                  result_path=result_path,
+                  reference_genome=reference_genome,
+                  owner=request.user)
+
+        try:
+            vcf = VariantFile(str(input_path.absolute()), "r")
+        except (ValueError, OSError):
+            self._cleanup(job_name)
+            return Response(
+                {"reason": "Invalid VCF file"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not self.check_variants_limit(vcf, request.user):
+            self._cleanup(job_name)
+            return Response(
+                status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
+
+        job.save()
+        annotate_vcf_job.delay(
+            job.pk,
+            str(self.result_storage_dir),
+            str(self.get_grr_definition()),
+        )
+
+        return Response(status=views.status.HTTP_204_NO_CONTENT)
+
+
 class JobCreate(AnnotationBaseView):
     """View for creating jobs."""
 
     parser_classes = [MultiPartParser]
     permission_classes = [permissions.IsAuthenticated]
 
-
-    def check_if_user_can_create(self, user: User) -> bool:
-        """Check if a user is not limited by the daily quota."""
-        if user.is_superuser:
-            return True
-        today = timezone.now().replace(
-            hour=0, minute=0, second=0, microsecond=0)
-        jobs_made = Job.objects.filter(
-            created__gte=today, owner__exact=user.pk)
-        if len(jobs_made) > cast(int, settings.LIMITS["daily_jobs"]):
-            return False
-        return True
-
-    def check_variants_limit(self, file: VariantFile, user: User) -> bool:
-        """Check if a variants file does not exceed the variants limit."""
-        if user.is_superuser:
-            return True
-        return len(list(file.fetch())) < cast(
-            int, settings.LIMITS["variant_count"])
 
     def is_vcf_file(self, file: UploadedFile, input_path: Path) -> bool:
         """Check if a file is a VCF file."""
@@ -386,36 +616,6 @@ class JobCreate(AnnotationBaseView):
                 return True
         return False
 
-    def _get_config_raw_from_request(self, request: Request) -> str:
-        """Get annotation config contents from a request."""
-        assert isinstance(request.data, QueryDict)
-        assert isinstance(request.FILES, MultiValueDict)
-        if "pipeline" in request.data:
-            pipeline_id = request.data["pipeline"]
-            if pipeline_id not in self.pipelines:
-                raise ValueError(f"Pipeline {pipeline_id} not found!")
-            content = self.pipelines[pipeline_id]["content"]
-        else:
-            config_file = request.FILES["config"]
-            assert isinstance(config_file, UploadedFile)
-            raw_content = config_file.read()
-            content = raw_content.decode()
-        return content
-
-    def _cleanup(self, job_name: str) -> None:
-        """Cleanup the files of a failed job."""
-        data_filename = f"{job_name}"
-        inputs = Path(settings.JOB_INPUT_STORAGE_DIR).glob(f"{data_filename}*")
-        for in_file in inputs:
-            in_file.unlink(missing_ok=True)
-        config_filename = f"{job_name}.yaml"
-        config_path = Path(
-            settings.ANNOTATION_CONFIG_STORAGE_DIR, config_filename)
-        config_path.unlink(missing_ok=True)
-        results = Path(
-            settings.JOB_RESULT_STORAGE_DIR).glob(f"{data_filename}*")
-        for out_file in results:
-            out_file.unlink(missing_ok=True)
 
     def post(self, request: Request) -> Response:
         if not self.check_if_user_can_create(request.user):

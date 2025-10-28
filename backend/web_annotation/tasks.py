@@ -118,7 +118,9 @@ def update_job_success(job: Job) -> None:
     )
 
 
-def run_vcf_job(job: Job, storage_dir: Path, grr_definition: Path) -> None:
+def run_vcf_job(
+    job: Job, storage_dir: str, grr_definition: str | None,
+) -> None:
     """Run a VCF annotation."""
     start = time.time()
     try:
@@ -131,8 +133,8 @@ def run_vcf_job(job: Job, storage_dir: Path, grr_definition: Path) -> None:
             str(job.input_path),
             str(job.config_path),
             str(job.result_path),
-            str(storage_dir),
-            str(grr_definition) if grr_definition is not None else None,
+            storage_dir,
+            grr_definition if grr_definition is not None else None,
         )
     except Exception:  # pylint: disable=broad-exception-caught
         logger.exception("Failed to execute job")
@@ -194,8 +196,8 @@ def run_columns_job(
 
 @shared_task
 def annotate_vcf_job(
-    job_pk: int, storage_dir: Path,
-    grr_definition: Path,
+    job_pk: int, storage_dir: str,
+    grr_definition: str | None,
 ) -> None:
     """Task for running annotation."""
     job = get_job(job_pk)
