@@ -63,7 +63,7 @@ export class ColumnSpecifyingModalComponent implements OnInit {
   }
 
   public submitColumns(): void {
-    this.jobsService.specifyColumns(this.data.jobId, this.mappedColumns).subscribe({
+    this.jobsService.specifyColumns(this.mappedColumns).subscribe({
       next: () => this.dialogRef.close(true),
       error: (err: Error) => {
         this.error = err.message;

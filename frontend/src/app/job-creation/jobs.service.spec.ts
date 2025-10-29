@@ -389,7 +389,7 @@ describe('JobsService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(throwError(() => httpError));
 
-    const postResult = service.specifyColumns(1, new Map<string, string>([
+    const postResult = service.specifyColumns(new Map<string, string>([
       ['col1', 'val1'],
       ['col2', 'val2'],
     ]));
@@ -403,7 +403,7 @@ describe('JobsService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(throwError(() => httpError));
 
-    const postResult = service.specifyColumns(1, new Map<string, string>([
+    const postResult = service.specifyColumns(new Map<string, string>([
       ['col1', 'val1'],
       ['col2', 'val2'],
     ]));
@@ -417,7 +417,7 @@ describe('JobsService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(throwError(() => httpError));
 
-    const postResult = service.specifyColumns(1, new Map<string, string>([
+    const postResult = service.specifyColumns(new Map<string, string>([
       ['col1', 'val1'],
       ['col2', 'val2'],
     ]));
@@ -431,7 +431,7 @@ describe('JobsService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(throwError(() => httpError));
 
-    const postResult = service.specifyColumns(1, new Map<string, string>([
+    const postResult = service.specifyColumns(new Map<string, string>([
       ['col1', 'val1'],
       ['col2', 'val2'],
     ]));

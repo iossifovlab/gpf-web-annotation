@@ -12,6 +12,7 @@ export class JobsService {
   private readonly jobsUrl = `${environment.apiPath}/jobs`;
   private readonly jobPreviewUrl = `${environment.apiPath}/jobs/preview`;
   private readonly getPipelinesUrl = `${environment.apiPath}/pipelines`;
+  private readonly specifyColumnsUrl = `${environment.apiPath}jobs/annotate_columns`;
 
   public constructor(private http: HttpClient) { }
 
@@ -63,7 +64,7 @@ export class JobsService {
   public submitFile(file: File) : Observable<FileContent> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
     const formData = new FormData();
-    formData.append('data', file, file.name);
+    formData.append('data', file);
     return this.http.post(
       this.jobPreviewUrl,
       formData,
@@ -145,7 +146,7 @@ export class JobsService {
     );
   }
 
-  public specifyColumns(jobId: number, columns: Map<string, string>): Observable<object> {
+  public specifyColumns(columns: Map<string, string>): Observable<object> {
     const options = {
       headers: {
         'X-CSRFToken': this.getCSRFToken(),
@@ -155,7 +156,7 @@ export class JobsService {
     };
 
     return this.http.post(
-      `${this.jobsUrl}/${jobId}/specify`,
+      this.specifyColumnsUrl,
       /* eslint-disable camelcase */
       {
         col_chrom: columns.get('chrom'),
