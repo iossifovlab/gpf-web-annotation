@@ -465,6 +465,6 @@ describe('JobsService', () => {
 
     const res = await lastValueFrom(postResult.pipe(take(1)));
     expect(res).toStrictEqual(
-      new FileContent(undefined, ['CHROM', 'POS', 'REF', 'ALT'], [['chr1', '151405427', 'T', 'TCGTCATCA']]));
+      new FileContent('\t', ['CHROM', 'POS', 'REF', 'ALT'], [['chr1', '151405427', 'T', 'TCGTCATCA']]));
   });
 });

@@ -1,12 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ColumnSpecifyingModalComponent } from './column-specifying-modal.component';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MatDialogRef } from '@angular/material/dialog';
 import { FileContent } from '../job-creation/jobs';
 import { JobsService } from '../job-creation/jobs.service';
 import { provideHttpClient } from '@angular/common/http';
 
 const mockModalContent = new FileContent(
-  1,
+  ',',
   ['chrom', 'position', 'reference', 'alternative'],
   [
     ['chrom', 'position', 'reference', 'alternative'],
@@ -28,7 +28,6 @@ describe('ColumnSpecifyingModalComponent', () => {
     await TestBed.configureTestingModule({
       imports: [ColumnSpecifyingModalComponent],
       providers: [
-        { provide: MAT_DIALOG_DATA, useValue: mockModalContent },
         { provide: MatDialogRef, useValue: mockMatDialogRef },
         JobsService,
         provideHttpClient(),
@@ -37,6 +36,7 @@ describe('ColumnSpecifyingModalComponent', () => {
 
     fixture = TestBed.createComponent(ColumnSpecifyingModalComponent);
     component = fixture.componentInstance;
+    component.fileContent = mockModalContent;
     fixture.detectChanges();
   });
 
@@ -50,7 +50,7 @@ describe('ColumnSpecifyingModalComponent', () => {
       ['chr1', '123', 'A', 'GG'],
     ];
     expect(component.fileContent).toStrictEqual(new FileContent(
-      1,
+      ',',
       ['chrom', 'position', 'reference', 'alternative'],
       mappedFileContent
     ));

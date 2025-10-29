@@ -55,7 +55,7 @@ export function getStatusClassName(status: string): string {
 
 export class FileContent {
   public constructor(
-    public jobId: number,
+    public separator: string,
     public columns: string[],
     public rows: string[][]
   ) {}
@@ -66,7 +66,7 @@ export class FileContent {
     }
 
     return new FileContent(
-      json['id'] as number,
+      json['separator'] as string,
       json['columns'] as string[],
       toMatrix(json['preview'] as object[]),
     );
