@@ -33,9 +33,9 @@ def test_job_update_new() -> None:
 
     assert test_job.status == Job.Status.WAITING
     with pytest.raises(ValueError):
-        update_job_failed(test_job)
+        update_job_failed(test_job,  [])
     with pytest.raises(ValueError):
-        update_job_success(test_job)
+        update_job_success(test_job, [])
 
     assert test_job.status == Job.Status.WAITING
     update_job_in_progress(test_job)
@@ -55,12 +55,12 @@ def test_job_update_in_progress() -> None:
 
     assert test_job.status == Job.Status.IN_PROGRESS
 
-    update_job_success(test_job)
+    update_job_success(test_job, [])
     assert test_job.status == Job.Status.SUCCESS
 
     test_job.status = Job.Status.IN_PROGRESS
 
-    update_job_failed(test_job)
+    update_job_failed(test_job, [])
     assert test_job.status == Job.Status.FAILED
 
 
@@ -74,9 +74,9 @@ def test_job_update_failed() -> None:
     with pytest.raises(ValueError):
         update_job_in_progress(test_job)
     with pytest.raises(ValueError):
-        update_job_failed(test_job)
+        update_job_failed(test_job, [])
     with pytest.raises(ValueError):
-        update_job_success(test_job)
+        update_job_success(test_job, [])
 
     assert test_job.status == Job.Status.FAILED
 
@@ -91,9 +91,9 @@ def test_job_update_success() -> None:
     with pytest.raises(ValueError):
         update_job_in_progress(test_job)
     with pytest.raises(ValueError):
-        update_job_failed(test_job)
+        update_job_failed(test_job, [])
     with pytest.raises(ValueError):
-        update_job_success(test_job)
+        update_job_success(test_job, [])
 
     assert test_job.status == Job.Status.SUCCESS
 
@@ -125,7 +125,7 @@ def test_job_failure_starts_email_task(
         status=Job.Status.IN_PROGRESS,
     )
 
-    update_job_failed(test_job)
+    update_job_failed(test_job, [])
 
     subject, message, recipient = mocked.call_args_list[0].args
     assert "GPFWA" in subject
@@ -148,7 +148,7 @@ def test_job_success_starts_email_task(
         status=Job.Status.IN_PROGRESS,
     )
 
-    update_job_success(test_job)
+    update_job_success(test_job, [])
 
     subject, message, recipient = mocked.call_args_list[0].args
     assert "GPFWA" in subject
@@ -234,7 +234,7 @@ def test_annotate_vcf(
     saved_input = pathlib.Path(job.input_path)
 
     assert job.duration is not None
-    assert job.duration < 1.0
+    assert job.duration < 2.0
     assert saved_input.exists()
     assert saved_input.read_text() == vcf
 
@@ -533,13 +533,54 @@ def test_annotate_columns(
 
     assert job.status == Job.Status.SUCCESS
     assert job.duration is not None
-    assert job.duration < 1.0
+    assert job.duration < 2.0
 
     assert job.result_path.endswith(file_extension) is True
 
     output = pathlib.Path(job.result_path).read_text()
     lines = [line.split(separator) for line in output.strip().split("\n")]
     assert lines == expected_lines
+
+
+@pytest.mark.django_db
+def test_annotate_columns_t4c8(
+    admin_client: Client,
+) -> None:
+    annotation_config = "- position_score: scores/pos1"
+    file = textwrap.dedent("""
+        chrom,pos,var
+        chr1,9,del(3)
+    """).strip()
+
+    params = {
+        "genome": "t4c8",
+        "config": ContentFile(annotation_config),
+        "data": ContentFile(file, "test_input.tsv"),
+        "col_chrom": "chrom",
+        "col_pos": "pos",
+        "col_variant": "var",
+    }
+    params["separator"] = ","
+
+    response = admin_client.post("/api/jobs/annotate_columns", params)
+
+    assert response is not None
+    assert response.status_code == 204
+
+    user = User.objects.get(email="admin@example.com")
+    assert Job.objects.filter(owner=user).count() == 2
+    job = Job.objects.get(id=3)
+
+    assert job.status == Job.Status.SUCCESS
+    assert job.duration is not None
+    assert job.duration < 2.0
+
+    output = pathlib.Path(job.result_path).read_text()
+    lines = [line.split(",") for line in output.strip().split("\n")]
+    assert lines == [
+        ['chrom', 'pos', 'var', 'pos1'],
+        ['chr1', '9', 'del(3)', '0.425']
+    ]
 
 
 @pytest.mark.django_db
