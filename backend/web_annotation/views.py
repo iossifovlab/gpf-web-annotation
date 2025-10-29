@@ -935,6 +935,13 @@ class SingleAnnotation(AnnotationBaseView):
         result = pipeline.annotate(vcf_annotatable, {})
 
         annotators_data = []
+        if (
+            getattr(settings, "RESOURCES_BASE_URL") is None
+            or settings.RESOURCES_BASE_URL is None
+        ):
+            base_url = None
+        else:
+            base_url = settings.RESOURCES_BASE_URL
 
         for annotator in pipeline.annotators:
             details = {}
@@ -946,6 +953,12 @@ class SingleAnnotation(AnnotationBaseView):
                 "resource_id": ", ".join(
                     r.resource_id for r in annotator_info.resources),
             }
+            if base_url is not None:
+                details["resource_url"] = \
+                    f"{base_url}{annotator_info.resources[0].resource_id}"
+            else:
+                details["resource_url"] = \
+                    annotator_info.resources[0].resource_id
             for attribute_info in annotator.attributes:
                 if attribute_info.internal:
                     continue
