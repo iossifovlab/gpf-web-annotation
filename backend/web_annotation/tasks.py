@@ -11,6 +11,7 @@ from django.core.mail import send_mail
 from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
 from datetime import timedelta
+from subprocess import CalledProcessError
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +80,7 @@ def update_job_in_progress(job: Job) -> None:
     job.save()
 
 
-def update_job_failed(job: Job) -> None:
+def update_job_failed(job: Job, args: list[str]) -> None:
     """Update a job's state to failed."""
     if job.status != Job.Status.IN_PROGRESS:
         raise ValueError(
@@ -87,6 +88,7 @@ def update_job_failed(job: Job) -> None:
             f"which is not in in progress! ({job.status})",
         )
     job.status = Job.Status.FAILED
+    job.command_line = " ".join(args)
     job.save()
 
     # pylint: disable=import-outside-toplevel
@@ -102,7 +104,7 @@ def update_job_failed(job: Job) -> None:
     )
 
 
-def update_job_success(job: Job) -> None:
+def update_job_success(job: Job, args: list[str]) -> None:
     """Update a job's state to success."""
     if job.status != Job.Status.IN_PROGRESS:
         raise ValueError(
@@ -110,6 +112,7 @@ def update_job_success(job: Job) -> None:
             f"({job.status})",
         )
     job.status = Job.Status.SUCCESS
+    job.command_line = " ".join(args)
     job.save()
 
     # pylint: disable=import-outside-toplevel
@@ -130,25 +133,37 @@ def run_vcf_job(
 ) -> None:
     """Run a VCF annotation."""
     start = time.time()
+
+    logger.debug("Running vcf job")
+    logger.debug(job.input_path)
+    logger.debug(job.config_path)
+    logger.debug(job.result_path)
+    logger.debug(storage_dir)
+
+    args = [
+        str(job.input_path),
+        str(job.config_path),
+        "-o", str(job.result_path),
+        "-w", storage_dir,
+        "-j 1",
+        "-vv",
+    ]
+
+    if grr_definition is not None:
+        args.extend(["--grr-filename", grr_definition])
+
     try:
-        logger.debug("Running vcf job")
-        logger.debug(job.input_path)
-        logger.debug(job.config_path)
-        logger.debug(job.result_path)
-        logger.debug(storage_dir)
-        annotate_vcf_file(
-            str(job.input_path),
-            str(job.config_path),
-            str(job.result_path),
-            storage_dir,
-            grr_definition if grr_definition is not None else None,
-        )
-    except Exception:  # pylint: disable=broad-exception-caught
+        process = annotate_vcf_file(*args)
+    except CalledProcessError:
         logger.exception("Failed to execute job")
-        update_job_failed(job)
+        update_job_failed(job, ["annotate_vcf", *args])
+    except (OSError, TypeError, ValueError):
+        logger.exception("Failed to create job process")
+        update_job_failed(job, ["annotate_vcf", *args])
+
     else:
         job.duration = time.time() - start
-        update_job_success(job)
+        update_job_success(job, process.args)
 
 
 def delete_old_jobs(days_old: int = 0) -> None:
@@ -168,37 +183,67 @@ def run_columns_job(
 ) -> None:
     """Run a columnar annotation."""
     start = time.time()
+
+    logger.debug("Running vcf job")
+    logger.debug(job.input_path)
+    logger.debug(job.config_path)
+    logger.debug(job.result_path)
+    logger.debug(storage_dir)
+
+    args = [
+        str(job.input_path),
+        str(job.config_path),
+        "--reference-genome-resource-id", str(job.reference_genome),
+    ]
+
+    if details.col_chr:
+        args.extend(["--col-chrom", details.col_chr])
+    if details.col_pos:
+        args.extend(["--col-pos", details.col_pos])
+    if details.col_ref:
+        args.extend(["--col-ref", details.col_ref])
+    if details.col_alt:
+        args.extend(["--col-alt", details.col_alt])
+    if details.col_pos_beg:
+        args.extend(["--col-pos-beg", details.col_pos_beg])
+    if details.col_pos_end:
+        args.extend(["--col-pos-end", details.col_pos_end])
+    if details.col_cnv_type:
+        args.extend(["--col-cnv-type", details.col_cnv_type])
+    if details.col_vcf_like:
+        args.extend(["--col-vcf-like", details.col_vcf_like])
+    if details.col_variant:
+        args.extend(["--col-variant", details.col_variant])
+    if details.col_location:
+        args.extend(["--col-location", details.col_location])
+
+    if details.separator is not None:
+        args.extend([
+            "--input-separator", details.separator,
+            "--output-separator", details.separator,
+        ])
+
+    args.extend([
+        "-o", str(job.result_path),
+        "-w", storage_dir,
+        "-j 1",
+        "-vv",
+    ])
+    if grr_definition is not None:
+        args.extend(["--grr-filename", grr_definition])
+
     try:
-        logger.debug("Running vcf job")
-        logger.debug(job.input_path)
-        logger.debug(job.config_path)
-        logger.debug(job.result_path)
-        logger.debug(storage_dir)
-        annotate_columns_file(
-            str(job.reference_genome),
-            str(job.input_path),
-            str(job.config_path),
-            str(job.result_path),
-            storage_dir,
-            grr_definition if grr_definition is not None else None,
-            separator=details.separator,
-            col_chrom=details.col_chr,
-            col_pos=details.col_pos,
-            col_ref=details.col_ref,
-            col_alt=details.col_alt,
-            col_pos_beg=details.col_pos_beg,
-            col_pos_end=details.col_pos_end,
-            col_cnv_type=details.col_cnv_type,
-            col_vcf_like=details.col_vcf_like,
-            col_variant=details.col_variant,
-            col_location=details.col_location,
-        )
-    except Exception:  # pylint: disable=broad-exception-caught
+        process = annotate_columns_file(*args)
+    except CalledProcessError:
         logger.exception("Failed to execute job")
-        update_job_failed(job)
+        update_job_failed(job, ["annotate_columns", *args])
+    except (OSError, TypeError, ValueError):
+        logger.exception("Failed to create job process")
+        update_job_failed(job, ["annotate_columns", *args])
+
     else:
         job.duration = time.time() - start
-        update_job_success(job)
+        update_job_success(job, process.args)
 
 
 @shared_task

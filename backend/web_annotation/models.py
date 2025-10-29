@@ -50,6 +50,7 @@ class Job(models.Model):
     created = models.DateTimeField(default=timezone.now)
     status = models.IntegerField(choices=Status, default=Status.WAITING)
     duration = models.FloatField(null=True, default=None)
+    command_line = models.TextField(default="")
 
     owner = models.ForeignKey(
         'web_annotation.User', related_name='jobs', on_delete=models.CASCADE)
