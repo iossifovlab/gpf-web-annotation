@@ -1,20 +1,27 @@
 # pylint: disable=W0621,C0114,C0116,W0212,W0613
 import pytest
 import pathlib
+import textwrap
+import datetime
 
 from web_annotation.tests.mailhog_client import (
     MailhogClient,
 )
-from web_annotation.models import Job, User
+from web_annotation.models import Job, JobDetails, User
+from web_annotation.tasks import specify_job
 from web_annotation.tasks import (
     clean_old_jobs, send_email,
     update_job_in_progress,
     update_job_failed,
     update_job_success,
 )
+from django.conf import settings
+from django.db.models import ObjectDoesNotExist
 from django.utils import timezone
-from datetime import timedelta
+from django.test import Client
+from django.core.files.base import ContentFile
 from pytest_mock import MockerFixture
+from dae.genomic_resources.repository import GenomicResourceRepo
 
 
 @pytest.mark.django_db
@@ -168,9 +175,9 @@ def test_clean_old_jobs_removes_old_jobs(
             config_path=user_config,
             result_path=user_result,
             owner=user,
-            created=timezone.now() - timedelta(days=10),
+            created=timezone.now() - datetime.timedelta(days=10),
         )
-        job.created = timezone.now() - timedelta(days=10)
+        job.created = timezone.now() - datetime.timedelta(days=10)
         job.save()
 
     assert Job.objects.filter(is_active=True, owner=user).count() == 3
@@ -192,3 +199,351 @@ def test_clean_old_jobs_removes_old_jobs(
     assert pathlib.Path(recent_job.input_path).exists()
     assert pathlib.Path(recent_job.config_path).exists()
     assert pathlib.Path(recent_job.result_path).exists()
+
+
+@pytest.mark.django_db
+def test_annotate_vcf(
+    user_client: Client, test_grr: GenomicResourceRepo,
+) -> None:
+    user = User.objects.get(email="user@example.com")
+
+    assert Job.objects.filter(owner=user).count() == 1
+
+    annotation_config = "- position_score: scores/pos1"
+    vcf = textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        ##contig=<ID=chr1>
+        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+        chr1	1	.	C	A	.	.	.
+    """).strip()
+
+    response = user_client.post(
+        "/api/jobs/annotate_vcf",
+        {
+            "genome": "hg38",
+            "config": ContentFile(annotation_config),
+            "data": ContentFile(vcf)
+        },
+    )
+    assert response.status_code == 204
+
+    assert Job.objects.filter(owner=user).count() == 2
+
+    job = Job.objects.get(id=3)
+
+    saved_input = pathlib.Path(job.input_path)
+
+    assert job.duration is not None
+    assert job.duration < 1.0
+    assert saved_input.exists()
+    assert saved_input.read_text() == vcf
+
+    saved_config = pathlib.Path(job.config_path)
+    assert saved_config.exists()
+    assert saved_config.read_text() == annotation_config
+
+    result_path = pathlib.Path(job.result_path)
+    assert result_path.parent == \
+        pathlib.Path(settings.JOB_RESULT_STORAGE_DIR) / user.email
+    assert result_path.exists()
+
+
+@pytest.mark.django_db
+def test_annotate_vcf_calls_annotation_runner(
+    user_client: Client,
+    mocker: MockerFixture,
+) -> None:
+    mocked = mocker.patch(
+        "web_annotation.tasks.annotate_vcf_job.delay")
+
+    annotation_config = "- position_score: scores/pos1"
+    vcf = textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        ##contig=<ID=chr1>
+        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+        chr1	1	.	C	A	.	.	.
+    """).strip("\n")
+
+    assert mocked.call_count == 0
+
+    assert len(Job.objects.all()) == 2
+
+    response = user_client.post(
+        "/api/jobs/annotate_vcf",
+        {
+            "genome": "hg38",
+            "config": ContentFile(annotation_config),
+            "data": ContentFile(vcf)
+        },
+    )
+    assert response.status_code == 204
+
+    assert mocked.call_count == 1
+
+    assert len(Job.objects.all()) == 3
+    created_job = Job.objects.all().latest("pk")
+    assert created_job.owner.email == "user@example.com"
+
+
+@pytest.mark.django_db
+def test_annotate_vcf_bad_config(user_client: Client) -> None:
+    user = User.objects.get(email="user@example.com")
+
+    assert Job.objects.filter(owner=user).count() == 1
+
+    with open(
+        str(pathlib.Path(__file__).parent / "fixtures" / "GIMP_Pepper.png"),
+        "rb",
+    ) as image:
+        raw_img = image.read()
+
+    vcf = textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        ##contig=<ID=chr1>
+        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+        chr1	1	.	C	A	.	.	.
+    """)
+
+    assert len(Job.objects.all()) == 2
+    response = user_client.post(
+        "/api/jobs/annotate_vcf",
+        {
+            "genome": "hg38",
+            "config": ContentFile(raw_img),
+            "data": ContentFile(vcf)
+        },
+    )
+    assert len(Job.objects.all()) == 2
+    assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_annotate_vcf_bad_input_data(user_client: Client) -> None:
+    user = User.objects.get(email="user@example.com")
+
+    assert Job.objects.filter(owner=user).count() == 1
+
+    with open(str(
+            pathlib.Path(__file__).parent /
+            "fixtures" / "GIMP_Pepper.png"), "rb") as image:
+        raw_img = image.read()
+
+    assert len(Job.objects.all()) == 2
+    response = user_client.post(
+        "/api/jobs/annotate_vcf",
+        {
+            "genome": "hg38",
+            "config": ContentFile("- sample_annotator: sample_resource"),
+            "data": ContentFile(raw_img)
+         },
+    )
+    assert len(Job.objects.all()) == 2
+    assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
+    user = User.objects.get(email="user@example.com")
+
+    assert Job.objects.filter(owner=user).count() == 1
+
+    assert len(Job.objects.all()) == 2
+    response = user_client.post(
+        "/api/jobs/annotate_vcf",
+        {
+            "genome": "hg38",
+            "config": ContentFile("sample_annotator: sample_resource"),
+            "data": ContentFile("blabla random text")
+         },
+    )
+    assert len(Job.objects.all()) == 2
+    assert response.status_code == 400
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "example_tsv, separator, specification, expected_lines",
+    [
+        (
+            textwrap.dedent("""
+                chrom	pos	ref	alt
+                chr1	1	C	A
+            """),
+            "\t",
+            {
+                "col_chrom": "chrom",
+                "col_pos": "pos",
+                "col_ref": "ref",
+                "col_alt": "alt",
+            },
+            [
+                ["chrom", "pos", "ref", "alt", "pos1"],
+                ["chr1", "1", "C", "A", "0.1"],
+            ]
+        ),
+        (
+            textwrap.dedent("""
+                chrom,pos,ref,alt
+                chr1,1,C,A
+            """),
+            ",",
+            {
+                "col_chrom": "chrom",
+                "col_pos": "pos",
+                "col_ref": "ref",
+                "col_alt": "alt",
+            },
+            [
+                ["chrom", "pos", "ref", "alt", "pos1"],
+                ["chr1", "1", "C", "A", "0.1"],
+            ]
+        ),
+        (
+            textwrap.dedent("""
+                loc,var
+                chr1:999,del(3)
+            """),
+            ",",
+            {
+                "col_location": "loc",
+                "col_variant": "var",
+            },
+            [
+                ['loc', 'var', 'pos1'],
+                ['chr1:999', 'del(3)', '']
+            ]
+        ),
+        (
+            textwrap.dedent("""
+                chr,ps
+                chr1,666
+            """),
+            ",",
+            {
+                "col_chrom": "chr",
+                "col_pos": "ps",
+            },
+            [
+                ['chr', 'ps', 'pos1'],
+                ['chr1', '666', '']
+            ]
+        ),
+        (
+            textwrap.dedent("""
+                chr,pos,vr
+                chr1,999,sub(T->C)
+            """),
+            ",",
+            {
+                "col_chrom": "chr",
+                "col_pos": "pos",
+                "col_variant": "vr",
+            },
+            [
+                ['chr', 'pos', 'vr', 'pos1'],
+                ['chr1', '999', 'sub(T->C)', '']
+            ]
+        ),
+        (
+            textwrap.dedent("""
+                chr,beg,end
+                chr1,5,10
+            """),
+            ",",
+            {
+                "col_chrom": "chr",
+                "col_pos_beg": "beg",
+                "col_pos_end": "end",
+            },
+            [
+                ['chr', 'beg', 'end', 'pos1'],
+                ['chr1', '5', '10', '0.35']
+            ]
+        ),
+        (
+            textwrap.dedent("""
+                chr,pos_beg,pos_end,cnv
+                chr1,7,20,cnv+
+            """),
+            ",",
+            {
+                "col_chrom": "chr",
+                "col_pos_beg": "pos_beg",
+                "col_pos_end": "pos_end",
+                "col_cnv_type": "end",
+            },
+            [
+                ['chr', 'pos_beg', 'pos_end', 'cnv', 'pos1'],
+                ['chr1', '7', '20', 'cnv+','0.483']
+            ]
+        ),
+        (
+            textwrap.dedent("""
+                vcf
+                chr1:5:C:CT
+            """),
+            None,
+            {
+                "col_vcf_like": "vcf",
+            },
+            [
+                ['vcf', 'pos1'],
+                ['chr1:5:C:CT', '0.25']
+            ]
+        ),
+    ],
+)
+def test_annotate_columns(
+    admin_client: Client,
+    example_tsv: str,
+    separator: str | None,
+    specification: dict[str, str],
+    expected_lines: list[list[str]],
+) -> None:
+    annotation_config = "- position_score: scores/pos1"
+    tsv = example_tsv.strip()
+
+    params = {
+        "genome": "hg38",
+        "config": ContentFile(annotation_config),
+        "data": ContentFile(tsv),
+        **specification,
+    }
+    if separator is not None:
+        params["separator"] = separator
+
+    response = admin_client.post("/api/jobs/annotate_columns", params)
+
+    assert response is not None
+    assert response.status_code == 204
+
+    user = User.objects.get(email="admin@example.com")
+    assert Job.objects.filter(owner=user).count() == 2
+    job = Job.objects.get(id=3)
+
+    assert job.status == Job.Status.SUCCESS
+    assert job.duration is not None
+    assert job.duration < 1.0
+
+    output = pathlib.Path(job.result_path).read_text()
+    lines = [line.split(separator) for line in output.strip().split("\n")]
+    assert lines == expected_lines
+
+
+@pytest.mark.django_db
+def test_annotate_columns_bad_request(admin_client: Client) -> None:
+    annotation_config = "- position_score: scores/pos1"
+    input_file = textwrap.dedent("""
+        chrom;pos;ref;alt
+        chr1;1;C;A
+    """).strip()
+    response = admin_client.post(
+        "/api/jobs/annotate_columns",
+        {
+            "genome": "hg38",
+            "config": ContentFile(annotation_config),
+            "data": ContentFile(input_file)
+        },
+    )
+
+    assert response.status_code == 400

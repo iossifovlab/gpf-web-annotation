@@ -35,11 +35,10 @@ class Job(models.Model):
     """Model for storing base job data."""
     class Status(models.IntegerChoices):  # pylint: disable=too-many-ancestors
         """Class for job status."""
-        SPECIFYING = 1
-        WAITING = 2
-        IN_PROGRESS = 3
-        SUCCESS = 4
-        FAILED = 5
+        WAITING = 1
+        IN_PROGRESS = 2
+        SUCCESS = 3
+        FAILED = 4
 
     input_path = models.FilePathField(
         path=settings.JOB_INPUT_STORAGE_DIR)
@@ -83,7 +82,7 @@ class JobDetails(models.Model):
     col_vcf_like = models.CharField(max_length=1024, default="")
     col_variant = models.CharField(max_length=1024, default="")
     col_location = models.CharField(max_length=1024, default="")
-    separator = models.CharField(max_length=1)
+    separator = models.CharField(max_length=1, null=True)
     columns = models.TextField()
     job = models.ForeignKey(
         'web_annotation.Job', related_name='details', on_delete=models.CASCADE)
