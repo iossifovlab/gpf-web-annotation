@@ -833,7 +833,7 @@ class DetermineFileSeparator(AnnotationBaseView):
         longest_line_len = max(lengths)
         shortest_line_len = min(lengths)
 
-        if longest_line_len == 0 or longest_line_len == 1:
+        if longest_line_len in (0, 1):
             return False
         if longest_line_len == shortest_line_len:
             return True
