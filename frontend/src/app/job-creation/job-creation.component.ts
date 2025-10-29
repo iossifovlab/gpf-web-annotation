@@ -1,23 +1,25 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { MatDialogRef, MatDialogActions, MatDialogContent } from '@angular/material/dialog';
-import { JobCreationView } from './jobs';
+import { FileContent, JobCreationView } from './jobs';
 import { JobsService } from './jobs.service';
 import { Observable, take } from 'rxjs';
 import { Pipeline } from './pipelines';
 import { FormsModule } from '@angular/forms';
 import { SingleAnnotationService } from '../single-annotation.service';
+import { ColumnSpecifyingModalComponent } from '../column-specifying-modal/column-specifying-modal.component';
 
 
 @Component({
   selector: 'app-job-creation',
-  imports: [MatDialogActions, MatDialogContent, CommonModule, FormsModule],
+  imports: [MatDialogActions, MatDialogContent, CommonModule, FormsModule, ColumnSpecifyingModalComponent],
   templateUrl: './job-creation.component.html',
   styleUrl: './job-creation.component.css'
 })
 export class JobCreationComponent implements OnInit {
   public file: File = null;
   public fileSeparator: string = null;
+  public fileContent: FileContent;
   public uploadError = '';
   public view: JobCreationView = 'pipeline list';
   public pipelines : Pipeline[] = [];
@@ -127,6 +129,7 @@ export class JobCreationComponent implements OnInit {
     this.creationError = '';
     this.file = null;
     this.uploadError = '';
+    this.fileContent = null;
   }
 
   private onFileChange(file: File): void {
@@ -138,10 +141,8 @@ export class JobCreationComponent implements OnInit {
   }
 
   private submitFile(): void {
-    this.jobsService.submitFile(this.file).subscribe({
-      next: (resp) => {
-        this.dialogRef.close({isCanceled: false, fileContent: resp});
-      }
+    this.jobsService.submitFile(this.file).pipe(take(1)).subscribe(res => {
+      this.fileContent = res;
     });
   }
 

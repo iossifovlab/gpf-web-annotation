@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject, OnInit } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { Component, Input } from '@angular/core';
+import { MatDialogRef } from '@angular/material/dialog';
 import { FileContent } from '../job-creation/jobs';
 import { TextShortenPipe } from '../text-shorten.pipe';
 import { MatSelectModule } from '@angular/material/select';
@@ -13,8 +13,7 @@ import { JobsService } from '../job-creation/jobs.service';
   templateUrl: './column-specifying-modal.component.html',
   styleUrl: './column-specifying-modal.component.css'
 })
-export class ColumnSpecifyingModalComponent implements OnInit {
-  public fileContent: FileContent;
+export class ColumnSpecifyingModalComponent {
   public columnNames = [
     'location',
     'variant',
@@ -27,18 +26,14 @@ export class ColumnSpecifyingModalComponent implements OnInit {
     'cnv_type',
     'vcf_like',
   ];
+  @Input() public fileContent: FileContent;
   public mappedColumns = new Map<string, string>();
   public error = '';
 
   public constructor(
-     @Inject(MAT_DIALOG_DATA) public data: FileContent,
     private dialogRef: MatDialogRef<ColumnSpecifyingModalComponent>,
     private jobsService: JobsService
   ) { }
-
-  public ngOnInit(): void {
-    this.fileContent = this.data;
-  }
 
   public onSelectName(selectedName: string, column: string): void {
     this.error = '';
