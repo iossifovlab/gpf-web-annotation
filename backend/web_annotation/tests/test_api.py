@@ -95,6 +95,7 @@ def test_job_details(user_client: Client) -> None:
     assert result["id"] == 1
     assert result["status"] == Job.Status.WAITING
     assert result["owner"] == "user@example.com"
+    assert result["duration"] == 1.0
 
 
 @pytest.mark.django_db
