@@ -500,6 +500,7 @@ class JobDetail(AnnotationBaseView):
             "id": job.pk,
             "owner": job.owner.email,
             "created": str(job.created),
+            "duration": job.duration,
             "status": job.status,
         }
         try:
