@@ -1,0 +1,10 @@
+
+                type: gene_set
+                id: main
+                format: directory
+                directory: main_gene_sets
+                web_label: Main
+                web_format_str: "key| (|count|): |desc"
+                meta:
+                  description: t4c8 main gene sets
+                

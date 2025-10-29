@@ -32,6 +32,10 @@ GENOME_DEFINITIONS = {
         "pipeline_id": "pipeline/test_pipeline",
         "reference_genome_id": "hg38/GRCh38-hg38/genome"
     },
+    "t4c8": {
+        "pipeline_id": "t4c8/t4c8_pipeline",
+        "reference_genome_id": "t4c8/t4c8_genome"
+    },
 }
 
 RESOURCES_BASE_URL = "http://test/"
