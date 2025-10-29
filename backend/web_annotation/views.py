@@ -393,8 +393,28 @@ class AnnotationBaseView(views.APIView):
                 {"reason": f"Genome {genome} is not a valid option!"},
                 status=views.status.HTTP_404_NOT_FOUND,
             )
-        
+
         return None
+
+    def _determine_file_extensions(self, request: Request) -> str:
+        assert isinstance(request.data, QueryDict)
+        assert isinstance(request.FILES, MultiValueDict)
+
+        separator = request.data.get("separator")
+
+        if separator  == "\t":
+            return ".tsv"
+        if separator == ",":
+            return ".csv"
+
+        uploaded_file = request.FILES["data"]
+        assert isinstance(uploaded_file, UploadedFile)
+        assert uploaded_file.name is not None
+
+        if uploaded_file.name.endswith(".vcf"):
+            return ".vcf"
+
+        return ".txt"
 
     def _create_job(self, request: Request) -> Response | tuple[str, Job]:
         validation_response = self._validate_request(request)
@@ -433,7 +453,9 @@ class AnnotationBaseView(views.APIView):
             return Response(
                 status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
 
-        data_filename = f"{job_name}.vcf"
+        file_ext = self._determine_file_extensions(request)
+
+        data_filename = f"{job_name}{file_ext}"
         input_path = Path(
             settings.JOB_INPUT_STORAGE_DIR, request.user.email, data_filename)
 

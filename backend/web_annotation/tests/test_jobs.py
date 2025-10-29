@@ -222,7 +222,7 @@ def test_annotate_vcf(
         {
             "genome": "hg38",
             "config": ContentFile(annotation_config),
-            "data": ContentFile(vcf)
+            "data": ContentFile(vcf, "test_input.vcf")
         },
     )
     assert response.status_code == 204
@@ -246,6 +246,7 @@ def test_annotate_vcf(
     assert result_path.parent == \
         pathlib.Path(settings.JOB_RESULT_STORAGE_DIR) / user.email
     assert result_path.exists()
+    assert job.result_path.endswith(".vcf") is True
 
 
 @pytest.mark.django_db
@@ -362,7 +363,7 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "example_tsv, separator, specification, expected_lines",
+    "input_file, separator, specification, expected_lines, file_extension",
     [
         (
             textwrap.dedent("""
@@ -379,7 +380,8 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
             [
                 ["chrom", "pos", "ref", "alt", "pos1"],
                 ["chr1", "1", "C", "A", "0.1"],
-            ]
+            ],
+            ".tsv",
         ),
         (
             textwrap.dedent("""
@@ -396,7 +398,8 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
             [
                 ["chrom", "pos", "ref", "alt", "pos1"],
                 ["chr1", "1", "C", "A", "0.1"],
-            ]
+            ],
+            ".csv",
         ),
         (
             textwrap.dedent("""
@@ -411,7 +414,8 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
             [
                 ['loc', 'var', 'pos1'],
                 ['chr1:999', 'del(3)', '']
-            ]
+            ],
+            ".csv",
         ),
         (
             textwrap.dedent("""
@@ -426,7 +430,8 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
             [
                 ['chr', 'ps', 'pos1'],
                 ['chr1', '666', '']
-            ]
+            ],
+            ".csv",
         ),
         (
             textwrap.dedent("""
@@ -442,7 +447,8 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
             [
                 ['chr', 'pos', 'vr', 'pos1'],
                 ['chr1', '999', 'sub(T->C)', '']
-            ]
+            ],
+            ".csv",
         ),
         (
             textwrap.dedent("""
@@ -458,7 +464,8 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
             [
                 ['chr', 'beg', 'end', 'pos1'],
                 ['chr1', '5', '10', '0.35']
-            ]
+            ],
+            ".csv",
         ),
         (
             textwrap.dedent("""
@@ -475,7 +482,8 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
             [
                 ['chr', 'pos_beg', 'pos_end', 'cnv', 'pos1'],
                 ['chr1', '7', '20', 'cnv+','0.483']
-            ]
+            ],
+            ".csv",
         ),
         (
             textwrap.dedent("""
@@ -489,24 +497,26 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
             [
                 ['vcf', 'pos1'],
                 ['chr1:5:C:CT', '0.25']
-            ]
+            ],
+            ".txt",
         ),
     ],
 )
 def test_annotate_columns(
     admin_client: Client,
-    example_tsv: str,
+    input_file: str,
     separator: str | None,
     specification: dict[str, str],
     expected_lines: list[list[str]],
+    file_extension: str,
 ) -> None:
     annotation_config = "- position_score: scores/pos1"
-    tsv = example_tsv.strip()
+    file = input_file.strip()
 
     params = {
         "genome": "hg38",
         "config": ContentFile(annotation_config),
-        "data": ContentFile(tsv),
+        "data": ContentFile(file, "test_input.tsv"),
         **specification,
     }
     if separator is not None:
@@ -524,6 +534,8 @@ def test_annotate_columns(
     assert job.status == Job.Status.SUCCESS
     assert job.duration is not None
     assert job.duration < 1.0
+
+    assert job.result_path.endswith(file_extension) is True
 
     output = pathlib.Path(job.result_path).read_text()
     lines = [line.split(separator) for line in output.strip().split("\n")]
