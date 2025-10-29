@@ -500,6 +500,7 @@ class JobDetail(AnnotationBaseView):
             "id": job.pk,
             "owner": job.owner.email,
             "created": str(job.created),
+            "duration": job.duration,
             "status": job.status,
         }
         try:
@@ -1020,7 +1021,8 @@ class SingleAnnotation(AnnotationBaseView):
                 )
 
                 if attribute_info.type in ["object", "annotatable"]:
-                    value = str(value)
+                    if not isinstance(value, (dict, list)):
+                        value = str(value)
                 attributes.append({
                     "name": attribute_info.name,
                     "description": attribute_info.description,

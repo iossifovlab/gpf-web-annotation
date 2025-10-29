@@ -106,6 +106,7 @@ def setup_test_db(
         config_path=user_config,
         result_path=user_result,
         owner=user,
+        duration=1.0,
     ).save()
 
     admin = User.objects.create_superuser(
@@ -125,6 +126,7 @@ def setup_test_db(
         config_path=admin_config,
         result_path=admin_result,
         owner=admin,
+        duration=1.0,
     ).save()
 
 
