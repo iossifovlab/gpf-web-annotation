@@ -495,8 +495,9 @@ def test_genomes_view(admin_client: Client) -> None:
     response = admin_client.get("/api/genomes")
 
     assert response.status_code == 200
-    assert len(response.data) == 1
+    assert len(response.data) == 2
     assert response.data[0] == "hg38"
+    assert response.data[1] == "t4c8"
 
 
 def test_single_annotation_throttled(user_client: Client) -> None:
