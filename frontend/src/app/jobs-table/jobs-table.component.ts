@@ -4,9 +4,8 @@ import { JobCreationComponent } from '../job-creation/job-creation.component';
 import { MatDialog } from '@angular/material/dialog';
 import { JobsService } from '../job-creation/jobs.service';
 import { repeat, Subscription, take, takeWhile } from 'rxjs';
-import { FileContent, getStatusClassName, Job } from '../job-creation/jobs';
+import { getStatusClassName, Job } from '../job-creation/jobs';
 import { JobDetailsComponent } from '../job-details/job-details.component';
-import { ColumnSpecifyingModalComponent } from '../column-specifying-modal/column-specifying-modal.component';
 
 @Component({
   selector: 'app-jobs-table',
@@ -37,37 +36,11 @@ export class JobsTableComponent implements OnInit, OnDestroy {
       minHeight: '400px'
     });
 
-    createModalRef.afterClosed().subscribe((result: {isCanceled: boolean, fileContent: FileContent}) => {
+    createModalRef.afterClosed().subscribe((result: {isCanceled: boolean}) => {
       if (!result) {
         return;
       }
       if (!result.isCanceled) {
-        this.refreshTable();
-      }
-      if (result.fileContent) {
-        this.openColumnMappingModal(result.fileContent);
-      }
-    });
-  }
-
-  public getModalContent(jobId: number): void {
-    this.jobsService.getFileData(jobId).pipe(take(1)).subscribe(data =>
-      this.openColumnMappingModal(data)
-    );
-  }
-
-  public openColumnMappingModal(content: FileContent): void {
-    const specifyColumnModalRef = this.dialog.open(ColumnSpecifyingModalComponent, {
-      data: content,
-      height: 'fit-content',
-      width: '50vw',
-      minHeight: '300px',
-      maxHeight: '1000px',
-      maxWidth: '1000px'
-    });
-
-    specifyColumnModalRef.afterClosed().subscribe(areColumnsSubmitted => {
-      if (areColumnsSubmitted) {
         this.refreshTable();
       }
     });
