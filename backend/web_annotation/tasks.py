@@ -234,7 +234,7 @@ def run_columns_job(
 
     try:
         process = annotate_columns_file(*args)
-    except CalledProcessError:
+    except CalledProcessError as e:
         logger.exception("Failed to execute job")
         update_job_failed(job, ["annotate_columns", *args])
     except (OSError, TypeError, ValueError):

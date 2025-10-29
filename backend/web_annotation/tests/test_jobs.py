@@ -1,4 +1,5 @@
 # pylint: disable=W0621,C0114,C0116,W0212,W0613
+import gzip
 import pytest
 import pathlib
 import textwrap
@@ -7,8 +8,7 @@ import datetime
 from web_annotation.tests.mailhog_client import (
     MailhogClient,
 )
-from web_annotation.models import Job, JobDetails, User
-from web_annotation.tasks import specify_job
+from web_annotation.models import Job, User
 from web_annotation.tasks import (
     clean_old_jobs, send_email,
     update_job_in_progress,
@@ -16,7 +16,6 @@ from web_annotation.tasks import (
     update_job_success,
 )
 from django.conf import settings
-from django.db.models import ObjectDoesNotExist
 from django.utils import timezone
 from django.test import Client
 from django.core.files.base import ContentFile
@@ -594,6 +593,101 @@ def test_annotate_columns_t4c8(
         ['chrom', 'pos', 'var', 'pos1'],
         ['chr1', '9', 'del(3)', '0.425']
     ]
+
+
+@pytest.mark.django_db
+def test_annotate_columns_t4c8_gzipped(
+    admin_client: Client,
+) -> None:
+    annotation_config = "- position_score: scores/pos1"
+    file = gzip.compress(textwrap.dedent("""
+        chrom,pos,var
+        chr1,9,del(3)
+    # """).strip().encode("utf-8"))
+
+    params = {
+        "genome": "t4c8",
+        "config": ContentFile(annotation_config),
+        "data": ContentFile(file, "test_input.tsv.gz"),
+        "col_chrom": "chrom",
+        "col_pos": "pos",
+        "col_variant": "var",
+    }
+    params["separator"] = ","
+
+    response = admin_client.post("/api/jobs/annotate_columns", params)
+
+    assert response is not None
+    assert response.status_code == 204
+
+    user = User.objects.get(email="admin@example.com")
+    assert Job.objects.filter(owner=user).count() == 2
+    job = Job.objects.get(id=3)
+
+    assert job.status == Job.Status.SUCCESS
+    assert job.duration is not None
+    assert job.duration < 2.0
+
+    result_path = pathlib.Path(job.result_path)
+    assert job.result_path.endswith(".gz"), str(result_path)
+    assert result_path.exists(), str(result_path)
+    output = gzip.decompress(
+        pathlib.Path(job.result_path).read_bytes()).decode("utf-8")
+    lines = [line.split(",") for line in output.strip().split("\n")]
+    assert lines == [
+        ['chrom', 'pos', 'var', 'pos1'],
+        ['chr1', '9', 'del(3)', '0.425']
+    ]
+
+
+@pytest.mark.django_db
+def test_annotate_vcf_gzip(
+    user_client: Client, test_grr: GenomicResourceRepo,
+) -> None:
+    user = User.objects.get(email="user@example.com")
+
+    assert Job.objects.filter(owner=user).count() == 1
+
+    annotation_config = "- position_score: scores/pos1"
+    vcf = gzip.compress(textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        ##contig=<ID=chr1>
+        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+        chr1	1	.	C	A	.	.	.
+    """).strip().encode())
+
+    response = user_client.post(
+        "/api/jobs/annotate_vcf",
+        {
+            "genome": "hg38",
+            "config": ContentFile(annotation_config),
+            "data": ContentFile(vcf, "test_input.vcf.gz")
+        },
+    )
+    assert response.status_code == 204
+
+    assert Job.objects.filter(owner=user).count() == 2
+
+    job = Job.objects.get(id=3)
+
+    saved_input = pathlib.Path(job.input_path)
+
+    assert job.duration is not None
+    assert job.duration < 2.0
+    assert saved_input.exists()
+    assert saved_input.read_text() == vcf
+
+    saved_config = pathlib.Path(job.config_path)
+    assert saved_config.exists()
+    assert saved_config.read_text() == annotation_config
+
+    result_path = pathlib.Path(job.result_path)
+    assert result_path.parent == \
+        pathlib.Path(settings.JOB_RESULT_STORAGE_DIR) / user.email
+    assert result_path.exists(), result_path
+    assert job.result_path.endswith(".vcf.gz")
+    output = gzip.decompress(result_path.read_bytes()).decode("utf-8")
+    assert output == "alabala"
 
 
 @pytest.mark.django_db

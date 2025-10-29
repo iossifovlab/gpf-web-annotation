@@ -394,25 +394,35 @@ class AnnotationBaseView(views.APIView):
 
         return None
 
-    def _determine_file_extensions(self, request: Request) -> str:
-        assert isinstance(request.data, QueryDict)
-        assert isinstance(request.FILES, MultiValueDict)
 
-        separator = request.data.get("separator")
+    def _basic_file_extension(self, file: UploadedFile, separator: str) -> str:
+        assert file.name is not None
 
         if separator  == "\t":
             return ".tsv"
         if separator == ",":
             return ".csv"
+        if file.name.find(".vcf") > 0:
+            return ".vcf"
+        return ".txt"
+
+    def _file_extension(self, request: Request) -> str:
+        assert isinstance(request.data, QueryDict)
+        assert isinstance(request.FILES, MultiValueDict)
+
 
         uploaded_file = request.FILES["data"]
         assert isinstance(uploaded_file, UploadedFile)
         assert uploaded_file.name is not None
+        separator = request.data.get("separator")
+        ext = self._basic_file_extension(uploaded_file, cast(str, separator))
 
-        if uploaded_file.name.endswith(".vcf"):
-            return ".vcf"
+        if uploaded_file.name.endswith(".gz"):
+            ext = f"{ext}.gz"
+        if uploaded_file.name.endswith(".bgz"):
+            ext = f"{ext}.bgz"
 
-        return ".txt"
+        return ext
 
     def _create_job(self, request: Request) -> Response | tuple[str, Job]:
         validation_response = self._validate_request(request)
@@ -451,7 +461,7 @@ class AnnotationBaseView(views.APIView):
             return Response(
                 status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
 
-        file_ext = self._determine_file_extensions(request)
+        file_ext = self._file_extension(request)
 
         data_filename = f"{job_name}{file_ext}"
         input_path = Path(
@@ -576,7 +586,7 @@ class AnnotateVCF(AnnotationBaseView):
         job_name, job = job_or_response
 
         try:
-            vcf = VariantFile(job.input_path, "r")
+            vcf = VariantFile(job.input_path)
         except (ValueError, OSError):
             self._cleanup(job_name)
             return Response(
