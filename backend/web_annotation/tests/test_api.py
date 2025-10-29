@@ -409,6 +409,8 @@ def test_single_annotation(admin_client: Client) -> None:
         content_type="application/json",
     )
 
+    assert response.status_code == 200
+
     data = response.data
     assert "variant" in data
     assert "annotators" in data
@@ -685,3 +687,109 @@ def test_preview_delimeter_anonymous(
 
     assert response is not None
     assert response.status_code == 403
+
+
+def test_single_annotation_t4c8(admin_client: Client) -> None:
+    response = admin_client.post(
+        "/api/single_annotate",
+        {
+            "genome": "t4c8",
+            "variant": {
+                "chrom": "chr1", "pos": 53, "ref": "C", "alt": "A",
+            }
+        },
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+
+    data = response.data  # type: ignore
+    assert "variant" in data
+    assert "annotators" in data
+
+    variant_data = data["variant"]
+    annotators_data = data["annotators"]
+
+    assert variant_data == {
+        "chromosome": "chr1",
+        "position": 53,
+        "reference": "C",
+        "alternative": "A",
+        "variant_type": "SUBSTITUTION",
+    }
+    assert len(annotators_data) == 2
+    effect_annotator = annotators_data[0]
+    gene_score_annotator = annotators_data[1]
+    assert effect_annotator["details"]["name"] == "effect_annotator"
+    assert effect_annotator["details"]["resource_id"] == \
+        "t4c8/t4c8_genome, t4c8/t4c8_genes"
+    assert effect_annotator["details"]["resource_url"] == \
+        "http://test/t4c8/t4c8_genome"
+
+    assert gene_score_annotator["details"]["name"] == "gene_score_annotator"
+    assert gene_score_annotator["details"]["resource_id"] == \
+        "t4c8/gene_scores/t4c8_score"
+    assert gene_score_annotator["details"]["resource_url"] == \
+        "http://test/t4c8/gene_scores/t4c8_score"
+
+    assert len(gene_score_annotator["attributes"]) == 1
+    gene_score_attributes = gene_score_annotator["attributes"]
+    assert gene_score_attributes[0]["name"] == "t4c8_score"
+    assert gene_score_attributes[0]["source"] == "t4c8_score"
+    assert gene_score_attributes[0]["type"] == "object"
+    assert gene_score_attributes[0]["result"] == {
+        "value": {"t4": 10.123456789},
+        "histogram": \
+            "histograms/t4c8/gene_scores/t4c8_score?score_id=t4c8_score",
+    }
+
+    response = admin_client.post(
+        "/api/single_annotate",
+        {
+            "genome": "t4c8",
+            "variant": {
+                "chrom": "chr1", "pos": 102, "ref": "C", "alt": "A",
+            }
+        },
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+
+    data = response.data  # type: ignore
+    assert "variant" in data
+    assert "annotators" in data
+
+    variant_data = data["variant"]
+    annotators_data = data["annotators"]
+
+    assert variant_data == {
+        "chromosome": "chr1",
+        "position": 102,
+        "reference": "C",
+        "alternative": "A",
+        "variant_type": "SUBSTITUTION",
+    }
+    assert len(annotators_data) == 2
+    effect_annotator = annotators_data[0]
+    gene_score_annotator = annotators_data[1]
+    assert effect_annotator["details"]["name"] == "effect_annotator"
+    assert effect_annotator["details"]["resource_id"] == \
+        "t4c8/t4c8_genome, t4c8/t4c8_genes"
+    assert effect_annotator["details"]["resource_url"] == \
+        "http://test/t4c8/t4c8_genome"
+
+    assert gene_score_annotator["details"]["name"] == "gene_score_annotator"
+    assert gene_score_annotator["details"]["resource_id"] == \
+        "t4c8/gene_scores/t4c8_score"
+    assert gene_score_annotator["details"]["resource_url"] == \
+        "http://test/t4c8/gene_scores/t4c8_score"
+
+    assert len(gene_score_annotator["attributes"]) == 1
+    gene_score_attributes = gene_score_annotator["attributes"]
+    assert gene_score_attributes[0]["name"] == "t4c8_score"
+    assert gene_score_attributes[0]["source"] == "t4c8_score"
+    assert gene_score_attributes[0]["type"] == "object"
+    assert gene_score_attributes[0]["result"] == {
+        "value": {"c8": 20.0},
+        "histogram": \
+            "histograms/t4c8/gene_scores/t4c8_score?score_id=t4c8_score",
+    }
