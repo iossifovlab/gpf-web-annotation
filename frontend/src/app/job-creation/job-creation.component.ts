@@ -132,6 +132,17 @@ export class JobCreationComponent implements OnInit {
   private onFileChange(file: File): void {
     this.isFormatValid(file);
     this.file = file;
+    if (file.type !== 'vcf') {
+      this.submitFile();
+    }
+  }
+
+  private submitFile(): void {
+    this.jobsService.submitFile(this.file).subscribe({
+      next: (resp) => {
+        this.dialogRef.close({isCanceled: false, fileContent: resp});
+      }
+    });
   }
 
   public changeView(view: JobCreationView): void {

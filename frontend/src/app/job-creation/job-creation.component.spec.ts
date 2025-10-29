@@ -36,6 +36,11 @@ class JobsServiceMock {
   public getAnnotationPipelines(): Observable<Pipeline[]> {
     return of(mockPipelines);
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public submitFile(file: File): Observable<FileContent> {
+    return of(new FileContent(1, ['chr', 'pos'], [['1', '123']]));
+  }
 }
 
 describe('JobCreationComponent', () => {
@@ -107,13 +112,15 @@ describe('JobCreationComponent', () => {
     expect(component.uploadError).toBe('Unsupported format!');
   });
 
-  it('should upload csv file', () => {
+  it('should upload csv file and sent query for preview', () => {
     const mockFile = new File([], 'mockFile', { type: 'text/csv' });
     const mockEvent = {
       target: { files: [mockFile] } as unknown as HTMLInputElement,
     } as unknown as Event;
 
+    const submitFileSpy = jest.spyOn(jobsServiceMock, 'submitFile');
     component.onUpload(mockEvent);
+    expect(submitFileSpy).toHaveBeenCalledWith(mockFile);
     expect(component.uploadError).toBe('');
   });
 

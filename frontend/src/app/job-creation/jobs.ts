@@ -68,7 +68,7 @@ export class FileContent {
     return new FileContent(
       json['id'] as number,
       json['columns'] as string[],
-      toMatrix(json['head'] as object[]),
+      toMatrix(json['preview'] as object[]),
     );
   }
 }

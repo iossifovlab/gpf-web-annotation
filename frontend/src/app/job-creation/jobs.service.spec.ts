@@ -3,7 +3,7 @@ import { HttpClient, HttpErrorResponse, HttpResponse, provideHttpClient } from '
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { lastValueFrom, of, take, throwError } from 'rxjs';
 import { JobsService } from './jobs.service';
-import { getStatusClassName, Job } from './jobs';
+import { FileContent, getStatusClassName, Job } from './jobs';
 import { Pipeline } from './pipelines';
 
 const jobsMockJson = [
@@ -438,5 +438,33 @@ describe('JobsService', () => {
 
     await expect(() => lastValueFrom(postResult.pipe(take(1))))
       .rejects.toThrow('Error occurred!');
+  });
+
+  it('should send file and get part of file content and separator', async() => {
+    const mockPreview = {
+      separator: '\t',
+      columns: [
+        'CHROM',
+        'POS',
+        'REF',
+        'ALT'
+      ],
+      preview: [
+        {
+          CHROM: 'chr1',
+          POS: '151405427',
+          REF: 'T',
+          ALT: 'TCGTCATCA'
+        }
+      ]
+    };
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
+    httpPostSpy.mockReturnValue(of(mockPreview));
+
+    const postResult = service.submitFile(new File(['mockData'], 'mockInput.tsv'));
+
+    const res = await lastValueFrom(postResult.pipe(take(1)));
+    expect(res).toStrictEqual(
+      new FileContent(undefined, ['CHROM', 'POS', 'REF', 'ALT'], [['chr1', '151405427', 'T', 'TCGTCATCA']]));
   });
 });

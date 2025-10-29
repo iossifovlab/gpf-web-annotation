@@ -10,6 +10,7 @@ export class JobsService {
   private readonly createJobUrl = `${environment.apiPath}/jobs/create`;
   private readonly validateJobConfigUrl = `${environment.apiPath}/jobs/validate`;
   private readonly jobsUrl = `${environment.apiPath}/jobs`;
+  private readonly jobPreviewUrl = `${environment.apiPath}/jobs/preview`;
   private readonly getPipelinesUrl = `${environment.apiPath}/pipelines`;
 
   public constructor(private http: HttpClient) { }
@@ -56,6 +57,19 @@ export class JobsService {
           default: return throwError(() => new Error('Error occurred!'));
         }
       })
+    );
+  }
+
+  public submitFile(file: File) : Observable<FileContent> {
+    const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
+    const formData = new FormData();
+    formData.append('data', file, file.name);
+    return this.http.post(
+      this.jobPreviewUrl,
+      formData,
+      options
+    ).pipe(
+      map((response: object) => FileContent.fromJson(response))
     );
   }
 
