@@ -30,7 +30,7 @@ const mockPipelines = [
 class JobsServiceMock {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public createJob(file1: File, content: string): Observable<object> {
-    return of(new FileContent(1, ['chr', 'pos'], [['1', '123']]));
+    return of(new FileContent(',', ['chr', 'pos'], [['1', '123']]));
   }
 
   public getAnnotationPipelines(): Observable<Pipeline[]> {
@@ -39,7 +39,7 @@ class JobsServiceMock {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public submitFile(file: File): Observable<FileContent> {
-    return of(new FileContent(1, ['chr', 'pos'], [['1', '123']]));
+    return of(new FileContent(',', ['chr', 'pos'], [['1', '123']]));
   }
 }
 
