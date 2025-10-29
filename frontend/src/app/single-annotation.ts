@@ -53,6 +53,7 @@ export class AnnotatorDetails {
     public name: string,
     public description: string,
     public resourceId: string,
+    public resourceUrl: string,
   ) {}
 
   public static fromJson(json: object): AnnotatorDetails {
@@ -64,6 +65,7 @@ export class AnnotatorDetails {
       json['name'] as string,
       json['description'] as string,
       json['resource_id'] as string,
+      json['resource_url'] as string,
     );
   }
 }
@@ -86,7 +88,7 @@ export class Result {
 
     const types = ['int', 'float', 'str'];
     if (types.includes(type)) {
-      resultValue = json['value'] as string | number;
+      resultValue = json['value'] as number;
     }
 
     if (type === 'bool') {

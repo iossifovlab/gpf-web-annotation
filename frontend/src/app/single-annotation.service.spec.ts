@@ -100,7 +100,9 @@ const mockResponse = {
         name: 'allele_score',
         description: 'description',
         // eslint-disable-next-line camelcase
-        resource_id: 'link',
+        resource_id: 'resourceId',
+        // eslint-disable-next-line camelcase
+        resource_url: 'resourceUrl',
       },
       attributes: [
         {
@@ -156,7 +158,7 @@ describe('SingleAnnotationService', () => {
       new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
       [
         new Annotator(
-          new AnnotatorDetails('allele_score', 'description', 'link'),
+          new AnnotatorDetails('allele_score', 'description', 'resourceId', 'resourceUrl'),
           [
             new Attribute(
               'cadd_raw',
@@ -184,7 +186,7 @@ describe('SingleAnnotationService', () => {
       new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
       [
         new Annotator(
-          new AnnotatorDetails('allele_score', 'description', 'link'),
+          new AnnotatorDetails('allele_score', 'description', 'resourceId', 'resourceUrl'),
           [undefined]
         ),
       ]
@@ -207,7 +209,7 @@ describe('SingleAnnotationService', () => {
       new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
       [
         new Annotator(
-          new AnnotatorDetails('allele_score', 'description', 'link'),
+          new AnnotatorDetails('allele_score', 'description', 'resourceId', 'resourceUrl'),
           undefined
         ),
       ]
@@ -266,7 +268,7 @@ describe('SingleAnnotationService', () => {
       undefined,
       [
         new Annotator(
-          new AnnotatorDetails('allele_score', 'description', 'link'),
+          new AnnotatorDetails('allele_score', 'description', 'resourceId', 'resourceUrl'),
           [
             new Attribute(
               'cadd_raw',
