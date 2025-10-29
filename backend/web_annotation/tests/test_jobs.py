@@ -574,6 +574,19 @@ def test_annotate_columns_t4c8(
     assert job.status == Job.Status.SUCCESS
     assert job.duration is not None
     assert job.duration < 2.0
+    assert job.command_line.startswith("annotate_columns")
+    assert job.command_line.find("job-inputs/admin@example.com") > 0
+    assert job.command_line.find("annotation-configs/admin@example.com") > 0
+    assert job.command_line.find("job-results/admin@example.com") > 0
+    assert job.command_line.find(
+        "--reference-genome-resource-id t4c8/t4c8_genome") > 0
+    assert job.command_line.find("--col-chrom chrom") > 0
+    assert job.command_line.find("--col-pos pos") > 0
+    assert job.command_line.find("--col-variant var") > 0
+    assert job.command_line.find("--input-separator , --output-separator ,") > 0
+    assert job.command_line.find("--grr-filename") > 0
+    assert job.command_line.find("grr_definition.yaml") > 0
+
 
     output = pathlib.Path(job.result_path).read_text()
     lines = [line.split(",") for line in output.strip().split("\n")]

@@ -107,6 +107,7 @@ def setup_test_db(
         result_path=user_result,
         owner=user,
         duration=1.0,
+        command_line="annotate_vcf mock command line",
     ).save()
 
     admin = User.objects.create_superuser(
@@ -127,6 +128,7 @@ def setup_test_db(
         result_path=admin_result,
         owner=admin,
         duration=1.0,
+        command_line="annotate_vcf mock command line",
     ).save()
 
 
