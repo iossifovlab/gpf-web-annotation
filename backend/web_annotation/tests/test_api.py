@@ -1,4 +1,5 @@
 # pylint: disable=C0116
+import gzip
 import pytest
 import datetime
 import pathlib
@@ -7,9 +8,9 @@ import textwrap
 from pytest_mock import MockerFixture
 from django.core.files.base import ContentFile
 from django.conf import LazySettings
-from dae.genomic_resources.repository import GenomicResourceRepo
 from django.test import Client
 from django.utils import timezone
+from dae.genomic_resources.repository import GenomicResourceRepo
 
 from web_annotation.models import Job, User
 
@@ -640,6 +641,48 @@ def test_preview_delimeter_forced(
             {"chrom	pos	ref	alt": "chr1	2	C	A"},
         ],
         "columns": ["chrom	pos	ref	alt"],
+    }
+
+
+@pytest.mark.parametrize("separator", [",", "\t"])
+def test_preview_delimiter_gzipped(
+    admin_client: Client,
+    separator: str,
+) -> None:
+    file = gzip.compress(textwrap.dedent("""
+        chrom	pos	ref	alt
+        chr1	1	C	A
+        chr1	2	C	A
+        chr1	3	C	A
+        chr1	4	C	A
+        chr1	5	C	A
+        chr1	6	C	A
+        chr1	7	C	A
+        chr1	8	C	A
+    """).strip().replace("\t", separator).encode("utf-8"))
+
+    response = admin_client.post(
+        "/api/jobs/preview",
+        {
+            "data": ContentFile(file, "test.tsv.gz"),
+        },
+    )
+
+    assert response is not None
+    assert response.status_code == 200
+
+    result = response.json()
+
+    assert result is not None
+    assert result == {
+        "separator": separator,
+        "preview": [
+            {"chrom": "chr1", "pos": "1", "ref": "C", "alt": "A"},
+            {"chrom": "chr1", "pos": "2", "ref": "C", "alt": "A"},
+            {"chrom": "chr1", "pos": "3", "ref": "C", "alt": "A"},
+            {"chrom": "chr1", "pos": "4", "ref": "C", "alt": "A"},
+        ],
+        "columns": ["chrom", "pos", "ref", "alt"],
     }
 
 

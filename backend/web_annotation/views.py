@@ -1,8 +1,7 @@
 """View classes for web annotation."""
 import logging
-from math import log
-from operator import ge
 import time
+import gzip
 from datetime import datetime
 from pathlib import Path
 from typing import Any, cast
@@ -40,7 +39,7 @@ from django.contrib.auth import (
 )
 from django.core.files.uploadedfile import UploadedFile
 from django.db.models import ObjectDoesNotExist, QuerySet
-from django.http import HttpRequest, response
+from django.http import HttpRequest
 from django.http.response import (
     FileResponse,
     HttpResponse,
@@ -70,7 +69,6 @@ from .models import (
     AccountConfirmationCode,
     BaseVerificationCode,
     Job,
-    JobDetails,
     ResetPasswordCode,
     User,
 )
@@ -907,10 +905,14 @@ class PreviewFileUpload(AnnotationBaseView):
 
         assert file.name is not None
 
-        if file.name.endswith(".vcf"):
+        if file.name.find(".vcf") > 0:
             return Response(status=views.status.HTTP_400_BAD_REQUEST)
 
-        raw_content = file.read()
+        if file.name.endswith(".gz") or file.name.endswith(".bgz"):
+            raw_content = gzip.decompress(file.read())
+        else:
+            raw_content = file.read()
+
         content = raw_content.decode()
         lines = content.split("\n")
 
@@ -925,8 +927,8 @@ class PreviewFileUpload(AnnotationBaseView):
             rows = [[line] for line in lines]
 
         header = rows[0]
-        content = rows[1:5]
-        preview = [dict(zip(header, row, strict=True)) for row in content]
+        rows_content = rows[1:5]
+        preview = [dict(zip(header, row, strict=True)) for row in rows_content]
 
         return Response(
             {
