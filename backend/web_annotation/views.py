@@ -755,14 +755,51 @@ class UserDetail(generics.RetrieveAPIView):
 
 class UserInfo(views.APIView):
     """View that returns the request session's user information."""
+
+    def get_user_daily_limit(self, user: User) -> int | None:
+        """Return the daily job limit for a user."""
+        if user.is_superuser:
+            return None
+        return cast(int, settings.LIMITS["daily_jobs"])
+
+    def get_user_filesize_limit(self, user: User) -> str | None:
+        """Return the file size limit for a user."""
+        if user.is_superuser:
+            return None
+        return cast(str, settings.LIMITS["filesize"])
+
+    def get_user_variant_limit(self, user: User) -> int | None:
+        """Return the variant count limit for a user."""
+        if user.is_superuser:
+            return None
+        return cast(int, settings.LIMITS["variant_count"])
+
+    def get_user_jobs_left(self, user: User) -> int | None:
+        """Return the number of jobs left for a user today."""
+        if user.is_superuser:
+            return None
+        today = timezone.now().replace(
+            hour=0, minute=0, second=0, microsecond=0)
+        jobs_made = Job.objects.filter(
+            created__gte=today, owner__exact=user.pk)
+        daily_limit = cast(int, settings.LIMITS["daily_jobs"])
+        return max(0, daily_limit - len(jobs_made))
+
     def get(self, request: Request) -> Response:
         user = request.user
         if not user.is_authenticated:
             return Response({"loggedIn": False})
+
         return Response(
             {
                 "loggedIn": True,
                 "email": user.email,
+                "limitations": {
+                    "daily_jobs": self.get_user_daily_limit(user),
+                    "filesize": self.get_user_filesize_limit(user),
+                    "variant_count": self.get_user_variant_limit(user),
+                    "jobs_left": self.get_user_jobs_left(user),
+                }
             },
             views.status.HTTP_200_OK,
         )
