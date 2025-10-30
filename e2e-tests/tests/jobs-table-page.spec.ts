@@ -145,7 +145,7 @@ test.describe('Job details tests', () => {
 
     // wait for create query to finish
     await page.waitForResponse(
-      resp => resp.url().includes('/api/jobs/create') && resp.status() === 204
+      resp => resp.url().includes('/api/jobs/annotate_vcf') && resp.status() === 204
     );
 
     await waitForJobStatus(page, 'success');
@@ -195,15 +195,15 @@ test.describe('Job details tests', () => {
   });
 
   test('should check job details modal of failed job', async({ page }) => {
-    await createJobWithPipeline(page, 'pipeline/Autism_annotation', 'input-csv-file.csv', 'Comma');
+    await page.locator('#add-job-button').click();
+    await page.getByLabel('pipeline/Autism_annotation').click();
+    await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-csv-file.csv');
 
     await expect(page.locator('app-column-specifying-modal')).toBeVisible();
     await page.locator('[id="CHROM-header"]').locator('mat-select').click();
     await page.getByRole('option', { name: 'chrom', exact: true }).click();
 
-    await page.getByText('Submit').click();
-    await expect(page.locator('.status-label').nth(0)).not.toContainText('specifying');
-
+    await page.locator('#create-button').click();
     await waitForJobStatus(page, 'failed');
 
     await page.locator('.first-cell').getByText('info').nth(0).click();
@@ -273,14 +273,22 @@ test.describe('Jobs table tests', () => {
   });
 
   test('should upload tsv file and check specify columns modal content', async({ page }) => {
-    await createJobWithPipeline(page, 'pipeline/GPF-SFARI_annotation', 'input-tsv-file.tsv', 'Tab');
+    await page.locator('#add-job-button').click();
+    await page.getByLabel('pipeline/GPF-SFARI_annotation').click();
+    await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-tsv-file.tsv');
+
+    await expect(page.locator('app-column-specifying-modal')).toBeVisible();
+    await page.locator('[id="CHROM-header"]').locator('mat-select').click();
+    await page.getByRole('option', { name: 'chrom', exact: true }).click();
+
+    await page.locator('#create-button').click();
 
     await expect(async() => {
       await expect(page.locator('app-column-specifying-modal')).toBeVisible();
     }).toPass({intervals: [1000, 2000, 3000]});
 
     await expect(page.locator('#instructions')).toBeVisible();
-    await expect(page.locator('#job-info')).toBeVisible();
+    await expect(page.locator('#separator')).toBeVisible();
 
     // row 1 of input file
     await expect(page.locator('.cell').nth(0)).toHaveText('chr1');
@@ -293,12 +301,12 @@ test.describe('Jobs table tests', () => {
     await expect(page.locator('.cell').nth(5)).toHaveText('151406013');
     await expect(page.locator('.cell').nth(6)).toHaveText('G');
     await expect(page.locator('.cell').nth(7)).toHaveText('A');
-
-    await expect(page.getByRole('button', {name: 'Submit'})).toBeVisible();
   });
 
   test('should upload tsv file and specify columns right after creation', async({ page }) => {
-    await createJobWithPipeline(page, 'pipeline/GPF-SFARI_annotation', 'input-tsv-file.tsv', 'Tab');
+    await page.locator('#add-job-button').click();
+    await page.getByLabel('pipeline/GPF-SFARI_annotation').click();
+    await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-tsv-file.tsv');
 
     await expect(page.locator('app-column-specifying-modal')).toBeVisible();
     await page.locator('[id="CHROM-header"]').locator('mat-select').click();
@@ -313,22 +321,18 @@ test.describe('Jobs table tests', () => {
     await page.locator('[id="ALT-header"]').locator('mat-select').click();
     await page.getByRole('option', { name: 'alt', exact: true }).click();
 
-    await page.getByText('Submit').click();
-    await expect(page.locator('.status-label').nth(0)).not.toContainText('specifying');
+    await page.locator('#create-button').click();
+    await expect(page.locator('.status-label').nth(0)).toContainText('in process');
 
     await expect(page.locator('.download').nth(0)).toBeEmpty();
 
     await waitForJobStatus(page, 'success');
   });
 
-  test('should upload tsv file and specify columns by opening modal from table', async({ page }) => {
-    await createJobWithPipeline(page, 'pipeline/GPF-SFARI_annotation', 'input-tsv-file.tsv', 'Tab');
-
-    await page.waitForSelector('app-column-specifying-modal');
-    await page.mouse.click(0, 0); // close modal
-
-    await expect(page.locator('.status-label').nth(0)).toContainText('specifying');
-    await page.locator('.specify-button').nth(0).click();
+  test('should upload csv file and specify columns', async({ page }) => {
+    await page.locator('#add-job-button').click();
+    await page.getByLabel('pipeline/GPF-SFARI_annotation').click();
+    await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-csv-file.csv');
 
     await page.locator('[id="CHROM-header"]').locator('mat-select').click();
     await page.getByRole('option', { name: 'chrom', exact: true }).click();
@@ -342,36 +346,17 @@ test.describe('Jobs table tests', () => {
     await page.locator('[id="ALT-header"]').locator('mat-select').click();
     await page.getByRole('option', { name: 'alt', exact: true }).click();
 
-    await page.getByText('Submit').click();
-    await expect(page.locator('.status-label').nth(0)).not.toContainText('specifying');
-  });
-
-  test('should upload csv file and specify columns right after creation', async({ page }) => {
-    await createJobWithPipeline(page, 'pipeline/GPF-SFARI_annotation', 'input-csv-file.csv', 'Comma');
-
-    await expect(page.locator('app-column-specifying-modal')).toBeVisible();
-    await page.locator('[id="CHROM-header"]').locator('mat-select').click();
-    await page.getByRole('option', { name: 'chrom', exact: true }).click();
-
-    await page.locator('[id="POS-header"]').locator('mat-select').click();
-    await page.getByRole('option', { name: 'pos', exact: true }).click();
-
-    await page.locator('[id="REF-header"]').locator('mat-select').click();
-    await page.getByRole('option', { name: 'ref', exact: true }).click();
-
-    await page.locator('[id="ALT-header"]').locator('mat-select').click();
-    await page.getByRole('option', { name: 'alt', exact: true }).click();
-
-    await page.getByText('Submit').click();
-    await expect(page.locator('.status-label').nth(0)).not.toContainText('specifying');
+    await page.locator('#create-button').click();
+    await expect(page.locator('.status-label').nth(0)).toContainText('in process');
 
     await waitForJobStatus(page, 'success');
   });
 
   test('should fail job after uploading csv file and make wrong column specification', async({ page }) => {
-    await createJobWithPipeline(page, 'pipeline/GPF-SFARI_annotation', 'input-csv-file.csv', 'Comma');
+    await page.locator('#add-job-button').click();
+    await page.getByLabel('pipeline/GPF-SFARI_annotation').click();
+    await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-csv-file.csv');
 
-    await expect(page.locator('app-column-specifying-modal')).toBeVisible();
     await page.locator('[id="CHROM-header"]').locator('mat-select').click();
     await page.getByRole('option', { name: 'ref', exact: true }).click();
 
@@ -384,8 +369,8 @@ test.describe('Jobs table tests', () => {
     await page.locator('[id="ALT-header"]').locator('mat-select').click();
     await page.getByRole('option', { name: 'pos', exact: true }).click();
 
-    await page.getByText('Submit').click();
-    await expect(page.locator('.status-label').nth(0)).not.toContainText('specifying');
+    await page.locator('#create-button').click();
+    await expect(page.locator('.status-label').nth(0)).toContainText('in process');
 
     await waitForJobStatus(page, 'failed');
 
@@ -393,14 +378,16 @@ test.describe('Jobs table tests', () => {
   });
 
   test('should fail job after uploading csv file and specify only one column', async({ page }) => {
-    await createJobWithPipeline(page, 'pipeline/GPF-SFARI_annotation', 'input-csv-file.csv', 'Comma');
+    await page.locator('#add-job-button').click();
+    await page.getByLabel('pipeline/GPF-SFARI_annotation').click();
+    await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-csv-file.csv');
 
     await expect(page.locator('app-column-specifying-modal')).toBeVisible();
     await page.locator('[id="CHROM-header"]').locator('mat-select').click();
     await page.getByRole('option', { name: 'chrom', exact: true }).click();
 
-    await page.getByText('Submit').click();
-    await expect(page.locator('.status-label').nth(0)).not.toContainText('specifying');
+    await page.locator('#create-button').click();
+    await expect(page.locator('.status-label').nth(0)).toContainText('in process');
 
     await waitForJobStatus(page, 'failed');
 
@@ -464,7 +451,7 @@ test.describe('Validation tests', () => {
 
     // wait for create query to finish
     await page.waitForResponse(
-      resp => resp.url().includes('/api/jobs/create') && resp.status() === 204
+      resp => resp.url().includes('/api/jobs/annotate_vcf') && resp.status() === 204
     );
 
     await waitForJobStatus(page, 'success');
@@ -474,9 +461,10 @@ test.describe('Validation tests', () => {
     await page.locator('#add-job-button').click();
     await page.getByLabel('pipeline/Autism_annotation').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/invalid-input-file-format.yaml');
-    await page.getByRole('radio', { name: 'Tab' }).click();
     await expect(page.getByText('Unsupported format!')).toBeVisible();
     await expect(page.locator('#create-button')).toBeDisabled();
+    await expect(page.locator('app-column-specifying-modal')).not.toBeVisible();
+    await expect(page.locator('.separator-list')).not.toBeVisible();
   });
 
   test('should upload invalid vcf file', async({ page }) => {
@@ -535,7 +523,6 @@ test.describe('Validation tests', () => {
     await page.locator('#add-job-button').click();
     await page.getByLabel('pipeline/Autism_annotation').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/invalid-separator.csv');
-    await page.getByRole('radio', { name: 'Comma' }).click();
     await page.locator('#create-button').click();
     await expect(page.getByText('Invalid separator, cannot create proper columns!')).toBeVisible();
   });
@@ -557,13 +544,10 @@ async function waitForJobStatus(page: Page, status: string): Promise<void> {
   }).toPass({intervals: [1000, 2000, 3000]});
 }
 
-async function createJobWithPipeline(page: Page, pipeline: string, inputFileName: string, separator=''): Promise<void> {
+async function createJobWithPipeline(page: Page, pipeline: string, inputFileName: string): Promise<void> {
   await page.locator('#add-job-button').click();
   await page.getByLabel(pipeline).click();
   await page.locator('input[id="file-upload"]').setInputFiles(`./fixtures/${inputFileName}`);
-  if (separator && (inputFileName.includes('.tsv') || inputFileName.includes('.csv'))) {
-    await page.getByRole('radio', { name: separator }).click();
-  }
   await page.locator('#create-button').click();
 }
 
