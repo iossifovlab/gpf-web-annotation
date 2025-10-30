@@ -1,13 +1,18 @@
 # pylint: disable=W0621,C0114,C0116,W0212,W0613
+import datetime
 import gzip
-import pytest
 import pathlib
 import textwrap
-import datetime
+from pysam import tabix_compress
 
-from web_annotation.tests.mailhog_client import (
-    MailhogClient,
-)
+import pytest
+from dae.genomic_resources.repository import GenomicResourceRepo
+from django.conf import settings
+from django.core.files.base import ContentFile
+from django.test import Client
+from django.utils import timezone
+from pytest_mock import MockerFixture
+
 from web_annotation.models import Job, User
 from web_annotation.tasks import (
     clean_old_jobs, send_email,
@@ -15,12 +20,9 @@ from web_annotation.tasks import (
     update_job_failed,
     update_job_success,
 )
-from django.conf import settings
-from django.utils import timezone
-from django.test import Client
-from django.core.files.base import ContentFile
-from pytest_mock import MockerFixture
-from dae.genomic_resources.repository import GenomicResourceRepo
+from web_annotation.tests.mailhog_client import (
+    MailhogClient,
+)
 
 
 @pytest.mark.django_db
@@ -235,11 +237,11 @@ def test_annotate_vcf(
     assert job.duration is not None
     assert job.duration < 2.0
     assert saved_input.exists()
-    assert saved_input.read_text() == vcf
+    assert saved_input.read_text(encoding="utf-8") == vcf
 
     saved_config = pathlib.Path(job.config_path)
     assert saved_config.exists()
-    assert saved_config.read_text() == annotation_config
+    assert saved_config.read_text(encoding="utf-8") == annotation_config
 
     result_path = pathlib.Path(job.result_path)
     assert result_path.parent == \
@@ -480,7 +482,7 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
             },
             [
                 ['chr', 'pos_beg', 'pos_end', 'cnv', 'pos1'],
-                ['chr1', '7', '20', 'cnv+','0.483']
+                ['chr1', '7', '20', 'cnv+', '0.483']
             ],
             ".csv",
         ),
@@ -536,7 +538,7 @@ def test_annotate_columns(
 
     assert job.result_path.endswith(file_extension) is True
 
-    output = pathlib.Path(job.result_path).read_text()
+    output = pathlib.Path(job.result_path).read_text(encoding="utf-8")
     lines = [line.split(separator) for line in output.strip().split("\n")]
     assert lines == expected_lines
 
@@ -582,12 +584,12 @@ def test_annotate_columns_t4c8(
     assert job.command_line.find("--col-chrom chrom") > 0
     assert job.command_line.find("--col-pos pos") > 0
     assert job.command_line.find("--col-variant var") > 0
-    assert job.command_line.find("--input-separator , --output-separator ,") > 0
+    assert job.command_line.find(
+        "--input-separator , --output-separator ,") > 0
     assert job.command_line.find("--grr-filename") > 0
     assert job.command_line.find("grr_definition.yaml") > 0
 
-
-    output = pathlib.Path(job.result_path).read_text()
+    output = pathlib.Path(job.result_path).read_text(encoding="utf-8")
     lines = [line.split(",") for line in output.strip().split("\n")]
     assert lines == [
         ['chrom', 'pos', 'var', 'pos1'],
@@ -603,7 +605,7 @@ def test_annotate_columns_t4c8_gzipped(
     file = gzip.compress(textwrap.dedent("""
         chrom,pos,var
         chr1,9,del(3)
-    # """).strip().encode("utf-8"))
+    """).strip().encode("utf-8"))
 
     params = {
         "genome": "t4c8",
@@ -612,8 +614,8 @@ def test_annotate_columns_t4c8_gzipped(
         "col_chrom": "chrom",
         "col_pos": "pos",
         "col_variant": "var",
+        "separator": ",",
     }
-    params["separator"] = ","
 
     response = admin_client.post("/api/jobs/annotate_columns", params)
 
@@ -641,7 +643,7 @@ def test_annotate_columns_t4c8_gzipped(
 
 
 @pytest.mark.django_db
-def test_annotate_vcf_gzip(
+def test_annotate_vcf_gzip_fails(
     user_client: Client, test_grr: GenomicResourceRepo,
 ) -> None:
     user = User.objects.get(email="user@example.com")
@@ -664,6 +666,43 @@ def test_annotate_vcf_gzip(
             "data": ContentFile(vcf, "test_input.vcf.gz")
         },
     )
+    assert response.status_code == 400
+
+    assert Job.objects.filter(owner=user).count() == 1
+
+
+@pytest.mark.django_db
+def test_annotate_vcf_bgzip(
+    user_client: Client, test_grr: GenomicResourceRepo,
+    tmp_path: pathlib.Path,
+) -> None:
+    user = User.objects.get(email="user@example.com")
+
+    assert Job.objects.filter(owner=user).count() == 1
+
+    annotation_config = "- position_score: scores/pos1"
+    test_dir = tmp_path / "vcf_gzip"
+    test_dir.mkdir(parents=True, exist_ok=True)
+    vcf_content = textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        ##contig=<ID=chr1>
+        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+        chr1	1	.	C	A	.	.	.
+    """).strip()
+    input_path = test_dir / "test_input.vcf"
+    input_path.write_text(vcf_content)
+    output_path = test_dir / "test_out.vcf"
+    tabix_compress(str(input_path), str(output_path))
+    vcf = output_path.read_bytes()
+
+    response = user_client.post(
+        "/api/jobs/annotate_vcf",
+        {
+            "genome": "hg38",
+            "config": ContentFile(annotation_config),
+            "data": ContentFile(vcf, "test_input.vcf.gz")
+        },
+    )
     assert response.status_code == 204
 
     assert Job.objects.filter(owner=user).count() == 2
@@ -675,19 +714,28 @@ def test_annotate_vcf_gzip(
     assert job.duration is not None
     assert job.duration < 2.0
     assert saved_input.exists()
-    assert saved_input.read_text() == vcf
+    assert gzip.decompress(saved_input.read_bytes()).decode() == vcf_content
 
     saved_config = pathlib.Path(job.config_path)
     assert saved_config.exists()
-    assert saved_config.read_text() == annotation_config
+    assert saved_config.read_text(encoding="utf-8") == annotation_config
 
     result_path = pathlib.Path(job.result_path)
     assert result_path.parent == \
         pathlib.Path(settings.JOB_RESULT_STORAGE_DIR) / user.email
     assert result_path.exists(), result_path
     assert job.result_path.endswith(".vcf.gz")
-    output = gzip.decompress(result_path.read_bytes()).decode("utf-8")
-    assert output == "alabala"
+    output = gzip.decompress(result_path.read_bytes()).decode("utf-8").strip()
+    expected = textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        ##FILTER=<ID=PASS,Description="All filters passed">
+        ##contig=<ID=chr1>
+        ##pipeline_annotation_tool=GPF variant annotation.
+        ##INFO=<ID=pos1,Number=A,Type=String,Description="test position score">
+        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+        chr1	1	.	C	A	.	.	pos1=0.1
+     """).strip()
+    assert output == expected
 
 
 @pytest.mark.django_db

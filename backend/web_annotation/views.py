@@ -340,18 +340,22 @@ class AnnotationBaseView(views.APIView):
 
         return None
 
-    def _cleanup(self, job_name: str) -> None:
+    def _cleanup(self, job_name: str, user_email: str) -> None:
         """Cleanup the files of a failed job."""
         data_filename = f"{job_name}"
-        inputs = Path(settings.JOB_INPUT_STORAGE_DIR).glob(f"{data_filename}*")
+        inputs = Path(settings.JOB_INPUT_STORAGE_DIR).glob(
+            f"{user_email}/{data_filename}*")
         for in_file in inputs:
             in_file.unlink(missing_ok=True)
         config_filename = f"{job_name}.yaml"
         config_path = Path(
-            settings.ANNOTATION_CONFIG_STORAGE_DIR, config_filename)
+            settings.ANNOTATION_CONFIG_STORAGE_DIR,
+            f"{user_email}/{config_filename}",
+        )
         config_path.unlink(missing_ok=True)
         results = Path(
-            settings.JOB_RESULT_STORAGE_DIR).glob(f"{data_filename}*")
+            settings.JOB_RESULT_STORAGE_DIR).glob(
+                f"{user_email}/{data_filename}*")
         for out_file in results:
             out_file.unlink(missing_ok=True)
 
@@ -472,7 +476,7 @@ class AnnotationBaseView(views.APIView):
         except Exception as e:
             logger.exception("Could not write input file")
 
-            self._cleanup(job_name)
+            self._cleanup(job_name, request.user.email)
             return Response(
                 {"reason": "File could not be identified"},
                 status=views.status.HTTP_400_BAD_REQUEST,
@@ -588,14 +592,27 @@ class AnnotateVCF(AnnotationBaseView):
         try:
             vcf = VariantFile(job.input_path)
         except (ValueError, OSError):
-            self._cleanup(job_name)
+            logger.exception("Failed to parse VCF file")
+            self._cleanup(job_name, job.owner.email)
             return Response(
                 {"reason": "Invalid VCF file"},
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
+        except NotImplementedError:
+            logger.exception("GZip upload")
+            self._cleanup(job_name, job.owner.email)
+            return Response(
+                {
+                    "reason": (
+                        "Uploaded VCF file not supported"
+                        " (GZipped not supported)."
+                    )
+                },
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
 
         if not self.check_variants_limit(vcf, request.user):
-            self._cleanup(job_name)
+            self._cleanup(job_name, job.owner.email)
             return Response(
                 status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
 
