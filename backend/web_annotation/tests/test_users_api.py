@@ -427,3 +427,28 @@ def test_activation_of_account_through_reset_password(
         email="temp@example.com",
         password="newsecret"
     ) is True
+
+
+@pytest.mark.django_db
+def test_get_user_info(user_client: Client) -> None:
+    response = user_client.get("/api/user_info")
+    assert response.status_code == 200
+    assert response.json() == {
+        "loggedIn": True,
+        "email": "user@example.com",
+        "limitations": {
+            "daily_jobs": 5,
+            "filesize": "64M",
+            "variant_count": 1000,
+            "jobs_left": 4,
+        }
+    }
+
+
+@pytest.mark.django_db
+def test_get_user_info_unauthorized(anonymous_client: Client) -> None:
+    response = anonymous_client.get("/api/user_info")
+    assert response.status_code == 200
+    assert response.json() == {
+        "loggedIn": False,
+    }

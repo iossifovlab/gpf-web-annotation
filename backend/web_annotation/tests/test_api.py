@@ -439,7 +439,66 @@ def test_single_annotation(admin_client: Client) -> None:
             "target=\"_blank\">More info</a>\n\n"
         ),
         "resource_id": "scores/pos1",
-        "resource_url": "http://test/scores/pos1",
+        "resource_url": "http://test/scores/pos1/index.html",
+    }
+
+    assert len(annotators_data[0]["attributes"]) == 1
+    assert annotators_data[0]["attributes"][0]["name"] == "position_1"
+    assert annotators_data[0]["attributes"][0]["description"] == \
+        "test position score"
+    assert annotators_data[0]["attributes"][0]["source"] == "pos1"
+    assert annotators_data[0]["attributes"][0]["type"] == "float"
+    assert annotators_data[0]["attributes"][0]["result"] == {
+        "value": 0.1,
+        "histogram": "histograms/scores/pos1?score_id=pos1"
+    }
+    assert "test position score" in annotators_data[0]["attributes"][0]["help"]
+    assert (
+        "Annotator to use with genomic "
+        "scores depending on genomic position"
+    ) in annotators_data[0]["attributes"][0]["help"]
+
+
+def test_single_annotation_unauthorized(anonymous_client: Client) -> None:
+    response = anonymous_client.post(
+        "/api/single_annotate",
+        {
+            "genome": "hg38",
+            "variant": {
+                "chrom": "chr1", "pos": 1, "ref": "C", "alt": "A",
+            }
+        },
+        content_type="application/json",
+    )
+
+    assert response.status_code == 200
+
+    data = response.data
+    assert "variant" in data
+    assert "annotators" in data
+
+    variant_data = data["variant"]
+    annotators_data = data["annotators"]
+
+    assert variant_data == {
+        "chromosome": "chr1",
+        "position": 1,
+        "reference": "C",
+        "alternative": "A",
+        "variant_type": "SUBSTITUTION",
+    }
+    assert len(annotators_data) == 1
+    assert annotators_data[0]["details"] == {
+        "name": "position_score",
+        "description": (
+            "\n\nAnnotator to use with genomic scores depending on genomic"
+            " position like\nphastCons, phyloP, FitCons2, etc.\n"
+            "\n<a href=\"https://www.iossifovlab.com/gpfuserdocs/"
+            "administration/annotation.html#position-score\" "
+            "target=\"_blank\">More info</a>\n\n"
+        ),
+        "resource_id": "scores/pos1",
+        "resource_url": "http://test/scores/pos1/index.html",
     }
 
     assert len(annotators_data[0]["attributes"]) == 1
@@ -771,13 +830,13 @@ def test_single_annotation_t4c8(admin_client: Client) -> None:
     assert effect_annotator["details"]["resource_id"] == \
         "t4c8/t4c8_genome, t4c8/t4c8_genes"
     assert effect_annotator["details"]["resource_url"] == \
-        "http://test/t4c8/t4c8_genome"
+        "http://test/t4c8/t4c8_genome/index.html"
 
     assert gene_score_annotator["details"]["name"] == "gene_score_annotator"
     assert gene_score_annotator["details"]["resource_id"] == \
         "t4c8/gene_scores/t4c8_score"
     assert gene_score_annotator["details"]["resource_url"] == \
-        "http://test/t4c8/gene_scores/t4c8_score"
+        "http://test/t4c8/gene_scores/t4c8_score/index.html"
 
     assert len(gene_score_annotator["attributes"]) == 1
     gene_score_attributes = gene_score_annotator["attributes"]
@@ -823,13 +882,13 @@ def test_single_annotation_t4c8(admin_client: Client) -> None:
     assert effect_annotator["details"]["resource_id"] == \
         "t4c8/t4c8_genome, t4c8/t4c8_genes"
     assert effect_annotator["details"]["resource_url"] == \
-        "http://test/t4c8/t4c8_genome"
+        "http://test/t4c8/t4c8_genome/index.html"
 
     assert gene_score_annotator["details"]["name"] == "gene_score_annotator"
     assert gene_score_annotator["details"]["resource_id"] == \
         "t4c8/gene_scores/t4c8_score"
     assert gene_score_annotator["details"]["resource_url"] == \
-        "http://test/t4c8/gene_scores/t4c8_score"
+        "http://test/t4c8/gene_scores/t4c8_score/index.html"
 
     assert len(gene_score_annotator["attributes"]) == 1
     gene_score_attributes = gene_score_annotator["attributes"]
