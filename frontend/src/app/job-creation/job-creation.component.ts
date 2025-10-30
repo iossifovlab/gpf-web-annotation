@@ -150,11 +150,13 @@ export class JobCreationComponent implements OnInit {
     });
   }
 
-  private isFormatValid(file: File): void {
+  private isFormatValid(file: File): boolean {
     const validFormats = ['text/csv', 'text/vcard', 'text/tab-separated-values', 'text/plain'];
     if (!validFormats.includes(file.type)) {
       this.uploadError = 'Unsupported format!';
+      return false;
     }
+    return true;
   }
 
   public removeFile(): void {
@@ -165,9 +167,8 @@ export class JobCreationComponent implements OnInit {
   }
 
   private onFileChange(file: File): void {
-    this.isFormatValid(file);
     this.file = file;
-    if (file.type !== 'vcf') {
+    if (file.type !== 'vcf' && this.isFormatValid(file)) {
       this.submitFile();
     }
   }
@@ -192,7 +193,6 @@ export class JobCreationComponent implements OnInit {
     return !this.file
       || Boolean(this.uploadError)
       || Boolean(this.configError)
-      || (this.view === 'text editor' ? !this.ymlConfig : !this.pipelineId)
-      || (this.fileSeparator === null && !this.file?.name?.endsWith('vcf'));
+      || (this.view === 'text editor' ? !this.ymlConfig : !this.pipelineId);
   }
 }

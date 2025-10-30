@@ -69,7 +69,7 @@
     </button>
   </div>
 
-  <div *ngIf="this.file && !this.file.name.endsWith('vcf')" class="separator-list">
+  <div *ngIf="this.file && !this.file.name.endsWith('vcf') && !uploadError" class="separator-list">
     <label class="separator-label">Choose new separator: </label>
 
     <input type="radio" id="tab-separtor-radio" name="separator" value="Tab" (click)="submitNewSeparator('\t')" />
