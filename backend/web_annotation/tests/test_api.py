@@ -317,7 +317,7 @@ def test_variant_limit_user(
         "filesize": settings.LIMITS["filesize"],
     }
 
-    mocked_run_job = mocker.patch(
+    mocker.patch(
         "web_annotation.tasks.annotate_vcf_job",
     )
 
@@ -351,7 +351,7 @@ def test_variant_limit_admin(
         "variant_count": 1,
     }
 
-    mocked_run_job = mocker.patch(
+    mocker.patch(
         "web_annotation.tasks.annotate_vcf_job",
     )
 

@@ -54,14 +54,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 
 @pytest.fixture(scope="function")
 def test_grr(mocker: pytest_mock.MockFixture) -> GenomicResourceRepo:
-    grr_patch = \
-        mocker.patch("web_annotation.views.AnnotationBaseView.get_grr")
-
-    grr_patch.return_value = test_grr
-
-
-@pytest.fixture(scope="function")
-def test_grr() -> GenomicResourceRepo:
+    """Genomic resource repository fixture."""
     grr_dir = pathlib.Path(__file__).parent / "fixtures" / "grr"
     grr = build_genomic_resource_repository(
         {
@@ -70,6 +63,7 @@ def test_grr() -> GenomicResourceRepo:
             "directory": str(grr_dir)
         }
     )
+
     return grr
 
 
