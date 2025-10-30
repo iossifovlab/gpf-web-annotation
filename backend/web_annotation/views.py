@@ -1088,6 +1088,7 @@ class SingleAnnotation(AnnotationBaseView):
             else:
                 details["resource_url"] = \
                     annotator_info.resources[0].resource_id
+            details["resource_url"] = f'{details["resource_url"]}/index.html'
             for attribute_info in annotator.attributes:
                 if attribute_info.internal:
                     continue
