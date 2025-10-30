@@ -1,12 +1,11 @@
 """View classes for web annotation."""
+import gzip
 import logging
 import time
-import gzip
 from datetime import datetime
 from pathlib import Path
 from typing import Any, cast
 
-from dae.genomic_resources.histogram import Histogram, NullHistogram
 import magic
 from dae.annotation.annotatable import VCFAllele
 from dae.annotation.annotation_config import (
@@ -14,13 +13,16 @@ from dae.annotation.annotation_config import (
     AnnotationConfigurationError,
     AttributeInfo,
 )
+from dae.annotation.gene_score_annotator import GeneScoreAnnotator
+from dae.annotation.score_annotator import GenomicScoreAnnotatorBase
 from dae.annotation.annotation_factory import load_pipeline_from_grr
-from dae.annotation.annotation_pipeline import AnnotationPipeline
+from dae.annotation.annotation_pipeline import AnnotationPipeline, Annotator
 from dae.gene_scores.gene_scores import (
     build_gene_score_from_resource,
     _build_gene_score_help,
 )
 from dae.genomic_resources.genomic_scores import build_score_from_resource
+from dae.genomic_resources.histogram import Histogram, NullHistogram
 from dae.genomic_resources.implementations.annotation_pipeline_impl import (
     AnnotationPipelineImplementation,
 )
@@ -56,15 +58,6 @@ from rest_framework.request import Request, QueryDict, MultiValueDict
 from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle
 
-from web_annotation.utils import (
-    PasswordForgottenForm,
-    ResetPasswordForm,
-    check_request_verification_path,
-    deauthenticate,
-    reset_password,
-    verify_user,
-)
-
 from .models import (
     AccountConfirmationCode,
     BaseVerificationCode,
@@ -81,37 +74,60 @@ from .tasks import (
     get_job_details,
     specify_job,
 )
+from web_annotation.utils import (
+    PasswordForgottenForm,
+    ResetPasswordForm,
+    check_request_verification_path,
+    deauthenticate,
+    reset_password,
+    verify_user,
+)
+
 
 logger = logging.getLogger(__name__)
 
 
 def get_histogram_genomic_score(
-    resource: GenomicResource, score: str,
-) -> Histogram:
-    """Get histogram for a genomic score."""
+    resource: GenomicResource, score_id: str,
+) -> tuple[Histogram, dict[str, Any]]:
+    """Get histogram and extra data for a genomic score."""
     if resource.get_type() not in [
         "allele_score", "position_score",
     ]:
         raise ValueError(f"{resource.resource_id} is not a genomic score!")
-    return build_score_from_resource(
-        resource).get_score_histogram(score)
+    score = build_score_from_resource(resource)
+    score_def = score.score_definitions[score_id]
+    return (
+        score.get_score_histogram(score_id),
+        {
+            "small_values_desc": score_def.small_values_desc,
+            "large_values_desc": score_def.large_values_desc,
+        },
+    )
 
 
 def get_histogram_gene_score(
-    resource: GenomicResource, score: str,
-) -> Histogram:
-    """Get histogram from a gene score resource."""
+    resource: GenomicResource, score_id: str,
+) -> tuple[Histogram, dict[str, Any]]:
+    """Get histogram and extra data for a gene score."""
     if resource.get_type() != "gene_score":
         raise ValueError(f"{resource.resource_id} is not a genomic score!")
-    return build_gene_score_from_resource(
-        resource).get_score_histogram(score)
+    score = build_gene_score_from_resource(resource)
+    score_def = score.score_definitions[score_id]
+    return (
+        score.get_score_histogram(score_id),
+        {
+            "small_values_desc": score_def.small_values_desc,
+            "large_values_desc": score_def.large_values_desc,
+        },
+    )
 
 
 def get_histogram_not_supported(
     _resource: GenomicResource, _score: str,  # pylint: disable=unused-argument
-) -> Histogram:
+) -> tuple[Histogram, dict[str, Any]]:
     """Return an empty histogram for unsupported resources."""
-    return NullHistogram(None)
+    return (NullHistogram(None), {})
 
 
 HISTOGRAM_GETTERS = {
@@ -271,7 +287,7 @@ class AnnotationBaseView(views.APIView):
             except UnicodeDecodeError as e:
                 raise ValueError(
                     f"Invalid pipeline configuration file: {str(e)}") from e
-        
+
         if "ASCII text" not in magic.from_buffer(content):
             raise ValueError("Invalid pipeline configuration file!")
 
@@ -279,7 +295,7 @@ class AnnotationBaseView(views.APIView):
             AnnotationConfigParser.parse_str(content, grr=self.grr)
         except (AnnotationConfigurationError, KeyError) as e:
             raise ValueError(str(e)) from e
-            
+
         return content
 
     def get_genome(self, data: QueryDict) -> str:
@@ -316,13 +332,12 @@ class AnnotationBaseView(views.APIView):
         try:
             config_path.parent.mkdir(parents=True, exist_ok=True)
             config_path.write_text(content)
-        except Exception as e:
+        except OSError:
             logger.exception("Could not write config file")
             return Response(
                 {"reason": "Could not write file!"},
                 status=views.status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
         return None
 
     def _save_input_file(
@@ -338,20 +353,22 @@ class AnnotationBaseView(views.APIView):
         input_path.parent.mkdir(parents=True, exist_ok=True)
         input_path.write_bytes(uploaded_file.read())
 
-        return None
-
-    def _cleanup(self, job_name: str) -> None:
+    def _cleanup(self, job_name: str, user_email: str) -> None:
         """Cleanup the files of a failed job."""
         data_filename = f"{job_name}"
-        inputs = Path(settings.JOB_INPUT_STORAGE_DIR).glob(f"{data_filename}*")
+        inputs = Path(settings.JOB_INPUT_STORAGE_DIR).glob(
+            f"{user_email}/{data_filename}*")
         for in_file in inputs:
             in_file.unlink(missing_ok=True)
         config_filename = f"{job_name}.yaml"
         config_path = Path(
-            settings.ANNOTATION_CONFIG_STORAGE_DIR, config_filename)
+            settings.ANNOTATION_CONFIG_STORAGE_DIR,
+            f"{user_email}/{config_filename}",
+        )
         config_path.unlink(missing_ok=True)
         results = Path(
-            settings.JOB_RESULT_STORAGE_DIR).glob(f"{data_filename}*")
+            settings.JOB_RESULT_STORAGE_DIR).glob(
+                f"{user_email}/{data_filename}*")
         for out_file in results:
             out_file.unlink(missing_ok=True)
 
@@ -394,25 +411,33 @@ class AnnotationBaseView(views.APIView):
 
         return None
 
-    def _determine_file_extensions(self, request: Request) -> str:
-        assert isinstance(request.data, QueryDict)
-        assert isinstance(request.FILES, MultiValueDict)
+    def _basic_file_extension(self, file: UploadedFile, separator: str) -> str:
+        assert file.name is not None
 
-        separator = request.data.get("separator")
-
-        if separator  == "\t":
+        if separator == "\t":
             return ".tsv"
         if separator == ",":
             return ".csv"
+        if file.name.find(".vcf") > 0:
+            return ".vcf"
+        return ".txt"
+
+    def _file_extension(self, request: Request) -> str:
+        assert isinstance(request.data, QueryDict)
+        assert isinstance(request.FILES, MultiValueDict)
 
         uploaded_file = request.FILES["data"]
         assert isinstance(uploaded_file, UploadedFile)
         assert uploaded_file.name is not None
+        separator = request.data.get("separator")
+        ext = self._basic_file_extension(uploaded_file, cast(str, separator))
 
-        if uploaded_file.name.endswith(".vcf"):
-            return ".vcf"
+        if uploaded_file.name.endswith(".gz"):
+            ext = f"{ext}.gz"
+        if uploaded_file.name.endswith(".bgz"):
+            ext = f"{ext}.bgz"
 
-        return ".txt"
+        return ext
 
     def _create_job(self, request: Request) -> Response | tuple[str, Job]:
         validation_response = self._validate_request(request)
@@ -451,7 +476,7 @@ class AnnotationBaseView(views.APIView):
             return Response(
                 status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
 
-        file_ext = self._determine_file_extensions(request)
+        file_ext = self._file_extension(request)
 
         data_filename = f"{job_name}{file_ext}"
         input_path = Path(
@@ -459,10 +484,10 @@ class AnnotationBaseView(views.APIView):
 
         try:
             self._save_input_file(request, input_path)
-        except Exception as e:
+        except OSError:
             logger.exception("Could not write input file")
 
-            self._cleanup(job_name)
+            self._cleanup(job_name, request.user.email)
             return Response(
                 {"reason": "File could not be identified"},
                 status=views.status.HTTP_400_BAD_REQUEST,
@@ -529,7 +554,7 @@ class JobDetail(AnnotationBaseView):
         except ObjectDoesNotExist:
             return Response(response, status=views.status.HTTP_200_OK)
 
-        content = Path(job.input_path).read_text()
+        content = Path(job.input_path).read_text(encoding="utf-8")
         lines = content.split("\n")
         header = lines[0]
         sep = details.separator
@@ -576,16 +601,29 @@ class AnnotateVCF(AnnotationBaseView):
         job_name, job = job_or_response
 
         try:
-            vcf = VariantFile(job.input_path, "r")
+            vcf = VariantFile(job.input_path)
         except (ValueError, OSError):
-            self._cleanup(job_name)
+            logger.exception("Failed to parse VCF file")
+            self._cleanup(job_name, job.owner.email)
             return Response(
                 {"reason": "Invalid VCF file"},
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
+        except NotImplementedError:
+            logger.exception("GZip upload")
+            self._cleanup(job_name, job.owner.email)
+            return Response(
+                {
+                    "reason": (
+                        "Uploaded VCF file not supported"
+                        " (GZipped not supported)."
+                    )
+                },
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
 
         if not self.check_variants_limit(vcf, request.user):
-            self._cleanup(job_name)
+            self._cleanup(job_name, job.owner.email)
             return Response(
                 status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
 
@@ -618,7 +656,6 @@ class AnnotateColumns(AnnotationBaseView):
         "col_location",
     ]
 
-
     def is_vcf_file(self, file: UploadedFile, input_path: Path) -> bool:
         """Check if a file is a VCF file."""
         assert file.name is not None
@@ -633,31 +670,8 @@ class AnnotateColumns(AnnotationBaseView):
             return False
         except OSError:
             return False
-        else:
-            return True
 
-    def is_columns_file(self, file: UploadedFile, input_path: Path) -> bool:
-        """Check if a file is a TSV or CSV file."""
-        assert file.name is not None
-        if file.name.endswith(".vcf"):
-            return False
-        if file.name.endswith(".tsv") or file.name.endswith(".csv"):
-            return True
-        try:
-            cols_file_content = input_path.read_text()
-        except UnicodeDecodeError:
-            return False
-        lines = cols_file_content.split("\n")
-        if len(lines) > 1:
-            header = lines[0].strip()
-            if len(header.split(",")) > 1:
-                return True
-            if len(header.split("\t")) > 1:
-                return True
-            first_line = lines[1].strip()
-            if len(first_line.split(":")) > 1:
-                return True
-        return False
+        return True
 
     def post(self, request: Request) -> Response:
         """Run column annotation job."""
@@ -692,7 +706,7 @@ class AnnotateColumns(AnnotationBaseView):
         except ObjectDoesNotExist:
             logger.exception("Job not found!")
             return Response(status=views.status.HTTP_404_NOT_FOUND)
-        except Exception as e:
+        except Exception:  # pylint: disable=broad-exception-caught
             logger.exception("Failed to annotate columns!")
             return Response(status=views.status.HTTP_400_BAD_REQUEST)
 
@@ -706,6 +720,7 @@ class JobGetFile(views.APIView):
     def get(
         self, request: Request, pk: int, file: str,
     ) -> Response | FileResponse:
+        """Download a file from a job."""
         job = get_object_or_404(Job, id=pk, is_active=True)
         if not has_job_permission(job, request.user):
             return Response(status=views.status.HTTP_403_FORBIDDEN)
@@ -765,6 +780,8 @@ class Login(views.APIView):
     parser_classes = [JSONParser]
 
     def post(self, request: Request) -> Response:
+        """Log in a user."""
+        assert isinstance(request.data, dict)
         if "email" not in request.data:
             return Response(
                 {"error": "An email is required to log in"},
@@ -776,14 +793,17 @@ class Login(views.APIView):
 
         email = request.data["email"]
         password = request.data["password"]
+        assert isinstance(email, str)
+        assert isinstance(password, str)
 
-        user = authenticate(request, email=email, password=password)
+        user = authenticate(
+            cast(HttpRequest, request), email=email, password=password)
         if user is None:
             return Response(
                 {"error": "Invalid login credentials"},
                 status=views.status.HTTP_400_BAD_REQUEST)
 
-        login(request, user)
+        login(cast(HttpRequest, request), user)
 
         umodel = User.objects.get(email=email)
         return Response(
@@ -864,6 +884,7 @@ class AnnotationConfigValidation(AnnotationBaseView):
 
         return Response(result, status=views.status.HTTP_200_OK)
 
+
 class PreviewFileUpload(AnnotationBaseView):
     """Try to determine the separator of a file split into columns"""
 
@@ -888,7 +909,6 @@ class PreviewFileUpload(AnnotationBaseView):
                 return separator
 
         return ""
-
 
     def post(self, request: Request) -> Response:
         """Determine the separator of a file split into columns."""
@@ -958,39 +978,44 @@ class SingleAnnotation(AnnotationBaseView):
 
     def generate_annotator_help(
         self,
-        annotator: Any,
+        annotator: Annotator,
         attribute_info: AttributeInfo,
     ) -> str | None:
         """Generate annotator help for gene scores and genomic scores"""
-        annotator_help = None
-        annotator_info = annotator.get_info()
-        if annotator_info.type in \
-                    {"position_score", "np_score", "allele_score"}:
-            annotator_help = _build_score_help(
+        if not isinstance(
+            annotator, (GeneScoreAnnotator, GenomicScoreAnnotatorBase),
+        ):
+            return None
+
+        if isinstance(annotator, GenomicScoreAnnotatorBase):
+            assert isinstance(annotator, GenomicScoreAnnotatorBase)
+            return _build_score_help(
                 annotator,
                 attribute_info,
                 annotator.score,
             )
-        elif annotator_info.type == "gene_score_annotator":
-            annotator_help = ""
-            for score_def in annotator.score.score_definitions.values():
-                if score_def.score_id == attribute_info.source:
-                    annotator_help += _build_gene_score_help(
-                        score_def,
-                        annotator.score,
-                    )
-                    break
-        return annotator_help
+
+        assert isinstance(annotator, GeneScoreAnnotator)
+        for score_def in annotator.score.score_definitions.values():
+            if score_def.score_id == attribute_info.source:
+                return _build_gene_score_help(
+                    score_def,
+                    annotator.score,
+                )
+        return None
 
     def post(self, request: Request) -> Response:
         """View for single annotation"""
 
+        assert isinstance(request.data, dict)
         if "variant" not in request.data:
             return Response(status=views.status.HTTP_400_BAD_REQUEST)
         if "genome" not in request.data:
             return Response(status=views.status.HTTP_400_BAD_REQUEST)
         variant = request.data["variant"]
+        assert isinstance(variant, dict)
         genome = request.data["genome"]
+        assert isinstance(genome, str)
 
         pipeline = self.get_genome_pipeline(genome)
 
@@ -1086,6 +1111,7 @@ class HistogramView(AnnotationBaseView):
 
     @method_decorator(last_modified(always_cache))
     def get(self, request: Request, resource_id: str) -> Response:
+        """Return histogram data for a resource and score ID."""
         try:
             resource = self.grr.get_resource(resource_id)
         except ValueError:
@@ -1099,13 +1125,18 @@ class HistogramView(AnnotationBaseView):
             resource.get_type(), get_histogram_not_supported,
         )
 
-        histogram = histogram_getter(
+        histogram, extra_data = histogram_getter(
             resource, score_id,
         )
         if isinstance(histogram, NullHistogram):
             return Response(status=views.status.HTTP_404_NOT_FOUND)
 
-        return Response(histogram.to_dict())
+        output = {
+            **histogram.to_dict(),
+            **extra_data,
+        }
+
+        return Response(output)
 
 
 class ConfirmAccount(views.APIView):  # USE
@@ -1266,6 +1297,7 @@ class PasswordReset(views.APIView):
 
     def post(self, request: Request) -> HttpResponse:
         """Handle the password reset form."""
+        assert isinstance(request.POST, QueryDict)
         verif_code, msg = \
             check_request_verification_path(
                 request.POST.get("code"),

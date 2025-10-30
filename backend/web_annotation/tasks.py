@@ -1,22 +1,25 @@
 """Web annotation celery tasks"""
 import logging
 import time
-from typing import Any
-from celery import shared_task
-from celery.schedules import crontab
-from web_annotation.celery_app import app
-from .models import Job, JobDetails
-from .annotation import annotate_columns_file, annotate_vcf_file
-from django.core.mail import send_mail
-from django.utils import timezone
-from django.core.exceptions import ObjectDoesNotExist
 from datetime import timedelta
 from subprocess import CalledProcessError
+from typing import Any
+
+from celery import shared_task
+from celery.schedules import crontab
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.mail import send_mail
+from django.utils import timezone
+from web_annotation.celery_app import app
+
+from .annotation import annotate_columns_file, annotate_vcf_file
+from .models import Job, JobDetails
+
 
 logger = logging.getLogger(__name__)
 
 
-def specify_job(
+def specify_job(  # pylint: disable=too-many-arguments
     job: Job,
     *,
     separator: str | None = None,
@@ -177,7 +180,7 @@ def delete_old_jobs(days_old: int = 0) -> None:
         job.deactivate()
 
 
-def run_columns_job(
+def run_columns_job(  # pylint: disable=too-many-branches
     job: Job, details: JobDetails,
     storage_dir: str, grr_definition: str | None,
 ) -> None:
@@ -234,7 +237,7 @@ def run_columns_job(
 
     try:
         process = annotate_columns_file(*args)
-    except CalledProcessError:
+    except CalledProcessError as e:
         logger.exception("Failed to execute job")
         update_job_failed(job, ["annotate_columns", *args])
     except (OSError, TypeError, ValueError):

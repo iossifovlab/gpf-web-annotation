@@ -317,7 +317,7 @@ def test_variant_limit_user(
         "filesize": settings.LIMITS["filesize"],
     }
 
-    mocked_run_job = mocker.patch(
+    mocker.patch(
         "web_annotation.tasks.annotate_vcf_job",
     )
 
@@ -351,7 +351,7 @@ def test_variant_limit_admin(
         "variant_count": 1,
     }
 
-    mocked_run_job = mocker.patch(
+    mocker.patch(
         "web_annotation.tasks.annotate_vcf_job",
     )
 
@@ -486,6 +486,8 @@ def test_histogram_view(admin_client: Client) -> None:
             pytest.approx(0.9),
             pytest.approx(1.0),
         ],
+        "small_values_desc": "small values",
+        "large_values_desc": "large values",
         "bars": [0, 3, 2, 1, 4, 1, 0, 0, 1, 1],
         "out_of_range_bins": [0, 0],
         "min_value": 0.1,
