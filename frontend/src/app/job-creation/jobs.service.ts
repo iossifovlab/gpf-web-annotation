@@ -118,6 +118,20 @@ export class JobsService {
     );
   }
 
+  public submitSeparator(file: File, separator: string) : Observable<FileContent> {
+    const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
+    const formData = new FormData();
+    formData.append('data', file);
+    formData.append('separator', separator);
+    return this.http.post(
+      this.jobPreviewUrl,
+      formData,
+      options
+    ).pipe(
+      map((response: object) => FileContent.fromJson(response))
+    );
+  }
+
   public getJobs(): Observable<Job[]> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
     return this.http.get<object[]>(

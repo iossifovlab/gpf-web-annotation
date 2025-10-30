@@ -104,9 +104,16 @@ export class JobCreationComponent implements OnInit {
     this.updatedFileHeader = mappedColumns;
   }
 
+  public submitNewSeparator(newSeparator: string): void {
+    this.fileSeparator = newSeparator;
+    this.jobsService.submitSeparator(this.file, newSeparator).pipe(take(1)).subscribe(res => {
+      this.fileContent = res;
+    });
+  }
+
   public onCancelClick(): void {
     this.creationError = '';
-    this.dialogRef.close({isCanceled: true, fileContent: null});
+    this.dialogRef.close({isCanceled: true});
   }
 
   public onPipelineClick(option: string): void {

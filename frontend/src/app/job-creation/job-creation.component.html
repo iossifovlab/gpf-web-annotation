@@ -68,16 +68,22 @@
       <span class="material-symbols-outlined delete-icon">delete</span>
     </button>
   </div>
-  <div *ngIf="this.file && !this.file.name.endsWith('vcf')" class="separator-list">
-    <label class="separator-label">Choose separator: </label>
 
-    <input type="radio" id="tab-separtor-radio" name="separator" value="Tab" (click)="fileSeparator = '\t'" />
+  <div *ngIf="this.file && !this.file.name.endsWith('vcf')" class="separator-list">
+    <label class="separator-label">Choose new separator: </label>
+
+    <input type="radio" id="tab-separtor-radio" name="separator" value="Tab" (click)="submitNewSeparator('\t')" />
     <label class="separator-label" for="tab-separtor-radio">Tab</label>
 
-    <input type="radio" id="comma-separtor-radio" name="separator" value="Comma" (click)="fileSeparator = ','" />
+    <input type="radio" id="comma-separtor-radio" name="separator" value="Comma" (click)="submitNewSeparator(',')" />
     <label class="separator-label" for="comma-separtor-radio">Comma</label>
 
-    <input type="radio" id="no-separator-radio" name="separator" value="No separator" (click)="fileSeparator = ''" />
+    <input
+      type="radio"
+      id="no-separator-radio"
+      name="separator"
+      value="No separator"
+      (click)="submitNewSeparator('')" />
     <label class="separator-label" for="no-separator-radio">No separator</label>
   </div>
 
