@@ -50,22 +50,42 @@ export class JobCreationComponent implements OnInit {
   public onCreateClick(): void {
     if (this.file) {
       let createObservable: Observable<object>;
-      if (this.view === 'text editor') {
-        createObservable = this.jobsService.createJob(
-          this.file,
-          null,
-          this.ymlConfig,
-          this.selectedGenome,
-          this.fileSeparator
-        );
-      } else {
-        createObservable = this.jobsService.createJob(
-          this.file,
-          this.pipelineId,
-          null,
-          this.selectedGenome,
-          this.fileSeparator
-        );
+      if (this.file.type !== 'text/vcard') {
+        if (this.view === 'text editor') {
+          createObservable = this.jobsService.createNonVcfJob(
+            this.file,
+            null,
+            this.ymlConfig,
+            this.selectedGenome,
+            this.fileSeparator
+          );
+        } else {
+          createObservable = this.jobsService.createNonVcfJob(
+            this.file,
+            this.pipelineId,
+            null,
+            this.selectedGenome,
+            this.fileSeparator
+          );
+        }
+      } else if (this.file.type === 'text/vcard') {
+        if (this.view === 'text editor') {
+          createObservable = this.jobsService.createJob(
+            this.file,
+            null,
+            this.ymlConfig,
+            this.selectedGenome,
+            this.fileSeparator
+          );
+        } else {
+          createObservable = this.jobsService.createJob(
+            this.file,
+            this.pipelineId,
+            null,
+            this.selectedGenome,
+            this.fileSeparator
+          );
+        }
       }
       createObservable.pipe(take(1)).subscribe({
         next: (resp) => {

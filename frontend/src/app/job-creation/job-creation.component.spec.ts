@@ -33,6 +33,11 @@ class JobsServiceMock {
     return of(new FileContent(',', ['chr', 'pos'], [['1', '123']]));
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, @stylistic/max-len
+  public createNonVcfJob(file1: File, pipeline: string, config: string, genome: string, fileSeparator: string): Observable<object> {
+    return of({});
+  }
+
   public getAnnotationPipelines(): Observable<Pipeline[]> {
     return of(mockPipelines);
   }
@@ -170,6 +175,20 @@ describe('JobCreationComponent', () => {
     const createJob = jest.spyOn(jobsServiceMock, 'createJob');
     component.onCreateClick();
     expect(createJob).toHaveBeenCalledWith(mockFile, 'autism', null, 'hg38', '\t');
+  });
+
+  it('should invoke the correct create job method when uploaded file is non vcf', () => {
+    const mockFile = new File([], 'mockFile', { type: 'text/csv' });
+    component.file = mockFile;
+    component.fileSeparator = '\t';
+    component.changeView('text editor');
+    fixture.detectChanges();
+
+    component.ymlConfig = 'some yml text';
+    const createJob = jest.spyOn(jobsServiceMock, 'createNonVcfJob');
+    component.onCreateClick();
+    expect(createJob).toHaveBeenCalledWith(mockFile, null, 'some yml text', 'hg38', '\t');
+    expect(component.ymlConfig).toBe('');
   });
 
   it('should disable Create button if no file is uploaded', () => {
