@@ -22,11 +22,10 @@ export class Job {
 
     let status: Status = null;
     switch (json['status']) {
-      case 1: status = 'specifying'; break;
-      case 2: status = 'waiting'; break;
-      case 3: status = 'in process'; break;
-      case 4: status = 'success'; break;
-      case 5: status = 'failed'; break;
+      case 1: status = 'waiting'; break;
+      case 2: status = 'in process'; break;
+      case 3: status = 'success'; break;
+      case 4: status = 'failed'; break;
     }
 
     return new Job(
@@ -40,11 +39,10 @@ export class Job {
 }
 
 export type JobCreationView = 'text editor' | 'pipeline list';
-export type Status = 'specifying' | 'waiting' | 'in process' | 'success' | 'failed';
+export type Status = 'waiting' | 'in process' | 'success' | 'failed';
 
 export function getStatusClassName(status: string): string {
   switch (status) {
-    case 'specifying': return 'specifying-status';
     case 'waiting': return 'waiting-status';
     case 'in process': return 'in-progress-status';
     case 'success': return 'success-status';

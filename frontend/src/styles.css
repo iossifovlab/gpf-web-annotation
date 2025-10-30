@@ -11,12 +11,6 @@ body {
   border-radius: 13px;
 }
 
-.specifying-status {
-  color: #a7b7c4;
-  background-color: #f6f8f9;
-  border-color: #a7b7c4;
-}
-
 .in-progress-status {
   color: #5f9ec8;
   background-color: #d3edff;

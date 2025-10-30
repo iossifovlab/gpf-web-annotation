@@ -7,11 +7,10 @@ import { FileContent, getStatusClassName, Job } from './jobs';
 import { Pipeline } from './pipelines';
 
 const jobsMockJson = [
-  { id: 1, created: '1.10.2025', owner: 'test@email.com', status: 3, duration: 4.7 },
-  { id: 2, created: '1.10.2025', owner: 'test@email.com', status: 5, duration: 2.5 },
-  { id: 3, created: '1.10.2025', owner: 'test@email.com', status: 4, duration: 2.3 },
-  { id: 4, created: '1.10.2025', owner: 'test@email.com', status: 2, duration: 1.9 },
-  { id: 5, created: '1.10.2025', owner: 'test@email.com', status: 1, duration: 5.2 },
+  { id: 1, created: '1.10.2025', owner: 'test@email.com', status: 2, duration: 4.7 },
+  { id: 2, created: '1.10.2025', owner: 'test@email.com', status: 4, duration: 2.5 },
+  { id: 3, created: '1.10.2025', owner: 'test@email.com', status: 3, duration: 2.3 },
+  { id: 4, created: '1.10.2025', owner: 'test@email.com', status: 1, duration: 1.9 },
 ];
 
 describe('JobsService', () => {
@@ -253,7 +252,6 @@ describe('JobsService', () => {
       new Job(2, new Date('1.10.2025'), 'test@email.com', 'failed', 2.5),
       new Job(3, new Date('1.10.2025'), 'test@email.com', 'success', 2.3),
       new Job(4, new Date('1.10.2025'), 'test@email.com', 'waiting', 1.9),
-      new Job(5, new Date('1.10.2025'), 'test@email.com', 'specifying', 5.2),
     ];
 
     const getResponse = service.getJobs();
@@ -288,7 +286,7 @@ describe('JobsService', () => {
       {
         id: 16,
         created: '2025-08-26',
-        status: 2,
+        status: 1,
         owner: 'register@email.com',
         duration: 3.3
       }

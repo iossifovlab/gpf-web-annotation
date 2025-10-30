@@ -126,38 +126,3 @@
   color: #5b778c;
   margin-top: 5px;
 }
-
-.specify-label {
-  width: 170px;
-  font-size: 14px;
-  color: #dfb434;
-  align-self: center;
-  display: inline-flex;
-  align-items: center;
-}
-
-.specifying-status:hover,
-.specify-label:hover {
-  cursor: pointer;
-}
-
-.warning-icon {
-  color: #dfb434;
-  font-size: 20px;
-  margin-bottom: 7px;
-  margin-right: 4px;
-}
-
-.specify-button {
-  background: none;
-  border: none;
-  border-bottom: 1px solid #dfb434;
-  padding: 2px;
-  color: #dfb434;
-  margin-left: 6px;
-}
-
-.specify-button:hover {
-  cursor: pointer;
-  color: #eeca5e;
-}
