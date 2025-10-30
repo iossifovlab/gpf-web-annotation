@@ -1,11 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
-import { MatDialogRef } from '@angular/material/dialog';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FileContent } from '../job-creation/jobs';
 import { TextShortenPipe } from '../text-shorten.pipe';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { JobsService } from '../job-creation/jobs.service';
 
 @Component({
   selector: 'app-column-specifying-modal',
@@ -26,7 +24,9 @@ export class ColumnSpecifyingModalComponent {
     'cnv_type',
     'vcf_like',
   ];
+
   @Input() public fileContent: FileContent;
+  @Output() public emitColumns = new EventEmitter<Map<string, string>>();
   public mappedColumns = new Map<string, string>();
   public error = '';
 
@@ -43,6 +43,7 @@ export class ColumnSpecifyingModalComponent {
       this.mappedColumns.delete(key);
     }
     this.mappedColumns.set(selectedName, column);
+    this.emitColumns.emit(this.mappedColumns);
   }
 
   private getFileColumnKey(column: string): string {

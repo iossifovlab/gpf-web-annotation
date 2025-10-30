@@ -81,7 +81,10 @@
     <label class="separator-label" for="no-separator-radio">No separator</label>
   </div>
 
-  <app-column-specifying-modal *ngIf="fileContent" [fileContent]="fileContent"></app-column-specifying-modal>
+  <app-column-specifying-modal
+    *ngIf="fileContent"
+    [fileContent]="fileContent"
+    (emitColumns)="getColumns($event)"></app-column-specifying-modal>
 </mat-dialog-content>
 <span class="error-message">{{ creationError }}</span>
 <mat-dialog-actions align="center">

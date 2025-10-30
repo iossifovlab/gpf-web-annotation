@@ -20,6 +20,7 @@ export class JobCreationComponent implements OnInit {
   public file: File = null;
   public fileSeparator: string = null;
   public fileContent: FileContent;
+  public updatedFileHeader = new Map<string, string>();
   public uploadError = '';
   public view: JobCreationView = 'pipeline list';
   public pipelines : Pipeline[] = [];
@@ -57,7 +58,8 @@ export class JobCreationComponent implements OnInit {
             null,
             this.ymlConfig,
             this.selectedGenome,
-            this.fileSeparator
+            this.fileSeparator,
+            this.updatedFileHeader
           );
         } else {
           createObservable = this.jobsService.createNonVcfJob(
@@ -65,7 +67,8 @@ export class JobCreationComponent implements OnInit {
             this.pipelineId,
             null,
             this.selectedGenome,
-            this.fileSeparator
+            this.fileSeparator,
+            this.updatedFileHeader
           );
         }
       } else if (this.file.type === 'text/vcard') {
@@ -95,6 +98,10 @@ export class JobCreationComponent implements OnInit {
         }
       });
     }
+  }
+
+  public getColumns(mappedColumns: Map<string, string>): void {
+    this.updatedFileHeader = mappedColumns;
   }
 
   public onCancelClick(): void {

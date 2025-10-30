@@ -179,13 +179,21 @@ describe('JobCreationComponent', () => {
     const mockFile = new File([], 'mockFile', { type: 'text/csv' });
     component.file = mockFile;
     component.fileSeparator = '\t';
+    component.updatedFileHeader = new Map([['chr', 'CHROM']]);
     component.changeView('text editor');
     fixture.detectChanges();
 
     component.ymlConfig = 'some yml text';
     const createVcfJob = jest.spyOn(jobsServiceMock, 'createNonVcfJob');
     component.onCreateClick();
-    expect(createVcfJob).toHaveBeenCalledWith(mockFile, null, 'some yml text', 'hg38', '\t');
+    expect(createVcfJob).toHaveBeenCalledWith(
+      mockFile,
+      null,
+      'some yml text',
+      'hg38',
+      '\t',
+      new Map([['chr', 'CHROM']])
+    );
     expect(component.ymlConfig).toBe('');
   });
 
@@ -193,12 +201,20 @@ describe('JobCreationComponent', () => {
     const mockFile = new File([], 'mockFile', { type: 'text/csv' });
     component.file = mockFile;
     component.fileSeparator = '\t';
+    component.updatedFileHeader = new Map([['pos', 'POS']]);
     component.pipelineId = 'autism';
     fixture.detectChanges();
 
     const createVcfJob = jest.spyOn(jobsServiceMock, 'createNonVcfJob');
     component.onCreateClick();
-    expect(createVcfJob).toHaveBeenCalledWith(mockFile, 'autism', null, 'hg38', '\t');
+    expect(createVcfJob).toHaveBeenCalledWith(
+      mockFile,
+      'autism',
+      null,
+      'hg38',
+      '\t',
+      new Map([['pos', 'POS']])
+    );
   });
 
   it('should disable Create button if no file is uploaded', () => {

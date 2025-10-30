@@ -64,6 +64,7 @@ export class JobsService {
     config: string,
     genome: string,
     fileSeparator: string,
+    columns: Map<string, string>
   ): Observable<object> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
     const formData = new FormData();
@@ -76,6 +77,17 @@ export class JobsService {
       const configFile = new File([config], 'config.yml');
       formData.append('config', configFile);
     }
+
+    formData.append('col_chrom', columns.get('chrom'));
+    formData.append('col_pos', columns.get('pos'));
+    formData.append('col_ref', columns.get('ref'));
+    formData.append('col_alt', columns.get('alt'));
+    formData.append('col_pos_beg', columns.get('position_begin'));
+    formData.append('col_pos_end', columns.get('position_end'));
+    formData.append('col_cnv_type', columns.get('cnv_type'));
+    formData.append('col_vcf_like', columns.get('vcf_like'));
+    formData.append('col_variant', columns.get('variant'));
+    formData.append('col_location', columns.get('location'));
 
     return this.http.post(
       this.annotateColumnsUrl,
