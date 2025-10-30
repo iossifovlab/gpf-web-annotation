@@ -70,27 +70,25 @@ export class JobCreationComponent implements OnInit {
         }
       } else if (this.file.type === 'text/vcard') {
         if (this.view === 'text editor') {
-          createObservable = this.jobsService.createJob(
+          createObservable = this.jobsService.createVcfJob(
             this.file,
             null,
             this.ymlConfig,
             this.selectedGenome,
-            this.fileSeparator
           );
         } else {
-          createObservable = this.jobsService.createJob(
+          createObservable = this.jobsService.createVcfJob(
             this.file,
             this.pipelineId,
             null,
             this.selectedGenome,
-            this.fileSeparator
           );
         }
       }
       createObservable.pipe(take(1)).subscribe({
-        next: (resp) => {
+        next: () => {
           this.ymlConfig = '';
-          this.dialogRef.close({isCanceled: false, fileContent: resp});
+          this.dialogRef.close({isCanceled: false});
         },
         error: (err: Error) => {
           this.creationError = err.message;

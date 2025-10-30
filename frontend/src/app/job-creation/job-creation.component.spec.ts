@@ -29,8 +29,8 @@ const mockPipelines = [
 ];
 class JobsServiceMock {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public createJob(file1: File, content: string): Observable<object> {
-    return of(new FileContent(',', ['chr', 'pos'], [['1', '123']]));
+  public createVcfJob(file1: File, pipeline: string, content: string, genome: string): Observable<object> {
+    return of({});
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, @stylistic/max-len
@@ -154,30 +154,28 @@ describe('JobCreationComponent', () => {
   it('should create process with yml config entered by user', () => {
     const mockFile = new File([], 'mockFile', { type: 'text/vcard' });
     component.file = mockFile;
-    component.fileSeparator = '\t';
     component.changeView('text editor');
     fixture.detectChanges();
 
     component.ymlConfig = 'some yml text';
-    const createJob = jest.spyOn(jobsServiceMock, 'createJob');
+    const createVcfJob = jest.spyOn(jobsServiceMock, 'createVcfJob');
     component.onCreateClick();
-    expect(createJob).toHaveBeenCalledWith(mockFile, null, 'some yml text', 'hg38', '\t');
+    expect(createVcfJob).toHaveBeenCalledWith(mockFile, null, 'some yml text', 'hg38');
     expect(component.ymlConfig).toBe('');
   });
 
   it('should create process with pipeline', () => {
     const mockFile = new File([], 'mockFile', { type: 'text/vcard' });
     component.file = mockFile;
-    component.fileSeparator = '\t';
     fixture.detectChanges();
 
     component.onPipelineClick('autism');
-    const createJob = jest.spyOn(jobsServiceMock, 'createJob');
+    const createVcfJob = jest.spyOn(jobsServiceMock, 'createVcfJob');
     component.onCreateClick();
-    expect(createJob).toHaveBeenCalledWith(mockFile, 'autism', null, 'hg38', '\t');
+    expect(createVcfJob).toHaveBeenCalledWith(mockFile, 'autism', null, 'hg38');
   });
 
-  it('should invoke the correct create job method when uploaded file is non vcf', () => {
+  it('should type config and invoke the correct create job method when uploaded file is non vcf', () => {
     const mockFile = new File([], 'mockFile', { type: 'text/csv' });
     component.file = mockFile;
     component.fileSeparator = '\t';
@@ -185,10 +183,22 @@ describe('JobCreationComponent', () => {
     fixture.detectChanges();
 
     component.ymlConfig = 'some yml text';
-    const createJob = jest.spyOn(jobsServiceMock, 'createNonVcfJob');
+    const createVcfJob = jest.spyOn(jobsServiceMock, 'createNonVcfJob');
     component.onCreateClick();
-    expect(createJob).toHaveBeenCalledWith(mockFile, null, 'some yml text', 'hg38', '\t');
+    expect(createVcfJob).toHaveBeenCalledWith(mockFile, null, 'some yml text', 'hg38', '\t');
     expect(component.ymlConfig).toBe('');
+  });
+
+  it('should select pipeline and invoke the correct create job method when uploaded file is non vcf', () => {
+    const mockFile = new File([], 'mockFile', { type: 'text/csv' });
+    component.file = mockFile;
+    component.fileSeparator = '\t';
+    component.pipelineId = 'autism';
+    fixture.detectChanges();
+
+    const createVcfJob = jest.spyOn(jobsServiceMock, 'createNonVcfJob');
+    component.onCreateClick();
+    expect(createVcfJob).toHaveBeenCalledWith(mockFile, 'autism', null, 'hg38', '\t');
   });
 
   it('should disable Create button if no file is uploaded', () => {

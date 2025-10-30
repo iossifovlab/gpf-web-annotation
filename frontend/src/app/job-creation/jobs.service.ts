@@ -7,12 +7,12 @@ import { environment } from '../../../environments/environment';
 
 @Injectable()
 export class JobsService {
-  private readonly createJobUrl = `${environment.apiPath}/jobs/create`;
   private readonly validateJobConfigUrl = `${environment.apiPath}/jobs/validate`;
   private readonly jobsUrl = `${environment.apiPath}/jobs`;
   private readonly jobPreviewUrl = `${environment.apiPath}/jobs/preview`;
   private readonly getPipelinesUrl = `${environment.apiPath}/pipelines`;
   private readonly annotateColumnsUrl = `${environment.apiPath}/jobs/annotate_columns`;
+  private readonly annotateVcfUrl = `${environment.apiPath}/jobs/annotate_vcf`;
 
   public constructor(private http: HttpClient) { }
 
@@ -26,18 +26,16 @@ export class JobsService {
     return res;
   }
 
-  public createJob(
+  public createVcfJob(
     file: File,
     pipeline: string,
     config: string,
     genome: string,
-    fileSeparator: string,
   ): Observable<object> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
     const formData = new FormData();
-    formData.append('data', file, file.name);
+    formData.append('data', file);
     formData.append('genome', genome);
-    formData.append('separator', fileSeparator);
     if (pipeline) {
       formData.append('pipeline', pipeline);
     } else {
@@ -45,11 +43,10 @@ export class JobsService {
       formData.append('config', configFile);
     }
     return this.http.post(
-      this.createJobUrl,
+      this.annotateVcfUrl,
       formData,
       options
     ).pipe(
-      map((response: object) => response ? FileContent.fromJson(response) : response),
       catchError((err: HttpErrorResponse) => {
         switch (err.status) {
           case 403: return throwError(() => new Error((err.error as {reason: string})['reason']));

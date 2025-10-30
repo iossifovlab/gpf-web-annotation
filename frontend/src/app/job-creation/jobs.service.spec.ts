@@ -39,7 +39,7 @@ describe('JobsService', () => {
 
     const mockInputFile = new File(['mockData'], 'mockInput.vcf');
 
-    const postResult = service.createJob(mockInputFile, null, 'mockConfigData', 'hg38', '\t');
+    const postResult = service.createVcfJob(mockInputFile, null, 'mockConfigData', 'hg38');
 
     const res = await lastValueFrom(postResult.pipe(take(1)));
     expect(res).toBeNull();
@@ -51,7 +51,7 @@ describe('JobsService', () => {
 
     const mockInputFile = new File(['mockData'], 'mockInput.vcf');
 
-    const postResult = service.createJob(mockInputFile, 'autism', null, null, '\t');
+    const postResult = service.createVcfJob(mockInputFile, 'autism', null, null);
 
     const res = await lastValueFrom(postResult.pipe(take(1)));
     expect(res).toBeNull();
@@ -92,7 +92,7 @@ describe('JobsService', () => {
 
     const mockInputFile = new File(['mockData'], 'mockInput.vcf');
 
-    const postResult = service.createJob(mockInputFile, 'autism', null, null, '\t');
+    const postResult = service.createVcfJob(mockInputFile, 'autism', null, null);
 
     await expect(() => lastValueFrom(postResult.pipe(take(1))))
       .rejects.toThrow('Daily quota limit reached!');
@@ -105,7 +105,7 @@ describe('JobsService', () => {
 
     const mockInputFile = new File(['mockData'], 'mockInput.vcf');
 
-    const postResult = service.createJob(mockInputFile, 'autism', null, null, '\t');
+    const postResult = service.createVcfJob(mockInputFile, 'autism', null, null);
 
     await expect(() => lastValueFrom(postResult.pipe(take(1))))
       .rejects.toThrow('Upload limit reached!');
@@ -118,7 +118,7 @@ describe('JobsService', () => {
 
     const mockInputFile = new File(['mockData'], 'mockInput.vcf');
 
-    const postResult = service.createJob(mockInputFile, 'autism', null, null, '\t');
+    const postResult = service.createVcfJob(mockInputFile, 'autism', null, null);
 
     await expect(() => lastValueFrom(postResult.pipe(take(1))))
       .rejects.toThrow('Invalid pipeline configuration file!');
@@ -131,7 +131,7 @@ describe('JobsService', () => {
 
     const mockInputFile = new File(['mockData'], 'mockInput.vcf');
 
-    const postResult = service.createJob(mockInputFile, 'autism', null, null, '\t');
+    const postResult = service.createVcfJob(mockInputFile, 'autism', null, null);
 
     await expect(() => lastValueFrom(postResult.pipe(take(1))))
       .rejects.toThrow('Error occurred!');
@@ -148,7 +148,6 @@ describe('JobsService', () => {
     const formData = new FormData();
     formData.append('data', mockInputFile, 'mockInput.vcf');
     formData.append('genome', 'hg38');
-    formData.append('separator', '\t');
     formData.append('config', mockConfigFile);
 
     const options = {
@@ -158,10 +157,10 @@ describe('JobsService', () => {
       withCredentials: true
     };
 
-    service.createJob(mockInputFile, null, mockConfigCntent, 'hg38', '\t');
+    service.createVcfJob(mockInputFile, null, mockConfigCntent, 'hg38');
 
     expect(httpPostSpy).toHaveBeenCalledWith(
-      '//localhost:8000/api/jobs/create',
+      '//localhost:8000/api/jobs/annotate_vcf',
       formData,
       options
     );
@@ -176,7 +175,6 @@ describe('JobsService', () => {
     const formData = new FormData();
     formData.append('data', mockInputFile, 'mockInput.vcf');
     formData.append('genome', 'hg38');
-    formData.append('separator', '\t');
     formData.append('pipeline', 'autism');
 
     const options = {
@@ -186,10 +184,10 @@ describe('JobsService', () => {
       withCredentials: true
     };
 
-    service.createJob(mockInputFile, 'autism', null, 'hg38', '\t');
+    service.createVcfJob(mockInputFile, 'autism', null, 'hg38');
 
     expect(httpPostSpy).toHaveBeenCalledWith(
-      '//localhost:8000/api/jobs/create',
+      '//localhost:8000/api/jobs/annotate_vcf',
       formData,
       options
     );
@@ -206,7 +204,6 @@ describe('JobsService', () => {
     const formData = new FormData();
     formData.append('data', mockInputFile, 'mockInput.vcf');
     formData.append('genome', 'hg38');
-    formData.append('separator', '\t');
     formData.append('config', mockConfigFile);
 
     const mockCookie = 'csrftoken=EYZbFmv1i1Ie7cmT3OFHgxdv3kOR7rIt';
@@ -219,9 +216,9 @@ describe('JobsService', () => {
       withCredentials: true
     };
 
-    service.createJob(mockInputFile, null, mockConfigCntent, 'hg38', '\t');
+    service.createVcfJob(mockInputFile, null, mockConfigCntent, 'hg38');
     expect(httpPostSpy).toHaveBeenCalledWith(
-      '//localhost:8000/api/jobs/create',
+      '//localhost:8000/api/jobs/annotate_vcf',
       formData,
       options
     );
