@@ -12,7 +12,7 @@ export class JobsService {
   private readonly jobsUrl = `${environment.apiPath}/jobs`;
   private readonly jobPreviewUrl = `${environment.apiPath}/jobs/preview`;
   private readonly getPipelinesUrl = `${environment.apiPath}/pipelines`;
-  private readonly specifyColumnsUrl = `${environment.apiPath}jobs/annotate_columns`;
+  private readonly annotateColumnsUrl = `${environment.apiPath}/jobs/annotate_columns`;
 
   public constructor(private http: HttpClient) { }
 
@@ -50,6 +50,41 @@ export class JobsService {
       options
     ).pipe(
       map((response: object) => response ? FileContent.fromJson(response) : response),
+      catchError((err: HttpErrorResponse) => {
+        switch (err.status) {
+          case 403: return throwError(() => new Error((err.error as {reason: string})['reason']));
+          case 413: return throwError(() => new Error('Upload limit reached!'));
+          case 400: return throwError(() => new Error((err.error as {reason: string})['reason']));
+          default: return throwError(() => new Error('Error occurred!'));
+        }
+      })
+    );
+  }
+
+  public createNonVcfJob(
+    file: File,
+    pipeline: string,
+    config: string,
+    genome: string,
+    fileSeparator: string,
+  ): Observable<object> {
+    const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
+    const formData = new FormData();
+    formData.append('data', file);
+    formData.append('genome', genome);
+    formData.append('separator', fileSeparator);
+    if (pipeline) {
+      formData.append('pipeline', pipeline);
+    } else {
+      const configFile = new File([config], 'config.yml');
+      formData.append('config', configFile);
+    }
+
+    return this.http.post(
+      this.annotateColumnsUrl,
+      formData,
+      options
+    ).pipe(
       catchError((err: HttpErrorResponse) => {
         switch (err.status) {
           case 403: return throwError(() => new Error((err.error as {reason: string})['reason']));

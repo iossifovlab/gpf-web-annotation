@@ -57,6 +57,34 @@ describe('JobsService', () => {
     expect(res).toBeNull();
   });
 
+  it('should create job with non vcf file uploaded', () => {
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
+    httpPostSpy.mockReturnValue(of({}));
+
+    const mockInputFile = new File(['mockData'], 'mockInput.tsv');
+
+    const formData = new FormData();
+    formData.append('data', mockInputFile);
+    formData.append('genome', 'hg38');
+    formData.append('separator', '\t');
+    formData.append('pipeline', 'autism');
+
+    const options = {
+      headers: {
+        'X-CSRFToken': ''
+      },
+      withCredentials: true
+    };
+
+    service.createNonVcfJob(mockInputFile, 'autism', null, 'hg38', '\t');
+
+    expect(httpPostSpy).toHaveBeenCalledWith(
+      '//localhost:8000/api/jobs/annotate_columns',
+      formData,
+      options
+    );
+  });
+
   it('should catch error 403 for daily quota limit when creating job', async() => {
     const httpError = new HttpErrorResponse({status: 403, error: {reason: 'Daily quota limit reached!'}});
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
