@@ -486,6 +486,8 @@ def test_histogram_view(admin_client: Client) -> None:
             pytest.approx(0.9),
             pytest.approx(1.0),
         ],
+        "small_values_desc": "small values",
+        "large_values_desc": "large values",
         "bars": [0, 3, 2, 1, 4, 1, 0, 0, 1, 1],
         "out_of_range_bins": [0, 0],
         "min_value": 0.1,

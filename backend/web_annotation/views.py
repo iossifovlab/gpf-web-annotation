@@ -13,8 +13,10 @@ from dae.annotation.annotation_config import (
     AnnotationConfigurationError,
     AttributeInfo,
 )
+from dae.annotation.gene_score_annotator import GeneScoreAnnotator
+from dae.annotation.score_annotator import GenomicScoreAnnotatorBase
 from dae.annotation.annotation_factory import load_pipeline_from_grr
-from dae.annotation.annotation_pipeline import AnnotationPipeline
+from dae.annotation.annotation_pipeline import AnnotationPipeline, Annotator
 from dae.gene_scores.gene_scores import (
     build_gene_score_from_resource,
     _build_gene_score_help,
@@ -86,32 +88,46 @@ logger = logging.getLogger(__name__)
 
 
 def get_histogram_genomic_score(
-    resource: GenomicResource, score: str,
-) -> Histogram:
-    """Get histogram for a genomic score."""
+    resource: GenomicResource, score_id: str,
+) -> tuple[Histogram, dict[str, Any]]:
+    """Get histogram and extra data for a genomic score."""
     if resource.get_type() not in [
         "allele_score", "position_score",
     ]:
         raise ValueError(f"{resource.resource_id} is not a genomic score!")
-    return build_score_from_resource(
-        resource).get_score_histogram(score)
+    score = build_score_from_resource(resource)
+    score_def = score.score_definitions[score_id]
+    return (
+        score.get_score_histogram(score_id),
+        {
+            "small_values_desc": score_def.small_values_desc,
+            "large_values_desc": score_def.large_values_desc,
+        },
+    )
 
 
 def get_histogram_gene_score(
-    resource: GenomicResource, score: str,
-) -> Histogram:
-    """Get histogram from a gene score resource."""
+    resource: GenomicResource, score_id: str,
+) -> tuple[Histogram, dict[str, Any]]:
+    """Get histogram and extra data for a gene score."""
     if resource.get_type() != "gene_score":
         raise ValueError(f"{resource.resource_id} is not a genomic score!")
-    return build_gene_score_from_resource(
-        resource).get_score_histogram(score)
+    score = build_gene_score_from_resource(resource)
+    score_def = score.score_definitions[score_id]
+    return (
+        score.get_score_histogram(score_id),
+        {
+            "small_values_desc": score_def.small_values_desc,
+            "large_values_desc": score_def.large_values_desc,
+        },
+    )
 
 
 def get_histogram_not_supported(
     _resource: GenomicResource, _score: str,  # pylint: disable=unused-argument
-) -> Histogram:
+) -> tuple[Histogram, dict[str, Any]]:
     """Return an empty histogram for unsupported resources."""
-    return NullHistogram(None)
+    return (NullHistogram(None), {})
 
 
 HISTOGRAM_GETTERS = {
@@ -962,29 +978,31 @@ class SingleAnnotation(AnnotationBaseView):
 
     def generate_annotator_help(
         self,
-        annotator: Any,
+        annotator: Annotator,
         attribute_info: AttributeInfo,
     ) -> str | None:
         """Generate annotator help for gene scores and genomic scores"""
-        annotator_help = None
-        annotator_info = annotator.get_info()
-        if annotator_info.type in \
-                {"position_score", "np_score", "allele_score"}:
-            annotator_help = _build_score_help(
+        if not isinstance(
+            annotator, (GeneScoreAnnotator, GenomicScoreAnnotatorBase),
+        ):
+            return None
+
+        if isinstance(annotator, GenomicScoreAnnotatorBase):
+            assert isinstance(annotator, GenomicScoreAnnotatorBase)
+            return _build_score_help(
                 annotator,
                 attribute_info,
                 annotator.score,
             )
-        elif annotator_info.type == "gene_score_annotator":
-            annotator_help = ""
-            for score_def in annotator.score.score_definitions.values():
-                if score_def.score_id == attribute_info.source:
-                    annotator_help += _build_gene_score_help(
-                        score_def,
-                        annotator.score,
-                    )
-                    break
-        return annotator_help
+
+        assert isinstance(annotator, GeneScoreAnnotator)
+        for score_def in annotator.score.score_definitions.values():
+            if score_def.score_id == attribute_info.source:
+                return _build_gene_score_help(
+                    score_def,
+                    annotator.score,
+                )
+        return None
 
     def post(self, request: Request) -> Response:
         """View for single annotation"""
@@ -1107,13 +1125,18 @@ class HistogramView(AnnotationBaseView):
             resource.get_type(), get_histogram_not_supported,
         )
 
-        histogram = histogram_getter(
+        histogram, extra_data = histogram_getter(
             resource, score_id,
         )
         if isinstance(histogram, NullHistogram):
             return Response(status=views.status.HTTP_404_NOT_FOUND)
 
-        return Response(histogram.to_dict())
+        output = {
+            **histogram.to_dict(),
+            **extra_data,
+        }
+
+        return Response(output)
 
 
 class ConfirmAccount(views.APIView):  # USE
