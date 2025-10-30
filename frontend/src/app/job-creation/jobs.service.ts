@@ -177,42 +177,4 @@ export class JobsService {
       options
     );
   }
-
-  public specifyColumns(columns: Map<string, string>): Observable<object> {
-    const options = {
-      headers: {
-        'X-CSRFToken': this.getCSRFToken(),
-        'Content-Type': 'application/json'
-      },
-      withCredentials: true
-    };
-
-    return this.http.post(
-      this.specifyColumnsUrl,
-      /* eslint-disable camelcase */
-      {
-        col_chrom: columns.get('chrom'),
-        col_pos: columns.get('pos'),
-        col_ref: columns.get('ref'),
-        col_alt: columns.get('alt'),
-        col_pos_beg: columns.get('position_begin'),
-        col_pos_end: columns.get('position_end'),
-        col_cnv_type: columns.get('cnv_type'),
-        col_vcf_like: columns.get('vcf_like'),
-        col_variant: columns.get('variant'),
-        col_location: columns.get('location'),
-      },
-      /* eslint-enable */
-      options
-    ).pipe(
-      catchError((err: HttpErrorResponse) => {
-        switch (err.status) {
-          case 403: return throwError(() => new Error('Quota reached!'));
-          case 404: return throwError(() => new Error('Job not found!'));
-          case 400: return throwError(() => new Error((err.error as {reason: string})['reason']));
-          default: return throwError(() => new Error('Error occurred!'));
-        }
-      })
-    );
-  }
 }

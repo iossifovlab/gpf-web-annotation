@@ -30,10 +30,7 @@ export class ColumnSpecifyingModalComponent {
   public mappedColumns = new Map<string, string>();
   public error = '';
 
-  public constructor(
-    private dialogRef: MatDialogRef<ColumnSpecifyingModalComponent>,
-    private jobsService: JobsService
-  ) { }
+  public constructor() { }
 
   public onSelectName(selectedName: string, column: string): void {
     this.error = '';
@@ -55,14 +52,5 @@ export class ColumnSpecifyingModalComponent {
       }
     }
     return null;
-  }
-
-  public submitColumns(): void {
-    this.jobsService.specifyColumns(this.mappedColumns).subscribe({
-      next: () => this.dialogRef.close(true),
-      error: (err: Error) => {
-        this.error = err.message;
-      }
-    });
   }
 }
