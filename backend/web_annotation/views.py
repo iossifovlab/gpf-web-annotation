@@ -971,7 +971,7 @@ class PreviewFileUpload(AnnotationBaseView):
             raw_content = file.read()
 
         content = raw_content.decode()
-        lines = content.split("\n")
+        lines = content.strip("\n").split("\n")
 
         if request.data.get("separator") is None:
             separator = self._get_separator(lines)
