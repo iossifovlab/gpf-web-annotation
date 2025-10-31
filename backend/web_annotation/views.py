@@ -562,13 +562,14 @@ class JobDetail(AnnotationBaseView):
         except ObjectDoesNotExist:
             return Response(response, status=views.status.HTTP_200_OK)
 
-        response["columns"] = details.columns.split(";")
-        file_head = extract_head(
-            str(job.input_path),
-            details.separator,
-            n_lines=5,
-        )
-        response["head"] = file_head
+        if details.separator:
+            response["columns"] = details.columns.split(";")
+            file_head = extract_head(
+                str(job.input_path),
+                details.separator,
+                n_lines=5,
+            )
+            response["head"] = file_head
 
         return Response(response, status=views.status.HTTP_200_OK)
 
