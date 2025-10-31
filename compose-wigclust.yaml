@@ -86,8 +86,8 @@ services:
       GPFWA_DATA_STORAGE: /data
       GPFWA_LOG_DIR: /logs
       GPFWA_SECRET_KEY: "django-insecure-3rz4n(_u+x8r+n%&xr-(vg83v8&llq7pin*x%@%y@d8af%iphk"
-      GPFWA_EMAIL_VERIFICATION_ENDPOINT: "http://wigclust3.cshl.edu"
-      GPFWA_EMAIL_REDIRECT_ENDPOINT: "http://wigclust3.cshl.edu"
+      GPFWA_EMAIL_VERIFICATION_ENDPOINT: "http://wigclust3.cshl.edu:8000"
+      GPFWA_EMAIL_REDIRECT_ENDPOINT: "http://wigclust3.cshl.edu:8000"
     healthcheck:
       test: ["CMD", "curl", "http://localhost:9001/api/user_info"]
       interval: 10s
