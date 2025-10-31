@@ -108,7 +108,7 @@ describe('JobCreationComponent', () => {
   });
 
   it('should show error message on file format validation', () => {
-    const mockFile = new File([], 'mockFile', { type: 'pdf' });
+    const mockFile = new File([], 'mockFile.pdf');
     const mockEvent = {
       target: { files: [mockFile] } as unknown as HTMLInputElement,
     } as unknown as Event;
@@ -118,7 +118,7 @@ describe('JobCreationComponent', () => {
   });
 
   it('should upload csv file and sent query for preview', () => {
-    const mockFile = new File([], 'mockFile', { type: 'text/csv' });
+    const mockFile = new File([], 'mockFile.csv');
     const mockEvent = {
       target: { files: [mockFile] } as unknown as HTMLInputElement,
     } as unknown as Event;
@@ -130,7 +130,7 @@ describe('JobCreationComponent', () => {
   });
 
   it('should upload vcf file', () => {
-    const mockFile = new File([], 'mockFile', { type: 'text/vcard' });
+    const mockFile = new File([], 'mockFile.vcf');
     const mockEvent = {
       target: { files: [mockFile] } as unknown as HTMLInputElement,
     } as unknown as Event;
@@ -260,7 +260,7 @@ describe('JobCreationComponent', () => {
   });
 
   it('should prevent default and set file when csv file is dropped', () => {
-    const mockFile = new File([], 'mockFile', { type: 'text/csv' });
+    const mockFile = new File([], 'mockFile.csv');
     const mockDataTransfer = { files: [mockFile] } as unknown as DataTransfer;
     const mockEvent = { dataTransfer: mockDataTransfer, preventDefault: jest.fn() } as unknown as DragEvent;
 
