@@ -303,7 +303,7 @@ test.describe('Jobs table tests', () => {
     await expect(page.locator('.cell').nth(7)).toHaveText('A');
   });
 
-  test('should upload tsv file and specify columns right after creation', async({ page }) => {
+  test('should upload tsv file and specify columns', async({ page }) => {
     await page.locator('#add-job-button').click();
     await page.getByLabel('pipeline/GPF-SFARI_annotation').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-tsv-file.tsv');
@@ -454,7 +454,7 @@ test.describe('Validation tests', () => {
       resp => resp.url().includes('/api/jobs/annotate_vcf') && resp.status() === 204
     );
 
-    await waitForJobStatus(page, 'success');
+    await waitForJobStatus(page, 'failed');
   });
 
   test('should check if create button is disabled when invalid file is uploaded', async({ page }) => {
@@ -519,12 +519,33 @@ test.describe('Validation tests', () => {
   //   await expect(page.getByText('Daily job limit reached!')).toBeVisible();
   // });
 
-  test('should expect error message when file with invalid separator is uploaded', async({ page }) => {
+  test('should expect job to fail if file with invalid separator is uploaded', async({ page }) => {
     await page.locator('#add-job-button').click();
     await page.getByLabel('pipeline/Autism_annotation').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/invalid-separator.csv');
+    await page.locator('[id="CHROM+POS+REF+ALT-header"]').locator('mat-select').click();
+    await page.getByRole('option', { name: 'chrom', exact: true }).click();
     await page.locator('#create-button').click();
-    await expect(page.getByText('Invalid separator, cannot create proper columns!')).toBeVisible();
+    await waitForJobStatus(page, 'failed');
+  });
+
+  test('should expect job to fail if file content is not separeted correctly', async({ page }) => {
+    await page.locator('#add-job-button').click();
+    await page.getByLabel('pipeline/Autism_annotation').click();
+    await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/wrongly-separated-row.csv');
+    await page.locator('[id="CHROM,POS,REF,ALT-header"]').locator('mat-select').click();
+    await page.getByRole('option', { name: 'chrom', exact: true }).click();
+    await page.locator('#create-button').click();
+    await waitForJobStatus(page, 'failed');
+  });
+
+  test('should expect error message when no columns are specified', async({ page }) => {
+    await page.locator('#add-job-button').click();
+    await page.getByLabel('pipeline/Autism_annotation').click();
+    await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/wrongly-separated-row.csv');
+
+    await page.locator('#create-button').click();
+    await expect(page.getByText('Invalid column specification!')).toBeVisible();
   });
 
   test('should upload file with more than 1000 variants', async({ page }) => {
