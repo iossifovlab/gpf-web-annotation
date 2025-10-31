@@ -108,6 +108,7 @@ export class JobCreationComponent implements OnInit {
     this.fileSeparator = newSeparator;
     this.jobsService.submitSeparator(this.file, newSeparator).pipe(take(1)).subscribe(res => {
       this.fileContent = res;
+      this.fileSeparator = res.separator;
     });
   }
 
@@ -165,6 +166,7 @@ export class JobCreationComponent implements OnInit {
     this.file = null;
     this.uploadError = '';
     this.fileContent = null;
+    this.fileSeparator = '';
   }
 
   private onFileChange(file: File): void {
@@ -177,6 +179,7 @@ export class JobCreationComponent implements OnInit {
   private submitFile(): void {
     this.jobsService.submitFile(this.file).pipe(take(1)).subscribe(res => {
       this.fileContent = res;
+      this.fileSeparator = res.separator;
     });
   }
 
