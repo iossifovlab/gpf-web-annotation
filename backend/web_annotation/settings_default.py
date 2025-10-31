@@ -10,8 +10,36 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import os
+import pathlib
 from dae.genomic_resources.repository_factory import \
     get_default_grr_definition_path
+
+
+DEFAULT_DATA_DIR = str(pathlib.Path(__file__).parent.parent / "data")
+if not os.path.exists(DEFAULT_DATA_DIR):
+    os.makedirs(DEFAULT_DATA_DIR)
+
+# Dir for all data storage
+DATA_STORAGE_DIR = os.environ.get("GPFWA_DATA_STORAGE", DEFAULT_DATA_DIR)
+
+# Subdir to store uploaded annotation configurations in
+ANNOTATION_CONFIG_STORAGE_DIR = f"{DATA_STORAGE_DIR}/annotation-configs"
+# Subdir to store uploaded files in before they are annotated
+JOB_INPUT_STORAGE_DIR = f"{DATA_STORAGE_DIR}/job-inputs"
+# Subdir to store results of annotation in
+JOB_RESULT_STORAGE_DIR = f"{DATA_STORAGE_DIR}/job-results"
+
+PIPELINES_STORAGE_DIR = f"{DATA_STORAGE_DIR}/pipelines"
+
+LIMITS = {
+    "daily_jobs": 5,
+    "filesize": "64M",
+    "variant_count": 1000,
+}
+
+JOB_CLEANUP_INTERVAL_DAYS = 30
+
+GRR_DEFINITION_PATH = get_default_grr_definition_path()
 
 # Hristo kaza
 APPEND_SLASH = False
@@ -103,7 +131,7 @@ else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": "db.sqlite3",
+            "NAME": f"{DEFAULT_DATA_DIR}/db.sqlite3",
             "USER": "",
             "PASSWORD": "",
             "HOST": "",
@@ -179,28 +207,6 @@ REST_FRAMEWORK = {
 # Project-specific stuff
 AUTH_USER_MODEL = "web_annotation.User"
 
-# Dir for all data storage
-DATA_STORAGE_DIR = os.environ.get("GPFWA_DATA_STORAGE", "data")
-
-# Subdir to store uploaded annotation configurations in
-ANNOTATION_CONFIG_STORAGE_DIR = f"{DATA_STORAGE_DIR}/annotation-configs"
-# Subdir to store uploaded files in before they are annotated
-JOB_INPUT_STORAGE_DIR = f"{DATA_STORAGE_DIR}/job-inputs"
-# Subdir to store results of annotation in
-JOB_RESULT_STORAGE_DIR = f"{DATA_STORAGE_DIR}/job-results"
-
-PIPELINES_STORAGE_DIR = f"{DATA_STORAGE_DIR}/pipelines"
-
-LIMITS = {
-    "daily_jobs": 5,
-    "filesize": "64M",
-    "variant_count": 1000,
-}
-
-JOB_CLEANUP_INTERVAL_DAYS = 30
-
-GRR_DEFINITION_PATH = get_default_grr_definition_path()
-
 # Email related settings
 RESET_PASSWORD_TIMEOUT_HOURS = 24
 
@@ -237,7 +243,9 @@ GENOME_DEFINITIONS = {
 }
 
 
-LOG_DIR = os.environ.get("GPFWA_LOG_DIR", ".")
+LOG_DIR = os.environ.get("GPFWA_LOG_DIR", f"{DATA_STORAGE_DIR}/logs")
+if not os.path.exists(LOG_DIR):
+    os.makedirs(LOG_DIR)
 
 LOGGING = {
     "version": 1,
