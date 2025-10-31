@@ -70,7 +70,9 @@ export class JobsService {
     const formData = new FormData();
     formData.append('data', file);
     formData.append('genome', genome);
-    formData.append('separator', fileSeparator);
+    if (fileSeparator) {
+      formData.append('separator', fileSeparator);
+    }
     if (pipeline) {
       formData.append('pipeline', pipeline);
     } else {
