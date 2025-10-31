@@ -1,4 +1,5 @@
 import gzip
+from itertools import islice
 from typing import Any
 
 from django.core.files.uploadedfile import UploadedFile
@@ -21,6 +22,27 @@ def extract_header(path: str, input_separator: str) -> list[str]:
         c.strip("#")
         for c in raw_header.strip("\r\n").split(input_separator)
     ]
+
+
+def extract_head(
+    path: str,
+    input_separator: str,
+    n_lines: int,
+) -> list[dict[str, str]]:
+    """Extract first n_lines rows from a file."""
+    if is_compressed_filename(path):
+        with gzip.open(path, "rt") as infile:
+            lines = list(islice(infile.readlines(), 0, n_lines + 1))
+    else:
+        with open(path, "rt") as infile:
+            lines = list(islice(infile.readlines(), 0, n_lines + 1))
+    header = [
+        c.strip("#")
+        for c in lines[0].strip("\r\n").split(input_separator)
+    ]
+    return [dict(
+        zip(header, line.strip("\r\n").split(input_separator), strict=True)
+    ) for line in lines[1:n_lines + 1]]
 
 
 def check_separator(separator: str, lines: list[str]) -> bool:

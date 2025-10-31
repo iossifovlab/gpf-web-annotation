@@ -61,7 +61,7 @@ from rest_framework.request import Request, QueryDict, MultiValueDict
 from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle
 
-from web_annotation.annotate_helpers import columns_file_preview
+from web_annotation.annotate_helpers import columns_file_preview, extract_head
 
 from .models import (
     AccountConfirmationCode,
@@ -562,16 +562,13 @@ class JobDetail(AnnotationBaseView):
         except ObjectDoesNotExist:
             return Response(response, status=views.status.HTTP_200_OK)
 
-        content = Path(job.input_path).read_text(encoding="utf-8")
-        lines = content.split("\n")
-        header = lines[0]
-        sep = details.separator
-
-        file_header = [dict(
-            zip(header.split(sep), line.split(sep), strict=True)
-        ) for line in lines[1:5]]
         response["columns"] = details.columns.split(";")
-        response["head"] = file_header
+        file_head = extract_head(
+            str(job.input_path),
+            details.separator,
+            n_lines=5,
+        )
+        response["head"] = file_head
 
         return Response(response, status=views.status.HTTP_200_OK)
 
