@@ -164,7 +164,7 @@ test.describe('Job details tests', () => {
   });
 
   test('should download annotated file from job details modal', async({ page }) => {
-    await createJobWithPipeline(page, 'pipeline/GPF-SFARI_annotation', 'input-file-1.vcf');
+    await createJobWithPipeline(page, 'pipeline/Autism_annotation', 'input-file-1.vcf');
 
     await expect(async() => {
       await page.reload();
@@ -249,7 +249,7 @@ test.describe('Jobs table tests', () => {
     const downloadedFile = await downloadPromise;
 
     const fixtureData = scanCSV(await downloadedFile.path(), {truncateRaggedLines: true});
-    const downloadData = scanCSV('./fixtures/job-result-1.vcf', {truncateRaggedLines: true});
+    const downloadData = scanCSV('./fixtures/job-result-2.vcf', {truncateRaggedLines: true});
     const fixtureFrame = await fixtureData.collect();
     const downloadFrame = await downloadData.collect();
     expect(fixtureFrame.toString()).toEqual(downloadFrame.toString());

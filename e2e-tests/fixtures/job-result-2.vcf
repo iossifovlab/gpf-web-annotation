@@ -1,0 +1,62 @@
+##fileformat=VCFv4.2
+##FILTER=<ID=PASS,Description="All filters passed">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##contig=<ID=chr1>
+##contig=<ID=chr2>
+##contig=<ID=chr3>
+##pipeline_annotation_tool=GPF variant annotation.
+##INFO=<ID=worst_effect,Number=A,Type=String,Description="Worst effect accross all transcripts.">
+##INFO=<ID=worst_effect_genes,Number=A,Type=String,Description="comma separated list of genes with worst effect.">
+##INFO=<ID=gene_effects,Number=A,Type=String,Description="`<gene_1>:<effect_1>|...` A gene can be repeated.">
+##INFO=<ID=effect_details,Number=A,Type=String,Description="Effect details for each affected transcript. Format: `< transcript 1 >:<gene 1>:<effect 1>:<details 1>|...`">
+##INFO=<ID=phylop100way,Number=A,Type=String,Description="The score is a number that reflects the conservation at a position.">
+##INFO=<ID=phylop30way,Number=A,Type=String,Description="The score is a number that reflects the conservation at a position.">
+##INFO=<ID=phylop20way,Number=A,Type=String,Description="The score is a number that reflects the conservation at a position.">
+##INFO=<ID=phylop7way,Number=A,Type=String,Description="The score is a number that reflects the conservation at a position.">
+##INFO=<ID=phastcons100way,Number=A,Type=String,Description="The score is a number that reflects the conservation at a position.">
+##INFO=<ID=phastcons30way,Number=A,Type=String,Description="The score is a number that reflects the conservation at a position.">
+##INFO=<ID=phastcons20way,Number=A,Type=String,Description="The score is a number that reflects the conservation at a position.">
+##INFO=<ID=phastcons7way,Number=A,Type=String,Description="The score is a number that reflects the conservation at a position.">
+##INFO=<ID=cadd_raw,Number=A,Type=String,Description="CADD raw score for functional prediction of a SNP. The larger the score  the more likely the SNP has damaging effect">
+##INFO=<ID=cadd_phred,Number=A,Type=String,Description="CADD phred-like score. This is phred-like rank score based on whole genome CADD raw scores. The larger the score the more likely the SNP has damaging effect.">
+##INFO=<ID=fitcons_i6_merged,Number=A,Type=String,Description="probability that a point mutation at each position in a genome will influence fitness">
+##INFO=<ID=linsight,Number=A,Type=String,Description="The LINSIGHT score measures the probability of negative selection on noncoding sites.">
+##INFO=<ID=fitcons2_e067,Number=A,Type=String,Description="The scores is the probability for a mutation to have a fitenss consequence.">
+##INFO=<ID=fitcons2_e068,Number=A,Type=String,Description="The scores is the probability for a mutation to have a fitenss consequence.">
+##INFO=<ID=fitcons2_e069,Number=A,Type=String,Description="The scores is the probability for a mutation to have a fitenss consequence.">
+##INFO=<ID=fitcons2_e070,Number=A,Type=String,Description="The scores is the probability for a mutation to have a fitenss consequence.">
+##INFO=<ID=fitcons2_e071,Number=A,Type=String,Description="The scores is the probability for a mutation to have a fitenss consequence.">
+##INFO=<ID=fitcons2_e072,Number=A,Type=String,Description="The scores is the probability for a mutation to have a fitenss consequence.">
+##INFO=<ID=fitcons2_e073,Number=A,Type=String,Description="The scores is the probability for a mutation to have a fitenss consequence.">
+##INFO=<ID=fitcons2_e074,Number=A,Type=String,Description="The scores is the probability for a mutation to have a fitenss consequence.">
+##INFO=<ID=fitcons2_e081,Number=A,Type=String,Description="The scores is the probability for a mutation to have a fitness consequence.">
+##INFO=<ID=fitcons2_e082,Number=A,Type=String,Description="The scores is the probability for a mutation to have a fitenss consequence.">
+##INFO=<ID=mpc,Number=A,Type=String,Description="Missense badness, PolyPhen-2, and Constraint. A deleteriousness prediction score for missense variants\"">
+##INFO=<ID=ssc_freq,Number=A,Type=String,Description="SFARI SSC WGS CSHL allele frequency in %">
+##INFO=<ID=exome_gnomad_v2_1_1_af_percent,Number=A,Type=String,Description="Alternative allele frequency in the whole gnomAD exome samples v2.1.1 as %">
+##INFO=<ID=exome_gnomad_v2_1_1_ac,Number=A,Type=String,Description="Alternative allele count in the whole gnomAD exome samples v2.1.1">
+##INFO=<ID=exome_gnomad_v2_1_1_af,Number=A,Type=String,Description="Alternative allele frequency in the whole gnomAD exome samples v2.1.1">
+##INFO=<ID=exome_gnomad_v2_1_1_an,Number=A,Type=String,Description="Total allele count in the whole gnomAD exome samples v2.1.1">
+##INFO=<ID=exome_gnomad_v2_1_1_controls_ac,Number=A,Type=String,Description="Alternative allele count in the controls subset of whole gnomAD exome samples v2.1.1">
+##INFO=<ID=exome_gnomad_v2_1_1_controls_an,Number=A,Type=String,Description="gnomAD v2.1.1 liftover exomes count of genotyped individuals in control group">
+##INFO=<ID=exome_gnomad_v2_1_1_non_neuro_ac,Number=A,Type=String,Description="Alternative allele count in the non-neuro subset of whole gnomAD exome samples v2.1.1">
+##INFO=<ID=exome_gnomad_v2_1_1_non_neuro_an,Number=A,Type=String,Description="Total allele count in the non-neuro subset of whole gnomAD exome samples v2.1.1">
+##INFO=<ID=exome_gnomad_v2_1_1_controls_af_percent,Number=A,Type=String,Description="Alternative allele frequency in the controls subset of whole gnomAD exome samples v2.1.1 as %">
+##INFO=<ID=exome_gnomad_v2_1_1_non_neuro_af_percent,Number=A,Type=String,Description="Alternative allele frequency in the non-neuro subset of whole gnomAD exome samples v2.1.1 as %">
+##INFO=<ID=genome_gnomad_v2_1_1_af_percent,Number=A,Type=String,Description="Alternative allele frequency in the whole gnomAD genome samples v2.1.1 as %">
+##INFO=<ID=genome_gnomad_v2_1_1_ac,Number=A,Type=String,Description="Alternative allele count in the whole gnomAD genome samples v2.1.1">
+##INFO=<ID=genome_gnomad_v2_1_1_af,Number=A,Type=String,Description="Alternative allele frequency in the whole gnomAD genome samples v2.1.1">
+##INFO=<ID=genome_gnomad_v2_1_1_an,Number=A,Type=String,Description="Total allele count in the whole gnomAD genome samples v2.1.1">
+##INFO=<ID=genome_gnomad_v2_1_1_controls_ac,Number=A,Type=String,Description="Alternative allele count in the controls subset of whole gnomAD genome samples v2.1.1">
+##INFO=<ID=genome_gnomad_v2_1_1_controls_an,Number=A,Type=String,Description="gnomAD v2.1.1 liftover genome count of genotyped individuals in control group">
+##INFO=<ID=genome_gnomad_v2_1_1_non_neuro_ac,Number=A,Type=String,Description="Alternative allele count in the non-neuro subset of whole gnomAD genome samples v2.1.1">
+##INFO=<ID=genome_gnomad_v2_1_1_non_neuro_an,Number=A,Type=String,Description="Total allele count in the non-neuro subset of whole gnomAD genome samples v2.1.1">
+##INFO=<ID=genome_gnomad_v2_1_1_controls_af_percent,Number=A,Type=String,Description="Alternative allele frequency in the controls subset of whole gnomAD genome samples v2.1.1 as %">
+##INFO=<ID=genome_gnomad_v2_1_1_non_neuro_af_percent,Number=A,Type=String,Description="Alternative allele frequency in the non-neuro subset of whole gnomAD genome samples v2.1.1 as %">
+##INFO=<ID=genome_gnomad_v3_af_percent,Number=A,Type=String,Description="Alternative allele frequency represented as a percent in the all gnomAD v3.0 genome samples.">
+##INFO=<ID=genome_gnomad_v3_ac,Number=A,Type=String,Description="Number of alternative alleles in the all gnomAD v3.0 genome samples.">
+##INFO=<ID=genome_gnomad_v3_an,Number=A,Type=String,Description="Number of genotyped individuals in the all gnomAD v3.0 genome samples.">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	mom	dad	prb
+chr1	10	.	C	T	.	.	worst_effect=intergenic;worst_effect_genes=intergenic;gene_effects=intergenic:intergenic;effect_details=intergenic:intergenic:intergenic:intergenic	GT	0/0	0/0	0/1
+chr2	20	.	C	T	.	.	worst_effect=intergenic;worst_effect_genes=intergenic;gene_effects=intergenic:intergenic;effect_details=intergenic:intergenic:intergenic:intergenic	GT	0/1	0/0	0/1
+chr3	30	.	C	T	.	.	worst_effect=intergenic;worst_effect_genes=intergenic;gene_effects=intergenic:intergenic;effect_details=intergenic:intergenic:intergenic:intergenic	GT	0/1	0/1	0/1
