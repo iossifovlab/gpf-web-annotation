@@ -84,7 +84,7 @@ def test_get_all_jobs_admin_user(admin_client: Client) -> None:
 
 
 @pytest.mark.django_db
-def test_job_details(user_client: Client) -> None:
+def test_annotate_vcf_job_details(user_client: Client) -> None:
     response = user_client.get("/api/jobs/1")
     assert response.status_code == 200
 
@@ -98,6 +98,47 @@ def test_job_details(user_client: Client) -> None:
     assert result["owner"] == "user@example.com"
     assert result["command_line"] == "annotate_vcf mock command line"
     assert result["duration"] == 1.0
+    assert result.get("head") is None
+
+
+@pytest.mark.django_db
+def test_annotate_columns_job_details(user_client: Client) -> None:
+    params = {
+        "genome": "hg38",
+        "config": ContentFile("- position_score: scores/pos1"),
+        "data": ContentFile(
+            textwrap.dedent("""chr,pos_beg,pos_end,cnv\nchr1,7,20,cnv+"""),
+            "test_input.csv"
+        ),
+        "col_chrom": "chr",
+        "col_pos_beg": "pos_beg",
+        "col_pos_end": "pos_end",
+        "col_cnv_type": "end",
+        "separator": ",",
+    }
+
+    response = user_client.post("/api/jobs/annotate_columns", params)
+
+    assert response.status_code == 204
+
+    response = user_client.get("/api/jobs/3")
+    assert response.status_code == 200
+
+    result = response.json()
+    assert "created" in result
+    created = datetime.datetime.fromisoformat(result["created"])
+    now = datetime.datetime.now(datetime.timezone.utc)
+    assert abs(now - created) < datetime.timedelta(minutes=1)
+    assert result["id"] == 3
+    assert result["owner"] == "user@example.com"
+    assert result["head"] == [
+        {
+            'chr': 'chr1',
+            'cnv': 'cnv+',
+            'pos_beg': '7',
+            'pos_end': '20',
+        },
+    ]
 
 
 @pytest.mark.django_db
