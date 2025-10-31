@@ -9,6 +9,10 @@
   font-size: 16px;
 }
 
+#annotation-mode button:hover {
+  cursor: pointer;
+}
+
 #annotation-mode {
   display: flex;
   justify-content: center;
@@ -29,8 +33,8 @@
 }
 
 #annotation-details {
-  height: 60%;
   margin-top: 25px;
+  height: 100%;
 }
 
 #annotation-details a {
@@ -53,12 +57,12 @@
 #file-upload-field {
   border: 2px dashed #cfd8df;
   border-radius: 15px;
-  height: 20%;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   margin-top: 10px;
+  padding: 15px;
 }
 
 #upload-instructions {
@@ -158,13 +162,19 @@
   cursor: pointer;
 }
 
+mat-dialog-content {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+}
+
 .mat-mdc-dialog-actions {
   justify-content: start;
 }
 
 textarea {
   width: 97%;
-  height: 80%;
+  height: 300px;
   resize: none;
   border: 2px solid #cfd8df;
   border-radius: 15px;

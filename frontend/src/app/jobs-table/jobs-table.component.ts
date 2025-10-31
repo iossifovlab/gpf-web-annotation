@@ -31,8 +31,9 @@ export class JobsTableComponent implements OnInit, OnDestroy {
   public openCreateModal(): void {
     const createModalRef = this.dialog.open(JobCreationComponent, {
       height: '60vh',
-      width: '50vw',
+      width: '60vw',
       maxWidth: '1000px',
+      minWidth: '360px',
       minHeight: '400px'
     });
 

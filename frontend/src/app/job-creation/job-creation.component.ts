@@ -12,7 +12,13 @@ import { ColumnSpecifyingModalComponent } from '../column-specifying-modal/colum
 
 @Component({
   selector: 'app-job-creation',
-  imports: [MatDialogActions, MatDialogContent, CommonModule, FormsModule, ColumnSpecifyingModalComponent],
+  imports: [
+    MatDialogActions,
+    MatDialogContent,
+    CommonModule,
+    FormsModule,
+    ColumnSpecifyingModalComponent,
+  ],
   templateUrl: './job-creation.component.html',
   styleUrl: './job-creation.component.css'
 })
@@ -171,7 +177,7 @@ export class JobCreationComponent implements OnInit {
 
   private onFileChange(file: File): void {
     this.file = file;
-    if (file.type !== 'vcf' && this.isFormatValid(file)) {
+    if (!file.name.endsWith('.vcf') && this.isFormatValid(file)) {
       this.submitFile();
     }
   }

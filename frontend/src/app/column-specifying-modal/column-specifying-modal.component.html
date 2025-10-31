@@ -1,6 +1,5 @@
 <div id="modal-container" *ngIf="fileContent">
   <span id="instructions">Please map each column with the corresponding one.</span>
-  <div id="separator">Separator: {{ fileContent.separator }}</div>
   <div id="modal-table" [ngStyle]="{ 'grid-template-columns': `repeat(${fileContent.columns.length}, auto)` }">
     <div class="row">
       <div class="header" [id]="header + '-header'" *ngFor="let header of fileContent.columns">
