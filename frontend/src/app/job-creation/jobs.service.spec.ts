@@ -74,16 +74,9 @@ describe('JobsService', () => {
       ['vcf_like', 'VCF'],
     ]);
 
-    formData.append('col_chrom', mockColumns.get('chrom'));
     formData.append('col_pos', mockColumns.get('pos'));
-    formData.append('col_ref', mockColumns.get('ref'));
     formData.append('col_alt', mockColumns.get('alt'));
-    formData.append('col_pos_beg', mockColumns.get('position_begin'));
-    formData.append('col_pos_end', mockColumns.get('position_end'));
-    formData.append('col_cnv_type', mockColumns.get('cnv_type'));
     formData.append('col_vcf_like', mockColumns.get('vcf_like'));
-    formData.append('col_variant', mockColumns.get('variant'));
-    formData.append('col_location', mockColumns.get('location'));
 
     const options = {
       headers: {
