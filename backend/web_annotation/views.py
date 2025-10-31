@@ -476,7 +476,10 @@ class AnnotationBaseView(views.APIView):
         uploaded_file = request.FILES["data"]
         assert isinstance(uploaded_file, UploadedFile)
         if uploaded_file is None:
-            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"reason": "No file uploaded!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
         if not self.check_valid_upload_size(uploaded_file, request.user):
             return Response(
                 status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
@@ -714,7 +717,10 @@ class AnnotateColumns(AnnotationBaseView):
             return Response(status=views.status.HTTP_404_NOT_FOUND)
         except Exception:  # pylint: disable=broad-exception-caught
             logger.exception("Failed to annotate columns!")
-            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"reason": "Failed to annotate columns!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
 
         return Response(status=views.status.HTTP_204_NO_CONTENT)
 
@@ -738,7 +744,10 @@ class JobGetFile(views.APIView):
         elif file == "result":
             file_path = Path(job.result_path)
         else:
-            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"reason": "Not requesting input, config or result file!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
 
         if not file_path.exists():
             return Response(status=views.status.HTTP_404_NOT_FOUND)
@@ -941,7 +950,10 @@ class PreviewFileUpload(AnnotationBaseView):
         file = request.FILES["data"]
         assert isinstance(file, UploadedFile)
         if file is None:
-            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"reason": "No preview file provided!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
         if not self.check_valid_upload_size(file, request.user):
             return Response(
                 status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
@@ -949,7 +961,10 @@ class PreviewFileUpload(AnnotationBaseView):
         assert file.name is not None
 
         if file.name.find(".vcf") > 0:
-            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"reason": "VCF files cannot be previewed!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
 
         preview_data = columns_file_preview(file, request.data.get("separator"))
         return Response(
@@ -1007,9 +1022,15 @@ class SingleAnnotation(AnnotationBaseView):
 
         assert isinstance(request.data, dict)
         if "variant" not in request.data:
-            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"reason": "Variant not provided!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
         if "genome" not in request.data:
-            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"reason": "Genome not provided!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
         variant = request.data["variant"]
         assert isinstance(variant, dict)
         genome = request.data["genome"]
@@ -1128,7 +1149,10 @@ class HistogramView(AnnotationBaseView):
 
         score_id = request.query_params.get("score_id")
         if score_id is None:
-            return Response(status=views.status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"reason": "Score id not provided!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
 
         histogram_getter = HISTOGRAM_GETTERS.get(
             resource.get_type(), get_histogram_not_supported,
