@@ -773,7 +773,7 @@ def test_preview_delimeter_unsupported(
 
     assert result is not None
     assert result == {
-        "separator": "",
+        "separator": None,
         "preview": [
             {"chrom;pos;ref;alt": "chr1;1;C;A"},
         ],

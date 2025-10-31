@@ -1,5 +1,4 @@
 """View classes for web annotation."""
-import gzip
 import logging
 import time
 from datetime import datetime
@@ -61,6 +60,8 @@ from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework.request import Request, QueryDict, MultiValueDict
 from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle
+
+from web_annotation.annotate_helpers import columns_file_preview
 
 from .models import (
     AccountConfirmationCode,
@@ -695,6 +696,7 @@ class AnnotateColumns(AnnotationBaseView):
                 status=views.status.HTTP_400_BAD_REQUEST)
 
         sep = request.data.get("separator")
+
         params = {"separator": sep}
         for col in self.tool_columns:
             params[col] = request.data.get(col, "")
@@ -931,26 +933,6 @@ class PreviewFileUpload(AnnotationBaseView):
 
     permission_classes = [permissions.IsAuthenticated]
 
-    def _check_separator(self, separator: str, lines: list[str]) -> bool:
-        """Check if a separator produces consistent columns."""
-
-        lengths = [len(line.split(separator)) for line in lines]
-        longest_line_len = max(lengths)
-        shortest_line_len = min(lengths)
-
-        if longest_line_len in (0, 1):
-            return False
-        if longest_line_len == shortest_line_len:
-            return True
-        return False
-
-    def _get_separator(self, lines: list[str]) -> str:
-        for separator in [",", "\t"]:
-            if self._check_separator(separator, lines):
-                return separator
-
-        return ""
-
     def post(self, request: Request) -> Response:
         """Determine the separator of a file split into columns."""
         assert isinstance(request.FILES, MultiValueDict)
@@ -969,34 +951,9 @@ class PreviewFileUpload(AnnotationBaseView):
         if file.name.find(".vcf") > 0:
             return Response(status=views.status.HTTP_400_BAD_REQUEST)
 
-        if file.name.endswith(".gz") or file.name.endswith(".bgz"):
-            raw_content = gzip.decompress(file.read())
-        else:
-            raw_content = file.read()
-
-        content = raw_content.decode()
-        lines = content.strip("\n").split("\n")
-
-        if request.data.get("separator") is None:
-            separator = self._get_separator(lines)
-        else:
-            separator = str(request.data.get("separator"))
-
-        if separator != "":
-            rows = [line.split(separator) for line in lines]
-        else:
-            rows = [[line] for line in lines]
-
-        header = rows[0]
-        rows_content = rows[1:5]
-        preview = [dict(zip(header, row, strict=True)) for row in rows_content]
-
+        preview_data = columns_file_preview(file, request.data.get("separator"))
         return Response(
-            {
-                "separator": separator,
-                "columns": rows[0],
-                "preview": preview,
-            },
+            preview_data,
             status=views.status.HTTP_200_OK,
         )
 
