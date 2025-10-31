@@ -22,7 +22,11 @@ from dae.gene_scores.gene_scores import (
     _build_gene_score_help,
 )
 from dae.genomic_resources.genomic_scores import build_score_from_resource
-from dae.genomic_resources.histogram import Histogram, NullHistogram
+from dae.genomic_resources.histogram import (
+    Histogram,
+    NullHistogram,
+    NullHistogramConfig,
+)
 from dae.genomic_resources.implementations.annotation_pipeline_impl import (
     AnnotationPipelineImplementation,
 )
@@ -127,7 +131,7 @@ def get_histogram_not_supported(
     _resource: GenomicResource, _score: str,  # pylint: disable=unused-argument
 ) -> tuple[Histogram, dict[str, Any]]:
     """Return an empty histogram for unsupported resources."""
-    return (NullHistogram(None), {})
+    return (NullHistogram(NullHistogramConfig("not supported")), {})
 
 
 HISTOGRAM_GETTERS = {
@@ -143,6 +147,7 @@ def has_histogram(resource: GenomicResource, score: str) -> bool:
         resource.get_type(), get_histogram_not_supported,
     )
     histogram = histogram_getter(resource, score)
+    logger.warning("Histogram: %s", histogram)
     return not isinstance(histogram, NullHistogram)
 
 
@@ -193,7 +198,7 @@ def get_genome_pipelines(
     return genome_pipelines
 
 
-GRR = build_genomic_resource_repository(file_name=settings.GRR_DEFINITION)
+GRR = build_genomic_resource_repository(file_name=settings.GRR_DEFINITION_PATH)
 
 GENOME_PIPELINES: dict[str, AnnotationPipeline] = get_genome_pipelines(GRR)
 
@@ -220,7 +225,7 @@ class AnnotationBaseView(views.APIView):
 
     def get_grr_definition(self) -> Path | None:
         """Return annotation GRR definition."""
-        path = settings.GRR_DEFINITION
+        path = settings.GRR_DEFINITION_PATH
         if path is None:
             return path
         return Path(path)
@@ -1061,7 +1066,7 @@ class SingleAnnotation(AnnotationBaseView):
             variant["ref"], variant["alt"],
         )
 
-        result = pipeline.annotate(vcf_annotatable, {})
+        annotation = pipeline.annotate(vcf_annotatable, {})
 
         annotators_data = []
         if (
@@ -1092,36 +1097,11 @@ class SingleAnnotation(AnnotationBaseView):
             for attribute_info in annotator.attributes:
                 if attribute_info.internal:
                     continue
-                resource = self.grr.get_resource(
-                    list(annotator.resource_ids)[0])
-                if has_histogram(resource, attribute_info.source):
-                    histogram_path = (
-                        f"histograms/{resource.resource_id}"
-                        f"?score_id={attribute_info.source}"
-                    )
-                else:
-                    histogram_path = None
-                value = result[attribute_info.name]
-
-                annotator_help = self.generate_annotator_help(
-                    annotator,
-                    attribute_info,
+                attributes.append(
+                    self._build_attribute_description(
+                        annotation, annotator,
+                        attribute_info)
                 )
-
-                if attribute_info.type in ["object", "annotatable"]:
-                    if not isinstance(value, (dict, list)):
-                        value = str(value)
-                attributes.append({
-                    "name": attribute_info.name,
-                    "description": attribute_info.description,
-                    "help": annotator_help,
-                    "source": attribute_info.source,
-                    "type": attribute_info.type,
-                    "result": {
-                        "value": value,
-                        "histogram": histogram_path,
-                    },
-                })
             if len(attributes) == 0:
                 continue
             annotators_data.append(
@@ -1142,6 +1122,41 @@ class SingleAnnotation(AnnotationBaseView):
         }
 
         return Response(response_data)
+
+    def _build_attribute_description(
+            self, result: dict[str, Any], annotator: Annotator,
+            attribute_info: AttributeInfo,
+    ) -> dict[str, Any]:
+        resource = self.grr.get_resource(
+                    list(annotator.resource_ids)[0])
+        if has_histogram(resource, attribute_info.source):
+            histogram_path = (
+                        f"histograms/{resource.resource_id}"
+                        f"?score_id={attribute_info.source}"
+                    )
+        else:
+            histogram_path = None
+        value = result[attribute_info.name]
+
+        annotator_help = self.generate_annotator_help(
+                    annotator,
+                    attribute_info,
+                )
+
+        if attribute_info.type in ["object", "annotatable"]:
+            if not isinstance(value, (dict, list)):
+                value = str(value)
+        return {
+                    "name": attribute_info.name,
+                    "description": attribute_info.description,
+                    "help": annotator_help,
+                    "source": attribute_info.source,
+                    "type": attribute_info.type,
+                    "result": {
+                        "value": value,
+                        "histogram": histogram_path,
+                    },
+        }
 
 
 class HistogramView(AnnotationBaseView):

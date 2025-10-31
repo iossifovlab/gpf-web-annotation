@@ -1,6 +1,6 @@
+# pylint: disable=W0621,C0114,C0116,W0212,W0613
 import pathlib
 import shutil
-import yaml
 import pytest
 import pytest_mock
 from django.test import Client
@@ -23,16 +23,6 @@ def clean_genomic_context(
         "dae.genomic_resources.genomic_context._REGISTERED_CONTEXTS",
         [])
 
-
-@pytest.fixture(scope="function", autouse=True)
-def use_test_grr_definition(
-    test_grr: GenomicResourceRepo, tmp_path: pathlib.Path,
-    settings: LazySettings,
-    mocker: pytest_mock.MockFixture,
-) -> None:
-    grr_path = tmp_path / "grr_definition.yaml"
-    grr_path.write_text(yaml.safe_dump(test_grr.definition))
-    settings.GRR_DEFINITION = grr_path
 
 def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption(

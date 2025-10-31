@@ -1,10 +1,13 @@
-from .settings import *
+# pylint: disable=wildcard-import,unused-wildcard-import
+from .settings import *  # noqa
 
 import pathlib
 
 import tempfile
 import os
 import time
+
+import yaml
 
 # Dir for all data storage
 DATA_STORAGE_DIR = f"{tempfile.gettempdir()}/gpf-web-annotation-tests-data-{int(time.time())}"
@@ -26,6 +29,14 @@ LIMITS = {
 
 GRR_DIRECTORY = str(
     pathlib.Path(__file__).parent / "tests" / "fixtures" / "grr")
+
+GRR_DEFINITION_PATH: str = str(
+    pathlib.Path(GRR_DIRECTORY) / "grr_definition.yaml")
+pathlib.Path(GRR_DEFINITION_PATH).write_text(yaml.safe_dump({
+    "id": "test",
+    "type": "dir",
+    "directory": GRR_DIRECTORY,
+}))
 
 GENOME_DEFINITIONS = {
     "hg38": {

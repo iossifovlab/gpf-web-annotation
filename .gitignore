@@ -13,5 +13,6 @@ conda-channel.tar.gz
 /gpfwa-logs
 /gpfwa
 /results
-backend/gpfwa-debug.log
-backend/gpfwa-celery.log
+gpfwa-debug.log
+gpfwa-celery.log
+backend/web_annotation/tests/fixtures/grr/grr_definition.yaml

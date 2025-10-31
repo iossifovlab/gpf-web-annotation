@@ -143,7 +143,7 @@ def test_daily_user_quota(
     user_client: Client,
     mocker: MockerFixture,
 ) -> None:
-    mocked_run_job = mocker.patch(
+    mocker.patch(
         "web_annotation.tasks.annotate_vcf_job",
     )
 
@@ -155,7 +155,8 @@ def test_daily_user_quota(
         chr1	1	.	C	A	.	.	.
     """).strip("\n")
 
-    job_created_at = timezone.now() - timezone.timedelta(seconds=1)
+    job_created_at = timezone.now() - \
+        timezone.timedelta(seconds=1)  # type: ignore
     user = User.objects.get(email="user@example.com")
     for i in range(4):
         Job(
@@ -185,7 +186,8 @@ def test_daily_user_quota(
     )
 
     assert response.status_code == 403
-    assert response.data["reason"] == "Daily job limit reached!"
+    data = response.json()
+    assert data["reason"] == "Daily job limit reached!"
 
 
 @pytest.mark.django_db
@@ -193,7 +195,7 @@ def test_daily_admin_quota(
     admin_client: Client,
     mocker: MockerFixture,
 ) -> None:
-    mocked_run_job = mocker.patch(
+    mocker.patch(
         "web_annotation.tasks.annotate_vcf_job",
     )
 
@@ -205,7 +207,8 @@ def test_daily_admin_quota(
         chr1	1	.	C	A	.	.	.
     """).strip("\n")
 
-    job_created_at = timezone.now() - timezone.timedelta(seconds=1)
+    job_created_at = timezone.now() - \
+        timezone.timedelta(seconds=1)  # type: ignore
     admin = User.objects.get(email="user@example.com")
     for i in range(4):
         Job(
@@ -249,7 +252,7 @@ def test_filesize_limit_user(
         "variant_count": settings.LIMITS["variant_count"],
     }
 
-    mocked_run_job = mocker.patch(
+    mocker.patch(
         "web_annotation.tasks.annotate_vcf_job",
     )
 
@@ -282,7 +285,7 @@ def test_filesize_limit_admin(
         "filesize": 1,
     }
 
-    mocked_run_job = mocker.patch(
+    mocker.patch(
         "web_annotation.tasks.annotate_vcf_job",
     )
 
@@ -414,7 +417,7 @@ def test_single_annotation(admin_client: Client) -> None:
 
     assert response.status_code == 200
 
-    data = response.data
+    data = response.json()
     assert "variant" in data
     assert "annotators" in data
 
@@ -473,7 +476,7 @@ def test_single_annotation_unauthorized(anonymous_client: Client) -> None:
 
     assert response.status_code == 200
 
-    data = response.data
+    data = response.json()
     assert "variant" in data
     assert "annotators" in data
 
@@ -522,7 +525,7 @@ def test_histogram_view(admin_client: Client) -> None:
     response = admin_client.get("/api/histograms/scores/pos1?score_id=pos1")
 
     assert response.status_code == 200
-    data = response.data
+    data = response.json()
     assert data == {
         "config": {
             "type": "number",
@@ -558,9 +561,10 @@ def test_genomes_view(admin_client: Client) -> None:
     response = admin_client.get("/api/genomes")
 
     assert response.status_code == 200
-    assert len(response.data) == 2
-    assert response.data[0] == "hg38"
-    assert response.data[1] == "t4c8"
+    data = response.json()
+    assert len(data) == 2
+    assert data[0] == "hg38"
+    assert data[1] == "t4c8"
 
 
 def test_single_annotation_throttled(user_client: Client) -> None:
