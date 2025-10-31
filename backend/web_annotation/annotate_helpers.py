@@ -84,7 +84,7 @@ def columns_file_preview(
     if separator is None:
         separator = get_separator(lines)
 
-    if separator:
+    if separator and check_separator(separator, lines):
         rows = [line.split(separator) for line in lines]
     else:
         rows = [[line] for line in lines]

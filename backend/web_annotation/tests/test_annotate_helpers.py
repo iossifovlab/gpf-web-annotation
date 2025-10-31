@@ -73,6 +73,22 @@ def test_columns_file_preview_uses_provided_separator() -> None:
     ]
 
 
+def test_columns_file_preview_bad_separator_handling() -> None:
+    file_content = "col1\tcol2\n1\t2\n3,4\t4\n5,1\t6\n7\t8\n"
+    uploaded_file = SimpleUploadedFile("data.tsv", file_content.encode())
+
+    preview = columns_file_preview(uploaded_file, separator=",")
+
+    assert preview["separator"] == ","
+    assert preview["columns"] == ['col1\tcol2']
+    assert preview["preview"] == [
+        {'col1\tcol2': '1\t2'},
+        {'col1\tcol2': '3,4\t4'},
+        {'col1\tcol2': '5,1\t6'},
+        {'col1\tcol2': '7\t8'},
+    ]
+
+
 def test_extract_header_plain_text(tmp_path: Path) -> None:
     file_path = tmp_path / "data.tsv"
     file_path.write_text("#col1\tcol2\tcol3\n1\t2\t3\n")
