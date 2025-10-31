@@ -146,8 +146,7 @@ def has_histogram(resource: GenomicResource, score: str) -> bool:
     histogram_getter = HISTOGRAM_GETTERS.get(
         resource.get_type(), get_histogram_not_supported,
     )
-    histogram = histogram_getter(resource, score)
-    logger.warning("Histogram: %s", histogram)
+    histogram, _details = histogram_getter(resource, score)
     return not isinstance(histogram, NullHistogram)
 
 
