@@ -119,15 +119,6 @@ pipeline {
 
             discoverGitReferenceBuild(latestBuildIfNotFound: true, maxCommits: 400, skipUnknownCommits: true)
 
-            def resultBeforeTests = currentBuild.currentResult
-            junit 'results/backend-tests-junit.xml'
-            sh "test ${resultBeforeTests} == ${currentBuild.currentResult}"
-            junit 'frontend/reports/junit-report.xml'
-            sh "test ${resultBeforeTests} == ${currentBuild.currentResult}"
-            junit 'e2e-tests/reports/junit-report.xml'
-            sh "test ${resultBeforeTests} == ${currentBuild.currentResult}"
-
-
             recordCoverage sourceCodeEncoding: 'UTF-8',
                 enabledForFailure: false,
                 sourceCodeRetention: 'LAST_BUILD',
@@ -181,6 +172,13 @@ pipeline {
                 reportName: 'frontend-coverage',
                 reportTitles: 'Frontend Coverage'])
 
+            def resultBeforeTests = currentBuild.currentResult
+            junit 'results/backend-tests-junit.xml'
+            sh "test ${resultBeforeTests} == ${currentBuild.currentResult}"
+            junit 'frontend/reports/junit-report.xml'
+            sh "test ${resultBeforeTests} == ${currentBuild.currentResult}"
+            junit 'e2e-tests/reports/junit-report.xml'
+            sh "test ${resultBeforeTests} == ${currentBuild.currentResult}"
 
         } finally {
           zulipNotification(
