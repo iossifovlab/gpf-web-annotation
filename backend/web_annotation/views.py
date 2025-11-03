@@ -808,10 +808,10 @@ class UserInfo(views.APIView):
                 "loggedIn": True,
                 "email": user.email,
                 "limitations": {
-                    "daily_jobs": self.get_user_daily_limit(user),
+                    "dailyJobs": self.get_user_daily_limit(user),
                     "filesize": self.get_user_filesize_limit(user),
-                    "variant_count": self.get_user_variant_limit(user),
-                    "jobs_left": self.get_user_jobs_left(user),
+                    "variantCount": self.get_user_variant_limit(user),
+                    "jobsLeft": self.get_user_jobs_left(user),
                 }
             },
             views.status.HTTP_200_OK,

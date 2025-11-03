@@ -437,10 +437,10 @@ def test_get_user_info(user_client: Client) -> None:
         "loggedIn": True,
         "email": "user@example.com",
         "limitations": {
-            "daily_jobs": 5,
+            "dailyJobs": 5,
             "filesize": "64M",
-            "variant_count": 1000,
-            "jobs_left": 4,
+            "variantCount": 1000,
+            "jobsLeft": 4,
         }
     }
 
