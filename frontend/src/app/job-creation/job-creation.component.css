@@ -168,6 +168,7 @@ mat-dialog-content {
   display: flex;
   justify-content: space-between;
   flex-direction: column;
+  gap: 10px;
 }
 
 .mat-mdc-dialog-actions {

@@ -288,7 +288,6 @@ test.describe('Jobs table tests', () => {
     }).toPass({intervals: [1000, 2000, 3000]});
 
     await expect(page.locator('#instructions')).toBeVisible();
-    await expect(page.locator('#separator')).toBeVisible();
 
     // row 1 of input file
     await expect(page.locator('.cell').nth(0)).toHaveText('chr1');
