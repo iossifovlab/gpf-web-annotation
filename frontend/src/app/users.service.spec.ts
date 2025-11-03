@@ -102,14 +102,12 @@ describe('UsersService', () => {
     expect(service.userData.value).toStrictEqual(userDataMockResult);
   });
 
-  it('should navigate to single annotation page if auto login fails', () => {
-    const navigateSpy = jest.spyOn(router, 'navigate');
+  it('should expect user data to be null if auto login fails', () => {
     const userDataMockResult = { email: 'mockEmail', isAdmin: false, loggedIn: false } as UserData;
     jest.spyOn(service, 'getUserData').mockReturnValue(of(userDataMockResult));
 
     service.autoLogin().subscribe();
     expect(service.userData.value).toBeNull();
-    expect(navigateSpy).toHaveBeenCalledWith(['/single-annotation']);
   });
 
   it('should check params of logout query', () => {

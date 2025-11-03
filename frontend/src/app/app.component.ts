@@ -23,7 +23,9 @@ export class AppComponent implements DoCheck, OnInit {
   ) { }
 
   public ngOnInit(): void {
-    this.usersService.autoLogin().pipe(take(1)).subscribe();
+    if (!this.currentUserData) {
+      this.usersService.autoLogin().pipe(take(1)).subscribe();
+    }
   }
 
   public ngDoCheck(): void {

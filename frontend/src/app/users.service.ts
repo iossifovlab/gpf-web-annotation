@@ -48,7 +48,6 @@ export class UsersService {
           this.userData.next(userData);
           return of(true);
         }
-        this.router.navigate(['/single-annotation']);
         return of(false);
       })
     );
