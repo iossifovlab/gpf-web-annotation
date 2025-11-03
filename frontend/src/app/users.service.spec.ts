@@ -102,14 +102,14 @@ describe('UsersService', () => {
     expect(service.userData.value).toStrictEqual(userDataMockResult);
   });
 
-  it('should navigate to login page if auto login fails', () => {
+  it('should navigate to single annotation page if auto login fails', () => {
     const navigateSpy = jest.spyOn(router, 'navigate');
     const userDataMockResult = { email: 'mockEmail', isAdmin: false, loggedIn: false } as UserData;
     jest.spyOn(service, 'getUserData').mockReturnValue(of(userDataMockResult));
 
     service.autoLogin().subscribe();
     expect(service.userData.value).toBeNull();
-    expect(navigateSpy).toHaveBeenCalledWith(['/login']);
+    expect(navigateSpy).toHaveBeenCalledWith(['/single-annotation']);
   });
 
   it('should check params of logout query', () => {
@@ -126,14 +126,14 @@ describe('UsersService', () => {
     );
   });
 
-  it('should redirect to login page after logout', async() => {
+  it('should redirect to single annotation page after logout', async() => {
     const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
     httpGetSpy.mockReturnValue(of({}));
 
     const navigateSpy = jest.spyOn(router, 'navigate');
     const queryResponse = service.logout();
     await lastValueFrom(queryResponse.pipe(take(1)));
-    expect(navigateSpy).toHaveBeenCalledWith(['/login']);
+    expect(navigateSpy).toHaveBeenCalledWith(['/single-annotation']);
   });
 
   it('should delete csrf token from cookies after logout', async() => {

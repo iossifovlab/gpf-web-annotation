@@ -16,7 +16,6 @@ export class AppComponent implements DoCheck, OnInit {
   public description = 'GPF Web Annotation description';
   public currentUserData: UserData = null;
   public readonly environment = environment;
-  public isLoading = false;
 
   public constructor(
     private usersService: UsersService,
@@ -24,9 +23,7 @@ export class AppComponent implements DoCheck, OnInit {
   ) { }
 
   public ngOnInit(): void {
-    this.usersService.loadingUser.subscribe(isLoading => {
-      this.isLoading = isLoading;
-    });
+    this.usersService.autoLogin().pipe(take(1)).subscribe();
   }
 
   public ngDoCheck(): void {

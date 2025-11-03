@@ -18,7 +18,6 @@ export class UsersService {
   private readonly logoutUrl = `${environment.apiPath}/logout`;
   private readonly userDataUrl = `${environment.apiPath}/user_info`;
   public userData = new BehaviorSubject<UserData>(null);
-  public loadingUser = new BehaviorSubject<boolean>(false);
 
   public constructor(
     private http: HttpClient,
@@ -36,23 +35,20 @@ export class UsersService {
       tap(() => {
         this.cookieService.delete('csrftoken');
         this.userData.next(null);
-        this.router.navigate(['/login']);
+        this.router.navigate(['/single-annotation']);
       })
     );
   }
 
   public autoLogin(): Observable<boolean> {
-    this.loadingUser.next(true);
     return this.getUserData().pipe(
       take(1),
       switchMap((userData: UserData) => {
         if (userData.loggedIn) {
           this.userData.next(userData);
-          this.loadingUser.next(false);
           return of(true);
         }
-        this.loadingUser.next(false);
-        this.router.navigate(['/login']);
+        this.router.navigate(['/single-annotation']);
         return of(false);
       })
     );
