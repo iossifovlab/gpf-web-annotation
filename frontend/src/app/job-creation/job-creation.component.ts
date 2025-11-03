@@ -61,7 +61,7 @@ export class JobCreationComponent implements OnInit {
       this.selectedGenome = genomes[0];
     });
 
-    this.userLimitations = this.usersService.userData.value.limitations
+    this.userLimitations = this.usersService.userData.value.limitations;
   }
 
   public onCreateClick(): void {
