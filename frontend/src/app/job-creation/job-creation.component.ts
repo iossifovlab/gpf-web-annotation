@@ -8,6 +8,7 @@ import { Pipeline } from './pipelines';
 import { FormsModule } from '@angular/forms';
 import { SingleAnnotationService } from '../single-annotation.service';
 import { ColumnSpecifyingComponent } from '../column-specifying/column-specifying.component';
+import { UsersService } from '../users.service';
 
 
 @Component({
@@ -36,10 +37,17 @@ export class JobCreationComponent implements OnInit {
   public ymlConfig = '';
   public configError = '';
   public creationError = '';
+  public userLimitations: {
+      dailyJobs: number;
+      filesize: string;
+      jobsLeft: number;
+      variantCount: number;
+  } = null;
 
   public constructor(
     private dialogRef: MatDialogRef<JobCreationComponent>,
     private jobsService: JobsService,
+    private usersService: UsersService,
     private singleAnnotationService: SingleAnnotationService,
   ) { }
 
@@ -52,6 +60,8 @@ export class JobCreationComponent implements OnInit {
       this.genomes = genomes;
       this.selectedGenome = genomes[0];
     });
+
+    this.userLimitations = this.usersService.userData.value.limitations
   }
 
   public onCreateClick(): void {

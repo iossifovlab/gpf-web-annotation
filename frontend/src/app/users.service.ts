@@ -9,6 +9,12 @@ export interface UserData {
   email: string;
   loggedIn: boolean;
   isAdmin: boolean;
+  limitations: {
+    dailyJobs: number;
+    filesize: string;
+    jobsLeft: number;
+    variantCount: number;
+  }
 }
 
 @Injectable()
@@ -80,9 +86,9 @@ export class UsersService {
       },
       options,
     ).pipe(
+      switchMap(() => this.getUserData()),
       map((userData: UserData) => {
-        const fullUserData = { email: userData.email, isAdmin: userData.isAdmin, loggedIn: true} as UserData;
-        this.userData.next(fullUserData);
+        this.userData.next(userData);
       })
     );
   }

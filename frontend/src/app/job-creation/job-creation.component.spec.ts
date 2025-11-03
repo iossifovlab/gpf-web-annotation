@@ -9,6 +9,7 @@ import { Observable, of } from 'rxjs';
 import { Pipeline } from './pipelines';
 import { FileContent } from './jobs';
 import { SingleAnnotationService } from '../single-annotation.service';
+import { UsersService } from '../users.service';
 
 
 class MatDialogRefMock {
@@ -48,6 +49,20 @@ class JobsServiceMock {
   }
 }
 
+class UserServiceMock {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public userData = {
+    value: {
+      limitations: {
+        dailyJobs: 5,
+        filesize: '64M',
+        jobsLeft: 4,
+        variantCount: 1000,
+      }
+    }
+  };
+}
+
 describe('JobCreationComponent', () => {
   let component: JobCreationComponent;
   let fixture: ComponentFixture<JobCreationComponent>;
@@ -55,6 +70,7 @@ describe('JobCreationComponent', () => {
   const mockMatDialogRef = new MatDialogRefMock();
   const jobsServiceMock = new JobsServiceMock();
   const singleAnnotationServiceMock = new SingleAnnotationServiceMock();
+  const userServiceMock = new UserServiceMock();
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -71,6 +87,10 @@ describe('JobCreationComponent', () => {
         {
           provide: SingleAnnotationService,
           useValue: singleAnnotationServiceMock
+        },
+        {
+          provide: UsersService,
+          useValue: userServiceMock
         },
         provideHttpClient(),
         provideHttpClientTesting()

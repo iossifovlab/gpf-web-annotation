@@ -53,8 +53,10 @@
       </div>
       <div>
         <div class="restrictions">*Supported formats: CSV, VCF</div>
-        <div class="restrictions">*Maximum file size: 5MB</div>
-        <div class="restrictions">*Maximum variants: 5</div>
+        <div class="restrictions">*Maximum file size: {{ userLimitations.filesize }}</div>
+        <div class="restrictions">*Maximum variants: {{ userLimitations.variantCount }}</div>
+        <div class="restrictions">*Maximum jobs a day: {{ userLimitations.dailyJobs }}</div>
+        <div class="restrictions">*Jobs left: {{ userLimitations.jobsLeft }}</div>
       </div>
     </div>
 

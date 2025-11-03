@@ -77,6 +77,8 @@ describe('UsersService', () => {
     const mockUserData = { email: 'mockEmail@email.com', isAdmin: false, loggedIn: true } as UserData;
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockUserData));
+    const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
+    httpGetSpy.mockReturnValue(of(mockUserData));
 
     const postResult = service.loginUser('mockEmail@email.com', 'mockPassword');
 
