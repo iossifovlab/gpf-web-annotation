@@ -1372,4 +1372,4 @@ class PasswordReset(views.APIView):
             verif_code.delete()
 
         redirect_uri = settings.EMAIL_REDIRECT_ENDPOINT
-        return HttpResponseRedirect(redirect_uri)
+        return HttpResponseRedirect(f"{redirect_uri}login")
