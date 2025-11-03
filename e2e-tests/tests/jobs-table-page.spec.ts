@@ -199,7 +199,7 @@ test.describe('Job details tests', () => {
     await page.getByLabel('pipeline/Autism_annotation').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-csv-file.csv');
 
-    await expect(page.locator('app-column-specifying-modal')).toBeVisible();
+    await expect(page.locator('app-column-specifying')).toBeVisible();
     await page.locator('[id="CHROM-header"]').locator('mat-select').click();
     await page.getByRole('option', { name: 'chrom', exact: true }).click();
 
@@ -272,19 +272,19 @@ test.describe('Jobs table tests', () => {
     await expect(page.getByText(lastJobId)).not.toBeVisible();
   });
 
-  test('should upload tsv file and check specify columns modal content', async({ page }) => {
+  test('should upload tsv file and check specify columns component content', async({ page }) => {
     await page.locator('#add-job-button').click();
     await page.getByLabel('pipeline/GPF-SFARI_annotation').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-tsv-file.tsv');
 
-    await expect(page.locator('app-column-specifying-modal')).toBeVisible();
+    await expect(page.locator('app-column-specifying')).toBeVisible();
     await page.locator('[id="CHROM-header"]').locator('mat-select').click();
     await page.getByRole('option', { name: 'chrom', exact: true }).click();
 
     await page.locator('#create-button').click();
 
     await expect(async() => {
-      await expect(page.locator('app-column-specifying-modal')).toBeVisible();
+      await expect(page.locator('app-column-specifying')).toBeVisible();
     }).toPass({intervals: [1000, 2000, 3000]});
 
     await expect(page.locator('#instructions')).toBeVisible();
@@ -307,7 +307,7 @@ test.describe('Jobs table tests', () => {
     await page.getByLabel('pipeline/GPF-SFARI_annotation').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-tsv-file.tsv');
 
-    await expect(page.locator('app-column-specifying-modal')).toBeVisible();
+    await expect(page.locator('app-column-specifying')).toBeVisible();
     await page.locator('[id="CHROM-header"]').locator('mat-select').click();
     await page.getByRole('option', { name: 'chrom', exact: true }).click();
 
@@ -381,7 +381,7 @@ test.describe('Jobs table tests', () => {
     await page.getByLabel('pipeline/GPF-SFARI_annotation').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-csv-file.csv');
 
-    await expect(page.locator('app-column-specifying-modal')).toBeVisible();
+    await expect(page.locator('app-column-specifying')).toBeVisible();
     await page.locator('[id="CHROM-header"]').locator('mat-select').click();
     await page.getByRole('option', { name: 'chrom', exact: true }).click();
 
@@ -462,7 +462,7 @@ test.describe('Validation tests', () => {
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/invalid-input-file-format.yaml');
     await expect(page.getByText('Unsupported format!')).toBeVisible();
     await expect(page.locator('#create-button')).toBeDisabled();
-    await expect(page.locator('app-column-specifying-modal')).not.toBeVisible();
+    await expect(page.locator('app-column-specifying')).not.toBeVisible();
     await expect(page.locator('.separator-list')).not.toBeVisible();
   });
 
