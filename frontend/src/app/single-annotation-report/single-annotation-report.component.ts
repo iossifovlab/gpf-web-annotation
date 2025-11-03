@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { SingleAnnotationService } from '../single-annotation.service';
 import { SingleAnnotationReport, Variant } from '../single-annotation';
 import { CommonModule } from '@angular/common';
-import { switchMap, take } from 'rxjs';
+import { of, switchMap, take } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MarkdownModule } from 'ngx-markdown';
 import { HelperModalComponent } from '../helper-modal/helper-modal.component';
@@ -36,14 +36,21 @@ export class SingleAnnotationReportComponent implements OnInit {
     this.route.queryParams.pipe(
       take(1),
       switchMap(params => {
+        if (!params['variant'] && !params['genome']) {
+          return of(null);
+        }
         return this.singleAnnotationService.getReport(
           this.parseVariantToObject(params['variant'] as string),
           params['genome'] as string
         );
       })
     ).subscribe(report => {
-      this.clearQueryParams();
-      this.report = report;
+      if (!report) {
+        this.router.navigate(['/single-annotation']);
+      } else {
+        this.clearQueryParams();
+        this.report = report;
+      }
     });
   }
 
