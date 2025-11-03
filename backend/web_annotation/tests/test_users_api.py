@@ -319,7 +319,7 @@ def test_reset_password_form(
         },
     )
     assert response.status_code == 302
-    assert response['Location'] == "http://testserver/login"
+    assert response['Location'] == "http://testserver//login"
     assert client.login(
         email="temp@example.com",
         password="newsecret"
