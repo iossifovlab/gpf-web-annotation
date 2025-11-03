@@ -4,7 +4,7 @@ import { UserData, UsersService } from './users.service';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 
 class UsersServiceMock {
   public userData = new BehaviorSubject<UserData>(null);
@@ -19,6 +19,7 @@ describe('AppComponent', () => {
   let component: AppComponent;
   let fixture: ComponentFixture<AppComponent>;
   const usersServiceMock = new UsersServiceMock();
+  let router: Router;
 
   beforeEach(async() => {
     await TestBed.configureTestingModule({
@@ -33,8 +34,8 @@ describe('AppComponent', () => {
     TestBed.overrideProvider(UsersService, {useValue: usersServiceMock});
 
     fixture = TestBed.createComponent(AppComponent);
+    router = TestBed.inject(Router);
     component = fixture.componentInstance;
-    fixture.detectChanges();
 
     jest.resetAllMocks();
     jest.clearAllMocks();
@@ -44,7 +45,21 @@ describe('AppComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('should trigger auto login on component init if there is no user', () => {
+    const autoLoginSpy = jest.spyOn(usersServiceMock, 'autoLogin');
+    component.ngOnInit();
+    expect(autoLoginSpy).toHaveBeenCalledWith();
+  });
+
+  it('should not trigger auto login on component init if there is user', () => {
+    const autoLoginSpy = jest.spyOn(usersServiceMock, 'autoLogin');
+    component.currentUserData = { email: 'mockEmail@email.com', isAdmin: false } as UserData;
+    component.ngOnInit();
+    expect(autoLoginSpy).not.toHaveBeenCalledWith();
+  });
+
   it('should set current user to null when logout', () => {
+    component.currentUserData = { email: 'mockEmail@email.com', isAdmin: false } as UserData;
     const logoutSpy = jest.spyOn(usersServiceMock, 'logout');
     component.logout();
     expect(logoutSpy).toHaveBeenCalledWith();
@@ -57,5 +72,25 @@ describe('AppComponent', () => {
     usersServiceMock.userData.next(mockUserData);
     component.ngDoCheck();
     expect(component.currentUserData).toStrictEqual(mockUserData);
+  });
+
+  it('should hide app header if login or register page is loaded', () => {
+    jest.spyOn(router, 'url', 'get').mockReturnValue('/login');
+    component.isAppHeaderVisible();
+    expect(component.isAppHeaderVisible()).toBe(false);
+
+    jest.spyOn(router, 'url', 'get').mockReturnValue('/register');
+    component.isAppHeaderVisible();
+    expect(component.isAppHeaderVisible()).toBe(false);
+
+    jest.spyOn(router, 'url', 'get').mockReturnValue('/single-annotation');
+    component.isAppHeaderVisible();
+    expect(component.isAppHeaderVisible()).toBe(true);
+  });
+
+  it('should navigate to login page on login button click', () => {
+    const navigateSpy = jest.spyOn(router, 'navigate');
+    component.login();
+    expect(navigateSpy).toHaveBeenCalledWith(['/login']);
   });
 });

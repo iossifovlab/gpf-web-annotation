@@ -122,4 +122,13 @@ describe('SingleAnnotationReportComponent', () => {
     expect(allValueElements[1].innerHTML).toBe('false');
     expect(allValueElements[2].innerHTML).toBe('0');
   });
+
+  it('should redirect to single annotation page if there are no params in url', () => {
+    const activatedRoute = TestBed.inject(ActivatedRoute);
+    (activatedRoute.queryParams as BehaviorSubject<object>).next({});
+
+    const navigateSpy = jest.spyOn(router, 'navigate');
+    component.ngOnInit();
+    expect(navigateSpy).toHaveBeenCalledWith(['/single-annotation']);
+  });
 });

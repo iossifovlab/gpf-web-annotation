@@ -74,7 +74,17 @@ describe('UsersService', () => {
   });
 
   it('should store current user in subject after login', async() => {
-    const mockUserData = { email: 'mockEmail@email.com', isAdmin: false, loggedIn: true } as UserData;
+    const mockUserData = {
+      email: 'mockEmail@email.com',
+      isAdmin: false,
+      loggedIn: true,
+      limitations: {
+        dailyJobs: 5,
+        filesize: '30M',
+        jobsLeft: 4,
+        variantCount: 100,
+      }
+    } as UserData;
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockUserData));
     const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
@@ -97,7 +107,17 @@ describe('UsersService', () => {
   });
 
   it('should set current user after getting user data on auto login', () => {
-    const userDataMockResult = { email: 'mockEmail', isAdmin: false, loggedIn: true } as UserData;
+    const userDataMockResult = {
+      email: 'mockEmail@email.com',
+      isAdmin: false,
+      loggedIn: true,
+      limitations: {
+        dailyJobs: 5,
+        filesize: '30M',
+        jobsLeft: 4,
+        variantCount: 100,
+      }
+    } as UserData;
     jest.spyOn(service, 'getUserData').mockReturnValue(of(userDataMockResult));
 
     service.autoLogin().subscribe();
@@ -105,7 +125,7 @@ describe('UsersService', () => {
   });
 
   it('should expect user data to be null if auto login fails', () => {
-    const userDataMockResult = { email: 'mockEmail', isAdmin: false, loggedIn: false } as UserData;
+    const userDataMockResult = { loggedIn: false, limitations: null} as UserData;
     jest.spyOn(service, 'getUserData').mockReturnValue(of(userDataMockResult));
 
     service.autoLogin().subscribe();
