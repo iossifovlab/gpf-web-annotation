@@ -34,7 +34,9 @@
 
 #annotation-details {
   margin-top: 25px;
-  height: 100%;
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
 }
 
 #annotation-details a {
@@ -174,7 +176,7 @@ mat-dialog-content {
 
 textarea {
   width: 97%;
-  height: 300px;
+  height: 90%;
   resize: none;
   border: 2px solid #cfd8df;
   border-radius: 15px;
@@ -202,6 +204,7 @@ select {
   color: #5b778c;
   background-color: white;
   margin-left: 10px;
+  width: 90px;
 }
 
 .separator-list {
