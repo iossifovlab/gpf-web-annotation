@@ -7,7 +7,7 @@ import { Observable, take } from 'rxjs';
 import { Pipeline } from './pipelines';
 import { FormsModule } from '@angular/forms';
 import { SingleAnnotationService } from '../single-annotation.service';
-import { ColumnSpecifyingModalComponent } from '../column-specifying-modal/column-specifying-modal.component';
+import { ColumnSpecifyingComponent } from '../column-specifying/column-specifying.component';
 
 
 @Component({
@@ -17,7 +17,7 @@ import { ColumnSpecifyingModalComponent } from '../column-specifying-modal/colum
     MatDialogContent,
     CommonModule,
     FormsModule,
-    ColumnSpecifyingModalComponent,
+    ColumnSpecifyingComponent,
   ],
   templateUrl: './job-creation.component.html',
   styleUrl: './job-creation.component.css'

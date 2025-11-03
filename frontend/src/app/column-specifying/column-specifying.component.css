@@ -1,8 +1,8 @@
-#modal-container {
+#container {
   padding: 0 8px;
 }
 
-#modal-table {
+#table {
   display: grid;
   margin-top: 10px;
   margin-bottom: 30px;

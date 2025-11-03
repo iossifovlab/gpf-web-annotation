@@ -100,10 +100,10 @@
       <label class="separator-label" for="no-separator-radio">No separator</label>
     </div>
 
-    <app-column-specifying-modal
+    <app-column-specifying
       *ngIf="fileContent"
       [fileContent]="fileContent"
-      (emitColumns)="getColumns($event)"></app-column-specifying-modal>
+      (emitColumns)="getColumns($event)"></app-column-specifying>
   </div>
 </mat-dialog-content>
 

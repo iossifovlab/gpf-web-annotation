@@ -1,11 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ColumnSpecifyingModalComponent } from './column-specifying-modal.component';
+import { ColumnSpecifyingComponent } from './column-specifying.component';
 import { MatDialogRef } from '@angular/material/dialog';
 import { FileContent } from '../job-creation/jobs';
 import { JobsService } from '../job-creation/jobs.service';
 import { provideHttpClient } from '@angular/common/http';
 
-const mockModalContent = new FileContent(
+const mockContent = new FileContent(
   ',',
   ['chrom', 'position', 'reference', 'alternative'],
   [
@@ -19,14 +19,14 @@ class MatDialogRefMock {
   public close(value: boolean): void { }
 }
 
-describe('ColumnSpecifyingModalComponent', () => {
-  let component: ColumnSpecifyingModalComponent;
-  let fixture: ComponentFixture<ColumnSpecifyingModalComponent>;
+describe('ColumnSpecifyingComponent', () => {
+  let component: ColumnSpecifyingComponent;
+  let fixture: ComponentFixture<ColumnSpecifyingComponent>;
   const mockMatDialogRef = new MatDialogRefMock();
 
   beforeEach(async() => {
     await TestBed.configureTestingModule({
-      imports: [ColumnSpecifyingModalComponent],
+      imports: [ColumnSpecifyingComponent],
       providers: [
         { provide: MatDialogRef, useValue: mockMatDialogRef },
         JobsService,
@@ -34,9 +34,9 @@ describe('ColumnSpecifyingModalComponent', () => {
       ]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(ColumnSpecifyingModalComponent);
+    fixture = TestBed.createComponent(ColumnSpecifyingComponent);
     component = fixture.componentInstance;
-    component.fileContent = mockModalContent;
+    component.fileContent = mockContent;
     fixture.detectChanges();
   });
 

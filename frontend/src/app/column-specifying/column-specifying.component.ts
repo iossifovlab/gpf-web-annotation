@@ -6,12 +6,12 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 
 @Component({
-  selector: 'app-column-specifying-modal',
+  selector: 'app-column-specifying',
   imports: [CommonModule, TextShortenPipe, MatSelectModule, MatFormFieldModule],
-  templateUrl: './column-specifying-modal.component.html',
-  styleUrl: './column-specifying-modal.component.css'
+  templateUrl: './column-specifying.component.html',
+  styleUrl: './column-specifying.component.css'
 })
-export class ColumnSpecifyingModalComponent {
+export class ColumnSpecifyingComponent {
   public columnNames = [
     'location',
     'variant',
