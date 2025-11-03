@@ -143,13 +143,11 @@ describe('SingleAnnotationService', () => {
 
   it('should check query parameters when requesting annotation report', () => {
     const httpGetSpy = jest.spyOn(HttpClient.prototype, 'post');
-    const options = { headers: { 'X-CSRFToken': '' }, withCredentials: true };
 
     service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'genome');
     expect(httpGetSpy).toHaveBeenCalledWith(
       '//localhost:8000/api/single_annotate',
-      { variant: { chrom: 'chr14', pos: 204000100, ref: 'A', alt: 'AA'}, genome: 'genome' },
-      options
+      { variant: { chrom: 'chr14', pos: 204000100, ref: 'A', alt: 'AA'}, genome: 'genome' }
     );
   });
 
@@ -363,8 +361,7 @@ describe('SingleAnnotationService', () => {
     service.getHistogram('histograms/score?test=1');
 
     expect(httpGetSpy).toHaveBeenCalledWith(
-      '//localhost:8000/api/histograms/score?test=1',
-      { headers: { 'X-CSRFToken': '' }, withCredentials: true }
+      '//localhost:8000/api/histograms/score?test=1'
     );
   });
 

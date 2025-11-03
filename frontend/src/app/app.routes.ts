@@ -13,7 +13,6 @@ export const routes: Routes = [
   { path: 'jobs', component: JobsTableComponent, canActivate: [authGuard] },
   {
     path: 'single-annotation',
-    canActivate: [authGuard],
     children: [
       {
         path: '',
