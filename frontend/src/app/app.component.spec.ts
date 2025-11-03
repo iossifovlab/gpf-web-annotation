@@ -8,8 +8,9 @@ import { provideRouter } from '@angular/router';
 
 class UsersServiceMock {
   public userData = new BehaviorSubject<UserData>(null);
-  public loadingUser = new BehaviorSubject<boolean>(false);
-  public autoLogin(): void { }
+  public autoLogin(): Observable<boolean> {
+    return of(true);
+  }
   public logout(): Observable<object> {
     return of({});
   }
@@ -41,15 +42,6 @@ describe('AppComponent', () => {
 
   it('should create the app', () => {
     expect(component).toBeTruthy();
-  });
-
-  it('should have description', () => {
-    expect(component.description).toBe('GPF Web Annotation description');
-  });
-
-  it('should render title', () => {
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('GPF Web Annotation');
   });
 
   it('should set current user to null when logout', () => {

@@ -1,3 +1,21 @@
+#front-page-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 100vh;
+  gap: 4vw;
+}
+
+#front-page-header {
+  background-color: rgb(244, 247, 251);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 50%;
+  height: 100vh;
+}
+
 input {
   border: 1px solid #cfd8df;
   border-radius: 10px;
