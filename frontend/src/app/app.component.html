@@ -1,5 +1,5 @@
 <div id="app-container">
-  <div id="app-header">
+  <div id="app-header" *ngIf="isAppHeaderVisible()">
     <div>
       <img src="{{ environment.imgPathPrefix }}/logo-64x64.png" alt="GPF Logo" id="header-logo" />
       <span id="app-title">GPF Web Annotation</span>

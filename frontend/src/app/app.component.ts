@@ -46,4 +46,8 @@ export class AppComponent implements DoCheck, OnInit {
   public login(): void {
     this.router.navigate(['/login']);
   }
+
+  public isAppHeaderVisible(): boolean {
+    return !this.router.url.includes('login') && !this.router.url.includes('register');
+  }
 }
