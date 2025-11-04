@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SingleAnnotationComponent } from './single-annotation.component';
 import { Observable, of } from 'rxjs';
 import { SingleAnnotationService } from '../single-annotation.service';
-import { ActivatedRoute, provideRouter, Router } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 
 class SingleAnnotationServiceMock {
   public getGenomes(): Observable<string[]> {
@@ -42,15 +42,21 @@ describe('SingleAnnotationComponent', () => {
     expect(component.selectedGenome).toBe('hg38');
   });
 
-  it('should navigate to report page with and pass parameters', () => {
-    const activatedRoute = TestBed.inject(ActivatedRoute);
+  it('should reload and navigate to report page and pass parameters', async() => {
     component.selectedGenome = 'hg19';
 
     const navigateSpy = jest.spyOn(router, 'navigate');
+    const navigateByUrlSpy = jest.spyOn(router, 'navigateByUrl');
     component.loadReport('variant1');
+
+    // eslint-disable-next-line @typescript-eslint/await-thenable
+    await navigateByUrlSpy;
+    expect(navigateByUrlSpy).toHaveBeenCalledWith('/', { skipLocationChange: true });
     expect(navigateSpy).toHaveBeenCalledWith(
-      ['report'],
-      { queryParams: {genome: 'hg19', variant: 'variant1'}, relativeTo: activatedRoute }
+      ['/single-annotation/report'],
+      {
+        queryParams: {genome: 'hg19', variant: 'variant1'},
+      }
     );
   });
 

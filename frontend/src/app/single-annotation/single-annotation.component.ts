@@ -32,10 +32,13 @@ export class SingleAnnotationComponent implements OnInit {
   }
 
   public loadReport(variant: string): void {
-    this.router.navigate(
-      ['report'],
-      { queryParams: { genome: this.selectedGenome, variant: variant }, relativeTo: this.route },
-    );
+    this.router.navigateByUrl('/', { skipLocationChange: true })
+      .then(() => this.router.navigate(
+        ['/single-annotation/report'],
+        {
+          queryParams: { genome: this.selectedGenome, variant: variant },
+        },
+      ));
   }
 
   public validateVariant(variant: string): void {
