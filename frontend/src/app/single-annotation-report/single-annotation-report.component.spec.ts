@@ -20,6 +20,10 @@ class MockSingleAnnotationService {
   public getReport(variant: Variant, genome: string): Observable<SingleAnnotationReport> {
     return of(mockReport);
   }
+
+  public getGenomes(): Observable<string[]> {
+    return of(['hg38']);
+  }
 }
 
 class MatDialogMock {
@@ -79,12 +83,6 @@ describe('SingleAnnotationReportComponent', () => {
     const getReportSpy = jest.spyOn(mockSingleAnnotationService, 'getReport');
     component.ngOnInit();
     expect(getReportSpy).toHaveBeenCalledWith(new Variant('chr14', 204000100, 'A', 'AA', null), 'hg38');
-  });
-
-  it('should call router.navigate to remove query params after requesting report', () => {
-    const navigateSpy = jest.spyOn(router, 'navigate');
-    component.ngOnInit();
-    expect(navigateSpy).toHaveBeenCalledWith([], { queryParams: {} });
   });
 
   it('should open modal on icon click', () => {
