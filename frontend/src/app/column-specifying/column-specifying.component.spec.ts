@@ -7,9 +7,9 @@ import { provideHttpClient } from '@angular/common/http';
 
 const mockContent = new FileContent(
   ',',
-  ['chrom', 'position', 'reference', 'alternative'],
+  ['CHROM', 'POSITION', 'REF', 'ALTERNATIVE'],
   [
-    ['chrom', 'position', 'reference', 'alternative'],
+    ['CHROM', 'POSITION', 'REF', 'ALTERNATIVE'],
     ['chr1', '123', 'A', 'GG'],
   ]
 );
@@ -46,24 +46,28 @@ describe('ColumnSpecifyingComponent', () => {
 
   it('should check data', () => {
     const mappedFileContent: string[][] = [
-      ['chrom', 'position', 'reference', 'alternative'],
+      ['CHROM', 'POSITION', 'REF', 'ALTERNATIVE'],
       ['chr1', '123', 'A', 'GG'],
     ];
     expect(component.fileContent).toStrictEqual(new FileContent(
       ',',
-      ['chrom', 'position', 'reference', 'alternative'],
+      ['CHROM', 'POSITION', 'REF', 'ALTERNATIVE'],
       mappedFileContent
     ));
   });
 
-  it('should map column to new name', () => {
+  it('should map column to new name and emit the change to parent', () => {
+    const columnsEmitterSpy = jest.spyOn(component.emitColumns, 'emit');
+
     component.onSelectName('pos', 'position');
     expect(component.mappedColumns).toStrictEqual(new Map([
       ['pos', 'position']
     ]));
+    expect(columnsEmitterSpy).toHaveBeenCalledWith(new Map([['pos', 'position']]));
   });
 
-  it('should map two columns to \'pos\'', () => {
+  it('should map two columns to \'pos\' and emit to parent', () => {
+    const columnsEmitterSpy = jest.spyOn(component.emitColumns, 'emit');
     component.mappedColumns = new Map([
       ['pos', 'alternative']
     ]);
@@ -71,9 +75,10 @@ describe('ColumnSpecifyingComponent', () => {
     expect(component.mappedColumns).toStrictEqual(new Map([
       ['pos', 'position']
     ]));
+    expect(columnsEmitterSpy).toHaveBeenCalledWith(new Map([['pos', 'position']]));
   });
 
-  it('should map \'chrom\' then \'alt\' to column from file', () => {
+  it('should map \'chrom\' then \'alt\' to one column from file', () => {
     component.onSelectName('chrom', 'alternative');
 
     component.onSelectName('alt', 'alternative');
@@ -82,7 +87,8 @@ describe('ColumnSpecifyingComponent', () => {
     ]));
   });
 
-  it('should remove selected column name for file column', () => {
+  it('should remove selected column name for file column by selecting None option and emit to parent', () => {
+    const columnsEmitterSpy = jest.spyOn(component.emitColumns, 'emit');
     component.mappedColumns = new Map([
       ['pos', 'alternative'],
       ['chrom', 'chr'],
@@ -92,5 +98,32 @@ describe('ColumnSpecifyingComponent', () => {
     expect(component.mappedColumns).toStrictEqual(new Map([
       ['chrom', 'chr'],
     ]));
+    expect(columnsEmitterSpy).toHaveBeenCalledWith(new Map([['chrom', 'chr']]));
+  });
+
+  it('should set default names for file columns which are contained in list with names', () => {
+    component.ngOnChanges();
+    expect(component.mappedColumns).toStrictEqual(new Map([
+      ['chrom', 'CHROM'],
+      ['ref', 'REF'],
+    ]));
+  });
+
+  it('should get the new name of a column from file', () => {
+    component.mappedColumns = new Map([
+      ['pos', 'POSITION_FILE'],
+      ['chrom', 'CHROM_FILE'],
+    ]);
+
+    expect(component.getFileColumnNewName('POSITION_FILE')).toBe('pos');
+  });
+
+  it('should return null if new name for a column from file is not selected', () => {
+    component.mappedColumns = new Map([
+      ['pos', 'POSITION_FILE'],
+      ['chrom', 'CHROM_FILE'],
+    ]);
+
+    expect(component.getFileColumnNewName('REF')).toBeNull();
   });
 });

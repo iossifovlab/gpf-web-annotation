@@ -200,8 +200,14 @@ test.describe('Job details tests', () => {
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-csv-file.csv');
 
     await expect(page.locator('app-column-specifying')).toBeVisible();
-    await page.locator('[id="CHROM-header"]').locator('mat-select').click();
-    await page.getByRole('option', { name: 'chrom', exact: true }).click();
+    await page.locator('[id="POS-header"]').locator('mat-select').click();
+    await page.getByRole('option', { name: 'None', exact: true }).click();
+
+    await page.locator('[id="REF-header"]').locator('mat-select').click();
+    await page.getByRole('option', { name: 'None', exact: true }).click();
+
+    await page.locator('[id="ALT-header"]').locator('mat-select').click();
+    await page.getByRole('option', { name: 'None', exact: true }).click();
 
     await page.locator('#create-button').click();
     await waitForJobStatus(page, 'failed');
@@ -278,8 +284,11 @@ test.describe('Jobs table tests', () => {
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-tsv-file.tsv');
 
     await expect(page.locator('app-column-specifying')).toBeVisible();
-    await page.locator('[id="CHROM-header"]').locator('mat-select').click();
-    await page.getByRole('option', { name: 'chrom', exact: true }).click();
+    await expect(page.locator('[id="CHROM-header"]').locator('mat-select')).toHaveText('chrom');
+    await expect(page.locator('[id="POS-header"]').locator('mat-select')).toHaveText('pos');
+    await expect(page.locator('[id="REF-header"]').locator('mat-select')).toHaveText('ref');
+    await expect(page.locator('[id="ALT-header"]').locator('mat-select')).toHaveText('alt');
+
 
     await page.locator('#create-button').click();
 
@@ -308,17 +317,6 @@ test.describe('Jobs table tests', () => {
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-tsv-file.tsv');
 
     await expect(page.locator('app-column-specifying')).toBeVisible();
-    await page.locator('[id="CHROM-header"]').locator('mat-select').click();
-    await page.getByRole('option', { name: 'chrom', exact: true }).click();
-
-    await page.locator('[id="POS-header"]').locator('mat-select').click();
-    await page.getByRole('option', { name: 'pos', exact: true }).click();
-
-    await page.locator('[id="REF-header"]').locator('mat-select').click();
-    await page.getByRole('option', { name: 'ref', exact: true }).click();
-
-    await page.locator('[id="ALT-header"]').locator('mat-select').click();
-    await page.getByRole('option', { name: 'alt', exact: true }).click();
 
     await page.locator('#create-button').click();
     await expect(page.locator('.status-label').nth(0)).toContainText('in process');
@@ -333,18 +331,6 @@ test.describe('Jobs table tests', () => {
     await page.getByLabel('pipeline/GPF-SFARI_annotation').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-csv-file.csv');
 
-    await page.locator('[id="CHROM-header"]').locator('mat-select').click();
-    await page.getByRole('option', { name: 'chrom', exact: true }).click();
-
-    await page.locator('[id="POS-header"]').locator('mat-select').click();
-    await page.getByRole('option', { name: 'pos', exact: true }).click();
-
-    await page.locator('[id="REF-header"]').locator('mat-select').click();
-    await page.getByRole('option', { name: 'ref', exact: true }).click();
-
-    await page.locator('[id="ALT-header"]').locator('mat-select').click();
-    await page.getByRole('option', { name: 'alt', exact: true }).click();
-
     await page.locator('#create-button').click();
     await expect(page.locator('.status-label').nth(0)).toContainText('in process');
 
@@ -357,16 +343,7 @@ test.describe('Jobs table tests', () => {
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-csv-file.csv');
 
     await page.locator('[id="CHROM-header"]').locator('mat-select').click();
-    await page.getByRole('option', { name: 'ref', exact: true }).click();
-
-    await page.locator('[id="POS-header"]').locator('mat-select').click();
-    await page.getByRole('option', { name: 'chrom', exact: true }).click();
-
-    await page.locator('[id="REF-header"]').locator('mat-select').click();
-    await page.getByRole('option', { name: 'alt', exact: true }).click();
-
-    await page.locator('[id="ALT-header"]').locator('mat-select').click();
-    await page.getByRole('option', { name: 'pos', exact: true }).click();
+    await page.getByRole('option', { name: 'variant', exact: true }).click();
 
     await page.locator('#create-button').click();
     await expect(page.locator('.status-label').nth(0)).toContainText('in process');
@@ -382,8 +359,14 @@ test.describe('Jobs table tests', () => {
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-csv-file.csv');
 
     await expect(page.locator('app-column-specifying')).toBeVisible();
-    await page.locator('[id="CHROM-header"]').locator('mat-select').click();
-    await page.getByRole('option', { name: 'chrom', exact: true }).click();
+    await page.locator('[id="POS-header"]').locator('mat-select').click();
+    await page.getByRole('option', { name: 'None', exact: true }).click();
+
+    await page.locator('[id="REF-header"]').locator('mat-select').click();
+    await page.getByRole('option', { name: 'None', exact: true }).click();
+
+    await page.locator('[id="ALT-header"]').locator('mat-select').click();
+    await page.getByRole('option', { name: 'None', exact: true }).click();
 
     await page.locator('#create-button').click();
     await expect(page.locator('.status-label').nth(0)).toContainText('in process');
@@ -474,6 +457,10 @@ test.describe('Validation tests', () => {
   //   await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
   //   await page.locator('#create-button').click();
 
+  //   // wait for create query to finish
+  //   await page.waitForResponse(
+  //     resp => resp.url().includes('/api/jobs/annotate_vcf') && resp.status() === 204
+  //   );
   //   await waitForJobStatus(page, 'success');
 
   //   await page.locator('#add-job-button').click();
@@ -481,6 +468,10 @@ test.describe('Validation tests', () => {
   //   await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
   //   await page.locator('#create-button').click();
 
+  //   // wait for create query to finish
+  //   await page.waitForResponse(
+  //     resp => resp.url().includes('/api/jobs/annotate_vcf') && resp.status() === 204
+  //   );
   //   await waitForJobStatus(page, 'success');
 
   //   await page.locator('#add-job-button').click();
@@ -488,6 +479,10 @@ test.describe('Validation tests', () => {
   //   await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
   //   await page.locator('#create-button').click();
 
+  //   // wait for create query to finish
+  //   await page.waitForResponse(
+  //     resp => resp.url().includes('/api/jobs/annotate_vcf') && resp.status() === 204
+  //   );
   //   await waitForJobStatus(page, 'success');
 
   //   await page.locator('#add-job-button').click();
@@ -495,6 +490,10 @@ test.describe('Validation tests', () => {
   //   await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
   //   await page.locator('#create-button').click();
 
+  //   // wait for create query to finish
+  //   await page.waitForResponse(
+  //     resp => resp.url().includes('/api/jobs/annotate_vcf') && resp.status() === 204
+  //   );
   //   await waitForJobStatus(page, 'success');
 
   //   await page.locator('#add-job-button').click();
@@ -502,6 +501,10 @@ test.describe('Validation tests', () => {
   //   await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
   //   await page.locator('#create-button').click();
 
+  //   // wait for create query to finish
+  //   await page.waitForResponse(
+  //     resp => resp.url().includes('/api/jobs/annotate_vcf') && resp.status() === 204
+  //   );
   //   await waitForJobStatus(page, 'success');
 
   //   await page.locator('#add-job-button').click();

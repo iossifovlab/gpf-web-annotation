@@ -4,12 +4,13 @@
     <div class="row">
       <div class="header" [id]="header + '-header'" *ngFor="let header of fileContent.columns">
         <mat-form-field>
-          <mat-select matNativeControl [placeholder]="'- select -'">
+          <mat-select matNativeControl [placeholder]="'- select -'" [value]="getFileColumnNewName(header)">
             <mat-option (click)="onSelectName('None', header)">None</mat-option>
             <mat-option
               *ngFor="let col of columnNames"
               (click)="onSelectName(col, header)"
               [value]="col"
+              [title]="col"
               [disabled]="mappedColumns.has(col)"
               >{{ col }}</mat-option
             >
