@@ -9,6 +9,7 @@ import { HelperModalComponent } from '../helper-modal/helper-modal.component';
 import { MatDialog } from '@angular/material/dialog';
 import { HistogramWrapperComponent } from '../histogram-wrapper/histogram-wrapper.component';
 import { EffectTableComponent } from '../effect-table/effect-table.component';
+import { SingleAnnotationComponent } from '../single-annotation/single-annotation.component';
 
 @Component({
   selector: 'app-single-annotation-report',
@@ -16,7 +17,8 @@ import { EffectTableComponent } from '../effect-table/effect-table.component';
     CommonModule,
     MarkdownModule,
     HistogramWrapperComponent,
-    EffectTableComponent
+    EffectTableComponent,
+    SingleAnnotationComponent
   ],
   templateUrl: './single-annotation-report.component.html',
   styleUrl: './single-annotation-report.component.css'

@@ -1,9 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { CommonModule } from '@angular/common';
 import { SingleAnnotationService } from '../single-annotation.service';
 import { take } from 'rxjs';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -13,6 +13,7 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './single-annotation.component.css'
 })
 export class SingleAnnotationComponent implements OnInit {
+  @Input() public isMainComponent = true;
   public readonly environment = environment;
   public genomes: string[] = [];
   public selectedGenome: string = '';
@@ -21,7 +22,6 @@ export class SingleAnnotationComponent implements OnInit {
   public constructor(
     private singleAnnotationService: SingleAnnotationService,
     private router: Router,
-    private route: ActivatedRoute,
   ) { }
 
   public ngOnInit(): void {
