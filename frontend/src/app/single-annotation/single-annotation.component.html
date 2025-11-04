@@ -1,6 +1,13 @@
-<div id="single-annotation-container">
-  <img src="{{ environment.imgPathPrefix }}/logo-64x64.png" alt="GPF Logo" id="single-annotation-logo" />
-  <h1>Single Allele Annotation</h1>
+<div
+  *ngIf="genomes.length"
+  id="single-annotation-container"
+  [ngClass]="isMainComponent ? 'main-component' : 'inline-component'">
+  <img
+    *ngIf="isMainComponent"
+    src="{{ environment.imgPathPrefix }}/logo-64x64.png"
+    alt="GPF Logo"
+    id="single-annotation-logo" />
+  <h1 *ngIf="isMainComponent">Single Allele Annotation</h1>
   <div>
     <select [(ngModel)]="selectedGenome">
       <option *ngFor="let genome of genomes" [value]="genome">{{ genome }}</option>

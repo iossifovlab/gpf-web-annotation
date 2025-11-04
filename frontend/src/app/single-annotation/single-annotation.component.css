@@ -1,9 +1,23 @@
 #single-annotation-container {
   display: flex;
+}
+
+.main-component {
   flex-direction: column;
   align-items: center;
   padding: 20px;
   margin-top: 100px;
+}
+
+.inline-component {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 30px;
+  padding: 25px;
+  margin-top: 10px;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #85a2b9;
+  background: #f7fafd;
 }
 
 #single-annotation-logo {
