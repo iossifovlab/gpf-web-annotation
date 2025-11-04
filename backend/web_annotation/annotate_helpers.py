@@ -26,7 +26,7 @@ def extract_header(path: str, input_separator: str) -> list[str]:
 
 def extract_head(
     path: str,
-    input_separator: str,
+    input_separator: str | None,
     n_lines: int,
 ) -> list[dict[str, str]]:
     """Extract first n_lines rows from a file."""
@@ -36,13 +36,26 @@ def extract_head(
     else:
         with open(path, "rt") as infile:
             lines = list(islice(infile.readlines(), 0, n_lines + 1))
-    header = [
-        c.strip("#")
-        for c in lines[0].strip("\r\n").split(input_separator)
+
+    if input_separator:
+        col_names = lines[0].strip("\r\n").split(input_separator)
+        col_values = [
+            line.strip("\r\n").split(input_separator)
+            for line in lines[1:n_lines + 1]
+        ]
+    else:
+        col_names = [lines[0].strip("\r\n")]
+        col_values = [
+            [line.strip("\r\n")]
+            for line in lines[1:n_lines + 1]
+        ]
+
+    header = [c.strip("#") for c in col_names]
+
+    return [
+        dict(zip(header, col_value, strict=True))
+        for col_value in col_values
     ]
-    return [dict(
-        zip(header, line.strip("\r\n").split(input_separator), strict=True)
-    ) for line in lines[1:n_lines + 1]]
 
 
 def check_separator(separator: str, lines: list[str]) -> bool:

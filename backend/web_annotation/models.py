@@ -51,6 +51,7 @@ class Job(models.Model):
     status = models.IntegerField(choices=Status, default=Status.WAITING)
     duration = models.FloatField(null=True, default=None)
     command_line = models.TextField(default="")
+    annotation_type = models.CharField(max_length=1024, default="")
 
     owner = models.ForeignKey(
         'web_annotation.User', related_name='jobs', on_delete=models.CASCADE)

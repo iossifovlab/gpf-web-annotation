@@ -444,7 +444,11 @@ class AnnotationBaseView(views.APIView):
 
         return ext
 
-    def _create_job(self, request: Request) -> Response | tuple[str, Job]:
+    def _create_job(
+        self,
+        request: Request,
+        annotation_type: str,
+    ) -> Response | tuple[str, Job]:
         validation_response = self._validate_request(request)
         if validation_response is not None:
             return validation_response
@@ -509,7 +513,8 @@ class AnnotationBaseView(views.APIView):
                   config_path=config_path,
                   result_path=result_path,
                   reference_genome=reference_genome,
-                  owner=request.user)
+                  owner=request.user,
+                  annotation_type=annotation_type)
         return (job_name, job)
 
 
@@ -562,7 +567,7 @@ class JobDetail(AnnotationBaseView):
         except ObjectDoesNotExist:
             return Response(response, status=views.status.HTTP_200_OK)
 
-        if details.separator:
+        if job.annotation_type == "columns":
             response["columns"] = details.columns.split(";")
             file_head = extract_head(
                 str(job.input_path),
@@ -601,7 +606,7 @@ class AnnotateVCF(AnnotationBaseView):
 
     def post(self, request: Request) -> Response:
         """Run VCF annotation job."""
-        job_or_response = self._create_job(request)
+        job_or_response = self._create_job(request, "vcf")
         if isinstance(job_or_response, Response):
             return job_or_response
         job_name, job = job_or_response
@@ -682,7 +687,7 @@ class AnnotateColumns(AnnotationBaseView):
     def post(self, request: Request) -> Response:
         """Run column annotation job."""
 
-        job_or_response = self._create_job(request)
+        job_or_response = self._create_job(request, "columns")
         if isinstance(job_or_response, Response):
             return job_or_response
         _, job = job_or_response

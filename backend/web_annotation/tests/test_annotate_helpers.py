@@ -44,6 +44,17 @@ def test_extract_head_plain_text(tmp_path: Path) -> None:
     assert head == [{"col1": "1", "col2": "2"}]
 
 
+def test_extract_head_no_separator(tmp_path: Path) -> None:
+    file_path = tmp_path / "data.tsv"
+    file_path.write_text("#col1col2\n1234\n")
+
+    head = extract_head(str(file_path), "", 1)
+    assert head == [{"col1col2": "1234"}]
+
+    head = extract_head(str(file_path), None, 1)
+    assert head == [{"col1col2": "1234"}]
+
+
 def test_extract_head_compressed(tmp_path: Path) -> None:
     file_path = tmp_path / "data.csv.gz"
     with gzip.open(file_path, "wt") as gzip_file:
