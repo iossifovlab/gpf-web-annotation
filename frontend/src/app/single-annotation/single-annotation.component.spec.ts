@@ -63,6 +63,8 @@ describe('SingleAnnotationComponent', () => {
     expect(component.validationMessage).toBe('');
     component.validateVariant('chr7 1    GTT A');
     expect(component.validationMessage).toBe('Invalid variant format!');
+    component.validateVariant('  chr1 11796321 G A ');
+    expect(component.validationMessage).toBe('');
   });
 
   it('should validate chromosome of a variant for hg19', () => {

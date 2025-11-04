@@ -39,6 +39,7 @@ export class SingleAnnotationComponent implements OnInit {
   }
 
   public validateVariant(variant: string): void {
+    variant = variant.trim();
     const v = variant.split(' ');
     if (
       v.length === 4 &&
