@@ -436,7 +436,7 @@ test.describe('Validation tests', () => {
     await expect(page.getByText('Invalid configuration, reason: \'preamble\'')).toBeVisible();
   });
 
-  test('should type semantically invalid config and create job', async({ page }) => {
+  test('should type semantically invalid config and see error', async({ page }) => {
     await page.locator('#add-job-button').click();
     await page.getByText('YML text editor').click();
 
@@ -446,14 +446,7 @@ test.describe('Validation tests', () => {
 
     await page.getByText('YML text editor').click(); // trigger config validation
 
-    await page.locator('#create-button').click();
-
-    // wait for create query to finish
-    await page.waitForResponse(
-      resp => resp.url().includes('/api/jobs/annotate_vcf') && resp.status() === 204
-    );
-
-    await waitForJobStatus(page, 'failed');
+    await expect(page.locator('.error-message').nth(0)).toContainText('unsupported annotator type: A');
   });
 
   test('should check if create button is disabled when invalid file is uploaded', async({ page }) => {

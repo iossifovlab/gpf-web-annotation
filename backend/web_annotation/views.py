@@ -14,7 +14,10 @@ from dae.annotation.annotation_config import (
 )
 from dae.annotation.gene_score_annotator import GeneScoreAnnotator
 from dae.annotation.score_annotator import GenomicScoreAnnotatorBase
-from dae.annotation.annotation_factory import load_pipeline_from_grr
+from dae.annotation.annotation_factory import (
+    load_pipeline_from_grr,
+    load_pipeline_from_yaml,
+)
 from dae.annotation.annotation_pipeline import AnnotationPipeline, Annotator
 from dae.gene_scores.gene_scores import (
     build_gene_score_from_resource,
@@ -928,6 +931,7 @@ class AnnotationConfigValidation(AnnotationBaseView):
 
         try:
             AnnotationConfigParser.parse_str(content, grr=self.grr)
+            load_pipeline_from_yaml(content, self.grr)
         except (AnnotationConfigurationError, KeyError) as e:
             error = str(e)
             if error == "":
