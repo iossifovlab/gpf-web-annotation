@@ -148,6 +148,12 @@ def test_job_details_not_owner(user_client: Client) -> None:
 
 
 @pytest.mark.django_db
+def test_job_details_not_exist(user_client: Client) -> None:
+    response = user_client.get("/api/jobs/99")
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
 def test_job_file_input(user_client: Client) -> None:
     response = user_client.get("/api/jobs/1/file/input")
     assert response.status_code == 200
@@ -178,6 +184,27 @@ def test_job_file_input_not_owner(user_client: Client) -> None:
 def test_job_file_input_non_existent(user_client: Client) -> None:
     response = user_client.get("/api/jobs/13/file/input")
     assert response.status_code == 404
+
+
+@pytest.mark.django_db
+def test_user_list(admin_client: Client) -> None:
+    response = admin_client.get("/api/users")
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            'email': 'user@example.com',
+            'jobs': [1]
+        },
+        {
+            'email': 'admin@example.com',
+            'jobs': [2]
+        }
+    ]
+
+@pytest.mark.django_db
+def test_user_list_unauthorized(user_client: Client) -> None:
+    response = user_client.get("/api/users")
+    assert response.status_code == 403
 
 @pytest.mark.django_db
 def test_daily_user_quota(
@@ -443,6 +470,21 @@ def test_validate_annotation_config(
         "errors": "Invalid configuration, reason: 'annotators'",
     }
 
+    annotation_config = (
+        "- position_score: scores/pos1\n"
+        "- position_score: scores/pos1\n"
+    )
+
+    response = user_client.post(
+        "/api/jobs/validate",
+        {"config": annotation_config},
+    )
+    assert response.status_code == 200
+    assert response.json() == {
+        "errors": "Invalid configuration, reason: "
+        "Repeated attributes in pipeline were found - {'pos1': ['A1', 'A0']}",
+    }
+
 
 def test_single_annotation(admin_client: Client) -> None:
     response = admin_client.post(
@@ -562,6 +604,32 @@ def test_single_annotation_unauthorized(anonymous_client: Client) -> None:
     ) in annotators_data[0]["attributes"][0]["help"]
 
 
+def test_single_annotation_no_variant(admin_client: Client) -> None:
+    response = admin_client.post(
+        "/api/single_annotate",
+        {
+            "genome": "hg38",
+        },
+        content_type="application/json",
+    )
+
+    assert response.status_code == 400
+
+
+def test_single_annotation_no_genome(admin_client: Client) -> None:
+    response = admin_client.post(
+        "/api/single_annotate",
+        {
+            "variant": {
+                "chrom": "chr1", "pos": 1, "ref": "C", "alt": "A",
+            }
+        },
+        content_type="application/json",
+    )
+
+    assert response.status_code == 400
+
+
 def test_histogram_view(admin_client: Client) -> None:
     response = admin_client.get("/api/histograms/scores/pos1?score_id=pos1")
 
@@ -596,6 +664,16 @@ def test_histogram_view(admin_client: Client) -> None:
         "min_value": 0.1,
         "max_value": 0.9,
     }
+
+
+def test_histogram_view_no_score(admin_client: Client) -> None:
+    response = admin_client.get("/api/histograms/scores/pos1")
+    assert response.status_code == 400
+
+
+def test_histogram_view_bad_resource(admin_client: Client) -> None:
+    response = admin_client.get("/api/histograms/shcores/pos1")
+    assert response.status_code == 404
 
 
 def test_genomes_view(admin_client: Client) -> None:
@@ -945,3 +1023,4 @@ def test_single_annotation_t4c8(admin_client: Client) -> None:
         "histogram": \
             "histograms/t4c8/gene_scores/t4c8_score?score_id=t4c8_score",
     }
+

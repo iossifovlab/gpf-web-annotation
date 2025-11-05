@@ -1151,7 +1151,7 @@ class HistogramView(AnnotationBaseView):
         """Return histogram data for a resource and score ID."""
         try:
             resource = self.grr.get_resource(resource_id)
-        except ValueError:
+        except (FileNotFoundError, ValueError):
             return Response(status=views.status.HTTP_404_NOT_FOUND)
 
         score_id = request.query_params.get("score_id")
