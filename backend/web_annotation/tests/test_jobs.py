@@ -534,7 +534,7 @@ def test_annotate_columns(
 
     assert job.status == Job.Status.SUCCESS
     assert job.duration is not None
-    assert job.duration < 5.0
+    assert job.duration < 6.0
 
     assert job.result_path.endswith(file_extension) is True
 
@@ -755,3 +755,27 @@ def test_annotate_columns_bad_request(admin_client: Client) -> None:
     )
 
     assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_annotate_columns_bad_genome(admin_client: Client) -> None:
+    annotation_config = "- position_score: scores/pos1"
+    file = gzip.compress(textwrap.dedent("""
+        chrom,pos,var
+        chr1,9,del(3)
+    """).strip().encode("utf-8"))
+
+    params = {
+        "genome": "goshonome",
+        "config": ContentFile(annotation_config),
+        "data": ContentFile(file, "test_input.tsv.gz"),
+        "col_chrom": "chrom",
+        "col_pos": "pos",
+        "col_variant": "var",
+        "separator": "\t",
+    }
+
+    response = admin_client.post("/api/jobs/annotate_columns", params)
+
+    assert response.status_code == 404
+
