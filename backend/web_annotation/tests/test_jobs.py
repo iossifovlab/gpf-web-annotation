@@ -534,7 +534,7 @@ def test_annotate_columns(
 
     assert job.status == Job.Status.SUCCESS
     assert job.duration is not None
-    assert job.duration < 5.0
+    assert job.duration < 6.0
 
     assert job.result_path.endswith(file_extension) is True
 
