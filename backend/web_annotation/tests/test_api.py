@@ -1023,4 +1023,3 @@ def test_single_annotation_t4c8(admin_client: Client) -> None:
         "histogram": \
             "histograms/t4c8/gene_scores/t4c8_score?score_id=t4c8_score",
     }
-
