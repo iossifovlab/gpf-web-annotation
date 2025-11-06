@@ -13,7 +13,7 @@ from django.test import Client
 from django.utils import timezone
 from pytest_mock import MockerFixture
 
-from web_annotation.models import Job, User
+from web_annotation.models import Job, User, Pipeline
 from web_annotation.tasks import (
     clean_old_jobs, send_email,
     update_job_in_progress,
@@ -23,7 +23,6 @@ from web_annotation.tasks import (
 from web_annotation.tests.mailhog_client import (
     MailhogClient,
 )
-
 
 @pytest.mark.django_db
 def test_job_update_new() -> None:
@@ -779,3 +778,80 @@ def test_annotate_columns_bad_genome(admin_client: Client) -> None:
 
     assert response.status_code == 404
 
+@pytest.mark.django_db
+def test_user_user_pipeline(
+    user_client: Client,
+) -> None:
+    user = User.objects.get(email="user@example.com")
+    pipeline_config = "- position_score: scores/pos1"
+
+    params = {
+        "config": ContentFile(pipeline_config),
+        "name": "test_pipeline",
+    }
+
+    assert Pipeline.objects.filter(owner=user).count() == 0
+
+    response = user_client.post("/api/user_pipeline", params)
+
+    assert response is not None
+    assert response.status_code == 204
+    assert Pipeline.objects.filter(owner=user).count() == 1
+    pipeline = Pipeline.objects.get(id=1)
+    assert pipeline.name == "test_pipeline"
+    output = pathlib.Path(pipeline.config_path).read_text(encoding="utf-8")
+    assert output == "- position_score: scores/pos1"
+
+
+@pytest.mark.django_db
+def test_user_delete_pipeline(
+    user_client: Client,
+) -> None:
+    user = User.objects.get(email="user@example.com")
+    pipeline_config = "- position_score: scores/pos1"
+
+    params = {
+        "config": ContentFile(pipeline_config),
+        "name": "test-pipeline",
+    }
+
+    response = user_client.post("/api/user_pipeline", params)
+
+    assert response is not None
+    assert response.status_code == 204
+    assert Pipeline.objects.filter(owner=user).count() == 1
+
+    response = user_client.delete("/api/user_pipeline?name=test-pipeline")
+
+    assert response is not None
+    assert response.status_code == 204
+    assert Pipeline.objects.filter(owner=user).count() == 0
+
+
+@pytest.mark.django_db
+def test_user_get_pipeline(
+    user_client: Client,
+) -> None:
+    user = User.objects.get(email="user@example.com")
+    pipeline_config = "- position_score: scores/pos1"
+
+    params = {
+        "config": ContentFile(pipeline_config),
+        "name": "test-pipeline",
+    }
+
+    response = user_client.post("/api/user_pipeline", params)
+
+    assert response is not None
+    assert response.status_code == 204
+    assert Pipeline.objects.filter(owner=user).count() == 1
+
+    response = user_client.get("/api/user_pipeline?name=test-pipeline")
+
+    assert response is not None
+    assert response.status_code == 200
+    assert response.json() == {
+        "name": "test-pipeline",
+        "owner": "user@example.com",
+        "pipeline": "- position_score: scores/pos1",
+    }

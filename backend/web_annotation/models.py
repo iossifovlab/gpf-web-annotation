@@ -31,6 +31,23 @@ class User(AbstractUser):
         self.save()
 
 
+class Pipeline(models.Model):
+    """Model for saving user created pipeline configs"""
+    name = models.CharField(max_length=1024, default="")
+    config_path = models.FilePathField(
+        path=settings.ANNOTATION_CONFIG_STORAGE_DIR)
+    owner = models.ForeignKey(
+        'web_annotation.User',
+        related_name='pipelines',
+        on_delete=models.CASCADE,
+    )
+
+    def remove(self) -> None:
+        """Diactivate a job and clean its resources."""
+        os.remove(self.config_path)
+        self.delete()
+
+
 class Job(models.Model):
     """Model for storing base job data."""
     class Status(models.IntegerChoices):  # pylint: disable=too-many-ancestors

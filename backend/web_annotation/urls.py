@@ -61,4 +61,5 @@ urlpatterns = [
         views.PasswordReset.as_view(),
         name="reset_password",
     ),
+    path("api/user_pipeline", views.UserPipeline.as_view()),
 ]

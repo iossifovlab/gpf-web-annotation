@@ -70,6 +70,7 @@ from .models import (
     AccountConfirmationCode,
     BaseVerificationCode,
     Job,
+    Pipeline,
     ResetPasswordCode,
     User,
 )
@@ -599,6 +600,125 @@ class JobDetail(AnnotationBaseView):
         job.deactivate()
 
         return Response(status=views.status.HTTP_200_OK)
+
+
+class UserPipeline(AnnotationBaseView):
+    """View for saving user annotation pipelines."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def _save_user_pipeline(
+        self,
+        request: Request,
+        config_path: Path,
+    ) -> Response | None:
+        assert isinstance(request.FILES, MultiValueDict)
+        try:
+            content = self._get_annotation_config({}, request.FILES)
+        except ValueError as e:
+            return Response(
+                {"reason": str(e)},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            config_path.parent.mkdir(parents=True, exist_ok=True)
+            config_path.write_text(content)
+        except OSError:
+            logger.exception("Could not write config file")
+            return Response(
+                {"reason": "Could not write file!"},
+                status=views.status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        return None
+
+    def post(self, request: Request) -> Response:
+        """Create or update user annotation pipeline"""
+        assert isinstance(request.data, QueryDict)
+        assert isinstance(request.FILES, MultiValueDict)
+
+        pipeline_name = request.data.get("name")
+        if not pipeline_name:
+            return Response(
+                {"reason": "Pipeline name not provided!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        config_filename = f"{request.data.get("name")}.yaml"
+        config_path = Path(
+            settings.ANNOTATION_CONFIG_STORAGE_DIR,
+            request.user.email,
+            config_filename,
+        )
+
+        pipeline_or_response = self._save_user_pipeline(request, config_path)
+        if isinstance(pipeline_or_response, Response):
+            return pipeline_or_response
+
+        pipeline = Pipeline(
+            name=pipeline_name,
+            config_path=config_path,
+            owner=request.user,
+        )
+        pipeline.save()
+
+        return Response(status=views.status.HTTP_204_NO_CONTENT)
+
+    def get(self, request: Request) -> Response:
+        """Get user annotation pipeline"""
+        name = request.query_params.get("name")
+        if not name:
+            return Response(
+                {"reason": "Pipeline name not provided!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        pipeline = Pipeline.objects.get(
+            owner=request.user,
+            # name=name,
+        )
+
+        if not pipeline:
+            return Response(
+                {"reason": "Pipeline name not recognized!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        response = {
+            "name": pipeline.name,
+            "owner": pipeline.owner.email,
+            "pipeline": Path(pipeline.config_path).read_text(),
+        }
+
+        return Response(response, status=views.status.HTTP_200_OK)
+
+    def delete(self, request: Request) -> Response:
+        """Delete user annotation pipeline"""
+        name = request.query_params.get("name")
+        if not name:
+            return Response(
+                {"reason": "Pipeline name not provided!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        pipeline = Pipeline.objects.filter(
+            owner=request.user,
+            name=name,
+        )
+
+        if pipeline.count() == 0:
+            return Response(
+                {"reason": "Pipeline name not recognized!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+        if pipeline.count() > 1:
+            return Response(
+                {"reason": "More than one pipeline shares this name!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        pipeline.delete()
+
+        return Response(status=views.status.HTTP_204_NO_CONTENT)
 
 
 class AnnotateVCF(AnnotationBaseView):
