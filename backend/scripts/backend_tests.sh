@@ -29,7 +29,7 @@ cd /wd/
     py.test -v backend/web_annotation/tests \
         --cov-config /wd/backend/coveragerc \
         --cov web_annotation \
-        --junitxml=/wd/backend/reports/backend-tests-junit.xml \
+        --junitxml=/wd/backend/reports/backend-junit-report.xml \
         --mailhog http://mail:8025
 
 /opt/conda/bin/conda run -n gpf \

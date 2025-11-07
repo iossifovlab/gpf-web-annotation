@@ -59,6 +59,8 @@ pipeline {
                 sh "docker compose -f compose-jenkins.yaml build backend-tests"
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
                 sh "docker compose -f compose-jenkins.yaml run --rm --remove-orphans backend-tests || true"
+                sh "mkdir -p reports"
+                sh "cp backend/reports/backend-junit-report.xml reports/"
             }
         }
 
@@ -79,6 +81,8 @@ pipeline {
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
                 sh "docker compose -f compose-jenkins.yaml run --rm --remove-orphans frontend-tests || true"
                 sh 'frontend/scripts/frontend-adjust-coverage-paths.sh'
+                sh "mkdir -p reports"
+                sh "cp frontend/reports/frontend-junit-report.xml reports/"
             }
         }
 
@@ -100,6 +104,8 @@ pipeline {
                 sh "mkdir -p e2e-tests/reports"
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
                 sh "docker compose -f compose-jenkins.yaml run --rm --remove-orphans e2e-tests || true"
+                sh "mkdir -p reports"
+                sh "cp frontend/reports/junit-report.xml reports/e2e-junit-report.xml"
             }
         }
 
@@ -178,9 +184,7 @@ pipeline {
                 reportTitles: 'Frontend Coverage'])
 
             def resultBeforeTests = currentBuild.currentResult
-            junit 'backend/reports/backend-tests-junit.xml'
-            junit 'frontend/reports/junit-report.xml'
-            junit 'e2e-tests/reports/junit-report.xml'
+            junit 'reports/*-tests-junit.xml'
 
             sh "test ${resultBeforeTests} == ${currentBuild.currentResult}"
 
