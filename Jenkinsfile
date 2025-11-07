@@ -119,7 +119,6 @@ pipeline {
 
             recordCoverage name: 'backend-coverage', id: 'backend-coverage',
                 sourceCodeEncoding: 'UTF-8',
-                sourceDirectories: backend/web_annotation,
                 enabledForFailure: true,
                 sourceCodeRetention: 'LAST_BUILD',
                 tools: [
@@ -128,7 +127,6 @@ pipeline {
 
             recordCoverage name: 'frontend-coverage', id: 'frontend-coverage',
                 sourceCodeEncoding: 'UTF-8',
-                sourceDirectories: frontend/src,
                 enabledForFailure: true,
                 sourceCodeRetention: 'LAST_BUILD',
                 tools: [
