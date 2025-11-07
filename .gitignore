@@ -16,3 +16,5 @@ conda-channel.tar.gz
 gpfwa-debug.log
 gpfwa-celery.log
 backend/web_annotation/tests/fixtures/grr/grr_definition.yaml
+.coverage*
+coverage.xml

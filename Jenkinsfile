@@ -51,7 +51,6 @@ pipeline {
                 sh "docker compose -f compose-jenkins.yaml build backend-linters"
                 sh "docker compose -f compose-jenkins.yaml run  --rm --remove-orphans backend-linters || true"
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
-                sh "cp -r backend/results/* results/ || true"
             }
         }
 
@@ -60,7 +59,6 @@ pipeline {
                 sh "docker compose -f compose-jenkins.yaml build backend-tests"
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
                 sh "docker compose -f compose-jenkins.yaml run --rm --remove-orphans backend-tests || true"
-                sh "cp -r backend/results/* results/ || true"
             }
         }
 
@@ -123,7 +121,7 @@ pipeline {
                 enabledForFailure: false,
                 sourceCodeRetention: 'LAST_BUILD',
                 tools: [
-                    [parser: 'COBERTURA', pattern: 'results/backend-coverage.xml']
+                    [parser: 'COBERTURA', pattern: 'backend/reports/backend-coverage.xml']
                 ]
             recordCoverage sourceCodeEncoding: 'UTF-8',
                 enabledForFailure: false,
@@ -136,13 +134,13 @@ pipeline {
                 enabledForFailure: true, aggregatingResults: false,
                 tools: [
                     flake8(
-                        pattern: 'results/ruff_report', reportEncoding: 'UTF-8',
+                        pattern: 'backend/reports/ruff_report', reportEncoding: 'UTF-8',
                         id: 'ruff', name: 'Ruff'),
                     myPy(
-                        pattern: 'results/mypy_report', reportEncoding: 'UTF-8',
+                        pattern: 'backend/reports/mypy_report', reportEncoding: 'UTF-8',
                         id: 'mypy', name: 'MyPy'),
                     pyLint(
-                        pattern: 'results/pylint_report', reportEncoding: 'UTF-8',
+                        pattern: 'backend/reports/pylint_report', reportEncoding: 'UTF-8',
                         id: 'pylint', name: 'PyLint'),
                     checkStyle(
                         pattern: 'frontend/reports/css-lint-report.xml',
@@ -159,7 +157,7 @@ pipeline {
             publishHTML (target : [allowMissing: true,
                 alwaysLinkToLastBuild: true,
                 keepAll: true,
-                reportDir: 'results/coverage-html',
+                reportDir: 'backend/reports/coverage-html',
                 reportFiles: 'index.html',
                 reportName: 'backend-coverage',
                 reportTitles: 'Backend Coverage'])
@@ -173,11 +171,10 @@ pipeline {
                 reportTitles: 'Frontend Coverage'])
 
             def resultBeforeTests = currentBuild.currentResult
-            junit 'results/backend-tests-junit.xml'
-            sh "test ${resultBeforeTests} == ${currentBuild.currentResult}"
+            junit 'backend/reports/backend-tests-junit.xml'
             junit 'frontend/reports/junit-report.xml'
-            sh "test ${resultBeforeTests} == ${currentBuild.currentResult}"
             junit 'e2e-tests/reports/junit-report.xml'
+
             sh "test ${resultBeforeTests} == ${currentBuild.currentResult}"
 
         } finally {
