@@ -80,7 +80,7 @@ pipeline {
                 sh "mkdir -p frontend/reports"
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
                 sh "docker compose -f compose-jenkins.yaml run --rm --remove-orphans frontend-tests || true"
-                // sh 'frontend/scripts/frontend-adjust-coverage-paths.sh'
+                sh 'frontend/scripts/frontend-adjust-coverage-paths.sh'
                 sh "mkdir -p reports"
                 sh "cp frontend/reports/frontend-junit-report.xml reports/"
             }
