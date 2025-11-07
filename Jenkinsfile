@@ -95,10 +95,10 @@ pipeline {
 
         stage('Run E2E Tests') {
             steps {
-                sh "docker compose -f compose-jenkins.yaml build e2e-tests"
+                // sh "docker compose -f compose-jenkins.yaml build e2e-tests"
                 sh "mkdir -p e2e-tests/reports"
-                sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
-                sh "docker compose -f compose-jenkins.yaml run --rm --remove-orphans e2e-tests || true"
+                // sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
+                // sh "docker compose -f compose-jenkins.yaml run --rm --remove-orphans e2e-tests || true"
             }
         }
 
@@ -119,7 +119,7 @@ pipeline {
 
             recordCoverage name: 'backend-coverage', id: 'backend-coverage',
                 sourceCodeEncoding: 'UTF-8',
-                sourceDirectories: 'backend/web_annotation',
+                sourceDirectories: backend/web_annotation,
                 enabledForFailure: true,
                 sourceCodeRetention: 'LAST_BUILD',
                 tools: [
@@ -128,7 +128,7 @@ pipeline {
 
             recordCoverage name: 'frontend-coverage', id: 'frontend-coverage',
                 sourceCodeEncoding: 'UTF-8',
-                sourceDirectories: 'frontend/src',
+                sourceDirectories: frontend/src,
                 enabledForFailure: true,
                 sourceCodeRetention: 'LAST_BUILD',
                 tools: [
