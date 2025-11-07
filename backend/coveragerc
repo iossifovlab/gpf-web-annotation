@@ -5,6 +5,6 @@ exclude_also=
 [run]
 omit=
     *tests*
-    *migrations*
+    **/migrations/*
 
 branch=true
