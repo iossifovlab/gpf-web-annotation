@@ -690,7 +690,7 @@ class UserPipeline(AnnotationBaseView):
 
         pipeline = Pipeline.objects.get(
             owner=request.user,
-            # name=name,
+            name=name,
         )
 
         if not pipeline:
