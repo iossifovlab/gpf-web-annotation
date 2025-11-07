@@ -12,5 +12,6 @@ omit=
     */setup.py
     */versioneer.py
     */docs/*
+    */migrations/*
 
 branch=true

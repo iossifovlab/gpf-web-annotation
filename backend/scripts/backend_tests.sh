@@ -21,8 +21,9 @@ while true; do
     fi
 done
 
-cd /wd
+
 mkdir -p /wd/backend/reports
+cd /wd/
 
 /opt/conda/bin/conda run --no-capture-output -n gpf \
     py.test -v backend/web_annotation/tests \
@@ -33,9 +34,7 @@ mkdir -p /wd/backend/reports
 
 /opt/conda/bin/conda run -n gpf \
     coverage xml
+sed "s/\/wd\///g" /wd/backend/coverage.xml > /wd/backend/reports/backend-coverage.xml
 
 /opt/conda/bin/conda run -n gpf \
     coverage html --title web_annotation -d /wd/backend/reports/coverage-html
-
-
-cp /wd/backend/coverage.xml /wd/backend/reports/backend-coverage.xml

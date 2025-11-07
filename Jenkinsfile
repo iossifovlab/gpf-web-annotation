@@ -118,13 +118,14 @@ pipeline {
             discoverGitReferenceBuild(latestBuildIfNotFound: true, maxCommits: 400, skipUnknownCommits: true)
 
             recordCoverage sourceCodeEncoding: 'UTF-8',
-                enabledForFailure: false,
+                enabledForFailure: true,
                 sourceCodeRetention: 'LAST_BUILD',
                 tools: [
                     [parser: 'COBERTURA', pattern: 'backend/reports/backend-coverage.xml']
                 ]
+
             recordCoverage sourceCodeEncoding: 'UTF-8',
-                enabledForFailure: false,
+                enabledForFailure: true,
                 sourceCodeRetention: 'LAST_BUILD',
                 tools: [
                     [parser: 'COBERTURA', pattern: 'frontend/reports/coverage/cobertura-coverage.xml']
