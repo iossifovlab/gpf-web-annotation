@@ -885,3 +885,52 @@ def test_user_get_pipeline(
         "owner": "user@example.com",
         "pipeline": "- position_score: scores/pos1",
     }
+
+
+@pytest.mark.django_db
+def test_get_pipelines(
+    user_client: Client,
+) -> None:
+    user = User.objects.get(email="user@example.com")
+    pipeline_config = "- position_score: scores/pos1"
+    params = {
+        "config": ContentFile(pipeline_config),
+        "name": "test-user-pipeline",
+    }
+    response = user_client.post("/api/user_pipeline", params)
+
+    assert response is not None
+    assert response.status_code == 204
+    assert Pipeline.objects.filter(owner=user).count() == 1
+
+    response = user_client.get("/api/pipelines")
+    pipelines = response.json()
+    assert len(pipelines) == 3
+    assert pipelines[0]["id"] == "pipeline/test_pipeline"
+    assert pipelines[1]["id"] == "t4c8/t4c8_pipeline"
+    assert pipelines[2]["id"] == "test-user-pipeline"
+    assert pipelines[2]["content"] == "- position_score: scores/pos1"
+
+
+@pytest.mark.django_db
+def test_get_pipelines_annonymous(
+    user_client: Client,
+    anonymous_client: Client,
+) -> None:
+    user = User.objects.get(email="user@example.com")
+    pipeline_config = "- position_score: scores/pos1"
+    params = {
+        "config": ContentFile(pipeline_config),
+        "name": "test-user-pipeline",
+    }
+    response = user_client.post("/api/user_pipeline", params)
+
+    assert response is not None
+    assert response.status_code == 204
+    assert Pipeline.objects.filter(owner=user).count() == 1
+
+    response = anonymous_client.get("/api/pipelines")
+    pipelines = response.json()
+    assert len(pipelines) == 2
+    assert pipelines[0]["id"] == "pipeline/test_pipeline"
+    assert pipelines[1]["id"] == "t4c8/t4c8_pipeline"
