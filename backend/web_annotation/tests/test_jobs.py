@@ -779,7 +779,7 @@ def test_annotate_columns_bad_genome(admin_client: Client) -> None:
     assert response.status_code == 404
 
 @pytest.mark.django_db
-def test_user_user_pipeline(
+def test_user_create_pipeline(
     user_client: Client,
 ) -> None:
     user = User.objects.get(email="user@example.com")
@@ -802,6 +802,36 @@ def test_user_user_pipeline(
     output = pathlib.Path(pipeline.config_path).read_text(encoding="utf-8")
     assert output == "- position_score: scores/pos1"
 
+@pytest.mark.django_db
+def test_user_update_pipeline(
+    user_client: Client,
+) -> None:
+    user = User.objects.get(email="user@example.com")
+    pipeline_config = "- position_score: scores/pos1"
+
+    assert Pipeline.objects.filter(owner=user).count() == 0
+    params = {"config": ContentFile(pipeline_config), "name": "test_pipeline"}
+    response = user_client.post("/api/user_pipeline", params)
+
+    assert response is not None
+    assert response.status_code == 204
+    assert Pipeline.objects.filter(owner=user).count() == 1
+    pipeline = Pipeline.objects.get(id=1)
+    assert pipeline.name == "test_pipeline"
+    output = pathlib.Path(pipeline.config_path).read_text(encoding="utf-8")
+    assert output == "- position_score: scores/pos1"
+
+    pipeline_config = "- position_score: scores/pos2"
+    params = {"config": ContentFile(pipeline_config), "name": "test_pipeline"}
+    response = user_client.post("/api/user_pipeline", params)
+
+    assert response is not None
+    assert response.status_code == 204
+    assert Pipeline.objects.filter(owner=user).count() == 1
+    pipeline = Pipeline.objects.get(id=1)
+    assert pipeline.name == "test_pipeline"
+    output = pathlib.Path(pipeline.config_path).read_text(encoding="utf-8")
+    assert output == "- position_score: scores/pos2"
 
 @pytest.mark.django_db
 def test_user_delete_pipeline(

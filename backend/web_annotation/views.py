@@ -613,7 +613,7 @@ class UserPipeline(AnnotationBaseView):
     ) -> Response | None:
         assert isinstance(request.FILES, MultiValueDict)
         try:
-            content = self._get_annotation_config({}, request.FILES)
+            content = self._get_annotation_config(QueryDict(), request.FILES)
         except ValueError as e:
             return Response(
                 {"reason": str(e)},
@@ -643,22 +643,38 @@ class UserPipeline(AnnotationBaseView):
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
 
-        config_filename = f"{request.data.get("name")}.yaml"
-        config_path = Path(
-            settings.ANNOTATION_CONFIG_STORAGE_DIR,
-            request.user.email,
-            config_filename,
+        config_filename = f'{request.data.get("name")}.yaml'
+
+        pipelines = Pipeline.objects.filter(
+            owner=request.user,
+            name=pipeline_name,
         )
+        pipelines_count = pipelines.count()
+
+        if pipelines_count == 0:
+            config_path = Path(
+                settings.ANNOTATION_CONFIG_STORAGE_DIR,
+                request.user.email,
+                config_filename,
+            )
+            pipeline = Pipeline(
+                name=pipeline_name,
+                config_path=config_path,
+                owner=request.user,
+            )
+        elif pipelines_count == 1:
+            pipeline = pipelines[0]
+            config_path = Path(str(pipeline.config_path))
+        else:
+            return Response(
+                {"reason": "More than one pipeline shares this name!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
 
         pipeline_or_response = self._save_user_pipeline(request, config_path)
         if isinstance(pipeline_or_response, Response):
             return pipeline_or_response
 
-        pipeline = Pipeline(
-            name=pipeline_name,
-            config_path=config_path,
-            owner=request.user,
-        )
         pipeline.save()
 
         return Response(status=views.status.HTTP_204_NO_CONTENT)
