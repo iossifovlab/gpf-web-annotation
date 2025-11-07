@@ -184,7 +184,7 @@ pipeline {
                 reportTitles: 'Frontend Coverage'])
 
             def resultBeforeTests = currentBuild.currentResult
-            junit 'reports/*-tests-junit.xml'
+            junit 'reports/*-junit-report.xml'
 
             sh "test ${resultBeforeTests} == ${currentBuild.currentResult}"
 
