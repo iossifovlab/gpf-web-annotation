@@ -4,14 +4,7 @@ exclude_also=
 
 [run]
 omit=
-    */tests/*
-    */_version.py
-    conftest.py
-    */conftest.py
-    */demo_graphs_cli.py
-    */setup.py
-    */versioneer.py
-    */docs/*
-    */migrations/*
+    *tests*
+    *migrations*
 
 branch=true
