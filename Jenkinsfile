@@ -144,6 +144,9 @@ pipeline {
                         pattern: 'backend/reports/mypy_report', reportEncoding: 'UTF-8',
                         id: 'mypy', name: 'MyPy'),
                     pyLint(
+                        pattern: 'backend/reports/mypy_pylint_report', reportEncoding: 'UTF-8',
+                        id: 'mypy-pylint', name: 'MyPy Converted to PyLint'),
+                    pyLint(
                         pattern: 'backend/reports/pylint_report', reportEncoding: 'UTF-8',
                         id: 'pylint', name: 'PyLint'),
                     checkStyle(

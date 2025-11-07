@@ -20,3 +20,7 @@ mkdir -p /wd/backend/reports
     --pretty \
     --show-error-context \
     --no-incremental > /wd/backend/reports/mypy_report || true
+
+/opt/conda/bin/conda run --no-capture-output -n gpf \
+    python backend/scripts/convert_mypy_output.py \
+    backend/reports/mypy_report > backend/reports/mypy_pylint_report || true
