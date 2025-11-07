@@ -78,7 +78,7 @@ pipeline {
                 sh "mkdir -p frontend/reports"
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
                 sh "docker compose -f compose-jenkins.yaml run --rm --remove-orphans frontend-tests || true"
-                sh 'sed "s/\/app/frontend/g" frontend/reports/coverage/cobertura-coverage.xml > frontend/reports/frontend-coverage.xml'
+                sh 'frontend/scripts/frontend-adjust-coverage-paths.sh'
             }
         }
 
