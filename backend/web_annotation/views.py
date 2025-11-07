@@ -1044,11 +1044,18 @@ class Registration(views.APIView):
 class ListPipelines(AnnotationBaseView):
     """View for listing all annotation pipelines for files."""
 
+    def _get_default_pipelines(self) -> list[dict[str, str]]:
+        pipelines = list(self.pipelines.values())
+        for pipeline in pipelines:
+            pipeline["type"] = "default"
+        return pipelines
+
     def _get_user_pipelines(self, user: User) -> list[dict[str, str]]:
         pipelines = Pipeline.objects.filter(owner=user)
         return [
             {
                 "id": pipeline.name,
+                "type": "user",
                 "content": Path(
                     pipeline.config_path
                 ).read_text(encoding="utf-8"),
@@ -1057,7 +1064,7 @@ class ListPipelines(AnnotationBaseView):
         ]
 
     def get(self, request: Request) -> Response:
-        pipelines = list(self.pipelines.values())
+        pipelines = self._get_default_pipelines()
         if request.user and request.user.is_authenticated:
             pipelines = pipelines + self._get_user_pipelines(request.user)
 
