@@ -26,7 +26,7 @@
     <div *ngFor="let annotator of report.annotators" class="annotator">
       <div class="attributes">
         <div *ngFor="let attribute of annotator.attributes" class="attribute-container">
-          <div class="attribute">
+          <div class="attribute" style="width: 100%">
             <div class="attribute-header">{{ attribute.name }}</div>
             <div class="attribute-description">{{ attribute.description }}</div>
             <div class="attribute-source">source: {{ attribute.source }}</div>

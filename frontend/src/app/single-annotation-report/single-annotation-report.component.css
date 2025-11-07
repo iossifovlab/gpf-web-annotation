@@ -63,7 +63,7 @@
   flex-direction: column;
   gap: 20px;
   padding: 10px 15px;
-  min-width: 250px;
+  min-width: 200px;
   max-width: 400px;
   width: 20vw;
   height: fit-content;
@@ -125,6 +125,9 @@
 .value-result {
   word-break: break-word;
   margin-top: 20px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #435869;
 }
 
 a {

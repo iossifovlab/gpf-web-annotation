@@ -1,0 +1,10 @@
+#values-description {
+  margin-left: 45px;
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  font-style: italic;
+  color: #acacac;
+  font-size: 14px;
+  max-width: 600px;
+}

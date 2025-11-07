@@ -2,6 +2,7 @@
   display: grid;
   grid-template-columns: repeat(4, auto);
   margin: 25px 25px 15px;
+  width: 65%;
 }
 
 .grid-header {
