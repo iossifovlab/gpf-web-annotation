@@ -78,6 +78,7 @@ pipeline {
                 sh "mkdir -p frontend/reports"
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
                 sh "docker compose -f compose-jenkins.yaml run --rm --remove-orphans frontend-tests || true"
+                sh 'sed "s/\/app/frontend/g" frontend/reports/coverage/cobertura-coverage.xml > frontend/reports/frontend-coverage.xml'
             }
         }
 
@@ -130,7 +131,7 @@ pipeline {
                 enabledForFailure: true,
                 sourceCodeRetention: 'LAST_BUILD',
                 tools: [
-                    [parser: 'COBERTURA', pattern: 'frontend/reports/coverage/cobertura-coverage.xml']
+                    [parser: 'COBERTURA', pattern: 'frontend/reports/frontend-coverage.xml']
                 ]
 
             recordIssues(
