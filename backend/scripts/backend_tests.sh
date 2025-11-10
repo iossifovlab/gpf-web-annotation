@@ -23,10 +23,10 @@ done
 
 
 mkdir -p /wd/backend/reports
-cd /wd/
+cd /wd/backend
 
 /opt/conda/bin/conda run --no-capture-output -n gpf \
-    py.test -v backend/web_annotation/tests \
+    py.test -v web_annotation/tests \
         --cov-config /wd/backend/coveragerc \
         --cov web_annotation \
         --junitxml=/wd/backend/reports/backend-junit-report.xml \
