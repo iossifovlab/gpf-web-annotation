@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { MatDialogRef, MatDialogActions, MatDialogContent } from '@angular/material/dialog';
 import { FileContent, JobCreationView } from './jobs';
 import { JobsService } from './jobs.service';
 import { Observable, take } from 'rxjs';
@@ -10,12 +9,9 @@ import { SingleAnnotationService } from '../single-annotation.service';
 import { ColumnSpecifyingComponent } from '../column-specifying/column-specifying.component';
 import { UsersService } from '../users.service';
 
-
 @Component({
   selector: 'app-job-creation',
   imports: [
-    MatDialogActions,
-    MatDialogContent,
     CommonModule,
     FormsModule,
     ColumnSpecifyingComponent,
@@ -45,7 +41,6 @@ export class JobCreationComponent implements OnInit {
   } = null;
 
   public constructor(
-    private dialogRef: MatDialogRef<JobCreationComponent>,
     private jobsService: JobsService,
     private usersService: UsersService,
     private singleAnnotationService: SingleAnnotationService,
@@ -107,7 +102,6 @@ export class JobCreationComponent implements OnInit {
       createObservable.pipe(take(1)).subscribe({
         next: () => {
           this.ymlConfig = '';
-          this.dialogRef.close({isCanceled: false});
         },
         error: (err: Error) => {
           this.creationError = err.message;
@@ -130,7 +124,6 @@ export class JobCreationComponent implements OnInit {
 
   public onCancelClick(): void {
     this.creationError = '';
-    this.dialogRef.close({isCanceled: true});
   }
 
   public onPipelineClick(option: string): void {

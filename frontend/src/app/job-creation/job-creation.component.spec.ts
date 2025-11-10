@@ -1,7 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { JobCreationComponent } from './job-creation.component';
-import { MatDialogRef } from '@angular/material/dialog';
 import { JobsService } from './jobs.service';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
@@ -10,12 +8,6 @@ import { Pipeline } from './pipelines';
 import { FileContent } from './jobs';
 import { SingleAnnotationService } from '../single-annotation.service';
 import { UsersService } from '../users.service';
-
-
-class MatDialogRefMock {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public close(value: boolean): void { }
-}
 
 class SingleAnnotationServiceMock {
   public getGenomes(): Observable<string[]> {
@@ -67,7 +59,6 @@ describe('JobCreationComponent', () => {
   let component: JobCreationComponent;
   let fixture: ComponentFixture<JobCreationComponent>;
   let templateRef: HTMLElement;
-  const mockMatDialogRef = new MatDialogRefMock();
   const jobsServiceMock = new JobsServiceMock();
   const singleAnnotationServiceMock = new SingleAnnotationServiceMock();
   const userServiceMock = new UserServiceMock();
@@ -76,10 +67,6 @@ describe('JobCreationComponent', () => {
     TestBed.configureTestingModule({
       imports: [JobCreationComponent],
       providers: [
-        {
-          provide: MatDialogRef,
-          useValue: mockMatDialogRef
-        },
         {
           provide: JobsService,
           useValue: jobsServiceMock
@@ -163,12 +150,6 @@ describe('JobCreationComponent', () => {
     component.view = 'pipeline list';
     component.changeView('text editor');
     expect(component.view).toBe('text editor');
-  });
-
-  it('should close modal of job creation on cancel', () => {
-    const dialogSpy = jest.spyOn(mockMatDialogRef, 'close');
-    component.onCancelClick();
-    expect(dialogSpy).toHaveBeenCalledWith({isCanceled: true});
   });
 
   it('should create process with yml config entered by user', () => {

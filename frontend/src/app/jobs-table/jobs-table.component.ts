@@ -9,7 +9,7 @@ import { JobDetailsComponent } from '../job-details/job-details.component';
 
 @Component({
   selector: 'app-jobs-table',
-  imports: [CommonModule],
+  imports: [CommonModule, JobCreationComponent],
   templateUrl: './jobs-table.component.html',
   styleUrl: './jobs-table.component.css'
 })
@@ -26,25 +26,6 @@ export class JobsTableComponent implements OnInit, OnDestroy {
 
   private areJobsFinished(): boolean {
     return !this.jobs.find(j => j.status !== 'success' && j.status !== 'failed');
-  }
-
-  public openCreateModal(): void {
-    const createModalRef = this.dialog.open(JobCreationComponent, {
-      height: '60vh',
-      width: '60vw',
-      maxWidth: '1000px',
-      minWidth: '360px',
-      minHeight: '400px'
-    });
-
-    createModalRef.afterClosed().subscribe((result: {isCanceled: boolean}) => {
-      if (!result) {
-        return;
-      }
-      if (!result.isCanceled) {
-        this.refreshTable();
-      }
-    });
   }
 
   private refreshTable(): void {

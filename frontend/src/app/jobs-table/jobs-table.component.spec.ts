@@ -4,6 +4,10 @@ import { JobsTableComponent } from './jobs-table.component';
 import { Observable } from 'rxjs/internal/Observable';
 import { of } from 'rxjs';
 import { JobsService } from '../job-creation/jobs.service';
+import { UsersService } from '../users.service';
+import { provideHttpClient } from '@angular/common/http';
+import { SingleAnnotationService } from '../single-annotation.service';
+import { Pipeline } from '../job-creation/pipelines';
 
 const jobs = [
   new Job(1, new Date('1.10.2025'), 'test@email.com', 'in process', 3.2),
@@ -18,21 +22,50 @@ class JobsServiceMock {
     return `/jobs/mockUrl/${jobId}`;
   }
 
+  public getAnnotationPipelines(): Observable<Pipeline[]> {
+    return of([
+      new Pipeline('id1', 'content1'),
+      new Pipeline('id2', 'content2'),
+      new Pipeline('id3', 'content3'),
+    ]);
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public deleteJob(id: number): Observable<object> {
     return of({});
   }
 }
 
+class UserServiceMock {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public userData = {
+    value: {
+      limitations: {
+        dailyJobs: 5,
+        filesize: '64M',
+        jobsLeft: 4,
+        variantCount: 1000,
+      }
+    }
+  };
+}
+
 describe('JobsTableComponent', () => {
   let component: JobsTableComponent;
   let fixture: ComponentFixture<JobsTableComponent>;
   const jobsServiceMock = new JobsServiceMock();
+  const userServiceMock = new UserServiceMock();
 
   beforeEach(async() => {
     await TestBed.configureTestingModule({
       imports: [JobsTableComponent],
       providers: [
+        {
+          provide: UsersService,
+          useValue: userServiceMock
+        },
+        provideHttpClient(),
+        SingleAnnotationService,
         { provide: JobsService, useValue: jobsServiceMock }
       ]
     }).compileComponents();

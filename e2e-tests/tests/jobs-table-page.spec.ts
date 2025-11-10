@@ -17,17 +17,14 @@ test.describe('Create job tests', () => {
   });
 
   test('should create job with pipeline and input file', async({ page }) => {
-    await page.locator('#add-job-button').click();
     await page.getByLabel('pipeline/Autism_annotation').click();
 
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
 
     await page.locator('#create-button').click();
-    await expect(page.locator('mat-dialog-container')).not.toBeVisible();
   });
 
   test('should create job with yml config and input file', async({ page }) => {
-    await page.locator('#add-job-button').click();
     await page.getByText('YML text editor').click();
 
     const config = fs.readFileSync('./fixtures/test-config.yaml').toString();
@@ -36,11 +33,9 @@ test.describe('Create job tests', () => {
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
 
     await page.locator('#create-button').click();
-    await expect(page.locator('mat-dialog-container')).not.toBeVisible();
   });
 
   test('should check if create button is disabled when no pipeline is selected', async({ page }) => {
-    await page.locator('#add-job-button').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
 
     await expect(page.locator('#create-button')).toBeDisabled();
@@ -49,7 +44,6 @@ test.describe('Create job tests', () => {
   });
 
   test('should check if create button is disabled when no file is uploaded', async({ page }) => {
-    await page.locator('#add-job-button').click();
     await page.getByLabel('pipeline/Autism_annotation').click();
 
     await expect(page.locator('#create-button')).toBeDisabled();
@@ -58,7 +52,6 @@ test.describe('Create job tests', () => {
   });
 
   test('should check if create button is disabled when no yml is written', async({ page }) => {
-    await page.locator('#add-job-button').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
     await page.getByText('YML text editor').click();
 
@@ -68,7 +61,6 @@ test.describe('Create job tests', () => {
   });
 
   test('should check if create button is disabled when uploaded file is removed', async({ page }) => {
-    await page.locator('#add-job-button').click();
     await page.getByLabel('pipeline/Autism_annotation').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
     await expect(page.locator('#create-button')).toBeEnabled();
@@ -91,6 +83,7 @@ test.describe('Job details tests', () => {
 
   test('should check job details of the first job', async({ page }) => {
     await createJobWithPipeline(page, 'pipeline/Autism_annotation', 'input-file-1.vcf');
+    await waitForJobStatus(page, 'in process');
 
     await page.locator('.first-cell').getByText('info').nth(0).click();
     await expect(page.locator('app-job-details')).toBeVisible();
@@ -108,6 +101,7 @@ test.describe('Job details tests', () => {
 
   test('should download uploaded file from job details modal', async({ page }) => {
     await createJobWithPipeline(page, 'pipeline/Autism_annotation', 'input-file-1.vcf');
+    await waitForJobStatus(page, 'success');
 
     await page.locator('.first-cell').getByText('info').nth(0).click();
 
@@ -165,12 +159,7 @@ test.describe('Job details tests', () => {
 
   test('should download annotated file from job details modal', async({ page }) => {
     await createJobWithPipeline(page, 'pipeline/Autism_annotation', 'input-file-1.vcf');
-
-    await expect(async() => {
-      await page.reload();
-      await page.goto('/jobs', {waitUntil: 'load'});
-      await expect(page.locator('.status').nth(0)).toHaveText('success');
-    }).toPass({intervals: [1000, 2000, 3000]});
+    await waitForJobStatus(page, 'success');
 
     await page.locator('.first-cell').getByText('info').nth(0).click();
 
@@ -187,6 +176,7 @@ test.describe('Job details tests', () => {
 
   test('should delete job from job details modal', async({ page }) => {
     await createJobWithPipeline(page, 'pipeline/Autism_annotation', 'input-file-1.vcf');
+    await waitForJobStatus(page, 'success');
 
     await page.locator('.first-cell').getByText('info').nth(0).click();
     await page.locator('app-job-details').locator('#delete-button').click();
@@ -195,7 +185,6 @@ test.describe('Job details tests', () => {
   });
 
   test('should check job details modal of failed job', async({ page }) => {
-    await page.locator('#add-job-button').click();
     await page.getByLabel('pipeline/Autism_annotation').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-csv-file.csv');
 
@@ -234,6 +223,7 @@ test.describe('Jobs table tests', () => {
 
   test('should create job and check first row', async({ page }) => {
     await createJobWithPipeline(page, 'pipeline/GPF-SFARI_annotation', 'input-file-1.vcf');
+    await waitForJobStatus(page, 'in process');
 
     await expect(page.locator('.first-cell').nth(0)).not.toBeEmpty();
     await expect(page.locator('.date').nth(0)).not.toBeEmpty();
@@ -247,7 +237,6 @@ test.describe('Jobs table tests', () => {
 
   test('should check if download button is visible when annotation is success', async({ page }) => {
     await createJobWithPipeline(page, 'pipeline/GPF-SFARI_annotation', 'input-file-1.vcf');
-
     await waitForJobStatus(page, 'success');
 
     const downloadPromise = page.waitForEvent('download');
@@ -263,6 +252,7 @@ test.describe('Jobs table tests', () => {
 
   test('should check if download button is not visible when job is not finished', async({ page }) => {
     await createJobWithPipeline(page, 'pipeline/GPF-SFARI_annotation', 'input-file-1.vcf');
+    await waitForJobStatus(page, 'in process');
 
     await expect(page.locator('.status-label').nth(0)).toBeVisible();
     await expect(page.locator('.download').nth(0)).toBeEmpty();
@@ -270,6 +260,7 @@ test.describe('Jobs table tests', () => {
 
   test('should create job and then delete it', async({ page }) => {
     await createJobWithPipeline(page, 'pipeline/GPF-SFARI_annotation', 'input-file-1.vcf');
+    await waitForJobStatus(page, 'success');
 
     const lastJobId = await page.locator('.first-cell').evaluate(el => el.textContent);
     await expect(page.getByText(lastJobId)).toBeVisible();
@@ -279,7 +270,6 @@ test.describe('Jobs table tests', () => {
   });
 
   test('should upload tsv file and check specify columns component content', async({ page }) => {
-    await page.locator('#add-job-button').click();
     await page.getByLabel('pipeline/GPF-SFARI_annotation').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-tsv-file.tsv');
 
@@ -312,14 +302,13 @@ test.describe('Jobs table tests', () => {
   });
 
   test('should upload tsv file and specify columns', async({ page }) => {
-    await page.locator('#add-job-button').click();
     await page.getByLabel('pipeline/GPF-SFARI_annotation').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-tsv-file.tsv');
 
     await expect(page.locator('app-column-specifying')).toBeVisible();
 
     await page.locator('#create-button').click();
-    await expect(page.locator('.status-label').nth(0)).toContainText('in process');
+    await waitForJobStatus(page, 'in process');
 
     await expect(page.locator('.download').nth(0)).toBeEmpty();
 
@@ -327,18 +316,14 @@ test.describe('Jobs table tests', () => {
   });
 
   test('should upload csv file and specify columns', async({ page }) => {
-    await page.locator('#add-job-button').click();
     await page.getByLabel('pipeline/GPF-SFARI_annotation').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-csv-file.csv');
 
     await page.locator('#create-button').click();
-    await expect(page.locator('.status-label').nth(0)).toContainText('in process');
-
     await waitForJobStatus(page, 'success');
   });
 
   test('should fail job after uploading csv file and make wrong column specification', async({ page }) => {
-    await page.locator('#add-job-button').click();
     await page.getByLabel('pipeline/GPF-SFARI_annotation').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-csv-file.csv');
 
@@ -346,15 +331,12 @@ test.describe('Jobs table tests', () => {
     await page.getByRole('option', { name: 'variant', exact: true }).click();
 
     await page.locator('#create-button').click();
-    await expect(page.locator('.status-label').nth(0)).toContainText('in process');
-
     await waitForJobStatus(page, 'failed');
 
     await expect(page.locator('.download').nth(0)).toBeEmpty();
   });
 
   test('should fail job after uploading csv file and specify only one column', async({ page }) => {
-    await page.locator('#add-job-button').click();
     await page.getByLabel('pipeline/GPF-SFARI_annotation').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-csv-file.csv');
 
@@ -369,8 +351,6 @@ test.describe('Jobs table tests', () => {
     await page.getByRole('option', { name: 'None', exact: true }).click();
 
     await page.locator('#create-button').click();
-    await expect(page.locator('.status-label').nth(0)).toContainText('in process');
-
     await waitForJobStatus(page, 'failed');
 
     await expect(page.locator('.download').nth(0)).toBeEmpty();
@@ -390,7 +370,6 @@ test.describe('Validation tests', () => {
   });
 
   test('should type config without annotators and show error message', async({ page }) => {
-    await page.locator('#add-job-button').click();
     await page.getByText('YML text editor').click();
 
     await page.locator('#yml-textarea').fill('preamble:\n' +
@@ -405,7 +384,6 @@ test.describe('Validation tests', () => {
   });
 
   test('should type config without peamble and show error message', async({ page }) => {
-    await page.locator('#add-job-button').click();
     await page.getByText('YML text editor').click();
 
     await page.locator('#yml-textarea').fill('annotators:\n' +
@@ -420,7 +398,6 @@ test.describe('Validation tests', () => {
   });
 
   test('should type semantically invalid config and see error', async({ page }) => {
-    await page.locator('#add-job-button').click();
     await page.getByText('YML text editor').click();
 
     await page.locator('#yml-textarea').fill('- A');
@@ -433,7 +410,6 @@ test.describe('Validation tests', () => {
   });
 
   test('should check if create button is disabled when invalid file is uploaded', async({ page }) => {
-    await page.locator('#add-job-button').click();
     await page.getByLabel('pipeline/Autism_annotation').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/invalid-input-file-format.yaml');
     await expect(page.getByText('Unsupported format!')).toBeVisible();
@@ -443,7 +419,6 @@ test.describe('Validation tests', () => {
   });
 
   test('should upload invalid vcf file', async({ page }) => {
-    await page.locator('#add-job-button').click();
     await page.getByLabel('pipeline/Autism_annotation').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/invalid-vcf-input-file.vcf');
 
@@ -452,7 +427,6 @@ test.describe('Validation tests', () => {
   });
 
   // test('should expect error message when daily quota is reached', async({ page }) => {
-  //   await page.locator('#add-job-button').click();
   //   await page.getByLabel('pipeline/Autism_annotation').click();
   //   await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
   //   await page.locator('#create-button').click();
@@ -463,7 +437,6 @@ test.describe('Validation tests', () => {
   //   );
   //   await waitForJobStatus(page, 'success');
 
-  //   await page.locator('#add-job-button').click();
   //   await page.getByLabel('pipeline/Autism_annotation').click();
   //   await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
   //   await page.locator('#create-button').click();
@@ -474,7 +447,6 @@ test.describe('Validation tests', () => {
   //   );
   //   await waitForJobStatus(page, 'success');
 
-  //   await page.locator('#add-job-button').click();
   //   await page.getByLabel('pipeline/Autism_annotation').click();
   //   await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
   //   await page.locator('#create-button').click();
@@ -485,7 +457,6 @@ test.describe('Validation tests', () => {
   //   );
   //   await waitForJobStatus(page, 'success');
 
-  //   await page.locator('#add-job-button').click();
   //   await page.getByLabel('pipeline/Autism_annotation').click();
   //   await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
   //   await page.locator('#create-button').click();
@@ -496,7 +467,6 @@ test.describe('Validation tests', () => {
   //   );
   //   await waitForJobStatus(page, 'success');
 
-  //   await page.locator('#add-job-button').click();
   //   await page.getByLabel('pipeline/Autism_annotation').click();
   //   await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
   //   await page.locator('#create-button').click();
@@ -507,7 +477,6 @@ test.describe('Validation tests', () => {
   //   );
   //   await waitForJobStatus(page, 'success');
 
-  //   await page.locator('#add-job-button').click();
   //   await page.getByLabel('pipeline/Autism_annotation').click();
   //   await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
   //   await page.locator('#create-button').click();
@@ -515,7 +484,6 @@ test.describe('Validation tests', () => {
   // });
 
   test('should expect job to fail if file with invalid separator is uploaded', async({ page }) => {
-    await page.locator('#add-job-button').click();
     await page.getByLabel('pipeline/Autism_annotation').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/invalid-separator.csv');
     await page.locator('[id="CHROM+POS+REF+ALT-header"]').locator('mat-select').click();
@@ -525,7 +493,6 @@ test.describe('Validation tests', () => {
   });
 
   test('should expect job to fail if file content is not separeted correctly', async({ page }) => {
-    await page.locator('#add-job-button').click();
     await page.getByLabel('pipeline/Autism_annotation').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/wrongly-separated-row.csv');
     await page.locator('[id="CHROM,POS,REF,ALT-header"]').locator('mat-select').click();
@@ -535,7 +502,6 @@ test.describe('Validation tests', () => {
   });
 
   test('should expect error message when no columns are specified', async({ page }) => {
-    await page.locator('#add-job-button').click();
     await page.getByLabel('pipeline/Autism_annotation').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/wrongly-separated-row.csv');
 
@@ -544,7 +510,6 @@ test.describe('Validation tests', () => {
   });
 
   test('should upload file with more than 1000 variants', async({ page }) => {
-    await page.locator('#add-job-button').click();
     await page.getByLabel('pipeline/Autism_annotation').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/more-than-1000.vcf');
     await page.locator('#create-button').click();
@@ -561,14 +526,12 @@ async function waitForJobStatus(page: Page, status: string): Promise<void> {
 }
 
 async function createJobWithPipeline(page: Page, pipeline: string, inputFileName: string): Promise<void> {
-  await page.locator('#add-job-button').click();
   await page.getByLabel(pipeline).click();
   await page.locator('input[id="file-upload"]').setInputFiles(`./fixtures/${inputFileName}`);
   await page.locator('#create-button').click();
 }
 
 async function createJobWithConfig(page: Page, config: string, inputFileName: string): Promise<void> {
-  await page.locator('#add-job-button').click();
   await page.getByText('YML text editor').click();
   await page.locator('#yml-textarea').fill(config);
   await page.locator('input[id="file-upload"]').setInputFiles(`./fixtures/${inputFileName}`);

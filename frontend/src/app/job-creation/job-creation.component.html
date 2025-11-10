@@ -1,118 +1,115 @@
-<mat-dialog-content>
-  <div style="flex-shrink: 3; align-self: stretch; flex-grow: 2; display: flex; flex-direction: column">
-    <div id="quota">Quota: 5 per day</div>
-    <div id="annotation-mode">
-      <div>
-        <button
-          id="pipelines-list"
-          [ngClass]="view === 'pipeline list' ? 'active-view' : 'inactive-view'"
-          (click)="changeView('pipeline list')"
-          >Annotation pipelines</button
-        >
-        <button
-          id="text-editor"
-          [ngClass]="view === 'text editor' ? 'active-view' : 'inactive-view'"
-          (click)="changeView('text editor')"
-          >YML text editor</button
-        >
-      </div>
+<div style="flex-shrink: 3; align-self: stretch; flex-grow: 2; display: flex; flex-direction: column">
+  <div id="quota">Quota: 5 per day</div>
+  <div id="annotation-mode">
+    <div>
+      <button
+        id="pipelines-list"
+        [ngClass]="view === 'pipeline list' ? 'active-view' : 'inactive-view'"
+        (click)="changeView('pipeline list')"
+        >Annotation pipelines</button
+      >
+      <button
+        id="text-editor"
+        [ngClass]="view === 'text editor' ? 'active-view' : 'inactive-view'"
+        (click)="changeView('text editor')"
+        >YML text editor</button
+      >
     </div>
-    <div id="annotation-details">
-      <label for="select-genome">Select genome:</label>
-      <select id="select-genome" [(ngModel)]="selectedGenome">
-        <option *ngFor="let genome of genomes" [value]="genome">{{ genome }}</option>
-      </select>
-      <ng-container *ngIf="view === 'pipeline list'">
-        <div *ngFor="let pipeline of pipelines" class="pipeline-option">
-          <input
-            type="radio"
-            name="pipeline"
-            [id]="pipeline.id"
-            [value]="pipeline.id"
-            (click)="onPipelineClick(pipeline.id)" />
-          <label [attr.for]="pipeline.id">{{ pipeline.id }}</label>
-        </div>
-      </ng-container>
-      <ng-container *ngIf="view === 'text editor'">
-        <textarea
-          id="yml-textarea"
-          [(ngModel)]="ymlConfig"
-          [ngClass]="{ 'invalid-config': configError }"
-          (change)="isConfigValid(ymlConfig)"></textarea>
-        <div *ngIf="configError" class="error-message">{{ configError }}</div>
-      </ng-container>
+  </div>
+  <div id="annotation-details">
+    <label for="select-genome">Select genome:</label>
+    <select id="select-genome" [(ngModel)]="selectedGenome">
+      <option *ngFor="let genome of genomes" [value]="genome">{{ genome }}</option>
+    </select>
+    <ng-container *ngIf="view === 'pipeline list'">
+      <div *ngFor="let pipeline of pipelines" class="pipeline-option">
+        <input
+          type="radio"
+          name="pipeline"
+          [id]="pipeline.id"
+          [value]="pipeline.id"
+          (click)="onPipelineClick(pipeline.id)" />
+        <label [attr.for]="pipeline.id">{{ pipeline.id }}</label>
+      </div>
+    </ng-container>
+    <ng-container *ngIf="view === 'text editor'">
+      <textarea
+        id="yml-textarea"
+        [(ngModel)]="ymlConfig"
+        [ngClass]="{ 'invalid-config': configError }"
+        (change)="isConfigValid(ymlConfig)"></textarea>
+      <div *ngIf="configError" class="error-message">{{ configError }}</div>
+    </ng-container>
+  </div>
+</div>
+
+<div style="flex-shrink: 3">
+  <div *ngIf="!file" id="file-upload-field" (dragover)="onDragOver($event)" (drop)="onDropSuccess($event)">
+    <div id="upload-instructions">
+      Drag & drop here or
+      <label id="file-upload-label" for="file-upload">Choose file</label>
+      <input type="file" id="file-upload" (change)="onUpload($event)" style="display: none" />
+    </div>
+    <div>
+      <div class="restrictions">*Supported formats: CSV, VCF</div>
+      <div class="restrictions">*Maximum file size: {{ userLimitations.filesize }}</div>
+      <div class="restrictions">*Maximum variants: {{ userLimitations.variantCount }}</div>
+      <div class="restrictions">*Maximum jobs a day: {{ userLimitations.dailyJobs }}</div>
+      <div class="restrictions">*Jobs left: {{ userLimitations.jobsLeft }}</div>
     </div>
   </div>
 
-  <div style="flex-shrink: 3">
-    <div *ngIf="!file" id="file-upload-field" (dragover)="onDragOver($event)" (drop)="onDropSuccess($event)">
-      <div id="upload-instructions">
-        Drag & drop here or
-        <label id="file-upload-label" for="file-upload">Choose file</label>
-        <input type="file" id="file-upload" (change)="onUpload($event)" style="display: none" />
-      </div>
-      <div>
-        <div class="restrictions">*Supported formats: CSV, VCF</div>
-        <div class="restrictions">*Maximum file size: {{ userLimitations.filesize }}</div>
-        <div class="restrictions">*Maximum variants: {{ userLimitations.variantCount }}</div>
-        <div class="restrictions">*Maximum jobs a day: {{ userLimitations.dailyJobs }}</div>
-        <div class="restrictions">*Jobs left: {{ userLimitations.jobsLeft }}</div>
-      </div>
+  <div *ngIf="file" id="uploaded-file-container">
+    <div id="file-info">
+      <span *ngIf="uploadError" class="material-symbols-outlined warning-icon">warning</span>
+      <span *ngIf="!uploadError" class="material-symbols-outlined file-icon">article</span>
+      <span>{{ file.name }}</span>
+      <span class="error-message">{{ uploadError }}</span>
     </div>
-
-    <div *ngIf="file" id="uploaded-file-container">
-      <div id="file-info">
-        <span *ngIf="uploadError" class="material-symbols-outlined warning-icon">warning</span>
-        <span *ngIf="!uploadError" class="material-symbols-outlined file-icon">article</span>
-        <span>{{ file.name }}</span>
-        <span class="error-message">{{ uploadError }}</span>
-      </div>
-      <button (click)="removeFile()" id="delete-uploaded-file">
-        <span class="material-symbols-outlined delete-icon">delete</span>
-      </button>
-    </div>
-
-    <div *ngIf="this.file && !this.file.name.endsWith('vcf') && !uploadError" class="separator-list">
-      <label class="separator-label">Separate columns by: </label>
-      <input
-        type="radio"
-        id="tab-separtor-radio"
-        name="separator"
-        value="Tab"
-        (click)="submitNewSeparator('\t')"
-        [checked]="fileSeparator === '\t'" />
-      <label class="separator-label" for="tab-separtor-radio">Tab</label>
-
-      <input
-        type="radio"
-        id="comma-separtor-radio"
-        name="separator"
-        value="Comma"
-        (click)="submitNewSeparator(',')"
-        [checked]="fileSeparator === ','" />
-      <label class="separator-label" for="comma-separtor-radio">Comma</label>
-
-      <input
-        type="radio"
-        id="no-separator-radio"
-        name="separator"
-        value="No separator"
-        (click)="submitNewSeparator('')"
-        [checked]="!fileSeparator" />
-      <label class="separator-label" for="no-separator-radio">No separator</label>
-    </div>
-
-    <app-column-specifying
-      *ngIf="fileContent"
-      [fileContent]="fileContent"
-      (emitColumns)="getColumns($event)"></app-column-specifying>
+    <button (click)="removeFile()" id="delete-uploaded-file">
+      <span class="material-symbols-outlined delete-icon">delete</span>
+    </button>
   </div>
-</mat-dialog-content>
+
+  <div *ngIf="this.file && !this.file.name.endsWith('vcf') && !uploadError" class="separator-list">
+    <label class="separator-label">Separate columns by: </label>
+    <input
+      type="radio"
+      id="tab-separtor-radio"
+      name="separator"
+      value="Tab"
+      (click)="submitNewSeparator('\t')"
+      [checked]="fileSeparator === '\t'" />
+    <label class="separator-label" for="tab-separtor-radio">Tab</label>
+
+    <input
+      type="radio"
+      id="comma-separtor-radio"
+      name="separator"
+      value="Comma"
+      (click)="submitNewSeparator(',')"
+      [checked]="fileSeparator === ','" />
+    <label class="separator-label" for="comma-separtor-radio">Comma</label>
+
+    <input
+      type="radio"
+      id="no-separator-radio"
+      name="separator"
+      value="No separator"
+      (click)="submitNewSeparator('')"
+      [checked]="!fileSeparator" />
+    <label class="separator-label" for="no-separator-radio">No separator</label>
+  </div>
+
+  <app-column-specifying
+    *ngIf="fileContent"
+    [fileContent]="fileContent"
+    (emitColumns)="getColumns($event)"></app-column-specifying>
+</div>
 
 <span class="error-message">{{ creationError }}</span>
-<mat-dialog-actions align="center">
-  <button id="create-button" mat-raised-button (click)="onCreateClick()" tabindex="1" [disabled]="disableCreate()"
-    >Create</button
-  >
-  <button id="cancel-button" mat-raised-button (click)="onCancelClick()" tabindex="-1">Cancel</button>
-</mat-dialog-actions>
+
+<button id="create-button" mat-raised-button (click)="onCreateClick()" tabindex="1" [disabled]="disableCreate()"
+  >Create</button
+>
+<button id="cancel-button" mat-raised-button (click)="onCancelClick()" tabindex="-1">Cancel</button>
