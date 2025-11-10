@@ -5,6 +5,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, cast
 
+from dae.annotation.record_to_annotatable import build_record_to_annotatable
 import magic
 from dae.annotation.annotatable import VCFAllele
 from dae.annotation.annotation_config import (
@@ -211,6 +212,19 @@ PIPELINES = get_pipelines(GRR)
 
 class AnnotationBaseView(views.APIView):
     """Base view for views which access annotation resources."""
+    tool_columns = [
+        "col_chrom",
+        "col_pos",
+        "col_ref",
+        "col_alt",
+        "col_pos_beg",
+        "col_pos_end",
+        "col_cnv_type",
+        "col_vcf_like",
+        "col_variant",
+        "col_location",
+    ]
+
     def __init__(self) -> None:
         super().__init__()
         self._grr = GRR
@@ -804,18 +818,6 @@ class AnnotateColumns(AnnotationBaseView):
 
     parser_classes = [MultiPartParser]
     permission_classes = [permissions.IsAuthenticated]
-    tool_columns = [
-        "col_chrom",
-        "col_pos",
-        "col_ref",
-        "col_alt",
-        "col_pos_beg",
-        "col_pos_end",
-        "col_cnv_type",
-        "col_vcf_like",
-        "col_variant",
-        "col_location",
-    ]
 
     def is_vcf_file(self, file: UploadedFile, input_path: Path) -> bool:
         """Check if a file is a VCF file."""
@@ -876,6 +878,48 @@ class AnnotateColumns(AnnotationBaseView):
             )
 
         return Response(status=views.status.HTTP_204_NO_CONTENT)
+
+
+class ColumnValidation(AnnotationBaseView):
+    """Validate if column selection returns annotatable."""
+    def post(self, request: Request) -> Response:
+        """Validate columns selection."""
+        data = request.data
+        assert isinstance(data, dict)
+
+        column_mapping = data.get("column_mapping")
+        if not column_mapping or column_mapping == {}:
+            return Response(
+                {"errors": "No columns selected from the file!"},
+                status=views.status.HTTP_400_BAD_REQUEST)
+        assert isinstance(column_mapping, dict)
+
+        if not any(param in self.tool_columns for param in column_mapping):
+            return Response(
+                {"errors": "Invalid column specification!"},
+                status=views.status.HTTP_400_BAD_REQUEST)
+
+        all_columns = data.get("file_columns")
+        if not all_columns or all_columns == []:
+            return Response(
+                {"errors": \
+                        "File header must be provided for column validation!"},
+                status=views.status.HTTP_400_BAD_REQUEST)
+        assert isinstance(all_columns, list)
+        all_columns = [str(col) for col in all_columns]
+
+        try:
+            build_record_to_annotatable(
+                column_mapping,
+                set(all_columns),
+            )
+        except ValueError:
+            logger.exception("Annotatable error.\n")
+            return Response(
+                {"errors": "Specified set of columns cannot be used together!"},
+                status=views.status.HTTP_404_NOT_FOUND)
+
+        return Response({"errors": ""}, status=views.status.HTTP_200_OK)
 
 
 class JobGetFile(views.APIView):

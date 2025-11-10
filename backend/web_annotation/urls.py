@@ -46,6 +46,7 @@ urlpatterns = [
     path('api/register', views.Registration.as_view()),
     path('api/user_info', views.UserInfo.as_view()),
     path('api/jobs/validate', views.AnnotationConfigValidation.as_view()),
+    path('api/validate_columns', views.ColumnValidation.as_view()),
     path(
         'api/jobs/preview',
         views.PreviewFileUpload.as_view(),

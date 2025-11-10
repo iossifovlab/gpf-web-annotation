@@ -3,6 +3,7 @@ import datetime
 import gzip
 import pathlib
 import textwrap
+from typing import Any
 from pysam import tabix_compress
 
 import pytest
@@ -359,6 +360,146 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
     )
     assert len(Job.objects.all()) == 2
     assert response.status_code == 400
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "data, response_body, status",
+    [
+        (
+            {
+                "file_columns": ["chrom", "pos", "ref", "alt"],
+                "column_mapping": {
+                    "col_chrom": "chrom",
+                    "col_pos": "pos",
+                    "col_ref": "ref",
+                    "col_alt": "alt",
+                },
+            },
+            {"errors": ""},
+            200,
+        ),
+        (
+            {
+                "file_columns": ["var", "loc"],
+                "column_mapping": {
+                    "col_location": "loc",
+                    "col_variant": "var",
+                },
+            },
+            {"errors": ""},
+            200,            
+        ),
+        (
+            {
+                "file_columns": ["chr", "ps"],
+                "column_mapping": {
+                    "col_chrom": "chr",
+                    "col_pos": "ps",
+                },
+            },
+            {"errors": ""},
+            200,
+        ),
+        (
+            {
+                "file_columns": ["chr", "pos", "vr"],
+                "column_mapping": {
+                    "col_chrom": "chr",
+                    "col_pos": "pos",
+                    "col_variant": "vr",
+                },
+            },
+            {"errors": ""},
+            200,
+        ),
+        (
+            {
+                "file_columns": ["chr", "beg", "end"],
+                "column_mapping": {
+                    "col_chrom": "chr",
+                    "col_pos_beg": "beg",
+                    "col_pos_end": "end",
+                },
+            },
+            {"errors": ""},
+            200,
+        ),
+        (
+            {
+                "file_columns": ["chr", "pos_beg", "pos_end", "type"],
+                "column_mapping": {
+                    "col_chrom": "chr",
+                    "col_pos_beg": "pos_beg",
+                    "col_pos_end": "pos_end",
+                    "col_cnv_type": "type",
+                },
+            },
+            {"errors": ""},
+            200,
+        ),
+        (
+            {
+                "file_columns": ["vcf"],
+                "column_mapping": {
+                    "col_vcf_like": "vcf",
+                },
+            },
+            {"errors": ""},
+            200,
+        ),
+        (
+            {
+                "file_columns": ["chr", "pos_beg", "pos_end"],
+                "column_mapping": {},
+            },
+            {"errors": "No columns selected from the file!"},
+            400,
+        ),
+        (
+            {
+                "file_columns": ["chr", "pos_beg", "pos_end"],
+                "column_mapping": {"col_special": "chr"},
+            },
+            {"errors": "Invalid column specification!"},
+            400,
+        ),
+        (
+            {
+                "file_columns": [],
+                "column_mapping": {
+                    "col_vcf_like": "vcf",
+                },
+            },
+            {"errors": "File header must be provided for column validation!"},
+            400,
+        ),
+        (
+            {
+                "file_columns": ["chr", "pos_beg"],
+                "column_mapping": {
+                    "col_chrom": "chr",
+                    "col_pos_beg": "pos_beg",
+                },
+            },
+            {"errors": "Specified set of columns cannot be used together!"},
+            404,
+        ),
+    ],
+)
+def test_validate_columns(
+    admin_client: Client,
+    data: dict[str, Any],
+    response_body: dict[str, str],
+    status: int,
+) -> None:
+    response = admin_client.post(
+        "/api/validate_columns",
+        data,
+        content_type="application/json",
+    )
+    assert response.status_code == status
+    assert response.json() == response_body
 
 
 @pytest.mark.django_db
