@@ -934,3 +934,53 @@ def test_get_pipelines_annonymous(
     assert len(pipelines) == 2
     assert pipelines[0]["id"] == "pipeline/test_pipeline"
     assert pipelines[1]["id"] == "t4c8/t4c8_pipeline"
+
+
+@pytest.mark.django_db
+def test_annotate_vcf_user_pipeline(
+    user_client: Client, test_grr: GenomicResourceRepo,
+) -> None:
+    user = User.objects.get(email="user@example.com")
+    pipeline_config = "- position_score: scores/pos1"
+    params = {
+        "config": ContentFile(pipeline_config),
+        "name": "test-user-pipeline",
+    }
+    response = user_client.post("/api/user_pipeline", params)
+
+    assert response is not None
+    assert response.status_code == 204
+    assert Pipeline.objects.filter(owner=user).count() == 1
+
+    user = User.objects.get(email="user@example.com")
+
+    assert Job.objects.filter(owner=user).count() == 1
+
+    vcf = textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        ##contig=<ID=chr1>
+        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+        chr1	1	.	C	A	.	.	.
+    """).strip()
+
+    response = user_client.post(
+        "/api/jobs/annotate_vcf",
+        {
+            "genome": "hg38",
+            "pipeline": "test-user-pipeline",
+            "data": ContentFile(vcf, "test_input.vcf")
+        },
+    )
+    assert response.status_code == 204
+
+    assert Job.objects.filter(owner=user).count() == 2
+    job = Job.objects.get(id=3)
+
+    saved_config = pathlib.Path(job.config_path)
+    assert saved_config.exists()
+    assert saved_config.read_text(encoding="utf-8") == (
+        "- position_score: scores/pos1"
+    )
+
+    result_path = pathlib.Path(job.result_path)
+    assert result_path.exists()

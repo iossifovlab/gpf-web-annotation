@@ -278,17 +278,28 @@ class AnnotationBaseView(views.APIView):
 
     def _get_annotation_config(
         self,
-        data: QueryDict,
-        files: MultiValueDict,
+        request: Request,
     ) -> str:
         """Get annotation config contents from a request."""
-        if "pipeline" in data:
-            pipeline_id = data["pipeline"]
-            if pipeline_id not in self.pipelines:
+        assert isinstance(request.data, QueryDict)
+        assert isinstance(request.FILES, MultiValueDict)
+        if "pipeline" in request.data:
+            pipeline_id = request.data["pipeline"]
+            user_pipeline = Pipeline.objects.filter(
+                owner=request.user,
+                name=pipeline_id,
+            ).first()
+
+            if pipeline_id in self.pipelines:
+                content = self.pipelines[pipeline_id]["content"]
+            elif user_pipeline is not None:
+                content = Path(
+                    user_pipeline.config_path
+                ).read_text(encoding="utf-8")
+            else:
                 raise ValueError(f"Pipeline {pipeline_id} not found!")
-            content = self.pipelines[pipeline_id]["content"]
         else:
-            config_file = files["config"]
+            config_file = request.FILES["config"]
             assert isinstance(config_file, UploadedFile)
             try:
                 raw_content = config_file.read()
@@ -331,7 +342,7 @@ class AnnotationBaseView(views.APIView):
         assert isinstance(request.data, QueryDict)
         assert isinstance(request.FILES, MultiValueDict)
         try:
-            content = self._get_annotation_config(request.data, request.FILES)
+            content = self._get_annotation_config(request)
         except ValueError as e:
             return Response(
                 {"reason": str(e)},
@@ -613,7 +624,7 @@ class UserPipeline(AnnotationBaseView):
     ) -> Response | None:
         assert isinstance(request.FILES, MultiValueDict)
         try:
-            content = self._get_annotation_config(QueryDict(), request.FILES)
+            content = self._get_annotation_config(request)
         except ValueError as e:
             return Response(
                 {"reason": str(e)},
