@@ -3,11 +3,10 @@ import { Component, OnInit } from '@angular/core';
 import { FileContent, JobCreationView } from './jobs';
 import { JobsService } from './jobs.service';
 import { Observable, take } from 'rxjs';
-import { Pipeline } from './pipelines';
 import { FormsModule } from '@angular/forms';
-import { SingleAnnotationService } from '../single-annotation.service';
 import { ColumnSpecifyingComponent } from '../column-specifying/column-specifying.component';
 import { UsersService } from '../users.service';
+import { AnnotationPipelineComponent } from '../annotation-pipeline/annotation-pipeline.component';
 
 @Component({
   selector: 'app-job-creation',
@@ -15,6 +14,7 @@ import { UsersService } from '../users.service';
     CommonModule,
     FormsModule,
     ColumnSpecifyingComponent,
+    AnnotationPipelineComponent
   ],
   templateUrl: './job-creation.component.html',
   styleUrl: './job-creation.component.css'
@@ -25,14 +25,12 @@ export class JobCreationComponent implements OnInit {
   public fileContent: FileContent;
   public updatedFileHeader = new Map<string, string>();
   public uploadError = '';
-  public view: JobCreationView = 'pipeline list';
-  public pipelines : Pipeline[] = [];
-  public genomes : string[] = [];
   public selectedGenome = '';
   public pipelineId = '';
   public ymlConfig = '';
-  public configError = '';
+  public isConfigValid = true;
   public creationError = '';
+  public view: JobCreationView = 'pipeline list';
   public userLimitations: {
       dailyJobs: number;
       filesize: string;
@@ -43,19 +41,9 @@ export class JobCreationComponent implements OnInit {
   public constructor(
     private jobsService: JobsService,
     private usersService: UsersService,
-    private singleAnnotationService: SingleAnnotationService,
   ) { }
 
   public ngOnInit(): void {
-    this.jobsService.getAnnotationPipelines().pipe(take(1)).subscribe(pipelines => {
-      this.pipelines = pipelines;
-    });
-
-    this.singleAnnotationService.getGenomes().pipe(take(1)).subscribe((genomes) => {
-      this.genomes = genomes;
-      this.selectedGenome = genomes[0];
-    });
-
     this.userLimitations = this.usersService.userData.value.limitations;
   }
 
@@ -126,11 +114,6 @@ export class JobCreationComponent implements OnInit {
     this.creationError = '';
   }
 
-  public onPipelineClick(option: string): void {
-    this.creationError = '';
-    this.pipelineId = option;
-  }
-
   public onUpload(event: Event): void {
     this.creationError = '';
     const input = event.target as HTMLInputElement;
@@ -149,15 +132,6 @@ export class JobCreationComponent implements OnInit {
       const file = event.dataTransfer.files[0];
       this.onFileChange(file);
     }
-  }
-
-  public isConfigValid(config: string): void {
-    this.creationError = '';
-    this.jobsService.validateJobConfig(config).pipe(
-      take(1)
-    ).subscribe((errorReason: string) => {
-      this.configError = errorReason;
-    });
   }
 
   private isFormatValid(file: File): boolean {
@@ -192,20 +166,31 @@ export class JobCreationComponent implements OnInit {
     });
   }
 
-  public changeView(view: JobCreationView): void {
-    if (view === 'pipeline list') {
-      this.ymlConfig = '';
-      this.configError = '';
-    } else {
-      this.pipelineId = '';
-    }
-    this.view = view;
+  public setPipeline(newPipeline: string): void {
+    this.pipelineId = newPipeline;
+  }
+
+  public setConfig(newConfig: string): void {
+    this.ymlConfig = newConfig;
+  }
+
+  public setView(newView: JobCreationView): void {
+    this.view = newView;
+  }
+
+  public setGenome(genome: string): void {
+    this.selectedGenome = genome;
+  }
+
+  public setConfigValid(newState: boolean): void {
+    this.isConfigValid = newState;
+    this.disableCreate();
   }
 
   public disableCreate(): boolean {
     return !this.file
       || Boolean(this.uploadError)
-      || Boolean(this.configError)
+      || !this.isConfigValid
       || (this.view === 'text editor' ? !this.ymlConfig : !this.pipelineId);
   }
 }

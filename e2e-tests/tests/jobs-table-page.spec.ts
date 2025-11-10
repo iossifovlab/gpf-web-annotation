@@ -30,6 +30,8 @@ test.describe('Create job tests', () => {
     const config = fs.readFileSync('./fixtures/test-config.yaml').toString();
     await page.locator('#yml-textarea').fill(config);
 
+    await page.getByText('YML text editor').click(); // trigger config validation
+
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
 
     await page.locator('#create-button').click();
@@ -54,9 +56,11 @@ test.describe('Create job tests', () => {
   test('should check if create button is disabled when no yml is written', async({ page }) => {
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
     await page.getByText('YML text editor').click();
-
     await expect(page.locator('#create-button')).toBeDisabled();
-    await page.locator('#yml-textarea').fill('mock string');
+
+    const config = fs.readFileSync('./fixtures/test-config.yaml').toString();
+    await page.locator('#yml-textarea').fill(config);
+    await page.getByText('YML text editor').click(); // trigger config validation
     await expect(page.locator('#create-button')).toBeEnabled();
   });
 
@@ -534,6 +538,7 @@ async function createJobWithPipeline(page: Page, pipeline: string, inputFileName
 async function createJobWithConfig(page: Page, config: string, inputFileName: string): Promise<void> {
   await page.getByText('YML text editor').click();
   await page.locator('#yml-textarea').fill(config);
+  await page.getByText('YML text editor').click(); // trigger config validation
   await page.locator('input[id="file-upload"]').setInputFiles(`./fixtures/${inputFileName}`);
   await page.locator('#create-button').click();
 }

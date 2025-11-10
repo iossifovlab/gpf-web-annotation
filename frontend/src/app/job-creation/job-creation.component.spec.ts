@@ -39,6 +39,11 @@ class JobsServiceMock {
   public submitFile(file: File): Observable<FileContent> {
     return of(new FileContent(',', ['chr', 'pos'], [['1', '123']]));
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public submitSeparator(file: File, separator: string): Observable<FileContent> {
+    return of(new FileContent(',', ['chr', 'pos'], [['1', '123']]));
+  }
 }
 
 class UserServiceMock {
@@ -146,59 +151,7 @@ describe('JobCreationComponent', () => {
     expect(component.uploadError).toBe('');
   });
 
-  it('should change view to text editor', () => {
-    component.view = 'pipeline list';
-    component.changeView('text editor');
-    expect(component.view).toBe('text editor');
-  });
-
-  it('should create process with yml config entered by user', () => {
-    const mockFile = new File([], 'mockFile', { type: 'text/vcard' });
-    component.file = mockFile;
-    component.changeView('text editor');
-    fixture.detectChanges();
-
-    component.ymlConfig = 'some yml text';
-    const createVcfJob = jest.spyOn(jobsServiceMock, 'createVcfJob');
-    component.onCreateClick();
-    expect(createVcfJob).toHaveBeenCalledWith(mockFile, null, 'some yml text', 'hg38');
-    expect(component.ymlConfig).toBe('');
-  });
-
-  it('should create process with pipeline', () => {
-    const mockFile = new File([], 'mockFile', { type: 'text/vcard' });
-    component.file = mockFile;
-    fixture.detectChanges();
-
-    component.onPipelineClick('autism');
-    const createVcfJob = jest.spyOn(jobsServiceMock, 'createVcfJob');
-    component.onCreateClick();
-    expect(createVcfJob).toHaveBeenCalledWith(mockFile, 'autism', null, 'hg38');
-  });
-
-  it('should type config and invoke the correct create job method when uploaded file is non vcf', () => {
-    const mockFile = new File([], 'mockFile', { type: 'text/csv' });
-    component.file = mockFile;
-    component.fileSeparator = '\t';
-    component.updatedFileHeader = new Map([['chr', 'CHROM']]);
-    component.changeView('text editor');
-    fixture.detectChanges();
-
-    component.ymlConfig = 'some yml text';
-    const createVcfJob = jest.spyOn(jobsServiceMock, 'createNonVcfJob');
-    component.onCreateClick();
-    expect(createVcfJob).toHaveBeenCalledWith(
-      mockFile,
-      null,
-      'some yml text',
-      'hg38',
-      '\t',
-      new Map([['chr', 'CHROM']])
-    );
-    expect(component.ymlConfig).toBe('');
-  });
-
-  it('should select pipeline and invoke the correct create job method when uploaded file is non vcf', () => {
+  it('should get pipeline and invoke the correct create job method when uploaded file is non vcf', () => {
     const mockFile = new File([], 'mockFile', { type: 'text/csv' });
     component.file = mockFile;
     component.fileSeparator = '\t';
@@ -246,21 +199,63 @@ describe('JobCreationComponent', () => {
   it('should disable Create button if no yml config is set', () => {
     component.file = new File([], 'mockFile', { type: 'json' });
     component.uploadError = '';
-    component.changeView('text editor');
-    fixture.detectChanges();
-    const ymlArea: HTMLTextAreaElement = templateRef.querySelector('#yml-textarea');
-    ymlArea.value = '';
+    component.view = 'text editor';
+    component.ymlConfig = '';
     expect(component.disableCreate()).toBe(true);
   });
 
-  it('should get pipelines list on component init', () => {
-    const getPipelinesSpy = jest.spyOn(jobsServiceMock, 'getAnnotationPipelines');
-    component.ngOnInit();
-    expect(getPipelinesSpy).toHaveBeenCalledWith();
-    expect(component.pipelines).toStrictEqual(mockPipelines);
+  it('should disable Create button if yml config is invalid', () => {
+    component.isConfigValid = false;
+    expect(component.disableCreate()).toBe(true);
   });
 
-  it('should prevent default and set file when csv file is dropped', () => {
+  it('should create process with yml config entered by user', () => {
+    const mockFile = new File([], 'mockFile', { type: 'text/vcard' });
+    component.file = mockFile;
+    component.view = 'text editor';
+    fixture.detectChanges();
+
+    component.ymlConfig = 'some yml text';
+    const createVcfJob = jest.spyOn(jobsServiceMock, 'createVcfJob');
+    component.onCreateClick();
+    expect(createVcfJob).toHaveBeenCalledWith(mockFile, null, 'some yml text', 'hg38');
+    expect(component.ymlConfig).toBe('');
+  });
+
+  it('should create process with pipeline', () => {
+    const mockFile = new File([], 'mockFile', { type: 'text/vcard' });
+    component.file = mockFile;
+    fixture.detectChanges();
+
+    component.pipelineId = 'autism';
+    const createVcfJob = jest.spyOn(jobsServiceMock, 'createVcfJob');
+    component.onCreateClick();
+    expect(createVcfJob).toHaveBeenCalledWith(mockFile, 'autism', null, 'hg38');
+  });
+
+  it('should type config and invoke the correct create job method when uploaded file is non vcf', () => {
+    const mockFile = new File([], 'mockFile', { type: 'text/csv' });
+    component.file = mockFile;
+    component.fileSeparator = '\t';
+    component.updatedFileHeader = new Map([['chr', 'CHROM']]);
+    component.view = 'text editor';
+    fixture.detectChanges();
+
+    component.ymlConfig = 'some yml text';
+    const createVcfJob = jest.spyOn(jobsServiceMock, 'createNonVcfJob');
+    component.onCreateClick();
+    expect(createVcfJob).toHaveBeenCalledWith(
+      mockFile,
+      null,
+      'some yml text',
+      'hg38',
+      '\t',
+      new Map([['chr', 'CHROM']])
+    );
+    expect(component.ymlConfig).toBe('');
+  });
+
+  it('should prevent default behavior if event and set file when csv file is dropped', () => {
     const mockFile = new File([], 'mockFile.csv');
     const mockDataTransfer = { files: [mockFile] } as unknown as DataTransfer;
     const mockEvent = { dataTransfer: mockDataTransfer, preventDefault: jest.fn() } as unknown as DragEvent;
@@ -295,5 +290,17 @@ describe('JobCreationComponent', () => {
     expect(mockEvent.preventDefault).toHaveBeenCalledWith();
     expect(component.file).toBeNull();
     expect(component.uploadError).toBe('');
+  });
+
+  it('should submit new separator', () => {
+    const submitSeparatorSpy = jest.spyOn(jobsServiceMock, 'submitSeparator');
+
+    component.file = new File([], 'mockFile');
+    component.fileSeparator = '!';
+    component.submitNewSeparator(',');
+
+    expect(submitSeparatorSpy).toHaveBeenCalledWith(new File([], 'mockFile'), ',');
+    expect(component.fileContent).toStrictEqual(new FileContent(',', ['chr', 'pos'], [['1', '123']]));
+    expect(component.fileSeparator).toBe(',');
   });
 });

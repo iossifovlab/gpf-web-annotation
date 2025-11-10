@@ -1,0 +1,41 @@
+<div id="annotation-mode">
+  <div>
+    <button
+      id="pipelines-list"
+      [ngClass]="view === 'pipeline list' ? 'active-view' : 'inactive-view'"
+      (click)="changeView('pipeline list')"
+      >Annotation pipelines</button
+    >
+    <button
+      id="text-editor"
+      [ngClass]="view === 'text editor' ? 'active-view' : 'inactive-view'"
+      (click)="changeView('text editor')"
+      >YML text editor</button
+    >
+  </div>
+</div>
+<div id="annotation-details">
+  <label for="select-genome">Select genome:</label>
+  <select id="select-genome" [(ngModel)]="selectedGenome" (ngModelChange)="onNewSelect($event)">
+    <option *ngFor="let genome of genomes" [value]="genome">{{ genome }}</option>
+  </select>
+  <ng-container *ngIf="view === 'pipeline list'">
+    <div *ngFor="let pipeline of pipelines" class="pipeline-option">
+      <input
+        type="radio"
+        name="pipeline"
+        [id]="pipeline.id"
+        [value]="pipeline.id"
+        (click)="onPipelineClick(pipeline.id)" />
+      <label [attr.for]="pipeline.id">{{ pipeline.id }}</label>
+    </div>
+  </ng-container>
+  <ng-container *ngIf="view === 'text editor'">
+    <textarea
+      id="yml-textarea"
+      [(ngModel)]="ymlConfig"
+      [ngClass]="{ 'invalid-config': configError }"
+      (change)="isConfigValid(ymlConfig)"></textarea>
+    <div *ngIf="configError" class="error-message">{{ configError }}</div>
+  </ng-container>
+</div>

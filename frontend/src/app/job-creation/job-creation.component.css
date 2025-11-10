@@ -3,59 +3,6 @@
   color: #5b778c;
 }
 
-#annotation-mode button {
-  border: none;
-  background-color: transparent;
-  font-size: 16px;
-}
-
-#annotation-mode button:hover {
-  cursor: pointer;
-}
-
-#annotation-mode {
-  display: flex;
-  justify-content: center;
-  margin-top: 20px;
-}
-
-.active-view {
-  font-weight: bold;
-  text-decoration: underline;
-  text-decoration-thickness: 3px;
-  text-underline-offset: 5px;
-  color: #435869;
-}
-
-.inactive-view {
-  text-decoration: none;
-  color: #85a2b9;
-}
-
-#annotation-details {
-  margin-top: 25px;
-  display: flex;
-  flex-grow: 1;
-  flex-direction: column;
-}
-
-#annotation-details a {
-  font-weight: 500;
-  color: #24699e;
-  text-underline-offset: 5px;
-  text-decoration-thickness: 2px;
-  font-size: 16px;
-  margin-left: 5px;
-}
-
-#annotation-details a:hover {
-  color: #85a2b9;
-}
-
-.pipeline-option {
-  margin: 10px;
-}
-
 #file-upload-field {
   border: 2px dashed #cfd8df;
   border-radius: 15px;
@@ -162,50 +109,6 @@
 #cancel-button:hover {
   background: #f4f7fb;
   cursor: pointer;
-}
-
-mat-dialog-content {
-  display: flex;
-  justify-content: space-between;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.mat-mdc-dialog-actions {
-  justify-content: start;
-}
-
-textarea {
-  width: 97%;
-  height: 90%;
-  resize: none;
-  border: 2px solid #cfd8df;
-  border-radius: 15px;
-  padding: 10px;
-  font-size: 16px;
-  margin-top: 10px;
-}
-
-textarea:focus-visible {
-  border-color: #85a2b9;
-  outline: 0;
-  box-shadow: 0 0 0 0.2rem #cfd8df;
-}
-
-.invalid-config {
-  border: 2px solid #d74b59;
-  box-shadow: 0 0 0 0.2rem #edbec3;
-}
-
-select {
-  padding: 2px 10px;
-  font-size: 16px;
-  border: 1.5px solid #5b778c;
-  border-radius: 10px;
-  color: #5b778c;
-  background-color: white;
-  margin-left: 10px;
-  width: 90px;
 }
 
 .separator-list {
