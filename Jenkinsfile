@@ -105,7 +105,7 @@ pipeline {
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
                 sh "docker compose -f compose-jenkins.yaml run --rm --remove-orphans e2e-tests || true"
                 sh "mkdir -p reports"
-                sh "cp frontend/reports/junit-report.xml reports/e2e-junit-report.xml"
+                sh "cp e2e-tests/reports/junit-report.xml reports/e2e-junit-report.xml"
             }
         }
 
