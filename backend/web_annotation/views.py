@@ -1,9 +1,11 @@
 """View classes for web annotation."""
 import logging
+from subprocess import CalledProcessError
 import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, cast
+from concurrent.futures import BrokenExecutor, Future, ThreadPoolExecutor
 
 import magic
 from dae.annotation.annotatable import VCFAllele
@@ -86,9 +88,14 @@ from .serializers import JobSerializer, UserSerializer
 from .tasks import (
     annotate_columns_job,
     annotate_vcf_job,
+    get_args_columns,
+    get_args_vcf,
     get_job,
     get_job_details,
     specify_job,
+    update_job_failed,
+    update_job_in_progress,
+    update_job_success,
 )
 
 logger = logging.getLogger(__name__)
@@ -208,6 +215,9 @@ PIPELINES = get_pipelines(GRR)
 
 
 class AnnotationBaseView(views.APIView):
+    THREAD_POOL = ThreadPoolExecutor(
+            max_workers=settings.ANNOTATION_MAX_WORKERS)
+
     """Base view for views which access annotation resources."""
     tool_columns = [
         "col_chrom",
@@ -801,11 +811,47 @@ class AnnotateVCF(AnnotationBaseView):
 
         job.save()
         work_dir = self.result_storage_dir / request.user.email
-        annotate_vcf_job.delay(
-            job.pk,
-            str(work_dir),
-            str(self.get_grr_definition()),
-        )
+        args = get_args_vcf(
+            job, str(work_dir), str(self.get_grr_definition()))
+        start_time = time.time()
+        try:
+            future = self.THREAD_POOL.submit(
+                annotate_vcf_job,
+                args,
+            )
+        except BrokenExecutor:
+            logger.exception("Thread pool executor broken")
+        assert future is not None
+
+        update_job_in_progress(job)
+
+        def on_task_done(future: Future) -> None:
+            """Callback when annotation is done."""
+            job.duration = time.time() - start_time
+            exception = future.exception()
+            if exception is not None:
+                reason = (
+                    f"Unexpected error, {type(exception)}\n"
+                    f"{str(exception)}"
+                )
+                if isinstance(exception, CalledProcessError):
+                    reason = (
+                        "annotate_vcf failed internally:\n"
+                        f"{exception.stderr}"
+                    )
+                if isinstance(
+                    exception, (OSError, TypeError, ValueError),
+                ):
+                    reason = (
+                        "Failed to execute annotate_vcf\n"
+                        f"{str(exception)}"
+                    )
+                logger.error("VCF annotation job failed!\n%s", reason)
+                update_job_failed(job, args)
+                return
+            update_job_success(job, args)
+
+        # future.add_done_callback(on_task_done)
 
         return Response(status=views.status.HTTP_204_NO_CONTENT)
 
@@ -859,20 +905,26 @@ class AnnotateColumns(AnnotationBaseView):
 
         grr_definition = self.get_grr_definition()
         assert grr_definition is not None
+        work_dir = self.result_storage_dir / request.user.email
+
         try:
-            job = specify_job(job, **cast(dict[str, str], params))
-            work_dir = self.result_storage_dir / request.user.email
-            annotate_columns_job.delay(
-                job.pk, str(work_dir), str(grr_definition))
+            specify_job(job, **cast(dict[str, str], params))
+            details = get_job_details(job.pk)
         except ObjectDoesNotExist:
             logger.exception("Job not found!")
             return Response(status=views.status.HTTP_404_NOT_FOUND)
-        except Exception:  # pylint: disable=broad-exception-caught
-            logger.exception("Failed to annotate columns!")
-            return Response(
-                {"reason": "Failed to annotate columns!"},
-                status=views.status.HTTP_400_BAD_REQUEST,
+
+        args = get_args_columns(
+            job, details, str(work_dir), str(grr_definition))
+        start_time = time.time()
+        try:
+            future = self.THREAD_POOL.submit(
+                annotate_columns_job,
+                args,
             )
+        except BrokenExecutor:
+            logger.exception("Thread pool executor broken")
+        assert future is not None
 
         return Response(status=views.status.HTTP_204_NO_CONTENT)
 

@@ -231,6 +231,7 @@ def test_annotate_vcf(
     assert Job.objects.filter(owner=user).count() == 2
 
     job = Job.objects.get(id=3)
+    assert job is not None
 
     saved_input = pathlib.Path(job.input_path)
 
@@ -256,7 +257,7 @@ def test_annotate_vcf_calls_annotation_runner(
     mocker: MockerFixture,
 ) -> None:
     mocked = mocker.patch(
-        "web_annotation.tasks.annotate_vcf_job.delay")
+        "web_annotation.tasks.annotate_vcf_job")
 
     annotation_config = "- position_score: scores/pos1"
     vcf = textwrap.dedent("""
