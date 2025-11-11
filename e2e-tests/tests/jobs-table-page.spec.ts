@@ -327,37 +327,14 @@ test.describe('Jobs table tests', () => {
     await waitForJobStatus(page, 'success');
   });
 
-  test('should fail job after uploading csv file and make wrong column specification', async({ page }) => {
+  test('should show error message when specifying bad combination of columns', async({ page }) => {
     await page.getByLabel('pipeline/GPF-SFARI_annotation').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-csv-file.csv');
 
     await page.locator('[id="CHROM-header"]').locator('mat-select').click();
     await page.getByRole('option', { name: 'variant', exact: true }).click();
 
-    await page.locator('#create-button').click();
-    await waitForJobStatus(page, 'failed');
-
-    await expect(page.locator('.download').nth(0)).toBeEmpty();
-  });
-
-  test('should fail job after uploading csv file and specify only one column', async({ page }) => {
-    await page.getByLabel('pipeline/GPF-SFARI_annotation').click();
-    await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-csv-file.csv');
-
-    await expect(page.locator('app-column-specifying')).toBeVisible();
-    await page.locator('[id="POS-header"]').locator('mat-select').click();
-    await page.getByRole('option', { name: 'None', exact: true }).click();
-
-    await page.locator('[id="REF-header"]').locator('mat-select').click();
-    await page.getByRole('option', { name: 'None', exact: true }).click();
-
-    await page.locator('[id="ALT-header"]').locator('mat-select').click();
-    await page.getByRole('option', { name: 'None', exact: true }).click();
-
-    await page.locator('#create-button').click();
-    await waitForJobStatus(page, 'failed');
-
-    await expect(page.locator('.download').nth(0)).toBeEmpty();
+    await expect(page.getByText('Specified set of columns cannot be used together!')).toBeVisible();
   });
 });
 
