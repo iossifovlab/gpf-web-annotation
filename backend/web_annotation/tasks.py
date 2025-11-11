@@ -1,8 +1,6 @@
 """Web annotation celery tasks"""
 import logging
-import time
 from datetime import timedelta
-from subprocess import CalledProcessError
 from typing import Any
 
 from celery import shared_task
@@ -117,7 +115,6 @@ def update_job_success(job: Job, args: list[str]) -> None:
     job.status = Job.Status.SUCCESS
     job.command_line = " ".join(args)
     job.save()
-
     # pylint: disable=import-outside-toplevel
     from django.conf import settings
     send_email.delay(
@@ -131,18 +128,9 @@ def update_job_success(job: Job, args: list[str]) -> None:
     )
 
 
-def run_vcf_job(
+def get_args_vcf(
     job: Job, storage_dir: str, grr_definition_path: str | None,
-) -> None:
-    """Run a VCF annotation."""
-    start = time.time()
-
-    logger.debug("Running vcf job")
-    logger.debug(job.input_path)
-    logger.debug(job.config_path)
-    logger.debug(job.result_path)
-    logger.debug(storage_dir)
-
+) -> list[str]:
     args = [
         str(job.input_path),
         str(job.config_path),
@@ -154,19 +142,17 @@ def run_vcf_job(
 
     if grr_definition_path is not None:
         args.extend(["--grr-filename", grr_definition_path])
+    return args
 
-    try:
-        process = annotate_vcf_file(*args)
-    except CalledProcessError:
-        logger.exception("Failed to execute job")
-        update_job_failed(job, ["annotate_vcf", *args])
-    except (OSError, TypeError, ValueError):
-        logger.exception("Failed to create job process")
-        update_job_failed(job, ["annotate_vcf", *args])
 
-    else:
-        job.duration = time.time() - start
-        update_job_success(job, process.args)
+def run_vcf_job(
+    args: list[str],
+) -> None:
+    """Run a VCF annotation."""
+    logger.debug("Running vcf job")
+    logger.debug(args)
+
+    annotate_vcf_file(*args)
 
 
 def delete_old_jobs(days_old: int = 0) -> None:
@@ -180,19 +166,10 @@ def delete_old_jobs(days_old: int = 0) -> None:
         job.deactivate()
 
 
-def run_columns_job(  # pylint: disable=too-many-branches
+def get_args_columns(
     job: Job, details: JobDetails,
     storage_dir: str, grr_definition_path: str | None,
-) -> None:
-    """Run a columnar annotation."""
-    start = time.time()
-
-    logger.debug("Running vcf job")
-    logger.debug(job.input_path)
-    logger.debug(job.config_path)
-    logger.debug(job.result_path)
-    logger.debug(storage_dir)
-
+) -> list[str]:
     args = [
         str(job.input_path),
         str(job.config_path),
@@ -234,44 +211,30 @@ def run_columns_job(  # pylint: disable=too-many-branches
     ])
     if grr_definition_path is not None:
         args.extend(["--grr-filename", grr_definition_path])
-
-    try:
-        process = annotate_columns_file(*args)
-    except CalledProcessError:
-        logger.exception("Failed to execute job")
-        update_job_failed(job, ["annotate_columns", *args])
-    except (OSError, TypeError, ValueError):
-        logger.exception("Failed to create job process")
-        update_job_failed(job, ["annotate_columns", *args])
-
-    else:
-        job.duration = time.time() - start
-        update_job_success(job, process.args)
+    return args
 
 
-@shared_task
+def run_columns_job(  # pylint: disable=too-many-branches
+    args: list[str],
+) -> None:
+    """Run a columnar annotation."""
+    logger.debug("Running columns job")
+    logger.debug(args)
+    annotate_columns_file(*args)
+
+
 def annotate_vcf_job(
-    job_pk: int, storage_dir: str,
-    grr_definition_path: str | None,
+    args: list[str],
 ) -> None:
     """Task for running annotation."""
-    job = get_job(job_pk)
-    update_job_in_progress(job)
-
-    run_vcf_job(job, storage_dir, grr_definition_path)
+    run_vcf_job(args)
 
 
-@shared_task
 def annotate_columns_job(
-    job_pk: int, storage_dir: str,
-    grr_definition_path: str,
+    args: list[str],
 ) -> None:
     """Task for running annotation."""
-    job = get_job(job_pk)
-    job_details = get_job_details(job_pk)
-    update_job_in_progress(job)
-
-    run_columns_job(job, job_details, storage_dir, grr_definition_path)
+    run_columns_job(args)
 
 
 @shared_task
