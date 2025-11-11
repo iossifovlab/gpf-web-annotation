@@ -1,11 +1,5 @@
 <div style="flex-shrink: 3; align-self: stretch; flex-grow: 2; display: flex; flex-direction: column">
   <div id="quota">Quota: 5 per day</div>
-  <app-annotation-pipeline
-    (emitPipelineId)="setPipeline($event)"
-    (emitConfig)="setConfig($event)"
-    (emitGenome)="setGenome($event)"
-    (emitView)="setView($event)"
-    (emitIsConfigValid)="setConfigValid($event)"></app-annotation-pipeline>
 
   <div style="flex-shrink: 3">
     <div *ngIf="!file" id="file-upload-field" (dragover)="onDragOver($event)" (drop)="onDropSuccess($event)">
@@ -70,11 +64,4 @@
       [fileContent]="fileContent"
       (emitColumns)="getColumns($event)"></app-column-specifying>
   </div>
-
-  <span class="error-message">{{ creationError }}</span>
-
-  <button id="create-button" mat-raised-button (click)="onCreateClick()" tabindex="1" [disabled]="disableCreate()"
-    >Create</button
-  >
-  <button id="cancel-button" mat-raised-button (click)="onCancelClick()" tabindex="-1">Cancel</button>
 </div>

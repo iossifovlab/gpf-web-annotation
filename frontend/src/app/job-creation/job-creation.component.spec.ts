@@ -99,7 +99,9 @@ describe('JobCreationComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should remove uploaded file', () => {
+  it('should remove uploaded file and emit to parent', () => {
+    const emitFileSpy = jest.spyOn(component.emitFile, 'emit');
+    const emitFileSeparatorSpy = jest.spyOn(component.emitFileSeparator, 'emit');
     const fileBlock = templateRef.querySelector('#uploaded-file-container');
     component.file = new File([], 'mockFile');
 
@@ -107,10 +109,12 @@ describe('JobCreationComponent', () => {
 
     expect(component.file).toBeNull();
     expect(fileBlock).toBeNull();
+    expect(emitFileSpy).toHaveBeenCalledWith(null);
+    expect(emitFileSeparatorSpy).toHaveBeenCalledWith('');
   });
 
   it('should upload file', () => {
-    const mockFile = new File([], 'mockFile');
+    const mockFile = new File([], 'mockFile.vcf');
     const mockEvent = {
       target: { files: [mockFile] } as unknown as HTMLInputElement,
     } as unknown as Event;
@@ -119,7 +123,8 @@ describe('JobCreationComponent', () => {
     expect(component.file).toBe(mockFile);
   });
 
-  it('should show error message on file format validation', () => {
+  it('should show error message on file format validation and don\'t send file to parent', () => {
+    const emitFileSpy = jest.spyOn(component.emitFile, 'emit');
     const mockFile = new File([], 'mockFile.pdf');
     const mockEvent = {
       target: { files: [mockFile] } as unknown as HTMLInputElement,
@@ -127,6 +132,8 @@ describe('JobCreationComponent', () => {
 
     component.onUpload(mockEvent);
     expect(component.uploadError).toBe('Unsupported format!');
+    expect(component.file).toStrictEqual(mockFile);
+    expect(emitFileSpy).not.toHaveBeenCalledWith();
   });
 
   it('should upload csv file and sent query for preview', () => {
@@ -141,7 +148,8 @@ describe('JobCreationComponent', () => {
     expect(component.uploadError).toBe('');
   });
 
-  it('should upload vcf file', () => {
+  it('should upload vcf file and emit it to parent', () => {
+    const emitFileSpy = jest.spyOn(component.emitFile, 'emit');
     const mockFile = new File([], 'mockFile.vcf');
     const mockEvent = {
       target: { files: [mockFile] } as unknown as HTMLInputElement,
@@ -149,113 +157,11 @@ describe('JobCreationComponent', () => {
 
     component.onUpload(mockEvent);
     expect(component.uploadError).toBe('');
+    expect(emitFileSpy).toHaveBeenCalledWith(mockFile);
   });
 
-  it('should get pipeline and invoke the correct create job method when uploaded file is non vcf', () => {
-    const mockFile = new File([], 'mockFile', { type: 'text/csv' });
-    component.file = mockFile;
-    component.fileSeparator = '\t';
-    component.updatedFileHeader = new Map([['pos', 'POS']]);
-    component.pipelineId = 'autism';
-    fixture.detectChanges();
-
-    const createVcfJob = jest.spyOn(jobsServiceMock, 'createNonVcfJob');
-    component.onCreateClick();
-    expect(createVcfJob).toHaveBeenCalledWith(
-      mockFile,
-      'autism',
-      null,
-      'hg38',
-      '\t',
-      new Map([['pos', 'POS']])
-    );
-  });
-
-  it('should disable Create button if no file is uploaded', () => {
-    component.file = null;
-    component.uploadError = '';
-    component.pipelineId = 'autism';
-    expect(component.disableCreate()).toBe(true);
-  });
-
-  it('should disable Create button if file with unsupported format is uploaded', () => {
-    const mockFile = new File([], 'mockFile', { type: 'json' });
-    const mockEvent = {
-      target: { files: [mockFile] } as unknown as HTMLInputElement,
-    } as unknown as Event;
-
-    component.onUpload(mockEvent);
-    component.pipelineId = 'autism';
-    expect(component.disableCreate()).toBe(true);
-  });
-
-  it('should disable Create button if no pipeline is chosen', () => {
-    component.file = new File([], 'mockFile', { type: 'json' });
-    component.uploadError = '';
-    component.pipelineId = '';
-    expect(component.disableCreate()).toBe(true);
-  });
-
-  it('should disable Create button if no yml config is set', () => {
-    component.file = new File([], 'mockFile', { type: 'json' });
-    component.uploadError = '';
-    component.view = 'text editor';
-    component.ymlConfig = '';
-    expect(component.disableCreate()).toBe(true);
-  });
-
-  it('should disable Create button if yml config is invalid', () => {
-    component.isConfigValid = false;
-    expect(component.disableCreate()).toBe(true);
-  });
-
-  it('should create process with yml config entered by user', () => {
-    const mockFile = new File([], 'mockFile', { type: 'text/vcard' });
-    component.file = mockFile;
-    component.view = 'text editor';
-    fixture.detectChanges();
-
-    component.ymlConfig = 'some yml text';
-    const createVcfJob = jest.spyOn(jobsServiceMock, 'createVcfJob');
-    component.onCreateClick();
-    expect(createVcfJob).toHaveBeenCalledWith(mockFile, null, 'some yml text', 'hg38');
-    expect(component.ymlConfig).toBe('');
-  });
-
-  it('should create process with pipeline', () => {
-    const mockFile = new File([], 'mockFile', { type: 'text/vcard' });
-    component.file = mockFile;
-    fixture.detectChanges();
-
-    component.pipelineId = 'autism';
-    const createVcfJob = jest.spyOn(jobsServiceMock, 'createVcfJob');
-    component.onCreateClick();
-    expect(createVcfJob).toHaveBeenCalledWith(mockFile, 'autism', null, 'hg38');
-  });
-
-  it('should type config and invoke the correct create job method when uploaded file is non vcf', () => {
-    const mockFile = new File([], 'mockFile', { type: 'text/csv' });
-    component.file = mockFile;
-    component.fileSeparator = '\t';
-    component.updatedFileHeader = new Map([['chr', 'CHROM']]);
-    component.view = 'text editor';
-    fixture.detectChanges();
-
-    component.ymlConfig = 'some yml text';
-    const createVcfJob = jest.spyOn(jobsServiceMock, 'createNonVcfJob');
-    component.onCreateClick();
-    expect(createVcfJob).toHaveBeenCalledWith(
-      mockFile,
-      null,
-      'some yml text',
-      'hg38',
-      '\t',
-      new Map([['chr', 'CHROM']])
-    );
-    expect(component.ymlConfig).toBe('');
-  });
-
-  it('should prevent default behavior if event and set file when csv file is dropped', () => {
+  it('should drop csv file and emit it to parent', () => {
+    const emitFileSpy = jest.spyOn(component.emitFile, 'emit');
     const mockFile = new File([], 'mockFile.csv');
     const mockDataTransfer = { files: [mockFile] } as unknown as DataTransfer;
     const mockEvent = { dataTransfer: mockDataTransfer, preventDefault: jest.fn() } as unknown as DragEvent;
@@ -265,9 +171,11 @@ describe('JobCreationComponent', () => {
     expect(mockEvent.preventDefault).toHaveBeenCalledWith();
     expect(component.file).toBe(mockFile);
     expect(component.uploadError).toBe('');
+    expect(emitFileSpy).toHaveBeenCalledWith(mockFile);
   });
 
-  it('should prevent default and set uploadError for unsupported format on drop', () => {
+  it('should drop file with unsupported format', () => {
+    const emitFileSpy = jest.spyOn(component.emitFile, 'emit');
     const mockFile = new File([], 'mockFile', { type: 'application/pdf' });
     const mockDataTransfer = { files: [mockFile] } as unknown as DataTransfer;
     const mockEvent = { dataTransfer: mockDataTransfer, preventDefault: jest.fn() } as unknown as DragEvent;
@@ -275,11 +183,12 @@ describe('JobCreationComponent', () => {
     component.onDropSuccess(mockEvent);
 
     expect(mockEvent.preventDefault).toHaveBeenCalledWith();
-    expect(component.file).toBe(mockFile);
+    expect(component.file).toStrictEqual(mockFile);
     expect(component.uploadError).toBe('Unsupported format!');
+    expect(emitFileSpy).not.toHaveBeenCalledWith();
   });
 
-  it('should prevent default and do nothing if no files are dropped', () => {
+  it('should do nothing if no files are dropped', () => {
     const mockDataTransfer = { files: [] } as unknown as DataTransfer;
     const mockEvent = { dataTransfer: mockDataTransfer, preventDefault: jest.fn() } as unknown as DragEvent;
 
@@ -292,7 +201,8 @@ describe('JobCreationComponent', () => {
     expect(component.uploadError).toBe('');
   });
 
-  it('should submit new separator', () => {
+  it('should submit new separator and emit it to parent', () => {
+    const emitFileSeparatorSpy = jest.spyOn(component.emitFileSeparator, 'emit');
     const submitSeparatorSpy = jest.spyOn(jobsServiceMock, 'submitSeparator');
 
     component.file = new File([], 'mockFile');
@@ -302,5 +212,16 @@ describe('JobCreationComponent', () => {
     expect(submitSeparatorSpy).toHaveBeenCalledWith(new File([], 'mockFile'), ',');
     expect(component.fileContent).toStrictEqual(new FileContent(',', ['chr', 'pos'], [['1', '123']]));
     expect(component.fileSeparator).toBe(',');
+    expect(emitFileSeparatorSpy).toHaveBeenCalledWith(',');
+  });
+
+  it('should get new file headers and emit them to parent component', () => {
+    const emitHeaderSpy = jest.spyOn(component.emitUpdatedFileHeader, 'emit');
+    component.getColumns(new Map([
+      ['pos', 'alternative']
+    ]));
+    expect(emitHeaderSpy).toHaveBeenCalledWith(new Map([
+      ['pos', 'alternative']
+    ]));
   });
 });

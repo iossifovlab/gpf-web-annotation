@@ -1,0 +1,38 @@
+#create-button {
+  padding: 10px 12px;
+  font-size: 16px;
+  white-space: nowrap;
+  border: none;
+  background: #435869;
+  border-radius: 10px;
+  color: white;
+  margin-right: 10px;
+}
+
+#create-button:hover {
+  background: #5b778c;
+  cursor: pointer;
+}
+
+#create-button:disabled {
+  opacity: 30%;
+}
+
+#create-button:disabled:hover {
+  cursor: auto;
+  background-color: #435869;
+}
+
+#cancel-button {
+  padding: 8px 10px;
+  font-size: 16px;
+  white-space: nowrap;
+  border: 1px solid #cfd8df;
+  background: #fff;
+  border-radius: 10px;
+}
+
+#cancel-button:hover {
+  background: #f4f7fb;
+  cursor: pointer;
+}

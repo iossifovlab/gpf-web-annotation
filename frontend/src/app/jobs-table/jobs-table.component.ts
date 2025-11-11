@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { JobCreationComponent } from '../job-creation/job-creation.component';
 import { MatDialog } from '@angular/material/dialog';
 import { JobsService } from '../job-creation/jobs.service';
 import { repeat, Subscription, take, takeWhile } from 'rxjs';
@@ -9,7 +8,7 @@ import { JobDetailsComponent } from '../job-details/job-details.component';
 
 @Component({
   selector: 'app-jobs-table',
-  imports: [CommonModule, JobCreationComponent],
+  imports: [CommonModule],
   templateUrl: './jobs-table.component.html',
   styleUrl: './jobs-table.component.css'
 })

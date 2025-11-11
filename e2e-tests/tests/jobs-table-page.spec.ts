@@ -194,13 +194,7 @@ test.describe('Job details tests', () => {
 
     await expect(page.locator('app-column-specifying')).toBeVisible();
     await page.locator('[id="POS-header"]').locator('mat-select').click();
-    await page.getByRole('option', { name: 'None', exact: true }).click();
-
-    await page.locator('[id="REF-header"]').locator('mat-select').click();
-    await page.getByRole('option', { name: 'None', exact: true }).click();
-
-    await page.locator('[id="ALT-header"]').locator('mat-select').click();
-    await page.getByRole('option', { name: 'None', exact: true }).click();
+    await page.getByRole('option', { name: 'vcf_like', exact: true }).click();
 
     await page.locator('#create-button').click();
     await waitForJobStatus(page, 'failed');
@@ -322,6 +316,7 @@ test.describe('Jobs table tests', () => {
   test('should upload csv file and specify columns', async({ page }) => {
     await page.getByLabel('pipeline/GPF-SFARI_annotation').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-csv-file.csv');
+    await page.waitForSelector('#table');
 
     await page.locator('#create-button').click();
     await waitForJobStatus(page, 'success');
@@ -464,22 +459,22 @@ test.describe('Validation tests', () => {
   //   await expect(page.getByText('Daily job limit reached!')).toBeVisible();
   // });
 
-  test('should expect job to fail if file with invalid separator is uploaded', async({ page }) => {
+  test('should expect error message file with invalid separator is uploaded', async({ page }) => {
     await page.getByLabel('pipeline/Autism_annotation').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/invalid-separator.csv');
     await page.locator('[id="CHROM+POS+REF+ALT-header"]').locator('mat-select').click();
     await page.getByRole('option', { name: 'chrom', exact: true }).click();
-    await page.locator('#create-button').click();
-    await waitForJobStatus(page, 'failed');
+    await expect(page.getByText('Specified set of columns cannot be used together!')).toBeVisible();
+    await expect(page.locator('#create-button')).toBeDisabled();
   });
 
-  test('should expect job to fail if file content is not separeted correctly', async({ page }) => {
+  test('should expect error message if file content is not separeted correctly', async({ page }) => {
     await page.getByLabel('pipeline/Autism_annotation').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/wrongly-separated-row.csv');
     await page.locator('[id="CHROM,POS,REF,ALT-header"]').locator('mat-select').click();
     await page.getByRole('option', { name: 'chrom', exact: true }).click();
-    await page.locator('#create-button').click();
-    await waitForJobStatus(page, 'failed');
+    await expect(page.getByText('Specified set of columns cannot be used together!')).toBeVisible();
+    await expect(page.locator('#create-button')).toBeDisabled();
   });
 
   test('should expect error message when no columns are specified', async({ page }) => {
@@ -497,6 +492,15 @@ test.describe('Validation tests', () => {
     await expect(page.getByText('Upload limit reached!')).toBeVisible();
   });
 });
+
+async function waitForColumns(page: Page): Promise<void> {
+  await expect(async() => {
+    await page.waitForRequest(
+      req => req.url().includes('/api/jobs/preview')
+    );
+    await expect(page.locator('#table')).toBeVisible();
+  }).toPass({intervals: [1000, 2000, 3000]});
+}
 
 async function waitForJobStatus(page: Page, status: string): Promise<void> {
   await expect(async() => {
