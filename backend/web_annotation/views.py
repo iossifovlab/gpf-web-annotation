@@ -5,7 +5,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, cast
 
-from dae.annotation.record_to_annotatable import build_record_to_annotatable
 import magic
 from dae.annotation.annotatable import VCFAllele
 from dae.annotation.annotation_config import (
@@ -13,16 +12,17 @@ from dae.annotation.annotation_config import (
     AnnotationConfigurationError,
     AttributeInfo,
 )
-from dae.annotation.gene_score_annotator import GeneScoreAnnotator
-from dae.annotation.score_annotator import GenomicScoreAnnotatorBase
 from dae.annotation.annotation_factory import (
     load_pipeline_from_grr,
     load_pipeline_from_yaml,
 )
 from dae.annotation.annotation_pipeline import AnnotationPipeline, Annotator
+from dae.annotation.gene_score_annotator import GeneScoreAnnotator
+from dae.annotation.record_to_annotatable import build_record_to_annotatable
+from dae.annotation.score_annotator import GenomicScoreAnnotatorBase
 from dae.gene_scores.gene_scores import (
-    build_gene_score_from_resource,
     _build_gene_score_help,
+    build_gene_score_from_resource,
 )
 from dae.genomic_resources.genomic_scores import build_score_from_resource
 from dae.genomic_resources.histogram import (
@@ -33,10 +33,8 @@ from dae.genomic_resources.histogram import (
 from dae.genomic_resources.implementations.annotation_pipeline_impl import (
     AnnotationPipelineImplementation,
 )
-from dae.genomic_resources.repository import \
-    GenomicResource, GenomicResourceRepo
-from dae.genomic_resources.repository_factory import \
-    build_genomic_resource_repository
+from dae.genomic_resources.repository import GenomicResource, GenomicResourceRepo
+from dae.genomic_resources.repository_factory import build_genomic_resource_repository
 from dae.genomic_scores.scores import _build_score_help
 from django import forms
 from django.conf import settings
@@ -61,11 +59,19 @@ from django.views.decorators.http import last_modified
 from pysam import VariantFile
 from rest_framework import generics, permissions, views
 from rest_framework.parsers import JSONParser, MultiPartParser
-from rest_framework.request import Request, QueryDict, MultiValueDict
+from rest_framework.request import MultiValueDict, QueryDict, Request
 from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle
 
 from web_annotation.annotate_helpers import columns_file_preview, extract_head
+from web_annotation.utils import (
+    PasswordForgottenForm,
+    ResetPasswordForm,
+    check_request_verification_path,
+    deauthenticate,
+    reset_password,
+    verify_user,
+)
 
 from .models import (
     AccountConfirmationCode,
@@ -78,21 +84,12 @@ from .models import (
 from .permissions import has_job_permission
 from .serializers import JobSerializer, UserSerializer
 from .tasks import (
-    annotate_vcf_job,
     annotate_columns_job,
+    annotate_vcf_job,
     get_job,
     get_job_details,
     specify_job,
 )
-from web_annotation.utils import (
-    PasswordForgottenForm,
-    ResetPasswordForm,
-    check_request_verification_path,
-    deauthenticate,
-    reset_password,
-    verify_user,
-)
-
 
 logger = logging.getLogger(__name__)
 
