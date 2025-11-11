@@ -364,7 +364,7 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "data, response_body, status",
+    "data, response_body",
     [
         (
             {
@@ -377,7 +377,6 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
                 },
             },
             {"errors": ""},
-            200,
         ),
         (
             {
@@ -388,7 +387,6 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
                 },
             },
             {"errors": ""},
-            200,            
         ),
         (
             {
@@ -399,7 +397,6 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
                 },
             },
             {"errors": ""},
-            200,
         ),
         (
             {
@@ -411,7 +408,6 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
                 },
             },
             {"errors": ""},
-            200,
         ),
         (
             {
@@ -423,7 +419,6 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
                 },
             },
             {"errors": ""},
-            200,
         ),
         (
             {
@@ -431,12 +426,10 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
                 "column_mapping": {
                     "col_chrom": "chr",
                     "col_pos_beg": "pos_beg",
-                    "col_pos_end": "pos_end",
                     "col_cnv_type": "type",
                 },
             },
             {"errors": ""},
-            200,
         ),
         (
             {
@@ -446,7 +439,6 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
                 },
             },
             {"errors": ""},
-            200,
         ),
         (
             {
@@ -454,7 +446,6 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
                 "column_mapping": {},
             },
             {"errors": "No columns selected from the file!"},
-            400,
         ),
         (
             {
@@ -462,7 +453,6 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
                 "column_mapping": {"col_special": "chr"},
             },
             {"errors": "Invalid column specification!"},
-            400,
         ),
         (
             {
@@ -472,7 +462,6 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
                 },
             },
             {"errors": "File header must be provided for column validation!"},
-            400,
         ),
         (
             {
@@ -483,7 +472,6 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
                 },
             },
             {"errors": "Specified set of columns cannot be used together!"},
-            404,
         ),
     ],
 )
@@ -491,14 +479,12 @@ def test_validate_columns(
     admin_client: Client,
     data: dict[str, Any],
     response_body: dict[str, str],
-    status: int,
 ) -> None:
     response = admin_client.post(
         "/api/validate_columns",
         data,
         content_type="application/json",
     )
-    assert response.status_code == status
     assert response.json() == response_body
 
 

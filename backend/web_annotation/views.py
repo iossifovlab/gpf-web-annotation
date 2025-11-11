@@ -891,20 +891,20 @@ class ColumnValidation(AnnotationBaseView):
         if not column_mapping or column_mapping == {}:
             return Response(
                 {"errors": "No columns selected from the file!"},
-                status=views.status.HTTP_400_BAD_REQUEST)
+                status=views.status.HTTP_200_OK)
         assert isinstance(column_mapping, dict)
 
         if not any(param in self.tool_columns for param in column_mapping):
             return Response(
                 {"errors": "Invalid column specification!"},
-                status=views.status.HTTP_400_BAD_REQUEST)
+                status=views.status.HTTP_200_OK)
 
         all_columns = data.get("file_columns")
         if not all_columns or all_columns == []:
             return Response(
                 {"errors": \
                         "File header must be provided for column validation!"},
-                status=views.status.HTTP_400_BAD_REQUEST)
+                status=views.status.HTTP_200_OK)
         assert isinstance(all_columns, list)
         all_columns = [str(col) for col in all_columns]
 
@@ -917,7 +917,7 @@ class ColumnValidation(AnnotationBaseView):
             logger.exception("Annotatable error.\n")
             return Response(
                 {"errors": "Specified set of columns cannot be used together!"},
-                status=views.status.HTTP_404_NOT_FOUND)
+                status=views.status.HTTP_200_OK)
 
         return Response({"errors": ""}, status=views.status.HTTP_200_OK)
 
