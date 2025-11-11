@@ -100,6 +100,7 @@ export class JobCreationComponent implements OnInit {
 
   public getColumns(mappedColumns: Map<string, string>): void {
     this.updatedFileHeader = mappedColumns;
+    this.disableCreate();
   }
 
   public submitNewSeparator(newSeparator: string): void {
@@ -190,6 +191,7 @@ export class JobCreationComponent implements OnInit {
   public disableCreate(): boolean {
     return !this.file
       || Boolean(this.uploadError)
+      || !this.updatedFileHeader
       || !this.isConfigValid
       || (this.view === 'text editor' ? !this.ymlConfig : !this.pipelineId);
   }

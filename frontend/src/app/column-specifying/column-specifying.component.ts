@@ -4,6 +4,8 @@ import { FileContent } from '../job-creation/jobs';
 import { TextShortenPipe } from '../text-shorten.pipe';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { JobsService } from '../job-creation/jobs.service';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'app-column-specifying',
@@ -30,7 +32,9 @@ export class ColumnSpecifyingComponent implements OnChanges {
   public mappedColumns = new Map<string, string>();
   public error = '';
 
-  public constructor() { }
+  public constructor(
+    private jobsService: JobsService,
+  ) { }
 
   public ngOnChanges(): void {
     this.selectDefaultNames();
@@ -41,14 +45,18 @@ export class ColumnSpecifyingComponent implements OnChanges {
     const newColumnName = this.getFileColumnNewName(column);
     if (selectedName === 'None' && newColumnName) {
       this.mappedColumns.delete(newColumnName);
-      this.emitColumns.emit(this.mappedColumns);
-      return;
     }
-    if (newColumnName) {
+    else if (newColumnName) {
       this.mappedColumns.delete(newColumnName);
+      this.mappedColumns.set(selectedName, column);
     }
-    this.mappedColumns.set(selectedName, column);
-    this.emitColumns.emit(this.mappedColumns);
+    else {
+      this.mappedColumns.set(selectedName, column);
+    }
+    this.validateColumns(
+      this.fileContent.columns,
+      this.mappedColumns,
+    )
   }
 
   public getFileColumnNewName(column: string): string {
@@ -58,6 +66,18 @@ export class ColumnSpecifyingComponent implements OnChanges {
       }
     }
     return null;
+  }
+
+  public validateColumns(
+    fileHeader: string[],
+    columnSpecification: Map<string, string>
+  ): void {
+    this.jobsService.validateColumnSpecification(fileHeader, columnSpecification).pipe(
+      take(1)
+    ).subscribe((errorReason: string) => {
+      this.error = errorReason;
+      this.emitColumns.emit(this.error === "" ? this.mappedColumns : null);
+    });
   }
 
   private selectDefaultNames(): void {

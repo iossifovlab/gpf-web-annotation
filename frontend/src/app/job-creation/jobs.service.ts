@@ -8,6 +8,7 @@ import { environment } from '../../../environments/environment';
 @Injectable()
 export class JobsService {
   private readonly validateJobConfigUrl = `${environment.apiPath}/jobs/validate`;
+  private readonly validateColumnsUrl = `${environment.apiPath}/validate_columns`;
   private readonly jobsUrl = `${environment.apiPath}/jobs`;
   private readonly jobPreviewUrl = `${environment.apiPath}/jobs/preview`;
   private readonly getPipelinesUrl = `${environment.apiPath}/pipelines`;
@@ -190,6 +191,58 @@ export class JobsService {
     return this.http.post(
       this.validateJobConfigUrl,
       {config: config},
+      options
+    ).pipe(
+      map((response: object) => {
+        return response['errors'] as string;
+      }),
+    );
+  }
+
+  public validateColumnSpecification(
+    fileHeader: string[],
+    columnSpecification: Map<string, string>,
+  ): Observable<string> {
+    const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
+    const columnsSpec = new Map<string, string>;
+
+    if (columnSpecification.get('chrom')) {
+      columnsSpec.set('col_chrom', columnSpecification.get('chrom'));
+    }
+    if (columnSpecification.get('pos')) {
+      columnsSpec.set('col_pos', columnSpecification.get('pos'));
+    }
+    if (columnSpecification.get('ref')) {
+      columnsSpec.set('col_ref', columnSpecification.get('ref'));
+    }
+    if (columnSpecification.get('alt')) {
+      columnsSpec.set('col_alt', columnSpecification.get('alt'));
+    }
+    if (columnSpecification.get('position_begin')) {
+      columnsSpec.set('col_pos_beg', columnSpecification.get('position_begin'));
+    }
+    if (columnSpecification.get('position_end')) {
+      columnsSpec.set('col_pos_end', columnSpecification.get('position_end'));
+    }
+    if (columnSpecification.get('cnv_type')) {
+      columnsSpec.set('col_cnv_type', columnSpecification.get('cnv_type'));
+    }
+    if (columnSpecification.get('vcf_like')) {
+      columnsSpec.set('col_vcf_like', columnSpecification.get('vcf_like'));
+    }
+    if (columnSpecification.get('variant')) {
+      columnsSpec.set('col_variant', columnSpecification.get('variant'));
+    }
+    if (columnSpecification.get('location')) {
+      columnsSpec.set('col_location', columnSpecification.get('location'));
+    }
+    
+    return this.http.post(
+      this.validateColumnsUrl,
+      {
+        file_columns: fileHeader,
+        column_mapping: Object.fromEntries(columnsSpec),
+      },
       options
     ).pipe(
       map((response: object) => {
