@@ -1,33 +1,3 @@
-#page-content {
-  margin: 60px 15%;
-  min-width: 715px;
-  max-width: 1600px;
-}
-
-#above-table {
-  display: flex;
-  justify-content: space-between;
-  align-items: end;
-}
-
-#add-job-button {
-  padding: 10px 12px;
-  font-size: 16px;
-  white-space: nowrap;
-  border: none;
-  background: #435869;
-  border-radius: 10px;
-  color: white;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-#add-job-button:hover {
-  background: #5b778c;
-  cursor: pointer;
-}
-
 #table-title {
   font-weight: bold;
   font-size: 16px;
@@ -37,9 +7,7 @@
 #grid-container {
   display: grid;
   width: max-content;
-  min-width: 715px;
-  max-width: 1600px;
-  grid-template-columns: repeat(7, minmax(105px, 10vw));
+  grid-template-columns: repeat(2, 150px);
   border: 1px solid #cfd8df;
   border-radius: 15px;
   margin-bottom: 5px;
@@ -47,20 +15,19 @@
 }
 
 .grid-header {
-  background-color: #ecf1f6;
+  background-color: #435869;
   min-height: 2rem;
   line-height: 3rem;
   text-align: center;
   font-weight: bold;
-  border-bottom: 1px solid #5b778c;
-  color: #252e34;
+  color: white;
 }
 
 .grid-header:first-child {
   border-top-left-radius: 15px;
 }
 
-.grid-header:nth-child(7) {
+.grid-header:nth-child(2) {
   border-top-right-radius: 15px;
 }
 
@@ -68,14 +35,9 @@
   border-top: 1px solid #cfd8df;
   display: flex;
   justify-content: center;
-  flex-direction: column;
   align-items: center;
   line-height: 2rem;
   padding: 8px 0 5px;
-}
-
-.first-cell {
-  flex-direction: row;
 }
 
 .info-icon {
@@ -89,19 +51,13 @@
   cursor: pointer;
 }
 
-.time-info {
-  color: #85a2b9;
-  display: flex;
-  flex-direction: column;
-}
-
-.time {
-  color: #c8dae7;
-}
-
 #delete-job {
   background: none;
   border: none;
+}
+
+.no-download-icon {
+  color: #cfd8df;
 }
 
 .download-icon,
@@ -125,4 +81,28 @@
   font-style: italic;
   color: #5b778c;
   margin-top: 5px;
+}
+
+.in-progress-status,
+.waiting-status,
+.success-status,
+.fail-status {
+  color: #435869;
+  border-color: inherit;
+}
+
+.in-progress-status {
+  background-color: #d3edff;
+}
+
+.waiting-status {
+  background-color: #fff5d6;
+}
+
+.success-status {
+  background-color: white;
+}
+
+.fail-status {
+  background-color: #ffedef;
 }

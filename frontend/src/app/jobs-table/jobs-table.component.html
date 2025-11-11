@@ -1,39 +1,17 @@
-<div id="page-content">
-  <div id="above-table">
-    <span id="table-title">Annotation jobs</span>
-  </div>
+<div>
   <div id="grid-container">
     <div class="grid-header">Job</div>
-    <div class="grid-header">Created</div>
-    <div class="grid-header">Started</div>
-    <div class="grid-header">Duration</div>
-    <div class="grid-header">Status</div>
-    <div class="grid-header">Annotated file</div>
-    <div class="grid-header">Delete</div>
+    <div class="grid-header">Actions</div>
 
     <ng-container *ngFor="let j of jobs">
-      <div class="grid-cell first-cell"
-        >{{ j.id
-        }}<span class="material-symbols-outlined info-icon" mat-button (click)="openDetailsModal(j.id)">info</span></div
+      <div class="grid-cell job-id" [ngClass]="getStatusClass(j.status)"
+        >{{ j.id }}<span class="material-symbols-outlined info-icon" (click)="openDetailsModal(j.id)">info</span></div
       >
-      <div class="grid-cell created time-info">
-        <span class="date">{{ j.created.toDateString() }}</span>
-        <span class="time">{{ j.created.toLocaleTimeString('en-US') }}</span>
-      </div>
-      <div class="grid-cell started time-info">-</div>
-      <div class="grid-cell duration time-info">
-        <ng-container *ngIf="j.duration">{{ j.duration * 1000 | date : 'HH:mm:ss' : 'UTC' }}</ng-container>
-        <ng-container *ngIf="!j.duration">-</ng-container>
-      </div>
-      <div class="grid-cell status">
-        <span class="status-label" [ngClass]="getStatusClass(j.status)">{{ j.status }}</span>
-      </div>
-      <div class="grid-cell download">
+      <div class="grid-cell actions" [ngClass]="getStatusClass(j.status)">
         <a *ngIf="j.status === 'success'" id="download-result" [href]="getDownloadLink(j.id)" download
           ><span class="material-symbols-outlined download-icon">download</span></a
         >
-      </div>
-      <div class="grid-cell delete">
+        <span *ngIf="j.status !== 'success'" class="material-symbols-outlined no-download-icon">file_download_off</span>
         <button id="delete-job" (click)="onDelete(j.id)"
           ><span class="material-symbols-outlined delete-icon">delete</span></button
         >

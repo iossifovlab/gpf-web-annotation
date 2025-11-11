@@ -3,6 +3,11 @@ import { expect, Page } from '@playwright/test';
 export const mailhogUrl = 'http://mail:8025';
 // export const mailhogUrl = 'http://localhost:8025';
 
+export const inProcessBackgroundColor = 'rgb(211, 237, 255)';
+export const failedBackgroundColor = 'rgb(255, 237, 239)';
+export const waitingBackgroundColor = 'rgb(255, 245, 214)';
+export const successBackgroundColor = 'rgb(255, 255, 255)';
+
 export function getRandomString(): string {
   return Math.random().toString(36).substring(2, 9);
 }

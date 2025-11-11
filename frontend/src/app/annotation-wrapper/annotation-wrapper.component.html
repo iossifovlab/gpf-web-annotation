@@ -1,14 +1,22 @@
-<app-annotation-pipeline
-  (emitPipelineId)="setPipeline($event)"
-  (emitConfig)="setConfig($event)"
-  (emitGenome)="setGenome($event)"
-  (emitView)="setView($event)"
-  (emitIsConfigValid)="setConfigValid($event)"></app-annotation-pipeline>
-<app-job-creation
-  (emitFile)="setFile($event)"
-  (emitFileSeparator)="setFileSeparator($event)"
-  (emitUpdatedFileHeader)="setUpdatedFileHeader($event)"></app-job-creation>
-<span class="error-message">{{ creationError }}</span>
-<button id="create-button" (click)="onCreateClick()" tabindex="1" [disabled]="disableCreate()">Create</button>
-<button id="cancel-button" (click)="onCancelClick()" tabindex="-1">Cancel</button>
-<app-jobs-table></app-jobs-table>
+<div id="wrapper-container">
+  <app-annotation-pipeline
+    (emitPipelineId)="setPipeline($event)"
+    (emitConfig)="setConfig($event)"
+    (emitGenome)="setGenome($event)"
+    (emitView)="setView($event)"
+    (emitIsConfigValid)="setConfigValid($event)"></app-annotation-pipeline>
+
+  <div>
+    <app-job-creation
+      (emitFile)="setFile($event)"
+      (emitFileSeparator)="setFileSeparator($event)"
+      (emitUpdatedFileHeader)="setUpdatedFileHeader($event)"></app-job-creation>
+    <div>
+      <span class="error-message">{{ creationError }}</span>
+      <button id="create-button" (click)="onCreateClick()" tabindex="1" [disabled]="disableCreate()">Create</button>
+      <button id="cancel-button" (click)="onCancelClick()" tabindex="-1">Cancel</button>
+    </div>
+  </div>
+
+  <app-jobs-table></app-jobs-table>
+</div>

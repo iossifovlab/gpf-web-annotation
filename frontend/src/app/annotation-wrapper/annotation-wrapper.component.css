@@ -1,3 +1,11 @@
+#wrapper-container {
+  display: flex;
+  gap: 100px;
+  margin: 60px 15%;
+  min-width: 715px;
+  max-width: 1600px;
+}
+
 #create-button {
   padding: 10px 12px;
   font-size: 16px;

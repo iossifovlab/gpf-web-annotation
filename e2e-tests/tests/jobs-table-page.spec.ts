@@ -87,9 +87,9 @@ test.describe('Job details tests', () => {
 
   test('should check job details of the first job', async({ page }) => {
     await createJobWithPipeline(page, 'pipeline/Autism_annotation', 'input-file-1.vcf');
-    await waitForJobStatus(page, 'in process');
+    await waitForJobStatus(page, utils.inProcessBackgroundColor);
 
-    await page.locator('.first-cell').getByText('info').nth(0).click();
+    await page.locator('.job-id').getByText('info').nth(0).click();
     await expect(page.locator('app-job-details')).toBeVisible();
     await expect(page.locator('app-job-details').locator('.id')).not.toBeEmpty();
     await expect(page.locator('app-job-details').locator('.date')).not.toBeEmpty();
@@ -105,9 +105,9 @@ test.describe('Job details tests', () => {
 
   test('should download uploaded file from job details modal', async({ page }) => {
     await createJobWithPipeline(page, 'pipeline/Autism_annotation', 'input-file-1.vcf');
-    await waitForJobStatus(page, 'success');
+    await waitForJobStatus(page, utils.successBackgroundColor);
 
-    await page.locator('.first-cell').getByText('info').nth(0).click();
+    await page.locator('.job-id').getByText('info').nth(0).click();
 
     const downloadPromise = page.waitForEvent('download');
     await page.locator('app-job-details').locator('#download-input').click();
@@ -122,9 +122,9 @@ test.describe('Job details tests', () => {
 
   test('should download config file of a job created with annotation pipeline', async({ page }) => {
     await createJobWithPipeline(page, 'pipeline/Autism_annotation', 'input-file-1.vcf');
-    await waitForJobStatus(page, 'success');
+    await waitForJobStatus(page, utils.successBackgroundColor);
 
-    await page.locator('.first-cell').getByText('info').nth(0).click();
+    await page.locator('.job-id').getByText('info').nth(0).click();
 
     const downloadPromise = page.waitForEvent('download');
     await page.locator('app-job-details').locator('#download-config').click();
@@ -146,9 +146,9 @@ test.describe('Job details tests', () => {
       resp => resp.url().includes('/api/jobs/annotate_vcf') && resp.status() === 204
     );
 
-    await waitForJobStatus(page, 'success');
+    await waitForJobStatus(page, utils.successBackgroundColor);
 
-    await page.locator('.first-cell').getByText('info').nth(0).click();
+    await page.locator('.job-id').getByText('info').nth(0).click();
 
     const downloadPromise = page.waitForEvent('download');
     await page.locator('app-job-details').locator('#download-config').click();
@@ -163,9 +163,9 @@ test.describe('Job details tests', () => {
 
   test('should download annotated file from job details modal', async({ page }) => {
     await createJobWithPipeline(page, 'pipeline/Autism_annotation', 'input-file-1.vcf');
-    await waitForJobStatus(page, 'success');
+    await waitForJobStatus(page, utils.successBackgroundColor);
 
-    await page.locator('.first-cell').getByText('info').nth(0).click();
+    await page.locator('.job-id').getByText('info').nth(0).click();
 
     const downloadPromise = page.waitForEvent('download');
     await page.locator('app-job-details').locator('#download-annotated').click();
@@ -180,12 +180,12 @@ test.describe('Job details tests', () => {
 
   test('should delete job from job details modal', async({ page }) => {
     await createJobWithPipeline(page, 'pipeline/Autism_annotation', 'input-file-1.vcf');
-    await waitForJobStatus(page, 'success');
+    await waitForJobStatus(page, utils.successBackgroundColor);
 
-    await page.locator('.first-cell').getByText('info').nth(0).click();
+    await page.locator('.job-id').getByText('info').nth(0).click();
     await page.locator('app-job-details').locator('#delete-button').click();
     await expect(page.locator('app-job-details')).not.toBeVisible();
-    await expect(page.locator('.first-cell')).not.toBeVisible();
+    await expect(page.locator('.job-id')).not.toBeVisible();
   });
 
   test('should check job details modal of failed job', async({ page }) => {
@@ -197,9 +197,9 @@ test.describe('Job details tests', () => {
     await page.getByRole('option', { name: 'vcf_like', exact: true }).click();
 
     await page.locator('#create-button').click();
-    await waitForJobStatus(page, 'failed');
+    await waitForJobStatus(page, utils.failedBackgroundColor);
 
-    await page.locator('.first-cell').getByText('info').nth(0).click();
+    await page.locator('.job-id').getByText('info').nth(0).click();
     await expect(page.locator('app-job-details').locator('.status-label')).toHaveText('failed');
     await expect(page.locator('app-job-details').locator('#download-input')).toBeVisible();
     await expect(page.locator('app-job-details').locator('#download-config')).toBeVisible();
@@ -221,24 +221,20 @@ test.describe('Jobs table tests', () => {
 
   test('should create job and check first row', async({ page }) => {
     await createJobWithPipeline(page, 'pipeline/GPF-SFARI_annotation', 'input-file-1.vcf');
-    await waitForJobStatus(page, 'in process');
+    await waitForJobStatus(page, utils.inProcessBackgroundColor);
 
-    await expect(page.locator('.first-cell').nth(0)).not.toBeEmpty();
-    await expect(page.locator('.date').nth(0)).not.toBeEmpty();
-    await expect(page.locator('.time').nth(0)).not.toBeEmpty();
-    await expect(page.locator('.time-info').nth(1)).not.toBeEmpty();
-    await expect(page.locator('.time-info').nth(2)).not.toBeEmpty();
-    await expect(page.locator('.delete').nth(0)).not.toBeEmpty();
+    await expect(page.locator('.job-id').nth(0)).not.toBeEmpty();
+    await expect(page.locator('.actions').nth(0)).not.toBeEmpty();
 
-    await waitForJobStatus(page, 'success');
+    await waitForJobStatus(page, utils.successBackgroundColor);
   });
 
   test('should check if download button is visible when annotation is success', async({ page }) => {
     await createJobWithPipeline(page, 'pipeline/GPF-SFARI_annotation', 'input-file-1.vcf');
-    await waitForJobStatus(page, 'success');
+    await waitForJobStatus(page, utils.successBackgroundColor);
 
     const downloadPromise = page.waitForEvent('download');
-    await page.locator('.download').nth(0).click();
+    await page.locator('.download-icon').nth(0).click();
     const downloadedFile = await downloadPromise;
 
     const fixtureData = scanCSV(await downloadedFile.path(), {truncateRaggedLines: true});
@@ -248,22 +244,21 @@ test.describe('Jobs table tests', () => {
     expect(fixtureFrame.toString()).toEqual(downloadFrame.toString());
   });
 
-  test('should check if download button is not visible when job is not finished', async({ page }) => {
+  test('should check if download button is not available when job is not finished', async({ page }) => {
     await createJobWithPipeline(page, 'pipeline/GPF-SFARI_annotation', 'input-file-1.vcf');
-    await waitForJobStatus(page, 'in process');
+    await waitForJobStatus(page, utils.inProcessBackgroundColor);
 
-    await expect(page.locator('.status-label').nth(0)).toBeVisible();
-    await expect(page.locator('.download').nth(0)).toBeEmpty();
+    await expect(page.locator('.no-download-icon').nth(0)).toBeVisible();
   });
 
   test('should create job and then delete it', async({ page }) => {
     await createJobWithPipeline(page, 'pipeline/GPF-SFARI_annotation', 'input-file-1.vcf');
-    await waitForJobStatus(page, 'success');
+    await waitForJobStatus(page, utils.successBackgroundColor);
 
-    const lastJobId = await page.locator('.first-cell').evaluate(el => el.textContent);
+    const lastJobId = await page.locator('.job-id').evaluate(el => el.textContent);
     await expect(page.getByText(lastJobId)).toBeVisible();
 
-    await page.locator('.delete').nth(0).click();
+    await page.locator('.delete-icon').nth(0).click();
     await expect(page.getByText(lastJobId)).not.toBeVisible();
   });
 
@@ -306,11 +301,11 @@ test.describe('Jobs table tests', () => {
     await expect(page.locator('app-column-specifying')).toBeVisible();
 
     await page.locator('#create-button').click();
-    await waitForJobStatus(page, 'in process');
+    await waitForJobStatus(page, utils.inProcessBackgroundColor);
 
     await expect(page.locator('.download').nth(0)).toBeEmpty();
 
-    await waitForJobStatus(page, 'success');
+    await waitForJobStatus(page, utils.successBackgroundColor);
   });
 
   test('should upload csv file and specify columns', async({ page }) => {
@@ -319,7 +314,7 @@ test.describe('Jobs table tests', () => {
     await page.waitForSelector('#table');
 
     await page.locator('#create-button').click();
-    await waitForJobStatus(page, 'success');
+    await waitForJobStatus(page, utils.successBackgroundColor);
   });
 
   test('should show error message when specifying bad combination of columns', async({ page }) => {
@@ -493,20 +488,11 @@ test.describe('Validation tests', () => {
   });
 });
 
-async function waitForColumns(page: Page): Promise<void> {
-  await expect(async() => {
-    await page.waitForRequest(
-      req => req.url().includes('/api/jobs/preview')
-    );
-    await expect(page.locator('#table')).toBeVisible();
-  }).toPass({intervals: [1000, 2000, 3000]});
-}
-
-async function waitForJobStatus(page: Page, status: string): Promise<void> {
+async function waitForJobStatus(page: Page, color: string): Promise<void> {
   await expect(async() => {
     await page.reload();
     await page.goto('/jobs', {waitUntil: 'load'});
-    await expect(page.locator('.status').nth(0)).toHaveText(status, {timeout: 3000});
+    await expect(page.locator('.grid-cell').nth(0)).toHaveCSS('background-color', color);
   }).toPass({intervals: [1000, 2000, 3000]});
 }
 
