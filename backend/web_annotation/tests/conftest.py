@@ -77,6 +77,7 @@ def setup_test_db(
         "test-user",
         "user@example.com",
         "secret",
+        id=1,
     )
     user.save()
     user_input = tmp_path / "user-input.vcf"
@@ -92,12 +93,14 @@ def setup_test_db(
         owner=user,
         duration=1.0,
         command_line="annotate_vcf mock command line",
+        id=1
     ).save()
 
     admin = User.objects.create_superuser(
         "test-admin",
         "admin@example.com",
         "secret",
+        id=2,
     )
     admin.save()
     admin_input = tmp_path / "admin-input.vcf"
@@ -113,6 +116,7 @@ def setup_test_db(
         owner=admin,
         duration=1.0,
         command_line="annotate_vcf mock command line",
+        id=2
     ).save()
 
 

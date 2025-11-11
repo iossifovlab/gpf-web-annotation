@@ -851,6 +851,8 @@ class AnnotateVCF(AnnotationBaseView):
                 return
             update_job_success(job, args)
 
+        args = ["annotate_vcf", *args]
+
         future.add_done_callback(on_task_done)
 
         return Response(status=views.status.HTTP_204_NO_CONTENT)
@@ -925,6 +927,38 @@ class AnnotateColumns(AnnotationBaseView):
         except BrokenExecutor:
             logger.exception("Thread pool executor broken")
         assert future is not None
+
+        args = ["annotate_columns", *args]
+
+        update_job_in_progress(job)
+
+        def on_task_done(future: Future) -> None:
+            """Callback when annotation is done."""
+            job.duration = time.time() - start_time
+            exception = future.exception()
+            if exception is not None:
+                reason = (
+                    f"Unexpected error, {type(exception)}\n"
+                    f"{str(exception)}"
+                )
+                if isinstance(exception, CalledProcessError):
+                    reason = (
+                        "annotate_vcf failed internally:\n"
+                        f"{exception.stderr}"
+                    )
+                if isinstance(
+                    exception, (OSError, TypeError, ValueError),
+                ):
+                    reason = (
+                        "Failed to execute annotate_vcf\n"
+                        f"{str(exception)}"
+                    )
+                logger.error("VCF annotation job failed!\n%s", reason)
+                update_job_failed(job, args)
+                return
+            update_job_success(job, args)
+
+        future.add_done_callback(on_task_done)
 
         return Response(status=views.status.HTTP_204_NO_CONTENT)
 
