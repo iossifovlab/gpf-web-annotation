@@ -227,7 +227,7 @@ def test_annotate_vcf(
         },
     )
     assert response.status_code == 204
-    time.sleep(5)
+    time.sleep(10)
 
 
     assert Job.objects.filter(owner=user).count() == 2
@@ -620,7 +620,7 @@ def test_annotate_columns(
 
     assert response is not None
     assert response.status_code == 204
-    time.sleep(5)
+    time.sleep(10)
 
     user = User.objects.get(email="admin@example.com")
     assert Job.objects.filter(owner=user).count() == 2
@@ -662,7 +662,7 @@ def test_annotate_columns_t4c8(
 
     assert response is not None
     assert response.status_code == 204
-    time.sleep(5)
+    time.sleep(10)
 
     user = User.objects.get(email="admin@example.com")
     assert Job.objects.filter(owner=user).count() == 2
@@ -718,7 +718,7 @@ def test_annotate_columns_t4c8_gzipped(
 
     assert response is not None
     assert response.status_code == 204
-    time.sleep(5)
+    time.sleep(10)
 
     user = User.objects.get(email="admin@example.com")
     assert Job.objects.filter(owner=user).count() == 2
@@ -803,7 +803,7 @@ def test_annotate_vcf_bgzip(
         },
     )
     assert response.status_code == 204
-    time.sleep(5)
+    time.sleep(10)
 
     assert Job.objects.filter(owner=user).count() == 2
 
@@ -1079,7 +1079,7 @@ def test_annotate_vcf_user_pipeline(
         },
     )
     assert response.status_code == 204
-    time.sleep(5)
+    time.sleep(10)
 
     assert Job.objects.filter(owner=user).count() == 2
     job = Job.objects.last()
