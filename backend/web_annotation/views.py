@@ -851,7 +851,7 @@ class AnnotateVCF(AnnotationBaseView):
                 return
             update_job_success(job, args)
 
-        # future.add_done_callback(on_task_done)
+        future.add_done_callback(on_task_done)
 
         return Response(status=views.status.HTTP_204_NO_CONTENT)
 

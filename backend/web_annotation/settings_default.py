@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import os
 import pathlib
+from typing import Any
 from dae.genomic_resources.repository_factory import \
     get_default_grr_definition_path
 
@@ -117,7 +118,7 @@ WSGI_APPLICATION = 'web_annotation.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 if os.environ.get("GPFWA_DB_HOST"):
-    DATABASES = {
+    DATABASES: dict[str, Any] = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
             "NAME": os.environ.get("GPFWA_DB_NAME"),

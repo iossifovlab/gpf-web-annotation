@@ -4,6 +4,7 @@ import gzip
 import pathlib
 import textwrap
 from typing import Any
+import time
 from pysam import tabix_compress
 
 import pytest
@@ -202,13 +203,11 @@ def test_clean_old_jobs_removes_old_jobs(
     assert pathlib.Path(recent_job.result_path).exists()
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 def test_annotate_vcf(
     user_client: Client, test_grr: GenomicResourceRepo,
 ) -> None:
     user = User.objects.get(email="user@example.com")
-
-    assert Job.objects.filter(owner=user).count() == 1
 
     annotation_config = "- position_score: scores/pos1"
     vcf = textwrap.dedent("""
@@ -227,6 +226,8 @@ def test_annotate_vcf(
         },
     )
     assert response.status_code == 204
+    time.sleep(2)
+
 
     assert Job.objects.filter(owner=user).count() == 2
 

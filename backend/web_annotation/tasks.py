@@ -1,8 +1,6 @@
 """Web annotation celery tasks"""
 import logging
-import time
 from datetime import timedelta
-from subprocess import CalledProcessError
 from typing import Any
 
 from celery import shared_task
@@ -117,7 +115,6 @@ def update_job_success(job: Job, args: list[str]) -> None:
     job.status = Job.Status.SUCCESS
     job.command_line = " ".join(args)
     job.save()
-
     # pylint: disable=import-outside-toplevel
     from django.conf import settings
     send_email.delay(
