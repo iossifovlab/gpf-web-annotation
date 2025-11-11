@@ -455,7 +455,7 @@ def test_validate_columns(
     assert response.json() == response_body
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 @pytest.mark.parametrize(
     "input_file, separator, specification, expected_lines, file_extension",
     [
