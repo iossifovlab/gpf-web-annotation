@@ -221,7 +221,6 @@ def test_annotate_vcf(
     response = user_client.post(
         "/api/jobs/annotate_vcf",
         {
-            "genome": "hg38",
             "config": ContentFile(annotation_config),
             "data": ContentFile(vcf, "test_input.vcf")
         },
@@ -277,7 +276,6 @@ def test_annotate_vcf_bad_config(user_client: Client) -> None:
     response = user_client.post(
         "/api/jobs/annotate_vcf",
         {
-            "genome": "hg38",
             "config": ContentFile(raw_img),
             "data": ContentFile(vcf)
         },
@@ -301,7 +299,6 @@ def test_annotate_vcf_bad_input_data(user_client: Client) -> None:
     response = user_client.post(
         "/api/jobs/annotate_vcf",
         {
-            "genome": "hg38",
             "config": ContentFile("- sample_annotator: sample_resource"),
             "data": ContentFile(raw_img)
          },
@@ -320,7 +317,6 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
     response = user_client.post(
         "/api/jobs/annotate_vcf",
         {
-            "genome": "hg38",
             "config": ContentFile("sample_annotator: sample_resource"),
             "data": ContentFile("blabla random text")
          },
@@ -608,13 +604,14 @@ def test_annotate_columns(
     file = input_file.strip()
 
     params = {
-        "genome": "hg38",
         "config": ContentFile(annotation_config),
         "data": ContentFile(file, "test_input.tsv"),
         **specification,
     }
     if separator is not None:
         params["separator"] = separator
+    if "col_variant" in specification or "col_location" in specification:
+        params["genome"] = "hg38"
 
     response = admin_client.post("/api/jobs/annotate_columns", params)
 
@@ -760,7 +757,6 @@ def test_annotate_vcf_gzip_fails(
     response = user_client.post(
         "/api/jobs/annotate_vcf",
         {
-            "genome": "hg38",
             "config": ContentFile(annotation_config),
             "data": ContentFile(vcf, "test_input.vcf.gz")
         },
@@ -797,7 +793,6 @@ def test_annotate_vcf_bgzip(
     response = user_client.post(
         "/api/jobs/annotate_vcf",
         {
-            "genome": "hg38",
             "config": ContentFile(annotation_config),
             "data": ContentFile(vcf, "test_input.vcf.gz")
         },
@@ -849,7 +844,6 @@ def test_annotate_columns_bad_request(admin_client: Client) -> None:
     response = admin_client.post(
         "/api/jobs/annotate_columns",
         {
-            "genome": "hg38",
             "config": ContentFile(annotation_config),
             "data": ContentFile(input_file)
         },
@@ -1073,7 +1067,6 @@ def test_annotate_vcf_user_pipeline(
     response = user_client.post(
         "/api/jobs/annotate_vcf",
         {
-            "genome": "hg38",
             "pipeline": "test-user-pipeline",
             "data": ContentFile(vcf, "test_input.vcf")
         },

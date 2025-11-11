@@ -173,9 +173,11 @@ def get_args_columns(
     args = [
         str(job.input_path),
         str(job.config_path),
-        "--reference-genome-resource-id", str(job.reference_genome),
     ]
 
+    if str(job.reference_genome) != "":
+        args.extend(
+            ["--reference-genome-resource-id", str(job.reference_genome)])
     if details.col_chr:
         args.extend(["--col-chrom", details.col_chr])
     if details.col_pos:

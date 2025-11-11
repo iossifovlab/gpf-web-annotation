@@ -342,8 +342,8 @@ class AnnotationBaseView(views.APIView):
     def get_genome(self, data: QueryDict) -> str:
         """Get genome from a request."""
         genome = data.get("genome")
-        assert genome is not None
-
+        if genome is None:
+            return ""
         genome_definition = settings.GENOME_DEFINITIONS.get(genome)
         assert genome_definition is not None
         reference_genome = genome_definition.get("reference_genome_id")
@@ -438,13 +438,8 @@ class AnnotationBaseView(views.APIView):
         assert isinstance(request.FILES, MultiValueDict)
 
         genome = request.data.get("genome")
-        if not genome:
-            return Response(
-                {"reason": "Reference genome not specified!"},
-                status=views.status.HTTP_400_BAD_REQUEST,
-            )
 
-        if genome not in settings.GENOME_DEFINITIONS:
+        if genome and genome not in settings.GENOME_DEFINITIONS:
             return Response(
                 {"reason": f"Genome {genome} is not a valid option!"},
                 status=views.status.HTTP_404_NOT_FOUND,
