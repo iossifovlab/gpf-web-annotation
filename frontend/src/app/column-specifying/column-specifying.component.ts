@@ -5,7 +5,7 @@ import { TextShortenPipe } from '../text-shorten.pipe';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { JobsService } from '../job-creation/jobs.service';
-import { take } from 'rxjs';
+import { Subscription, take } from 'rxjs';
 
 @Component({
   selector: 'app-column-specifying',
@@ -31,6 +31,7 @@ export class ColumnSpecifyingComponent implements OnChanges {
   @Output() public emitColumns = new EventEmitter<Map<string, string>>();
   public mappedColumns = new Map<string, string>();
   public error = '';
+  public validationSubscription = new Subscription();
 
   public constructor(
     private jobsService: JobsService,
@@ -70,7 +71,8 @@ export class ColumnSpecifyingComponent implements OnChanges {
     fileHeader: string[],
     columnSpecification: Map<string, string>
   ): void {
-    this.jobsService.validateColumnSpecification(fileHeader, columnSpecification).pipe(
+    this.validationSubscription.unsubscribe();
+    this.validationSubscription = this.jobsService.validateColumnSpecification(fileHeader, columnSpecification).pipe(
       take(1)
     ).subscribe((errorReason: string) => {
       this.error = errorReason;
