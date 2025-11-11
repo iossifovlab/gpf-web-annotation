@@ -236,12 +236,13 @@ export class JobsService {
     if (columnSpecification.get('location')) {
       columnsSpec.set('col_location', columnSpecification.get('location'));
     }
-    
     return this.http.post(
       this.validateColumnsUrl,
       {
+        /* eslint-disable */
         file_columns: fileHeader,
         column_mapping: Object.fromEntries(columnsSpec),
+        /* eslint-enable */
       },
       options
     ).pipe(

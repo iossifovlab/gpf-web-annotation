@@ -45,18 +45,16 @@ export class ColumnSpecifyingComponent implements OnChanges {
     const newColumnName = this.getFileColumnNewName(column);
     if (selectedName === 'None' && newColumnName) {
       this.mappedColumns.delete(newColumnName);
-    }
-    else if (newColumnName) {
+    } else if (newColumnName) {
       this.mappedColumns.delete(newColumnName);
       this.mappedColumns.set(selectedName, column);
-    }
-    else {
+    } else {
       this.mappedColumns.set(selectedName, column);
     }
     this.validateColumns(
       this.fileContent.columns,
       this.mappedColumns,
-    )
+    );
   }
 
   public getFileColumnNewName(column: string): string {
@@ -76,7 +74,7 @@ export class ColumnSpecifyingComponent implements OnChanges {
       take(1)
     ).subscribe((errorReason: string) => {
       this.error = errorReason;
-      this.emitColumns.emit(this.error === "" ? this.mappedColumns : null);
+      this.emitColumns.emit(this.error === '' ? this.mappedColumns : null);
     });
   }
 

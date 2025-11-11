@@ -4,6 +4,7 @@ import { MatDialogRef } from '@angular/material/dialog';
 import { FileContent } from '../job-creation/jobs';
 import { JobsService } from '../job-creation/jobs.service';
 import { provideHttpClient } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
 
 const mockContent = new FileContent(
   ',',
@@ -19,17 +20,28 @@ class MatDialogRefMock {
   public close(value: boolean): void { }
 }
 
+class JobsServiceMock {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public validateColumnSpecification(
+    fileHeader: string[],
+    columnSpecification: Map<string, string>,
+  ): Observable<string>  {
+    return of('');
+  }
+}
+
 describe('ColumnSpecifyingComponent', () => {
   let component: ColumnSpecifyingComponent;
   let fixture: ComponentFixture<ColumnSpecifyingComponent>;
   const mockMatDialogRef = new MatDialogRefMock();
+  const jobServiceMock = new JobsServiceMock();
 
   beforeEach(async() => {
     await TestBed.configureTestingModule({
       imports: [ColumnSpecifyingComponent],
       providers: [
         { provide: MatDialogRef, useValue: mockMatDialogRef },
-        JobsService,
+        { provide: JobsService, useValue: jobServiceMock },
         provideHttpClient(),
       ]
     }).compileComponents();
