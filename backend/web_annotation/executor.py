@@ -1,6 +1,7 @@
 import abc
 import logging
 import threading
+import time
 from collections.abc import Callable
 from concurrent.futures import Future, ThreadPoolExecutor
 from typing import Any
@@ -60,7 +61,8 @@ class ThreadedTaskExecutor(TaskExecutor):
         self._lock = threading.Lock()
 
     def size(self) -> int:
-        return len(self._futures)
+        with self._lock:
+            return len(self._futures)
 
     def _callback_wrapper(
         self,
@@ -78,7 +80,9 @@ class ThreadedTaskExecutor(TaskExecutor):
             logger.debug("Task completed with result: %s", result)
             if callback_success is not None:
                 callback_success(result)
-        self._futures.remove(future)
+        with self._lock:
+            self._futures.remove(future)
+            logger.debug("Remaining tasks: %d", len(self._futures))
 
     def execute(
         self, fn: Callable, *args: Any,
@@ -86,23 +90,32 @@ class ThreadedTaskExecutor(TaskExecutor):
         callback_failure: Callable[[BaseException], None] | None = None,
         **kwargs: Any,
     ) -> None:
+        future = self._executor.submit(fn, *args, **kwargs)
         with self._lock:
-            future = self._executor.submit(fn, *args, **kwargs)
             self._futures.append(future)
-            def wrapper(fut: Future) -> None:
-                self._callback_wrapper(
-                    fut,
-                    callback_success=callback_success,
-                    callback_failure=callback_failure,
-                )
-            future.add_done_callback(wrapper)
+        def wrapper(fut: Future) -> None:
+            self._callback_wrapper(
+                fut,
+                callback_success=callback_success,
+                callback_failure=callback_failure,
+            )
+        future.add_done_callback(wrapper)
 
     def wait_all(self, timeout: float) -> None:
-        for future in self._futures:
-            future.result(timeout=timeout)
+        start = time.time()
+        elapsed = 0.0
+        while self.size() > 0:
+            with self._lock:
+                if not self._futures:
+                    return
+                future = self._futures[0]
+            future.result(timeout=timeout - elapsed)
+            elapsed = time.time() - start
+            if elapsed >= timeout:
+                return
+
 
     def shutdown(self) -> None:
-        for future in self._futures:
-            future.cancel()
-        self._executor.shutdown(wait=True)
-        self._futures.clear()
+        self._executor.shutdown(wait=True, cancel_futures=True)
+        with self._lock:
+            self._futures.clear()
