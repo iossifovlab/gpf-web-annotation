@@ -225,7 +225,7 @@ def test_annotate_vcf(
             "data": ContentFile(vcf, "test_input.vcf")
         },
     )
-    assert response.status_code == 204
+    assert response.status_code == 200
     time.sleep(5)
 
 
@@ -616,7 +616,7 @@ def test_annotate_columns(
     response = admin_client.post("/api/jobs/annotate_columns", params)
 
     assert response is not None
-    assert response.status_code == 204
+    assert response.status_code == 200
     time.sleep(5)
 
     user = User.objects.get(email="admin@example.com")
@@ -658,7 +658,7 @@ def test_annotate_columns_t4c8(
     response = admin_client.post("/api/jobs/annotate_columns", params)
 
     assert response is not None
-    assert response.status_code == 204
+    assert response.status_code == 200
     time.sleep(5)
 
     user = User.objects.get(email="admin@example.com")
@@ -714,7 +714,7 @@ def test_annotate_columns_t4c8_gzipped(
     response = admin_client.post("/api/jobs/annotate_columns", params)
 
     assert response is not None
-    assert response.status_code == 204
+    assert response.status_code == 200
     time.sleep(5)
 
     user = User.objects.get(email="admin@example.com")
@@ -797,7 +797,7 @@ def test_annotate_vcf_bgzip(
             "data": ContentFile(vcf, "test_input.vcf.gz")
         },
     )
-    assert response.status_code == 204
+    assert response.status_code == 200
     time.sleep(5)
 
     assert Job.objects.filter(owner=user).count() == 2
@@ -1071,7 +1071,7 @@ def test_annotate_vcf_user_pipeline(
             "data": ContentFile(vcf, "test_input.vcf")
         },
     )
-    assert response.status_code == 204
+    assert response.status_code == 200
     time.sleep(5)
 
     assert Job.objects.filter(owner=user).count() == 2

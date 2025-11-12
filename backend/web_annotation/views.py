@@ -855,7 +855,7 @@ class AnnotateVCF(AnnotationBaseView):
 
         future.add_done_callback(on_task_done)
 
-        return Response(status=views.status.HTTP_204_NO_CONTENT)
+        return Response({"job_id": job.pk}, status=views.status.HTTP_200_OK)
 
 
 class AnnotateColumns(AnnotationBaseView):
@@ -960,7 +960,7 @@ class AnnotateColumns(AnnotationBaseView):
 
         future.add_done_callback(on_task_done)
 
-        return Response(status=views.status.HTTP_204_NO_CONTENT)
+        return Response({"job_id": job.pk}, status=views.status.HTTP_200_OK)
 
 
 class ColumnValidation(AnnotationBaseView):

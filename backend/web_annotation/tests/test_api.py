@@ -117,14 +117,17 @@ def test_annotate_columns_job_details(user_client: Client) -> None:
         "separator": ",",
     }
 
-    response = user_client.post("/api/jobs/annotate_columns", params)
+    annotate_response = user_client.post("/api/jobs/annotate_columns", params)
 
-    assert response.status_code == 204
+    create_job_result = annotate_response.json()
+    assert create_job_result["job_id"] == 3
+    assert annotate_response.status_code == 200
+    job_id = create_job_result["job_id"]
 
-    response = user_client.get("/api/jobs/3")
-    assert response.status_code == 200
+    details_response = user_client.get(f"/api/jobs/{job_id}")
+    assert details_response.status_code == 200
 
-    result = response.json()
+    result = details_response.json()
     assert "created" in result
     created = datetime.datetime.fromisoformat(result["created"])
     now = datetime.datetime.now(datetime.timezone.utc)
@@ -242,7 +245,7 @@ def test_daily_user_quota(
             "data": ContentFile(vcf)
         },
     )
-    assert response.status_code == 204
+    assert response.status_code == 200
 
     response = user_client.post(
         "/api/jobs/annotate_vcf",
@@ -294,7 +297,7 @@ def test_daily_admin_quota(
             "data": ContentFile(vcf)
         },
     )
-    assert response.status_code == 204
+    assert response.status_code == 200
 
     response = admin_client.post(
         "/api/jobs/annotate_vcf",
@@ -305,7 +308,7 @@ def test_daily_admin_quota(
          },
     )
 
-    assert response.status_code == 204
+    assert response.status_code == 200
 
 
 @pytest.mark.django_db
@@ -373,7 +376,7 @@ def test_filesize_limit_admin(
             "data": ContentFile(vcf)
         },
     )
-    assert response.status_code == 204
+    assert response.status_code == 200
 
 
 @pytest.mark.django_db
@@ -443,7 +446,7 @@ def test_variant_limit_admin(
             "data": ContentFile(vcf)
         },
     )
-    assert response.status_code == 204
+    assert response.status_code == 200
 
 
 @pytest.mark.django_db
