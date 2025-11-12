@@ -31,7 +31,7 @@
   background-color: #435869;
 }
 
-#cancel-button {
+#reset-button {
   padding: 8px 10px;
   font-size: 16px;
   white-space: nowrap;
@@ -40,7 +40,7 @@
   border-radius: 10px;
 }
 
-#cancel-button:hover {
+#reset-button:hover {
   background: #f4f7fb;
   cursor: pointer;
 }
@@ -103,4 +103,15 @@
 
 #result {
   margin-top: 40px;
+}
+
+#current-job-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#new-job-section {
+  border-top: 1px solid #dde4e8;
+  margin-top: 10px;
 }

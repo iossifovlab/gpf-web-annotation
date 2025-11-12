@@ -17,16 +17,6 @@
   justify-content: end;
 }
 
-.download-icon {
-  color: #435869;
-  vertical-align: middle;
-}
-
-.download-icon:hover {
-  color: #85a2b9;
-  cursor: pointer;
-}
-
 .label {
   color: #b9d3e7;
   font-weight: bold;

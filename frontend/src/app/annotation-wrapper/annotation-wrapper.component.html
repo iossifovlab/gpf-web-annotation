@@ -23,15 +23,27 @@
             <button id="create-button" (click)="onCreateClick()" tabindex="1" [disabled]="disableCreate()"
               >Create</button
             >
-            <button id="cancel-button" (click)="onCancelClick()" tabindex="-1">Cancel</button>
+            <button id="reset-button" (click)="onResetClick()" tabindex="-1">Reset</button>
           </div>
         </div>
       </div>
 
       <div *ngIf="!isCreationFormVisible" id="result">
-        <button id="new-job-button" (click)="showCreateMode()"
-          ><span class="material-symbols-outlined">add</span>new job</button
-        >
+        <div id="current-job-info">
+          <span class="status-label" [ngClass]="getStatusClass()">{{ createdJobStatus }}</span>
+          <ng-container *ngIf="createdJobStatus === 'success'">
+            <span>{{ annotatedFileName }}</span>
+            <a *ngIf="createdJobStatus === 'success'" id="download-result" [href]="downloadLink" download
+              ><span class="material-symbols-outlined download-icon">download</span></a
+            >
+          </ng-container>
+        </div>
+
+        <div *ngIf="isJobFinished(createdJobStatus)" id="new-job-section">
+          <button id="new-job-button" (click)="showCreateMode()"
+            ><span class="material-symbols-outlined">add</span>new job</button
+          >
+        </div>
       </div>
     </div>
   </div>

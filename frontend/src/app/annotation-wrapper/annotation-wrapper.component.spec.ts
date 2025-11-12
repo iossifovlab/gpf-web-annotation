@@ -28,8 +28,8 @@ const mockPipelines = [
 ];
 
 const jobs = [
-  new Job(1, new Date('1.10.2025'), 'test@email.com', 'in process', 3.2),
-  new Job(2, new Date('1.10.2025'), 'test@email.com', 'failed', 2.7),
+  new Job(1, new Date('1.10.2025'), 'test@email.com', 'in process', 3.2, 'fileName'),
+  new Job(2, new Date('1.10.2025'), 'test@email.com', 'failed', 2.7, 'fileName'),
 ];
 class JobsServiceMock {
   public getJobs(): Observable<Job[]> {
@@ -206,11 +206,11 @@ describe('AnnotationWrapperComponent', () => {
     expect(pipelinesComponentSpy).toHaveBeenCalledWith();
   });
 
-  it('should reset state when canceling the creation process', () => {
+  it('should reset state when resetting the creation process', () => {
     const pipelinesComponentSpy = jest.spyOn(component.pipelinesComponent, 'resetState');
     const createJobComponentSpy = jest.spyOn(component.createJobComponent, 'removeFile');
     component.creationError = 'some error';
-    component.onCancelClick();
+    component.onResetClick();
     expect(pipelinesComponentSpy).toHaveBeenCalledWith();
     expect(createJobComponentSpy).toHaveBeenCalledWith();
     expect(component.creationError).toBe('');

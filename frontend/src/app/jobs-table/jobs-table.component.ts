@@ -27,7 +27,7 @@ export class JobsTableComponent implements OnInit, OnDestroy {
     return !this.jobs.find(j => j.status !== 'success' && j.status !== 'failed');
   }
 
-  private refreshTable(): void {
+  public refreshTable(): void {
     this.refreshJobsSubscription.unsubscribe();
     this.refreshJobsSubscription = this.jobsService.getJobs().pipe(
       repeat({ delay: 30000 }),

@@ -40,3 +40,19 @@ body {
   color: #d74b59;
   font-weight: normal;
 }
+
+.no-download-icon {
+  color: #cfd8df;
+}
+
+.download-icon,
+.delete-icon {
+  color: #435869;
+  vertical-align: middle;
+}
+
+.download-icon:hover,
+.delete-icon:hover {
+  color: #85a2b9;
+  cursor: pointer;
+}

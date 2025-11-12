@@ -6,12 +6,14 @@ import { JobsService } from './jobs.service';
 import { FileContent, getStatusClassName, Job } from './jobs';
 import { Pipeline } from './pipelines';
 
+/* eslint-disable camelcase */
 const jobsMockJson = [
-  { id: 1, created: '1.10.2025', owner: 'test@email.com', status: 2, duration: 4.7 },
-  { id: 2, created: '1.10.2025', owner: 'test@email.com', status: 4, duration: 2.5 },
-  { id: 3, created: '1.10.2025', owner: 'test@email.com', status: 3, duration: 2.3 },
-  { id: 4, created: '1.10.2025', owner: 'test@email.com', status: 1, duration: 1.9 },
+  { id: 1, created: '1.10.2025', owner: 'test@email.com', status: 2, duration: 4.7, result_filename: 'job-file.txt' },
+  { id: 2, created: '1.10.2025', owner: 'test@email.com', status: 4, duration: 2.5, result_filename: 'job-file.txt' },
+  { id: 3, created: '1.10.2025', owner: 'test@email.com', status: 3, duration: 2.3, result_filename: 'job-file.txt' },
+  { id: 4, created: '1.10.2025', owner: 'test@email.com', status: 1, duration: 1.9, result_filename: 'job-file.txt' },
 ];
+/* eslint-enable */
 
 describe('JobsService', () => {
   let service: JobsService;
@@ -34,26 +36,28 @@ describe('JobsService', () => {
 
   it('should create job with config written by user', async() => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
-    httpPostSpy.mockReturnValue(of(null));
+    // eslint-disable-next-line camelcase
+    httpPostSpy.mockReturnValue(of({job_id: 12}));
 
     const mockInputFile = new File(['mockData'], 'mockInput.vcf');
 
     const postResult = service.createVcfJob(mockInputFile, null, 'mockConfigData', 'hg38');
 
     const res = await lastValueFrom(postResult.pipe(take(1)));
-    expect(res).toBeNull();
+    expect(res).toBe(12);
   });
 
   it('should create job with config chosen from pipeline list by user', async() => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
-    httpPostSpy.mockReturnValue(of(null));
+    // eslint-disable-next-line camelcase
+    httpPostSpy.mockReturnValue(of({job_id: 12}));
 
     const mockInputFile = new File(['mockData'], 'mockInput.vcf');
 
     const postResult = service.createVcfJob(mockInputFile, 'autism', null, null);
 
     const res = await lastValueFrom(postResult.pipe(take(1)));
-    expect(res).toBeNull();
+    expect(res).toBe(12);
   });
 
   it('should create job with non vcf file uploaded', () => {
@@ -258,10 +262,10 @@ describe('JobsService', () => {
     httpGetSpy.mockReturnValue(of(jobsMockJson));
 
     const jobsMockResult = [
-      new Job(1, new Date('1.10.2025'), 'test@email.com', 'in process', 4.7),
-      new Job(2, new Date('1.10.2025'), 'test@email.com', 'failed', 2.5),
-      new Job(3, new Date('1.10.2025'), 'test@email.com', 'success', 2.3),
-      new Job(4, new Date('1.10.2025'), 'test@email.com', 'waiting', 1.9),
+      new Job(1, new Date('1.10.2025'), 'test@email.com', 'in process', 4.7, 'job-file.txt'),
+      new Job(2, new Date('1.10.2025'), 'test@email.com', 'failed', 2.5, 'job-file.txt'),
+      new Job(3, new Date('1.10.2025'), 'test@email.com', 'success', 2.3, 'job-file.txt'),
+      new Job(4, new Date('1.10.2025'), 'test@email.com', 'waiting', 1.9, 'job-file.txt'),
     ];
 
     const getResponse = service.getJobs();
@@ -298,11 +302,13 @@ describe('JobsService', () => {
         created: '2025-08-26',
         status: 1,
         owner: 'register@email.com',
-        duration: 3.3
+        duration: 3.3,
+        // eslint-disable-next-line camelcase
+        result_filename: 'job-file.txt'
       }
     ));
 
-    const job = new Job(16, new Date('2025-08-26'), 'register@email.com', 'waiting', 3.3);
+    const job = new Job(16, new Date('2025-08-26'), 'register@email.com', 'waiting', 3.3, 'job-file.txt');
 
     const getResponse = service.getJobDetails(16);
 

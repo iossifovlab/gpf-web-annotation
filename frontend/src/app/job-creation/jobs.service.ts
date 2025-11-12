@@ -32,7 +32,7 @@ export class JobsService {
     pipeline: string,
     config: string,
     genome: string,
-  ): Observable<object> {
+  ): Observable<number> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
     const formData = new FormData();
     formData.append('data', file);
@@ -48,6 +48,7 @@ export class JobsService {
       formData,
       options
     ).pipe(
+      map((response: object) => response['job_id'] as number),
       catchError((err: HttpErrorResponse) => {
         switch (err.status) {
           case 403: return throwError(() => new Error((err.error as {reason: string})['reason']));
@@ -66,7 +67,7 @@ export class JobsService {
     genome: string,
     fileSeparator: string,
     columns: Map<string, string>
-  ): Observable<object> {
+  ): Observable<number> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
     const formData = new FormData();
     formData.append('data', file);
@@ -116,6 +117,7 @@ export class JobsService {
       formData,
       options
     ).pipe(
+      map((response: object) => response['job_id'] as number),
       catchError((err: HttpErrorResponse) => {
         switch (err.status) {
           case 403: return throwError(() => new Error((err.error as {reason: string})['reason']));

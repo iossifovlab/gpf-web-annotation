@@ -1,9 +1,9 @@
 import { Component, ViewChild } from '@angular/core';
 import { JobsTableComponent } from '../jobs-table/jobs-table.component';
-import { Observable, take } from 'rxjs';
+import { Observable, repeat, switchMap, take, takeWhile } from 'rxjs';
 import { JobsService } from '../job-creation/jobs.service';
 import { AnnotationPipelineComponent } from '../annotation-pipeline/annotation-pipeline.component';
-import { JobCreationView } from '../job-creation/jobs';
+import { getStatusClassName, Job, JobCreationView, Status } from '../job-creation/jobs';
 import { JobCreationComponent } from '../job-creation/job-creation.component';
 import { CommonModule } from '@angular/common';
 
@@ -27,6 +27,10 @@ export class AnnotationWrapperComponent {
   public isCreationFormVisible = true;
   @ViewChild(AnnotationPipelineComponent) public pipelinesComponent: AnnotationPipelineComponent;
   @ViewChild(JobCreationComponent) public createJobComponent: JobCreationComponent;
+  @ViewChild(JobsTableComponent) public tableComponent: JobsTableComponent;
+  public createdJobStatus: Status;
+  public downloadLink = '';
+  public annotatedFileName = '';
 
   public constructor(
       private jobsService: JobsService,
@@ -34,7 +38,7 @@ export class AnnotationWrapperComponent {
 
   public onCreateClick(): void {
     if (this.file) {
-      let createObservable: Observable<object>;
+      let createObservable: Observable<number>;
       if (this.file.type !== 'text/vcard') {
         if (this.view === 'text editor') {
           createObservable = this.jobsService.createNonVcfJob(
@@ -72,10 +76,21 @@ export class AnnotationWrapperComponent {
           );
         }
       }
-      createObservable.pipe(take(1)).subscribe({
-        next: () => {
+      createObservable.pipe(
+        take(1),
+        switchMap((jobId: number) => {
           this.ymlConfig = '';
           this.isCreationFormVisible = false;
+          return this.trackJob(jobId);
+        }),
+      ).subscribe({
+        next: (job: Job) => {
+          if (this.createdJobStatus !== job.status) {
+            this.tableComponent.refreshTable();
+            this.createdJobStatus = job.status;
+            this.downloadLink = this.jobsService.getDownloadJobResultLink(job.id);
+            this.annotatedFileName = job.annotatedFileName;
+          }
         },
         error: (err: Error) => {
           this.creationError = err.message;
@@ -84,13 +99,21 @@ export class AnnotationWrapperComponent {
     }
   }
 
+  private trackJob(jobId: number): Observable<Job> {
+    return this.jobsService.getJobDetails(jobId).pipe(
+      repeat({ delay: 5000 }),
+      takeWhile((job: Job) => !this.isJobFinished(job.status), true)
+    );
+  }
+
   public showCreateMode(): void {
     this.isCreationFormVisible = true;
     this.pipelinesComponent.resetState();
-    // clear result
+    this.createdJobStatus = undefined;
+    this.downloadLink = '';
   }
 
-  public onCancelClick(): void {
+  public onResetClick(): void {
     this.clearErrorMessage();
     this.pipelinesComponent.resetState();
     this.createJobComponent.removeFile();
@@ -141,11 +164,19 @@ export class AnnotationWrapperComponent {
     return true;
   }
 
+  public getStatusClass(): string {
+    return getStatusClassName(this.createdJobStatus);
+  }
+
   public disableCreate(): boolean {
     return !this.file
       || !this.fileHeader
       || !this.isConfigValid
       || !this.isGenomeValid()
       || (this.view === 'text editor' ? !this.ymlConfig : !this.pipelineId);
+  }
+
+  public isJobFinished(status: Status): boolean {
+    return status === 'success' || status === 'failed';
   }
 }
