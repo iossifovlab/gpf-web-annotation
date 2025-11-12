@@ -143,7 +143,7 @@ test.describe('Job details tests', () => {
 
     // wait for create query to finish
     await page.waitForResponse(
-      resp => resp.url().includes('/api/jobs/annotate_vcf') && resp.status() === 204
+      resp => resp.url().includes('/api/jobs/annotate_vcf') && resp.status() === 200
     );
 
     await waitForJobStatus(page, utils.successBackgroundColor);
@@ -397,7 +397,7 @@ test.describe('Validation tests', () => {
 
   //   // wait for create query to finish
   //   await page.waitForResponse(
-  //     resp => resp.url().includes('/api/jobs/annotate_vcf') && resp.status() === 204
+  //     resp => resp.url().includes('/api/jobs/annotate_vcf') && resp.status() === 200
   //   );
   //   await waitForJobStatus(page, 'success');
 
@@ -407,7 +407,7 @@ test.describe('Validation tests', () => {
 
   //   // wait for create query to finish
   //   await page.waitForResponse(
-  //     resp => resp.url().includes('/api/jobs/annotate_vcf') && resp.status() === 204
+  //     resp => resp.url().includes('/api/jobs/annotate_vcf') && resp.status() === 200
   //   );
   //   await waitForJobStatus(page, 'success');
 
@@ -417,7 +417,7 @@ test.describe('Validation tests', () => {
 
   //   // wait for create query to finish
   //   await page.waitForResponse(
-  //     resp => resp.url().includes('/api/jobs/annotate_vcf') && resp.status() === 204
+  //     resp => resp.url().includes('/api/jobs/annotate_vcf') && resp.status() === 200
   //   );
   //   await waitForJobStatus(page, 'success');
 
@@ -427,7 +427,7 @@ test.describe('Validation tests', () => {
 
   //   // wait for create query to finish
   //   await page.waitForResponse(
-  //     resp => resp.url().includes('/api/jobs/annotate_vcf') && resp.status() === 204
+  //     resp => resp.url().includes('/api/jobs/annotate_vcf') && resp.status() === 200
   //   );
   //   await waitForJobStatus(page, 'success');
 
@@ -437,7 +437,7 @@ test.describe('Validation tests', () => {
 
   //   // wait for create query to finish
   //   await page.waitForResponse(
-  //     resp => resp.url().includes('/api/jobs/annotate_vcf') && resp.status() === 204
+  //     resp => resp.url().includes('/api/jobs/annotate_vcf') && resp.status() === 200
   //   );
   //   await waitForJobStatus(page, 'success');
 
