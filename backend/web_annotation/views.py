@@ -1,3 +1,4 @@
+# pylint: disable=too-many-lines
 """View classes for web annotation."""
 import logging
 from subprocess import CalledProcessError
@@ -215,6 +216,8 @@ PIPELINES = get_pipelines(GRR)
 
 
 class AnnotationBaseView(views.APIView):
+    """Base view for views which access annotation resources."""
+
     THREAD_POOL = ThreadPoolExecutor(
             max_workers=settings.ANNOTATION_MAX_WORKERS)
 

@@ -131,6 +131,7 @@ def update_job_success(job: Job, args: list[str]) -> None:
 def get_args_vcf(
     job: Job, storage_dir: str, grr_definition_path: str | None,
 ) -> list[str]:
+    """Prepare command line arguments for VCF annotation."""
     args = [
         str(job.input_path),
         str(job.config_path),
@@ -170,6 +171,7 @@ def get_args_columns(
     job: Job, details: JobDetails,
     storage_dir: str, grr_definition_path: str | None,
 ) -> list[str]:
+    """Prepare command line arguments for columnar annotation."""
     args = [
         str(job.input_path),
         str(job.config_path),

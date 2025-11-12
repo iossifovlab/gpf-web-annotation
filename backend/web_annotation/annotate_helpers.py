@@ -83,8 +83,9 @@ def columns_file_preview(
     separator: str | None,
 ) -> dict[str, Any]:
     """Generate a preview of the columns file."""
-    if infile.name.endswith(".gz") or infile.name.endswith(".bgz"):
-        raw_content = gzip.open(infile, "rb")
+    if infile.name and (
+            infile.name.endswith(".gz") or infile.name.endswith(".bgz")):
+        raw_content: UploadedFile | gzip.GzipFile = gzip.open(infile, "rb")
     else:
         raw_content = infile
 
