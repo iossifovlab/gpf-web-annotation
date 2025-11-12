@@ -297,6 +297,21 @@ class AnnotationBaseView(views.APIView):
             return False
         return True
 
+    def _get_user_pipeline_content(
+        self,
+        pipeline_id: str,
+        user: User,
+    ) -> str:
+        if pipeline_id in self.pipelines:
+            return self.pipelines[pipeline_id]["content"]
+        user_pipeline = Pipeline.objects.filter(
+            owner=user,
+            name=pipeline_id,
+        ).first()
+        if user_pipeline is not None:
+            return Path(user_pipeline.config_path).read_text(encoding="utf-8")
+        raise ValueError(f"Pipeline {pipeline_id} not found!")
+
     def _get_annotation_config(
         self,
         request: Request,
@@ -306,19 +321,9 @@ class AnnotationBaseView(views.APIView):
         assert isinstance(request.FILES, MultiValueDict)
         if "pipeline" in request.data:
             pipeline_id = request.data["pipeline"]
-            user_pipeline = Pipeline.objects.filter(
-                owner=request.user,
-                name=pipeline_id,
-            ).first()
-
-            if pipeline_id in self.pipelines:
-                content = self.pipelines[pipeline_id]["content"]
-            elif user_pipeline is not None:
-                content = Path(
-                    user_pipeline.config_path
-                ).read_text(encoding="utf-8")
-            else:
-                raise ValueError(f"Pipeline {pipeline_id} not found!")
+            if not isinstance(pipeline_id, str):
+                raise ValueError("Pipeline id is not a string!")
+            content = self._get_user_pipeline_content(pipeline_id, request.user)
         else:
             config_file = request.FILES["config"]
             assert isinstance(config_file, UploadedFile)
