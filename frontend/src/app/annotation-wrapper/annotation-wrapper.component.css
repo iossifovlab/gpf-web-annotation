@@ -86,3 +86,21 @@
 #buttons-wrapper {
   float: right;
 }
+
+#new-job-button {
+  color: #435869;
+  border: none;
+  background-color: transparent;
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+}
+
+#new-job-button:hover {
+  color: #5b778c;
+  cursor: pointer;
+}
+
+#result {
+  margin-top: 40px;
+}

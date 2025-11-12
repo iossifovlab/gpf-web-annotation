@@ -187,4 +187,32 @@ describe('AnnotationWrapperComponent', () => {
     );
     expect(component.ymlConfig).toBe('');
   });
+
+  it('should hide creation form after creating a job', () => {
+    const mockFile = new File([], 'mockFile', { type: 'text/vcard' });
+    component.file = mockFile;
+    component.selectedGenome = 'hg38';
+    component.pipelineId = 'autism';
+    component.isCreationFormVisible = true;
+
+    component.onCreateClick();
+    expect(component.isCreationFormVisible).toBe(false);
+  });
+
+  it('should show creation job form and reset pipelines state', () => {
+    component.isCreationFormVisible = false;
+    const pipelinesComponentSpy = jest.spyOn(component.pipelinesComponent, 'resetState');
+    component.showCreateMode();
+    expect(pipelinesComponentSpy).toHaveBeenCalledWith();
+  });
+
+  it('should reset state when canceling the creation process', () => {
+    const pipelinesComponentSpy = jest.spyOn(component.pipelinesComponent, 'resetState');
+    const createJobComponentSpy = jest.spyOn(component.createJobComponent, 'removeFile');
+    component.creationError = 'some error';
+    component.onCancelClick();
+    expect(pipelinesComponentSpy).toHaveBeenCalledWith();
+    expect(createJobComponentSpy).toHaveBeenCalledWith();
+    expect(component.creationError).toBe('');
+  });
 });

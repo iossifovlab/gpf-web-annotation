@@ -47,6 +47,11 @@ export class AnnotationPipelineComponent implements OnInit {
     });
   }
 
+  public resetState(): void {
+    this.changeView('pipeline list');
+    this.onPipelineClick('');
+  }
+
   public isConfigValid(config: string): void {
     this.jobsService.validateJobConfig(config).pipe(
       take(1)

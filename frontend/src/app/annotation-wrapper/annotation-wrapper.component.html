@@ -12,16 +12,27 @@
       <div id="annotation-mode">
         <button id="annotation-jobs" class="active-view">Annotation jobs</button>
       </div>
-      <app-job-creation
-        (emitFile)="setFile($event)"
-        (emitFileSeparator)="setFileSeparator($event)"
-        (emitUpdatedFileHeader)="setUpdatedFileHeader($event)"></app-job-creation>
-      <div style="margin-top: 10px">
-        <span class="error-message">{{ creationError }}</span>
-        <div id="buttons-wrapper">
-          <button id="create-button" (click)="onCreateClick()" tabindex="1" [disabled]="disableCreate()">Create</button>
-          <button id="cancel-button" (click)="onCancelClick()" tabindex="-1">Cancel</button>
+
+      <div *ngIf="isCreationFormVisible">
+        <app-job-creation
+          (emitFile)="setFile($event)"
+          (emitFileSeparator)="setFileSeparator($event)"
+          (emitUpdatedFileHeader)="setUpdatedFileHeader($event)"></app-job-creation>
+        <div style="margin-top: 10px">
+          <span class="error-message">{{ creationError }}</span>
+          <div id="buttons-wrapper">
+            <button id="create-button" (click)="onCreateClick()" tabindex="1" [disabled]="disableCreate()"
+              >Create</button
+            >
+            <button id="cancel-button" (click)="onCancelClick()" tabindex="-1">Cancel</button>
+          </div>
         </div>
+      </div>
+
+      <div *ngIf="!isCreationFormVisible" id="result">
+        <button id="new-job-button" (click)="showCreateMode()"
+          ><span class="material-symbols-outlined">add</span>new job</button
+        >
       </div>
     </div>
   </div>

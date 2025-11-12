@@ -1,14 +1,15 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { JobsTableComponent } from '../jobs-table/jobs-table.component';
 import { Observable, take } from 'rxjs';
 import { JobsService } from '../job-creation/jobs.service';
 import { AnnotationPipelineComponent } from '../annotation-pipeline/annotation-pipeline.component';
 import { JobCreationView } from '../job-creation/jobs';
 import { JobCreationComponent } from '../job-creation/job-creation.component';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-annotation-wrapper',
-  imports: [JobsTableComponent, AnnotationPipelineComponent, JobCreationComponent],
+  imports: [CommonModule, JobsTableComponent, AnnotationPipelineComponent, JobCreationComponent],
   templateUrl: './annotation-wrapper.component.html',
   styleUrl: './annotation-wrapper.component.css'
 })
@@ -23,6 +24,9 @@ export class AnnotationWrapperComponent {
   public creationError = '';
   public view: JobCreationView = 'pipeline list';
   public selectedGenome = '';
+  public isCreationFormVisible = true;
+  @ViewChild(AnnotationPipelineComponent) public pipelinesComponent: AnnotationPipelineComponent;
+  @ViewChild(JobCreationComponent) public createJobComponent: JobCreationComponent;
 
   public constructor(
       private jobsService: JobsService,
@@ -71,6 +75,7 @@ export class AnnotationWrapperComponent {
       createObservable.pipe(take(1)).subscribe({
         next: () => {
           this.ymlConfig = '';
+          this.isCreationFormVisible = false;
         },
         error: (err: Error) => {
           this.creationError = err.message;
@@ -79,8 +84,16 @@ export class AnnotationWrapperComponent {
     }
   }
 
+  public showCreateMode(): void {
+    this.isCreationFormVisible = true;
+    this.pipelinesComponent.resetState();
+    // clear result
+  }
+
   public onCancelClick(): void {
     this.clearErrorMessage();
+    this.pipelinesComponent.resetState();
+    this.createJobComponent.removeFile();
   }
 
   public setPipeline(newPipeline: string): void {
