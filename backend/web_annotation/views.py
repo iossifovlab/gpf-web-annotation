@@ -1,3 +1,4 @@
+# pylint: disable=too-many-lines
 """View classes for web annotation."""
 import logging
 from subprocess import CalledProcessError
@@ -5,7 +6,6 @@ import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, cast
-from concurrent.futures import BrokenExecutor, Future, ThreadPoolExecutor
 
 import magic
 from dae.annotation.annotatable import VCFAllele
@@ -66,6 +66,10 @@ from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle
 
 from web_annotation.annotate_helpers import columns_file_preview, extract_head
+from web_annotation.executor import (
+    TaskExecutor,
+    ThreadedTaskExecutor,
+)
 from web_annotation.utils import (
     PasswordForgottenForm,
     ResetPasswordForm,
@@ -215,7 +219,9 @@ PIPELINES = get_pipelines(GRR)
 
 
 class AnnotationBaseView(views.APIView):
-    THREAD_POOL = ThreadPoolExecutor(
+    """Base view for views which access annotation resources."""
+
+    TASK_EXECUTOR: TaskExecutor = ThreadedTaskExecutor(
             max_workers=settings.ANNOTATION_MAX_WORKERS)
 
     """Base view for views which access annotation resources."""
@@ -814,46 +820,45 @@ class AnnotateVCF(AnnotationBaseView):
         args = get_args_vcf(
             job, str(work_dir), str(self.get_grr_definition()))
         start_time = time.time()
-        try:
-            future = self.THREAD_POOL.submit(
-                annotate_vcf_job,
-                args,
+
+        def on_success(result: None) -> None:
+            """Callback when annotation is done."""
+            job.duration = time.time() - start_time
+            update_job_success(job, ["annotate_vcf", *args])
+
+        def on_failure(exception: BaseException) -> None:
+            """Callback when annotation fails."""
+            logger.error(
+                "VCF annotation job failed with exception: %s", str(exception)
             )
-        except BrokenExecutor:
-            logger.exception("Thread pool executor broken")
-        assert future is not None
+            job.duration = time.time() - start_time
+            reason = (
+                f"Unexpected error, {type(exception)}\n"
+                f"{str(exception)}"
+            )
+            if isinstance(exception, CalledProcessError):
+                reason = (
+                    "annotate_vcf failed internally:\n"
+                    f"{exception.stderr}"
+                )
+            if isinstance(
+                exception, (OSError, TypeError, ValueError),
+            ):
+                reason = (
+                    "Failed to execute annotate_vcf\n"
+                    f"{str(exception)}"
+                )
+            logger.error("VCF annotation job failed!\n%s", reason)
+            update_job_failed(job, ["annotate_vcf", *args])
 
         update_job_in_progress(job)
 
-        def on_task_done(future: Future) -> None:
-            """Callback when annotation is done."""
-            job.duration = time.time() - start_time
-            exception = future.exception()
-            if exception is not None:
-                reason = (
-                    f"Unexpected error, {type(exception)}\n"
-                    f"{str(exception)}"
-                )
-                if isinstance(exception, CalledProcessError):
-                    reason = (
-                        "annotate_vcf failed internally:\n"
-                        f"{exception.stderr}"
-                    )
-                if isinstance(
-                    exception, (OSError, TypeError, ValueError),
-                ):
-                    reason = (
-                        "Failed to execute annotate_vcf\n"
-                        f"{str(exception)}"
-                    )
-                logger.error("VCF annotation job failed!\n%s", reason)
-                update_job_failed(job, args)
-                return
-            update_job_success(job, args)
-
-        args = ["annotate_vcf", *args]
-
-        future.add_done_callback(on_task_done)
+        self.TASK_EXECUTOR.execute(
+            annotate_vcf_job,
+            callback_success=on_success,
+            callback_failure=on_failure,
+            args=args,
+        )
 
         return Response({"job_id": job.pk}, status=views.status.HTTP_200_OK)
 
@@ -919,46 +924,40 @@ class AnnotateColumns(AnnotationBaseView):
         args = get_args_columns(
             job, details, str(work_dir), str(grr_definition))
         start_time = time.time()
-        try:
-            future = self.THREAD_POOL.submit(
-                annotate_columns_job,
-                args,
-            )
-        except BrokenExecutor:
-            logger.exception("Thread pool executor broken")
-        assert future is not None
 
-        args = ["annotate_columns", *args]
+        def on_success(result: None) -> None:
+            job.duration = time.time() - start_time
+            update_job_success(job, ["annotate_columns", *args])
+
+        def on_failure(exception: BaseException) -> None:
+            job.duration = time.time() - start_time
+            reason = (
+                f"Unexpected error, {type(exception)}\n"
+                f"{str(exception)}"
+            )
+            if isinstance(exception, CalledProcessError):
+                reason = (
+                    "annotate_columns failed internally:\n"
+                    f"{exception.stderr}"
+                )
+            if isinstance(
+                exception, (OSError, TypeError, ValueError),
+            ):
+                reason = (
+                    "Failed to execute annotate_vcf\n"
+                    f"{str(exception)}"
+                )
+            logger.error("columns annotation job failed!\n%s", reason)
+            update_job_failed(job, ["annotate_columns", *args])
 
         update_job_in_progress(job)
 
-        def on_task_done(future: Future) -> None:
-            """Callback when annotation is done."""
-            job.duration = time.time() - start_time
-            exception = future.exception()
-            if exception is not None:
-                reason = (
-                    f"Unexpected error, {type(exception)}\n"
-                    f"{str(exception)}"
-                )
-                if isinstance(exception, CalledProcessError):
-                    reason = (
-                        "annotate_vcf failed internally:\n"
-                        f"{exception.stderr}"
-                    )
-                if isinstance(
-                    exception, (OSError, TypeError, ValueError),
-                ):
-                    reason = (
-                        "Failed to execute annotate_vcf\n"
-                        f"{str(exception)}"
-                    )
-                logger.error("VCF annotation job failed!\n%s", reason)
-                update_job_failed(job, args)
-                return
-            update_job_success(job, args)
-
-        future.add_done_callback(on_task_done)
+        self.TASK_EXECUTOR.execute(
+            annotate_columns_job,
+            callback_success=on_success,
+            callback_failure=on_failure,
+            args=args,
+        )
 
         return Response({"job_id": job.pk}, status=views.status.HTTP_200_OK)
 

@@ -94,7 +94,7 @@ def update_job_failed(job: Job, args: list[str]) -> None:
 
     # pylint: disable=import-outside-toplevel
     from django.conf import settings
-    send_email.delay(
+    send_email(
         "GPFWA: Annotation job failed",
         (
             "Your job has failed. "
@@ -117,7 +117,7 @@ def update_job_success(job: Job, args: list[str]) -> None:
     job.save()
     # pylint: disable=import-outside-toplevel
     from django.conf import settings
-    send_email.delay(
+    send_email(
         "GPFWA: Annotation job finished successfully",
         (
             "Your job has finished successfully. "
@@ -131,6 +131,7 @@ def update_job_success(job: Job, args: list[str]) -> None:
 def get_args_vcf(
     job: Job, storage_dir: str, grr_definition_path: str | None,
 ) -> list[str]:
+    """Prepare command line arguments for VCF annotation."""
     args = [
         str(job.input_path),
         str(job.config_path),
@@ -170,6 +171,7 @@ def get_args_columns(
     job: Job, details: JobDetails,
     storage_dir: str, grr_definition_path: str | None,
 ) -> list[str]:
+    """Prepare command line arguments for columnar annotation."""
     args = [
         str(job.input_path),
         str(job.config_path),
@@ -239,7 +241,6 @@ def annotate_columns_job(
     run_columns_job(args)
 
 
-@shared_task
 def send_email(
     subject: str,
     message: str,

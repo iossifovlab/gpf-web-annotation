@@ -5,4 +5,4 @@ table:
 scores:
 - id: score_one
   type: float
-  name: score
+  column_name: score

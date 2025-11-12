@@ -38,7 +38,7 @@ def send_confirmation_email(
         EMAIL_ACCOUNT_CONFIRMATION_PATH,
         str(verif_path.path),
     )
-    send_email.delay(email["subject"], email["message"], [user.email])
+    send_email(email["subject"], email["message"], [user.email])
 
 
 def _create_confirmation_email(
@@ -88,7 +88,7 @@ def send_reset_email(
         EMAIL_VERIFICATION_RESET_PATH,
         str(verif_path.path),
     )
-    send_email.delay(email["subject"], email["message"], [user.email])
+    send_email(email["subject"], email["message"], [user.email])
 
 def _create_reset_mail(
     endpoint: str, path: str, verification_path: str,
