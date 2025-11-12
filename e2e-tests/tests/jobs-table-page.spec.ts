@@ -272,13 +272,6 @@ test.describe('Jobs table tests', () => {
     await expect(page.locator('[id="REF-header"]').locator('mat-select')).toHaveText('ref');
     await expect(page.locator('[id="ALT-header"]').locator('mat-select')).toHaveText('alt');
 
-
-    await page.locator('#create-button').click();
-
-    await expect(async() => {
-      await expect(page.locator('app-column-specifying')).toBeVisible();
-    }).toPass({intervals: [1000, 2000, 3000]});
-
     await expect(page.locator('#instructions')).toBeVisible();
 
     // row 1 of input file
