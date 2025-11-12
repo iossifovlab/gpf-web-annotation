@@ -19,15 +19,6 @@ npm install
 
 ### Running the app
 
-Run celery
-
-```bash
-cd backend
-conda activate gpf-web-annotation
-export DJANGO_SETTINGS_MODULE=web_annotation.settings
-celery -A web_annotation.celery_app worker -l INFO
-```
-
 Run the backend
 
 ```bash

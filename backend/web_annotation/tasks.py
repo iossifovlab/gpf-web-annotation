@@ -1,14 +1,10 @@
-"""Web annotation celery tasks"""
+"""Web annotation tasks"""
 import logging
 from datetime import timedelta
-from typing import Any
 
-from celery import shared_task
-from celery.schedules import crontab
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.utils import timezone
-from web_annotation.celery_app import app
 
 from .annotation import annotate_columns_file, annotate_vcf_file
 from .models import Job, JobDetails
@@ -248,7 +244,7 @@ def send_email(
     from_email: str | None = None,
     fail_silently: bool = False,
 ) -> int:
-    """Celery task to send emails asynchronously."""
+    """Task to send emails asynchronously."""
     # pylint: disable=import-outside-toplevel
     from django.conf import settings
 
@@ -270,18 +266,8 @@ def send_email(
     return mail
 
 
-@shared_task
 def clean_old_jobs() -> None:
     """Task for running annotation."""
     # pylint: disable=import-outside-toplevel
     from django.conf import settings
     delete_old_jobs(settings.JOB_CLEANUP_INTERVAL_DAYS)
-
-
-@app.on_after_configure.connect
-def setup_periodic_tasks(sender: Any, **kwargs: Any) -> None:
-    sender.add_periodic_task(
-        crontab(hour=0, minute=0, day_of_month=1),
-        clean_old_jobs.s(),
-        name='delete old jobs every month',
-    )

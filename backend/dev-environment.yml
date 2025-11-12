@@ -12,7 +12,6 @@ dependencies:
   - pyarrow-stubs
   - pandas-stubs=2.1
   - django-stubs=5.2.2
-  - celery-types
   - types-pyyaml=6.0
   - types-setuptools=67
   - types-toml=0.10
