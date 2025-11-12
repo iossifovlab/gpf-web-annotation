@@ -118,10 +118,15 @@ class ThreadedTaskExecutor(TaskExecutor):
                 if not self._futures:
                     return
                 future = self._futures[0]
-            future.result(timeout=timeout - elapsed)
+            try:
+                future.result(timeout=timeout - elapsed)
+            except TimeoutError as ex:
+                raise TimeoutError("Task timed out") from ex
+            except BaseException:
+                pass
             elapsed = time.time() - start
             if elapsed >= timeout:
-                return
+                raise TimeoutError("Waiting for tasks timed out")
 
 
     def shutdown(self) -> None:

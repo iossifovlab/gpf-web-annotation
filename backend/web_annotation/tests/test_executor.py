@@ -1,6 +1,8 @@
 # pylint: disable=W0621,C0114,C0116,W0212,W0613
 import pytest
+import threading
 import time
+from typing import Any
 from web_annotation.executor import (
     SequentialTaskExecutor,
     ThreadedTaskExecutor,
@@ -336,4 +338,278 @@ def test_threaded_task_executor_with_args_and_kwargs() -> None:
     fn.assert_called_once_with(1, 2, 3, key1="value1", key2="value2")
     callback_success.assert_called_once_with("result")
 
+    executor.shutdown()
+
+
+def test_threaded_task_executor_no_callbacks() -> None:
+    executor = ThreadedTaskExecutor(max_workers=1)
+
+    fn = MagicMock(return_value="result")
+
+    # Should work without any callbacks
+    executor.execute(fn, arg1="value1")
+
+    executor.wait_all(timeout=5)
+
+    fn.assert_called_once_with(arg1="value1")
+    executor.shutdown()
+
+
+def test_threaded_task_executor_failure_no_callbacks() -> None:
+    executor = ThreadedTaskExecutor(max_workers=1)
+
+    def failing_fn() -> None:
+        raise ValueError("Error without callbacks")
+
+    # Should not crash when failure occurs without callbacks
+    executor.execute(failing_fn)
+
+    executor.wait_all(timeout=5)
+    executor.shutdown()
+
+
+def test_threaded_task_executor_concurrent_execution() -> None:
+    executor = ThreadedTaskExecutor(max_workers=3)
+
+    results: list[int] = []
+    lock = threading.Lock()
+
+    def concurrent_fn(value: int) -> int:
+        time.sleep(0.1)
+        with lock:
+            results.append(value)
+        return value
+
+    callback_success = MagicMock()
+
+    # Execute 3 tasks concurrently
+    executor.execute(concurrent_fn, 1, callback_success=callback_success)
+    executor.execute(concurrent_fn, 2, callback_success=callback_success)
+    executor.execute(concurrent_fn, 3, callback_success=callback_success)
+
+    executor.wait_all(timeout=5)
+
+    # All tasks should have completed
+    assert len(results) == 3
+    assert set(results) == {1, 2, 3}
+    assert callback_success.call_count == 3
+
+    executor.shutdown()
+
+
+def test_threaded_task_executor_wait_all_empty() -> None:
+    executor = ThreadedTaskExecutor(max_workers=2)
+
+    # wait_all on empty executor should return immediately
+    start = time.time()
+    executor.wait_all(timeout=5)
+    elapsed = time.time() - start
+
+    assert elapsed < 0.1
+    executor.shutdown()
+
+
+def test_threaded_task_executor_sequential_wait() -> None:
+    executor = ThreadedTaskExecutor(max_workers=1)
+
+    results: list[str] = []
+
+    def task(name: str) -> str:
+        time.sleep(0.1)
+        results.append(name)
+        return name
+
+    executor.execute(task, "task1")
+    executor.wait_all(timeout=5)
+
+    executor.execute(task, "task2")
+    executor.wait_all(timeout=5)
+
+    # Tasks should execute sequentially
+    assert results == ["task1", "task2"]
+    executor.shutdown()
+
+
+def test_threaded_task_executor_partial_failure() -> None:
+    executor = ThreadedTaskExecutor(max_workers=2)
+
+    success_count = 0
+    failure_count = 0
+    lock = threading.Lock()
+
+    def on_success(result: Any) -> None:
+        nonlocal success_count
+        with lock:
+            success_count += 1
+
+    def on_failure(exc: BaseException) -> None:
+        nonlocal failure_count
+        with lock:
+            failure_count += 1
+
+    def success_fn() -> str:
+        return "success"
+
+    def failure_fn() -> None:
+        raise ValueError("Failed")
+
+    executor.execute(
+        success_fn,
+        callback_success=on_success,
+        callback_failure=on_failure)
+    executor.execute(
+        failure_fn,
+        callback_success=on_success,
+        callback_failure=on_failure)
+    executor.execute(
+        success_fn,
+        callback_success=on_success,
+        callback_failure=on_failure)
+    executor.execute(
+        failure_fn,
+        callback_success=on_success,
+        callback_failure=on_failure)
+
+    executor.wait_all(timeout=5)
+
+    assert success_count == 2
+    assert failure_count == 2
+    executor.shutdown()
+
+
+def test_sequential_task_executor_with_kwargs_only() -> None:
+    executor = SequentialTaskExecutor()
+
+    fn = MagicMock(return_value="result")
+    callback_success = MagicMock()
+
+    executor.execute(fn, callback_success=callback_success, key1="val1", key2="val2")
+
+    fn.assert_called_once_with(key1="val1", key2="val2")
+    callback_success.assert_called_once_with("result")
+
+
+def test_sequential_task_executor_exception_propagation() -> None:
+    executor = SequentialTaskExecutor()
+
+    def raise_keyboard_interrupt() -> None:
+        raise KeyboardInterrupt("User interrupted")
+
+    callback_failure = MagicMock()
+
+    executor.execute(raise_keyboard_interrupt, callback_failure=callback_failure)
+
+    assert callback_failure.call_count == 1
+    args, _ = callback_failure.call_args
+    assert isinstance(args[0], KeyboardInterrupt)
+
+
+def test_threaded_task_executor_different_exception_types() -> None:
+    executor = ThreadedTaskExecutor(max_workers=2)
+
+    exceptions: list[BaseException] = []
+    lock = threading.Lock()
+
+    def on_failure(exc: BaseException) -> None:
+        with lock:
+            exceptions.append(exc)
+
+    def raise_value_error() -> None:
+        raise ValueError("Value error")
+
+    def raise_runtime_error() -> None:
+        raise RuntimeError("Runtime error")
+
+    def raise_type_error() -> None:
+        raise TypeError("Type error")
+
+    executor.execute(raise_value_error, callback_failure=on_failure)
+    executor.execute(raise_runtime_error, callback_failure=on_failure)
+    executor.execute(raise_type_error, callback_failure=on_failure)
+
+    executor.wait_all(timeout=5)
+
+    assert len(exceptions) == 3
+    assert any(isinstance(e, ValueError) for e in exceptions)
+    assert any(isinstance(e, RuntimeError) for e in exceptions)
+    assert any(isinstance(e, TypeError) for e in exceptions)
+
+    executor.shutdown()
+
+
+def test_threaded_task_executor_max_workers_limit() -> None:
+    executor = ThreadedTaskExecutor(max_workers=2)
+
+    active_tasks = 0
+    max_concurrent = 0
+    lock = threading.Lock()
+
+    def track_concurrency() -> None:
+        nonlocal active_tasks, max_concurrent
+        with lock:
+            active_tasks += 1
+            max_concurrent = max(max_concurrent, active_tasks)
+
+        time.sleep(0.2)
+
+        with lock:
+            active_tasks -= 1
+
+    # Submit more tasks than max_workers
+    for _ in range(5):
+        executor.execute(track_concurrency)
+
+    executor.wait_all(timeout=10)
+
+    # Max concurrent tasks should not exceed max_workers
+    assert max_concurrent <= 2
+    executor.shutdown()
+
+
+def test_threaded_task_executor_return_none() -> None:
+    executor = ThreadedTaskExecutor(max_workers=1)
+
+    def returns_none() -> None:
+        pass
+
+    callback_success = MagicMock()
+
+    executor.execute(returns_none, callback_success=callback_success)
+    executor.wait_all(timeout=5)
+
+    callback_success.assert_called_once_with(None)
+    executor.shutdown()
+
+
+def test_sequential_task_executor_return_none() -> None:
+    executor = SequentialTaskExecutor()
+
+    def returns_none() -> None:
+        pass
+
+    callback_success = MagicMock()
+
+    executor.execute(returns_none, callback_success=callback_success)
+
+    callback_success.assert_called_once_with(None)
+
+
+def test_threaded_task_executor_rapid_submission() -> None:
+    executor = ThreadedTaskExecutor(max_workers=4)
+
+    counter = 0
+    lock = threading.Lock()
+
+    def increment() -> None:
+        nonlocal counter
+        with lock:
+            counter += 1
+
+    # Rapidly submit many tasks
+    for _ in range(50):
+        executor.execute(increment)
+
+    executor.wait_all(timeout=10)
+
+    assert counter == 50
     executor.shutdown()
