@@ -44,10 +44,6 @@ services:
     image: mailhog/mailhog
     hostname: mail
 
-  rabbitmq:
-    image: rabbitmq
-    hostname: rabbitmq
-
   backend:
     build:
       context: backend
@@ -59,8 +55,6 @@ services:
         condition: service_completed_successfully
       db:
         condition: service_healthy
-      rabbitmq:
-        condition: service_started
       mail:
         condition: service_started
     volumes:
@@ -71,7 +65,6 @@ services:
     environment:
       DJANGO_SETTINGS_MODULE: web_annotation.settings_gunicorn
       GPFWA_EMAIL_HOST: mail
-      RABBITMQ_HOST: rabbitmq
       GRR_DEFINITION_FILE: /grr-definition.yaml
       GPFWA_DB_NAME: gpfwa
       GPFWA_DB_USER: postgres
@@ -96,14 +89,11 @@ services:
       args:
         COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
     depends_on:
-      rabbitmq:
-        condition: service_started
       mail:
         condition: service_started
     environment:
       DJANGO_SETTINGS_MODULE: web_annotation.test_settings
       GPFWA_EMAIL_HOST: mail
-      RABBITMQ_HOST: rabbitmq
       GRR_DEFINITION_FILE: /grr-definition-tests.yaml
     volumes:
       - .:/wd
@@ -115,13 +105,9 @@ services:
       dockerfile: Dockerfile.dev
       args:
         COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
-    depends_on:
-      rabbitmq:
-        condition: service_started
     environment:
       DJANGO_SETTINGS_MODULE: web_annotation.test_settings
       GPFWA_EMAIL_HOST: mail
-      RABBITMQ_HOST: rabbitmq
       TESTING_CONTAINER: true
       GRR_DEFINITION_FILE: /grr-definition.yaml
     ports:
@@ -140,7 +126,6 @@ services:
     environment:
       DJANGO_SETTINGS_MODULE: web_annotation.test_settings
       GPFWA_EMAIL_HOST: mail
-      RABBITMQ_HOST: rabbitmq
       GRR_DEFINITION_FILE: /grr-definition.yaml
     volumes:
       - .:/wd

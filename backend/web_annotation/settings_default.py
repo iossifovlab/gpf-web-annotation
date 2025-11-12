@@ -269,27 +269,12 @@ LOGGING = {
             "filename": f"{LOG_DIR}/gpfwa-debug.log",
             "formatter": "verbose",
         },
-        "logcelery": {
-            "level": "DEBUG",
-            "class": "logging.handlers.WatchedFileHandler",
-            "filename": f"{LOG_DIR}/gpfwa-celery.log",
-            "formatter": "verbose",
-        },
     },
     "loggers": {
         "django": {
             "handlers": ["console", "logdebug"],
             "propagate": True,
             "level": "INFO",
-        },
-        "celery": {
-            "handlers": ["logcelery", "console"],
-            "level": "DEBUG",
-        },
-        "impala": {
-            "handlers": ["console", "logdebug"],
-            "level": "WARNING",
-            "propagate": True,
         },
         "fsspec": {
             "handlers": ["console", "logdebug"],

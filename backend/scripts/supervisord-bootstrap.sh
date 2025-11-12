@@ -13,8 +13,6 @@ DJANGO_SETTINGS_MODULE='web_annotation.settings_gunicorn' django-admin migrate
 DJANGO_SETTINGS_MODULE='web_annotation.settings_gunicorn' django-admin collectstatic --noinput
 
 
-supervisorctl start celery
-
 supervisorctl start gpfwa
 
 /wait-for-it.sh localhost:9001 -t 240
