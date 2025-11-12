@@ -4,7 +4,8 @@ exclude_also=
 
 [run]
 omit=
-    *tests*
+    *test*
+    **/tests/*
     **/migrations/*
 
 branch=true
