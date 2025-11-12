@@ -328,14 +328,13 @@ def test_threaded_task_executor_with_args_and_kwargs() -> None:
 
     executor.execute(
         fn,
-        1, 2, 3,  # positional args
         callback_success=callback_success,
         key1="value1",
         key2="value2")
 
     executor.wait_all(timeout=5)
 
-    fn.assert_called_once_with(1, 2, 3, key1="value1", key2="value2")
+    fn.assert_called_once_with(key1="value1", key2="value2")
     callback_success.assert_called_once_with("result")
 
     executor.shutdown()
@@ -383,9 +382,9 @@ def test_threaded_task_executor_concurrent_execution() -> None:
     callback_success = MagicMock()
 
     # Execute 3 tasks concurrently
-    executor.execute(concurrent_fn, 1, callback_success=callback_success)
-    executor.execute(concurrent_fn, 2, callback_success=callback_success)
-    executor.execute(concurrent_fn, 3, callback_success=callback_success)
+    executor.execute(concurrent_fn, callback_success=callback_success, value=1)
+    executor.execute(concurrent_fn, callback_success=callback_success, value=2)
+    executor.execute(concurrent_fn, callback_success=callback_success, value=3)
 
     executor.wait_all(timeout=5)
 
@@ -419,10 +418,10 @@ def test_threaded_task_executor_sequential_wait() -> None:
         results.append(name)
         return name
 
-    executor.execute(task, "task1")
+    executor.execute(task, name="task1")
     executor.wait_all(timeout=5)
 
-    executor.execute(task, "task2")
+    executor.execute(task, name="task2")
     executor.wait_all(timeout=5)
 
     # Tasks should execute sequentially

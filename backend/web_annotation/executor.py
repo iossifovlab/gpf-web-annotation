@@ -14,7 +14,7 @@ class TaskExecutor(abc.ABC):
 
     @abc.abstractmethod
     def execute(
-        self, fn: Callable,
+        self, fn: Callable, *,
         callback_success: Callable[[Any], None] | None = None,
         callback_failure: Callable[[BaseException], None] | None = None,
         **kwargs: Any,
@@ -37,7 +37,7 @@ class TaskExecutor(abc.ABC):
 class SequentialTaskExecutor(TaskExecutor):
     """Synchronous job executor."""
     def execute(
-        self, fn: Callable,
+        self, fn: Callable, *,
         callback_success: Callable[[list[Any]], None] | None = None,
         callback_failure: Callable[[BaseException], None] | None = None,
         **kwargs: Any,
@@ -94,12 +94,12 @@ class ThreadedTaskExecutor(TaskExecutor):
             logger.debug("Remaining tasks: %d", len(self._futures))
 
     def execute(
-        self, fn: Callable, *args: Any,
+        self, fn: Callable, *,
         callback_success: Callable[[list[Any]], None] | None = None,
         callback_failure: Callable[[BaseException], None] | None = None,
         **kwargs: Any,
     ) -> None:
-        future = self._executor.submit(fn, *args, **kwargs)
+        future = self._executor.submit(fn, **kwargs)
         with self._lock:
             self._futures.append(future)
         def wrapper(fut: Future) -> None:
