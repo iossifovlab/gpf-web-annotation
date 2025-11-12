@@ -681,6 +681,13 @@ class UserPipeline(AnnotationBaseView):
                 {"reason": "Pipeline name not provided!"},
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
+        if pipeline_name in self.pipelines:
+            return Response(
+                {"reason": (
+                    "Pipeline with such name cannot be created or updated!"
+                )},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
 
         config_filename = f'{request.data.get("name")}.yaml'
 
@@ -706,8 +713,8 @@ class UserPipeline(AnnotationBaseView):
             config_path = Path(str(pipeline.config_path))
         else:
             return Response(
-                {"reason": "More than one pipeline shares this name!"},
-                status=views.status.HTTP_400_BAD_REQUEST,
+                {"reason": "More than one pipeline shares the same name!"},
+                status=views.status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         pipeline_or_response = self._save_user_pipeline(request, config_path)

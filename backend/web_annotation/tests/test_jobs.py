@@ -994,6 +994,36 @@ def test_user_get_pipeline(
 
 
 @pytest.mark.django_db(transaction=True)
+def test_user_create_pipeline_with_bad_name(
+    user_client: Client,
+) -> None:
+    user = User.objects.get(email="user@example.com")
+    pipeline_config = "- position_score: scores/pos1"
+
+    params = {
+        "config": ContentFile(pipeline_config),
+        "name": "pipeline/test_pipeline",
+    }
+    response = user_client.post("/api/user_pipeline", params)
+    assert response.json() == {
+        "reason": "Pipeline with such name cannot be created or updated!",
+    }
+    assert response.status_code == 400
+    assert Pipeline.objects.filter(owner=user).count() == 0
+
+    params = {
+        "config": ContentFile(pipeline_config),
+        "name": "t4c8/t4c8_pipeline",
+    }
+    response = user_client.post("/api/user_pipeline", params)
+    assert response.json() == {
+        "reason": "Pipeline with such name cannot be created or updated!",
+    }
+    assert response.status_code == 400
+    assert Pipeline.objects.filter(owner=user).count() == 0
+
+
+@pytest.mark.django_db(transaction=True)
 def test_get_pipelines(
     user_client: Client,
 ) -> None:
