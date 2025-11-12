@@ -603,6 +603,7 @@ class JobDetail(AnnotationBaseView):
             "duration": job.duration,
             "command_line": job.command_line,
             "status": job.status,
+            "result_filename": Path(job.result_path).name,
         }
         try:
             details = get_job_details(pk)

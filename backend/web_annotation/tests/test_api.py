@@ -99,6 +99,7 @@ def test_annotate_vcf_job_details(user_client: Client) -> None:
     assert result["command_line"] == "annotate_vcf mock command line"
     assert result["duration"] == 1.0
     assert result.get("head") is None
+    assert result["result_filename"] == "user-result.vcf"
 
 
 @pytest.mark.django_db
@@ -142,6 +143,8 @@ def test_annotate_columns_job_details(user_client: Client) -> None:
             'pos_end': '20',
         },
     ]
+    assert result["result_filename"].startswith("job-")
+    assert result["result_filename"].endswith(".csv")
 
 
 @pytest.mark.django_db
