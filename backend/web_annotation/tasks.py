@@ -94,7 +94,7 @@ def update_job_failed(job: Job, args: list[str]) -> None:
 
     # pylint: disable=import-outside-toplevel
     from django.conf import settings
-    send_email.delay(
+    send_email(
         "GPFWA: Annotation job failed",
         (
             "Your job has failed. "
@@ -117,7 +117,7 @@ def update_job_success(job: Job, args: list[str]) -> None:
     job.save()
     # pylint: disable=import-outside-toplevel
     from django.conf import settings
-    send_email.delay(
+    send_email(
         "GPFWA: Annotation job finished successfully",
         (
             "Your job has finished successfully. "
@@ -241,7 +241,6 @@ def annotate_columns_job(
     run_columns_job(args)
 
 
-@shared_task
 def send_email(
     subject: str,
     message: str,

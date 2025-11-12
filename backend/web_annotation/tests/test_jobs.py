@@ -4,10 +4,10 @@ import gzip
 import pathlib
 import textwrap
 from typing import Any
-import time
 from pysam import tabix_compress
 
 import pytest
+import pytest_mock
 from dae.genomic_resources.repository import GenomicResourceRepo
 from django.conf import settings
 from django.core.files.base import ContentFile
@@ -15,6 +15,7 @@ from django.test import Client
 from django.utils import timezone
 from pytest_mock import MockerFixture
 
+from web_annotation.executor import SequentialTaskExecutor
 from web_annotation.models import Job, User, Pipeline
 from web_annotation.tasks import (
     clean_old_jobs, send_email,
@@ -25,6 +26,16 @@ from web_annotation.tasks import (
 from web_annotation.tests.mailhog_client import (
     MailhogClient,
 )
+
+
+@pytest.fixture(autouse=True)
+def sequential_task_executor(
+    mocker: pytest_mock.MockerFixture,
+) -> None:
+    mocker.patch(
+        "web_annotation.views.AnnotationBaseView.TASK_EXECUTOR",
+        new_callable=SequentialTaskExecutor,
+    )
 
 
 @pytest.mark.django_db(transaction=True)
@@ -118,7 +129,7 @@ def test_job_failure_starts_email_task(
     mocker: MockerFixture,
 ) -> None:
     mocked = mocker.patch(
-        "web_annotation.tasks.send_email.delay")
+        "web_annotation.tasks.send_email")
 
     assert mocked.call_count == 0
 
@@ -141,7 +152,7 @@ def test_job_success_starts_email_task(
     mocker: MockerFixture,
 ) -> None:
     mocked = mocker.patch(
-        "web_annotation.tasks.send_email.delay")
+        "web_annotation.tasks.send_email")
 
     assert mocked.call_count == 0
 
@@ -226,8 +237,6 @@ def test_annotate_vcf(
         },
     )
     assert response.status_code == 200
-    time.sleep(5)
-
 
     assert Job.objects.filter(owner=user).count() == 2
 
@@ -617,7 +626,6 @@ def test_annotate_columns(
 
     assert response is not None
     assert response.status_code == 200
-    time.sleep(5)
 
     user = User.objects.get(email="admin@example.com")
     assert Job.objects.filter(owner=user).count() == 2
@@ -659,7 +667,6 @@ def test_annotate_columns_t4c8(
 
     assert response is not None
     assert response.status_code == 200
-    time.sleep(5)
 
     user = User.objects.get(email="admin@example.com")
     assert Job.objects.filter(owner=user).count() == 2
@@ -715,7 +722,6 @@ def test_annotate_columns_t4c8_gzipped(
 
     assert response is not None
     assert response.status_code == 200
-    time.sleep(5)
 
     user = User.objects.get(email="admin@example.com")
     assert Job.objects.filter(owner=user).count() == 2
@@ -798,7 +804,6 @@ def test_annotate_vcf_bgzip(
         },
     )
     assert response.status_code == 200
-    time.sleep(5)
 
     assert Job.objects.filter(owner=user).count() == 2
 
@@ -1072,7 +1077,6 @@ def test_annotate_vcf_user_pipeline(
         },
     )
     assert response.status_code == 200
-    time.sleep(5)
 
     assert Job.objects.filter(owner=user).count() == 2
     job = Job.objects.last()

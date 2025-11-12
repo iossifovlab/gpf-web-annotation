@@ -45,8 +45,10 @@ class SequentialTaskExecutor(TaskExecutor):
         try:
             result = fn(**kwargs)
             if callback_success is not None:
+                logger.debug("Task completed with result: %s", result)
                 callback_success(result)
         except BaseException as e:
+            logger.error("Task failed with exception: %s", e)
             if callback_failure is not None:
                 callback_failure(e)
 
