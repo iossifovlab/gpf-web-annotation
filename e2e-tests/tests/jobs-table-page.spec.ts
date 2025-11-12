@@ -303,7 +303,7 @@ test.describe('Jobs table tests', () => {
     await page.locator('#create-button').click();
     await waitForJobStatus(page, utils.inProcessBackgroundColor);
 
-    await expect(page.locator('.download').nth(0)).toBeEmpty();
+    await expect(page.locator('.no-download-icon').nth(0)).toBeVisible();
 
     await waitForJobStatus(page, utils.successBackgroundColor);
   });
