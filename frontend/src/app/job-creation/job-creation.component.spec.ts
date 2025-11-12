@@ -224,4 +224,18 @@ describe('JobCreationComponent', () => {
       ['pos', 'alternative']
     ]));
   });
+
+  it('should set defualt genome and emit to parent', () => {
+    const emitGenomeSpy = jest.spyOn(component.emitGenome, 'emit');
+    component.ngOnInit();
+    expect(component.selectedGenome).toBe('hg38');
+    expect(emitGenomeSpy).toHaveBeenCalledWith('hg38');
+  });
+
+  it('should get genomes list on component init', () => {
+    const getGenomesSpy = jest.spyOn(singleAnnotationServiceMock, 'getGenomes');
+    component.ngOnInit();
+    expect(getGenomesSpy).toHaveBeenCalledWith();
+    expect(component.genomes).toStrictEqual(['hg38', 'hg19']);
+  });
 });

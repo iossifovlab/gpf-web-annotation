@@ -17,15 +17,12 @@ import { FormsModule } from '@angular/forms';
 export class AnnotationPipelineComponent implements OnInit {
   public view: JobCreationView = 'pipeline list';
   public pipelines : Pipeline[] = [];
-  public genomes : string[] = [];
-  public selectedGenome = '';
   public pipelineId = '';
   public ymlConfig = '';
   public configError = '';
   @Output() public emitPipelineId = new EventEmitter<string>();
   @Output() public emitConfig = new EventEmitter<string>();
   @Output() public emitView = new EventEmitter<JobCreationView>();
-  @Output() public emitGenome = new EventEmitter<string>();
   @Output() public emitIsConfigValid = new EventEmitter<boolean>();
 
   public constructor(
@@ -38,12 +35,6 @@ export class AnnotationPipelineComponent implements OnInit {
 
     this.jobsService.getAnnotationPipelines().pipe(take(1)).subscribe(pipelines => {
       this.pipelines = pipelines;
-    });
-
-    this.singleAnnotationService.getGenomes().pipe(take(1)).subscribe((genomes) => {
-      this.genomes = genomes;
-      this.selectedGenome = genomes[0];
-      this.onNewSelect(this.selectedGenome);
     });
   }
 
@@ -77,10 +68,6 @@ export class AnnotationPipelineComponent implements OnInit {
     this.emitView.emit(this.view);
     this.emitConfig.emit(this.ymlConfig);
     this.emitPipelineId.emit(this.pipelineId);
-  }
-
-  public onNewSelect(genome: string): void {
-    this.emitGenome.emit(genome);
   }
 
   public onPipelineClick(option: string): void {

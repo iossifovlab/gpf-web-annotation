@@ -63,5 +63,12 @@
       *ngIf="fileContent"
       [fileContent]="fileContent"
       (emitColumns)="getColumns($event)"></app-column-specifying>
+
+    <div *ngIf="requireGenome">
+      <label for="select-genome">Select genome:</label>
+      <select id="select-genome" [(ngModel)]="selectedGenome" (ngModelChange)="onSelectGenome($event)">
+        <option *ngFor="let genome of genomes" [value]="genome">{{ genome }}</option>
+      </select>
+    </div>
   </div>
 </div>

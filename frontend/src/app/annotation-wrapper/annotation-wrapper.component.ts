@@ -133,10 +133,19 @@ export class AnnotationWrapperComponent {
     this.disableCreate();
   }
 
+  public isGenomeValid(): boolean {
+    const genomeRequired = this.fileHeader.has('location') || this.fileHeader.has('variant');
+    if (genomeRequired && this.selectedGenome === '') {
+      return false;
+    }
+    return true;
+  }
+
   public disableCreate(): boolean {
     return !this.file
       || !this.fileHeader
       || !this.isConfigValid
+      || !this.isGenomeValid()
       || (this.view === 'text editor' ? !this.ymlConfig : !this.pipelineId);
   }
 }

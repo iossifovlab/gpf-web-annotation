@@ -15,10 +15,6 @@
   </div>
 </div>
 <div id="annotation-details">
-  <label for="select-genome">Select genome:</label>
-  <select id="select-genome" [(ngModel)]="selectedGenome" (ngModelChange)="onNewSelect($event)">
-    <option *ngFor="let genome of genomes" [value]="genome">{{ genome }}</option>
-  </select>
   <ng-container *ngIf="view === 'pipeline list'">
     <div *ngFor="let pipeline of pipelines" class="pipeline-option">
       <input

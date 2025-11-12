@@ -4,10 +4,8 @@
       style="width: 35%"
       (emitPipelineId)="setPipeline($event)"
       (emitConfig)="setConfig($event)"
-      (emitGenome)="setGenome($event)"
       (emitView)="setView($event)"
       (emitIsConfigValid)="setConfigValid($event)"></app-annotation-pipeline>
-
     <div style="width: 75%">
       <div id="annotation-mode">
         <button id="annotation-jobs" class="active-view">Annotation jobs</button>
@@ -17,6 +15,7 @@
         <app-job-creation
           (emitFile)="setFile($event)"
           (emitFileSeparator)="setFileSeparator($event)"
+          (emitGenome)="setGenome($event)"
           (emitUpdatedFileHeader)="setUpdatedFileHeader($event)"></app-job-creation>
         <div style="margin-top: 10px">
           <span class="error-message">{{ creationError }}</span>

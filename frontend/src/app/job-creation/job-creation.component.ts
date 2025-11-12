@@ -6,6 +6,7 @@ import { take } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { ColumnSpecifyingComponent } from '../column-specifying/column-specifying.component';
 import { UsersService } from '../users.service';
+import { SingleAnnotationService } from '../single-annotation.service';
 
 @Component({
   selector: 'app-job-creation',
@@ -21,9 +22,13 @@ export class JobCreationComponent implements OnInit {
   public file: File = null;
   public fileSeparator: string = null;
   public fileContent: FileContent;
+  public requireGenome = false;
   public uploadError = '';
+  public selectedGenome = '';
+  public genomes : string[] = [];
   @Output() public emitFile = new EventEmitter<File>();
   @Output() public emitFileSeparator = new EventEmitter<string>();
+  @Output() public emitGenome = new EventEmitter<string>();
   @Output() public emitUpdatedFileHeader = new EventEmitter<Map<string, string>>();
 
   public userLimitations: {
@@ -36,14 +41,23 @@ export class JobCreationComponent implements OnInit {
   public constructor(
     private jobsService: JobsService,
     private usersService: UsersService,
+    private singleAnnotationService: SingleAnnotationService,
   ) { }
 
   public ngOnInit(): void {
     this.userLimitations = this.usersService.userData.value.limitations;
+    this.singleAnnotationService.getGenomes().pipe(take(1)).subscribe((genomes) => {
+      this.genomes = genomes;
+      this.selectedGenome = genomes[0];
+      this.emitGenome.emit(this.selectedGenome);
+    });
   }
 
   public getColumns(mappedColumns: Map<string, string>): void {
     this.emitUpdatedFileHeader.emit(mappedColumns);
+    if (mappedColumns && (mappedColumns.has('location') || mappedColumns.has('variant'))) {
+      this.requireGenome = true;
+    }
   }
 
   public submitNewSeparator(newSeparator: string): void {
@@ -85,6 +99,7 @@ export class JobCreationComponent implements OnInit {
   public removeFile(): void {
     this.updateFile(null);
     this.uploadError = '';
+    this.requireGenome = false;
     this.fileContent = null;
     this.updateFileSeparator('');
   }
@@ -116,5 +131,9 @@ export class JobCreationComponent implements OnInit {
   private updateFile(newFile: File): void {
     this.file = newFile;
     this.emitFile.emit(this.file);
+  }
+
+  public onSelectGenome(genome: string): void {
+    this.emitGenome.emit(genome);
   }
 }

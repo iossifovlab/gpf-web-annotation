@@ -72,14 +72,3 @@ textarea:focus-visible {
   border: 2px solid #d74b59;
   box-shadow: 0 0 0 0.2rem #edbec3;
 }
-
-select {
-  padding: 2px 10px;
-  font-size: 16px;
-  border: 1.5px solid #5b778c;
-  border-radius: 10px;
-  color: #5b778c;
-  background-color: white;
-  margin-left: 10px;
-  width: 90px;
-}
