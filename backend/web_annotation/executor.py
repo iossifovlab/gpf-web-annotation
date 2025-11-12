@@ -29,6 +29,10 @@ class TaskExecutor(abc.ABC):
     def shutdown(self) -> None:
         """Shutdown the executor, cleaning up resources if needed."""
 
+    @abc.abstractmethod
+    def size(self) -> int:
+        """Return the number of pending tasks."""
+
 
 class SequentialTaskExecutor(TaskExecutor):
     """Synchronous job executor."""
@@ -51,6 +55,9 @@ class SequentialTaskExecutor(TaskExecutor):
 
     def shutdown(self) -> None:
         return
+
+    def size(self) -> int:
+        return 0
 
 
 class ThreadedTaskExecutor(TaskExecutor):

@@ -28,6 +28,131 @@ def test_sequential_task_executor_execute() -> None:
     assert callback_success.call_count == 1
 
 
+def test_sequential_task_executor_success_with_result() -> None:
+    executor = SequentialTaskExecutor()
+
+    fn = MagicMock(return_value="test_result")
+    callback_success = MagicMock()
+    callback_failure = MagicMock()
+
+    executor.execute(
+        fn,
+        callback_success=callback_success,
+        callback_failure=callback_failure)
+
+    assert fn.call_count == 1
+    assert callback_success.call_count == 1
+    callback_success.assert_called_once_with("test_result")
+    assert callback_failure.call_count == 0
+
+
+def test_sequential_task_executor_failure() -> None:
+    executor = SequentialTaskExecutor()
+
+    def failing_fn() -> None:
+        raise RuntimeError("Test error")
+
+    callback_success = MagicMock()
+    callback_failure = MagicMock()
+
+    executor.execute(
+        failing_fn,
+        callback_success=callback_success,
+        callback_failure=callback_failure)
+
+    assert callback_success.call_count == 0
+    assert callback_failure.call_count == 1
+
+    # Verify the exception was passed to callback_failure
+    args, _ = callback_failure.call_args
+    assert isinstance(args[0], RuntimeError)
+    assert str(args[0]) == "Test error"
+
+
+def test_sequential_task_executor_no_callbacks() -> None:
+    executor = SequentialTaskExecutor()
+
+    fn = MagicMock(return_value="result")
+
+    # Should not raise an error when callbacks are None
+    executor.execute(fn)
+
+    assert fn.call_count == 1
+
+
+def test_sequential_task_executor_failure_no_callbacks() -> None:
+    executor = SequentialTaskExecutor()
+
+    def failing_fn() -> None:
+        raise ValueError("Error without callbacks")
+
+    # Should not raise an error even when failure occurs and no callbacks
+    executor.execute(failing_fn)
+
+
+def test_sequential_task_executor_wait_all() -> None:
+    executor = SequentialTaskExecutor()
+
+    # wait_all should return immediately for sequential executor
+    start = time.time()
+    executor.wait_all(timeout=10)
+    elapsed = time.time() - start
+
+    # Should complete almost instantly
+    assert elapsed < 0.1
+
+
+def test_sequential_task_executor_shutdown() -> None:
+    executor = SequentialTaskExecutor()
+
+    # shutdown should be a no-op for sequential executor
+    executor.shutdown()
+
+    # Should still be able to execute after shutdown
+    fn = MagicMock()
+    executor.execute(fn)
+    assert fn.call_count == 1
+
+
+def test_sequential_task_executor_size() -> None:
+    executor = SequentialTaskExecutor()
+
+    # Size should always be 0 for sequential executor
+    assert executor.size() == 0
+
+    fn = MagicMock()
+    executor.execute(fn)
+
+    # Still 0 since tasks execute immediately
+    assert executor.size() == 0
+
+
+def test_sequential_task_executor_multiple_executions() -> None:
+    executor = SequentialTaskExecutor()
+
+    fn1 = MagicMock(return_value="result1")
+    fn2 = MagicMock(return_value="result2")
+    fn3 = MagicMock(return_value="result3")
+
+    callback_success = MagicMock()
+
+    executor.execute(fn1, callback_success=callback_success)
+    executor.execute(fn2, callback_success=callback_success)
+    executor.execute(fn3, callback_success=callback_success)
+
+    # All should execute immediately in order
+    assert fn1.call_count == 1
+    assert fn2.call_count == 1
+    assert fn3.call_count == 1
+    assert callback_success.call_count == 3
+
+    # Verify execution order through callback calls
+    calls = callback_success.call_args_list
+    assert calls[0][0][0] == "result1"
+    assert calls[1][0][0] == "result2"
+    assert calls[2][0][0] == "result3"
+
+
 def test_threaded_task_executor_execute() -> None:
     executor = ThreadedTaskExecutor(max_workers=1)
 
