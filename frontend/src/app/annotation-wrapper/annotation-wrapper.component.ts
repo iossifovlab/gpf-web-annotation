@@ -19,7 +19,6 @@ export class AnnotationWrapperComponent {
   public fileSeparator: string = null;
   public fileHeader = new Map<string, string>();
   public pipelineId = '';
-  public ymlConfig = '';
   public isConfigValid = true;
   public creationError = '';
   public selectedGenome = '';
@@ -39,46 +38,23 @@ export class AnnotationWrapperComponent {
     if (this.file) {
       let createObservable: Observable<number>;
       if (this.file.type !== 'text/vcard') {
-        if (this.ymlConfig) {
-          createObservable = this.jobsService.createNonVcfJob(
-            this.file,
-            null,
-            this.ymlConfig,
-            this.selectedGenome,
-            this.fileSeparator,
-            this.fileHeader
-          );
-        } else {
-          createObservable = this.jobsService.createNonVcfJob(
-            this.file,
-            this.pipelineId,
-            null,
-            this.selectedGenome,
-            this.fileSeparator,
-            this.fileHeader
-          );
-        }
+        createObservable = this.jobsService.createNonVcfJob(
+          this.file,
+          this.pipelineId,
+          this.selectedGenome,
+          this.fileSeparator,
+          this.fileHeader
+        );
       } else if (this.file.type === 'text/vcard') {
-        if (this.ymlConfig) {
-          createObservable = this.jobsService.createVcfJob(
-            this.file,
-            null,
-            this.ymlConfig,
-            this.selectedGenome,
-          );
-        } else {
-          createObservable = this.jobsService.createVcfJob(
-            this.file,
-            this.pipelineId,
-            null,
-            this.selectedGenome,
-          );
-        }
+        createObservable = this.jobsService.createVcfJob(
+          this.file,
+          this.pipelineId,
+          this.selectedGenome,
+        );
       }
       createObservable.pipe(
         take(1),
         switchMap((jobId: number) => {
-          this.ymlConfig = '';
           this.isCreationFormVisible = false;
           return this.trackJob(jobId);
         }),
@@ -120,10 +96,6 @@ export class AnnotationWrapperComponent {
 
   public setPipeline(newPipeline: string): void {
     this.pipelineId = newPipeline;
-  }
-
-  public setConfig(newConfig: string): void {
-    this.ymlConfig = newConfig;
   }
 
   public clearErrorMessage(): void {

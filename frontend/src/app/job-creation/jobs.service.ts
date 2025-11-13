@@ -30,19 +30,14 @@ export class JobsService {
   public createVcfJob(
     file: File,
     pipeline: string,
-    config: string,
     genome: string,
   ): Observable<number> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
     const formData = new FormData();
     formData.append('data', file);
     formData.append('genome', genome);
-    if (pipeline) {
-      formData.append('pipeline', pipeline);
-    } else {
-      const configFile = new File([config], 'config.yml');
-      formData.append('config', configFile);
-    }
+    formData.append('pipeline', pipeline);
+
     return this.http.post(
       this.annotateVcfUrl,
       formData,
@@ -63,7 +58,6 @@ export class JobsService {
   public createNonVcfJob(
     file: File,
     pipeline: string,
-    config: string,
     genome: string,
     fileSeparator: string,
     columns: Map<string, string>
@@ -75,12 +69,7 @@ export class JobsService {
     if (fileSeparator) {
       formData.append('separator', fileSeparator);
     }
-    if (pipeline) {
-      formData.append('pipeline', pipeline);
-    } else {
-      const configFile = new File([config], 'config.yml');
-      formData.append('config', configFile);
-    }
+    formData.append('pipeline', pipeline);
 
     if (columns.get('chrom')) {
       formData.append('col_chrom', columns.get('chrom'));

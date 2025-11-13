@@ -46,19 +46,6 @@ describe('JobsService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should create job with config written by user', async() => {
-    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
-    // eslint-disable-next-line camelcase
-    httpPostSpy.mockReturnValue(of({job_id: 12}));
-
-    const mockInputFile = new File(['mockData'], 'mockInput.vcf');
-
-    const postResult = service.createVcfJob(mockInputFile, null, 'mockConfigData', 'hg38');
-
-    const res = await lastValueFrom(postResult.pipe(take(1)));
-    expect(res).toBe(12);
-  });
-
   it('should create job with config chosen from pipeline list by user', async() => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     // eslint-disable-next-line camelcase
@@ -66,7 +53,7 @@ describe('JobsService', () => {
 
     const mockInputFile = new File(['mockData'], 'mockInput.vcf');
 
-    const postResult = service.createVcfJob(mockInputFile, 'autism', null, null);
+    const postResult = service.createVcfJob(mockInputFile, 'autism', null);
 
     const res = await lastValueFrom(postResult.pipe(take(1)));
     expect(res).toBe(12);
@@ -101,7 +88,7 @@ describe('JobsService', () => {
       withCredentials: true
     };
 
-    service.createNonVcfJob(mockInputFile, 'autism', null, 'hg38', '\t', mockColumns);
+    service.createNonVcfJob(mockInputFile, 'autism', 'hg38', '\t', mockColumns);
 
     expect(httpPostSpy).toHaveBeenCalledWith(
       '//localhost:8000/api/jobs/annotate_columns',
@@ -162,35 +149,6 @@ describe('JobsService', () => {
       .rejects.toThrow('Error occurred!');
   });
 
-  it('should check if create query has correct parameters when config is written by user', () => {
-    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
-    httpPostSpy.mockReturnValue(of(new HttpResponse({status: 204})));
-
-    const mockInputFile = new File(['mockData'], 'mockInput.vcf');
-    const mockConfigCntent = 'mockConfigCntent';
-    const mockConfigFile = new File([mockConfigCntent], 'mockConfig.vcf');
-
-    const formData = new FormData();
-    formData.append('data', mockInputFile, 'mockInput.vcf');
-    formData.append('genome', 'hg38');
-    formData.append('config', mockConfigFile);
-
-    const options = {
-      headers: {
-        'X-CSRFToken': ''
-      },
-      withCredentials: true
-    };
-
-    service.createVcfJob(mockInputFile, null, mockConfigCntent, 'hg38');
-
-    expect(httpPostSpy).toHaveBeenCalledWith(
-      '//localhost:8000/api/jobs/annotate_vcf',
-      formData,
-      options
-    );
-  });
-
   it('should check if create query has correct parameters when config is chosen by user', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(new HttpResponse({status: 204})));
@@ -209,7 +167,7 @@ describe('JobsService', () => {
       withCredentials: true
     };
 
-    service.createVcfJob(mockInputFile, 'autism', null, 'hg38');
+    service.createVcfJob(mockInputFile, 'autism', 'hg38');
 
     expect(httpPostSpy).toHaveBeenCalledWith(
       '//localhost:8000/api/jobs/annotate_vcf',
@@ -223,13 +181,11 @@ describe('JobsService', () => {
     httpPostSpy.mockReturnValue(of(new HttpResponse({status: 204})));
 
     const mockInputFile = new File(['mockData'], 'mockInput.vcf');
-    const mockConfigCntent = 'mockConfigContent';
-    const mockConfigFile = new File([mockConfigCntent], 'mockConfig.vcf');
 
     const formData = new FormData();
     formData.append('data', mockInputFile, 'mockInput.vcf');
     formData.append('genome', 'hg38');
-    formData.append('config', mockConfigFile);
+    formData.append('pipeline', 'autism');
 
     const mockCookie = 'csrftoken=EYZbFmv1i1Ie7cmT3OFHgxdv3kOR7rIt';
     document.cookie = mockCookie;
@@ -241,7 +197,7 @@ describe('JobsService', () => {
       withCredentials: true
     };
 
-    service.createVcfJob(mockInputFile, null, mockConfigCntent, 'hg38');
+    service.createVcfJob(mockInputFile, 'autism', 'hg38');
     expect(httpPostSpy).toHaveBeenCalledWith(
       '//localhost:8000/api/jobs/annotate_vcf',
       formData,
