@@ -10,7 +10,7 @@ class JobSerializer(serializers.ModelSerializer):
     class Meta:  # pylint: disable=too-few-public-methods
         """Meta class for job serializer."""
         model = Job
-        fields = ["id", "created", "status", "duration", "owner"]
+        fields = ["id", "name", "created", "status", "duration", "owner"]
 
 
 class UserSerializer(serializers.ModelSerializer):

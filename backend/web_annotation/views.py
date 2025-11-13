@@ -362,9 +362,9 @@ class AnnotationBaseView(views.APIView):
             raise ValueError("Internal genome definition is wrong")
         return reference_genome
 
-    def generate_job_name(self) -> str:
-        """Generate a unique job name."""
-        return f"job-{int(time.time())}"
+    def generate_job_name(self, user: User) -> int:
+        job_count = Job.objects.filter(owner=user).count()
+        return job_count + 1
 
     def _save_annotation_config(
         self,
@@ -405,14 +405,14 @@ class AnnotationBaseView(views.APIView):
         input_path.parent.mkdir(parents=True, exist_ok=True)
         input_path.write_bytes(uploaded_file.read())
 
-    def _cleanup(self, job_name: str, user_email: str) -> None:
+    def _cleanup(self, job_name: int, user_email: str) -> None:
         """Cleanup the files of a failed job."""
-        data_filename = f"{job_name}"
+        data_filename = f"data-{job_name}"
         inputs = Path(settings.JOB_INPUT_STORAGE_DIR).glob(
             f"{user_email}/{data_filename}*")
         for in_file in inputs:
             in_file.unlink(missing_ok=True)
-        config_filename = f"{job_name}.yaml"
+        config_filename = f"config-{job_name}.yaml"
         config_path = Path(
             settings.ANNOTATION_CONFIG_STORAGE_DIR,
             f"{user_email}/{config_filename}",
@@ -490,7 +490,7 @@ class AnnotationBaseView(views.APIView):
         self,
         request: Request,
         annotation_type: str,
-    ) -> Response | tuple[str, Job]:
+    ) -> Response | tuple[int, Job]:
         validation_response = self._validate_request(request)
         if validation_response is not None:
             return validation_response
@@ -507,8 +507,8 @@ class AnnotationBaseView(views.APIView):
                 status=views.status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-        job_name = self.generate_job_name()
-        config_filename = f"{job_name}.yaml"
+        job_name = self.generate_job_name(request.user)
+        config_filename = f"config-{job_name}.yaml"
 
         config_path = Path(
             settings.ANNOTATION_CONFIG_STORAGE_DIR,
@@ -532,7 +532,7 @@ class AnnotationBaseView(views.APIView):
 
         file_ext = self._file_extension(request)
 
-        data_filename = f"{job_name}{file_ext}"
+        data_filename = f"data-{job_name}{file_ext}"
         input_path = Path(
             settings.JOB_INPUT_STORAGE_DIR, request.user.email, data_filename)
 
@@ -547,16 +547,23 @@ class AnnotationBaseView(views.APIView):
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
 
+        result_filename = f"result-{job_name}{file_ext}"
         result_path = Path(
-            settings.JOB_RESULT_STORAGE_DIR, request.user.email, data_filename)
+            settings.JOB_RESULT_STORAGE_DIR,
+            request.user.email,
+            result_filename,
+        )
         result_path.parent.mkdir(parents=True, exist_ok=True)
 
-        job = Job(input_path=input_path,
-                  config_path=config_path,
-                  result_path=result_path,
-                  reference_genome=reference_genome,
-                  owner=request.user,
-                  annotation_type=annotation_type)
+        job = Job(
+            name=job_name,
+            input_path=input_path,
+            config_path=config_path,
+            result_path=result_path,
+            reference_genome=reference_genome,
+            owner=request.user,
+            annotation_type=annotation_type
+        )
         return (job_name, job)
 
 
@@ -598,6 +605,7 @@ class JobDetail(AnnotationBaseView):
 
         response = {
             "id": job.pk,
+            "name": job.name,
             "owner": job.owner.email,
             "created": str(job.created),
             "duration": job.duration,
