@@ -131,7 +131,7 @@ describe('AnnotationPipelineComponent', () => {
     expect(component.ymlConfig).toBe('');
     expect(emitViewSpy).toHaveBeenCalledWith('pipeline list');
     expect(emitConfigSpy).toHaveBeenCalledWith('');
-    expect(emitPipelineIdSpy).toHaveBeenCalledWith('');
+    expect(emitPipelineIdSpy).toHaveBeenCalledWith('id1');
   });
 
   it('should select new pipeline and emit to parent', () => {

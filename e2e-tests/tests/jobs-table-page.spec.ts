@@ -16,15 +16,13 @@ test.describe('Create job tests', () => {
     await page.getByRole('link', {name: 'Jobs'}).click();
   });
 
-  test('should create job with pipeline and input file', async({ page }) => {
-    await page.getByLabel('pipeline/Autism_annotation').click();
-
+  test('should be able to create job with pipeline and input file', async({ page }) => {
+    await selectPipeline(page, 'pipeline/Autism_annotation');
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
-
     await page.locator('#create-button').click();
   });
 
-  test('should create job with yml config and input file', async({ page }) => {
+  test('should be able to create job with yml config and input file', async({ page }) => {
     await page.getByText('YML text editor').click();
 
     const config = fs.readFileSync('./fixtures/test-config.yaml').toString();
@@ -41,12 +39,12 @@ test.describe('Create job tests', () => {
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
 
     await expect(page.locator('#create-button')).toBeDisabled();
-    await page.getByLabel('pipeline/Autism_annotation').click();
+    await selectPipeline(page, 'pipeline/Autism_annotation');
     await expect(page.locator('#create-button')).toBeEnabled();
   });
 
   test('should check if create button is disabled when no file is uploaded', async({ page }) => {
-    await page.getByLabel('pipeline/Autism_annotation').click();
+    await selectPipeline(page, 'pipeline/Autism_annotation');
 
     await expect(page.locator('#create-button')).toBeDisabled();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
@@ -65,7 +63,7 @@ test.describe('Create job tests', () => {
   });
 
   test('should check if create button is disabled when uploaded file is removed', async({ page }) => {
-    await page.getByLabel('pipeline/Autism_annotation').click();
+    await selectPipeline(page, 'pipeline/Autism_annotation');
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
     await expect(page.locator('#create-button')).toBeEnabled();
     await page.locator('#delete-uploaded-file').click();
@@ -189,7 +187,7 @@ test.describe('Job details tests', () => {
   });
 
   test('should check job details modal of failed job', async({ page }) => {
-    await page.getByLabel('pipeline/Autism_annotation').click();
+    await selectPipeline(page, 'pipeline/Autism_annotation');
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-csv-file.csv');
 
     await expect(page.locator('app-column-specifying')).toBeVisible();
@@ -263,7 +261,7 @@ test.describe('Jobs table tests', () => {
   });
 
   test('should upload tsv file and check specify columns component content', async({ page }) => {
-    await page.getByLabel('pipeline/GPF-SFARI_annotation').click();
+    await selectPipeline(page, 'pipeline/GPF-SFARI_annotation');
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-tsv-file.tsv');
 
     await expect(page.locator('app-column-specifying')).toBeVisible();
@@ -288,12 +286,14 @@ test.describe('Jobs table tests', () => {
   });
 
   test('should upload tsv file and specify columns', async({ page }) => {
-    await page.getByLabel('pipeline/GPF-SFARI_annotation').click();
+    await selectPipeline(page, 'pipeline/GPF-SFARI_annotation');
+
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-tsv-file.tsv');
 
     await expect(page.locator('app-column-specifying')).toBeVisible();
 
     await page.locator('#create-button').click();
+    await page.waitForTimeout(1000);
     await waitForJobStatus(page, utils.inProcessBackgroundColor);
 
     await expect(page.locator('.no-download-icon').nth(0)).toBeVisible();
@@ -302,7 +302,7 @@ test.describe('Jobs table tests', () => {
   });
 
   test('should upload csv file and specify columns', async({ page }) => {
-    await page.getByLabel('pipeline/GPF-SFARI_annotation').click();
+    await selectPipeline(page, 'pipeline/GPF-SFARI_annotation');
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-csv-file.csv');
     await page.waitForSelector('#table');
 
@@ -311,7 +311,7 @@ test.describe('Jobs table tests', () => {
   });
 
   test('should show error message when specifying bad combination of columns', async({ page }) => {
-    await page.getByLabel('pipeline/GPF-SFARI_annotation').click();
+    await selectPipeline(page, 'pipeline/GPF-SFARI_annotation');
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-csv-file.csv');
 
     await page.locator('[id="CHROM-header"]').locator('mat-select').click();
@@ -374,7 +374,8 @@ test.describe('Validation tests', () => {
   });
 
   test('should check if create button is disabled when invalid file is uploaded', async({ page }) => {
-    await page.getByLabel('pipeline/Autism_annotation').click();
+    await selectPipeline(page, 'pipeline/Autism_annotation');
+
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/invalid-input-file-format.yaml');
     await expect(page.getByText('Unsupported format!')).toBeVisible();
     await expect(page.locator('#create-button')).toBeDisabled();
@@ -383,72 +384,15 @@ test.describe('Validation tests', () => {
   });
 
   test('should upload invalid vcf file', async({ page }) => {
-    await page.getByLabel('pipeline/Autism_annotation').click();
+    await selectPipeline(page, 'pipeline/Autism_annotation');
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/invalid-vcf-input-file.vcf');
 
     await page.locator('#create-button').click();
     await expect(page.getByText('Invalid VCF file')).toBeVisible();
   });
 
-  // test('should expect error message when daily quota is reached', async({ page }) => {
-  //   await page.getByLabel('pipeline/Autism_annotation').click();
-  //   await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
-  //   await page.locator('#create-button').click();
-
-  //   // wait for create query to finish
-  //   await page.waitForResponse(
-  //     resp => resp.url().includes('/api/jobs/annotate_vcf') && resp.status() === 200
-  //   );
-  //   await waitForJobStatus(page, 'success');
-
-  //   await page.getByLabel('pipeline/Autism_annotation').click();
-  //   await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
-  //   await page.locator('#create-button').click();
-
-  //   // wait for create query to finish
-  //   await page.waitForResponse(
-  //     resp => resp.url().includes('/api/jobs/annotate_vcf') && resp.status() === 200
-  //   );
-  //   await waitForJobStatus(page, 'success');
-
-  //   await page.getByLabel('pipeline/Autism_annotation').click();
-  //   await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
-  //   await page.locator('#create-button').click();
-
-  //   // wait for create query to finish
-  //   await page.waitForResponse(
-  //     resp => resp.url().includes('/api/jobs/annotate_vcf') && resp.status() === 200
-  //   );
-  //   await waitForJobStatus(page, 'success');
-
-  //   await page.getByLabel('pipeline/Autism_annotation').click();
-  //   await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
-  //   await page.locator('#create-button').click();
-
-  //   // wait for create query to finish
-  //   await page.waitForResponse(
-  //     resp => resp.url().includes('/api/jobs/annotate_vcf') && resp.status() === 200
-  //   );
-  //   await waitForJobStatus(page, 'success');
-
-  //   await page.getByLabel('pipeline/Autism_annotation').click();
-  //   await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
-  //   await page.locator('#create-button').click();
-
-  //   // wait for create query to finish
-  //   await page.waitForResponse(
-  //     resp => resp.url().includes('/api/jobs/annotate_vcf') && resp.status() === 200
-  //   );
-  //   await waitForJobStatus(page, 'success');
-
-  //   await page.getByLabel('pipeline/Autism_annotation').click();
-  //   await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
-  //   await page.locator('#create-button').click();
-  //   await expect(page.getByText('Daily job limit reached!')).toBeVisible();
-  // });
-
   test('should expect error message file with invalid separator is uploaded', async({ page }) => {
-    await page.getByLabel('pipeline/Autism_annotation').click();
+    await selectPipeline(page, 'pipeline/Autism_annotation');
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/invalid-separator.csv');
     await page.locator('[id="CHROM+POS+REF+ALT-header"]').locator('mat-select').click();
     await page.getByRole('option', { name: 'chrom', exact: true }).click();
@@ -457,7 +401,7 @@ test.describe('Validation tests', () => {
   });
 
   test('should expect error message if file content is not separeted correctly', async({ page }) => {
-    await page.getByLabel('pipeline/Autism_annotation').click();
+    await selectPipeline(page, 'pipeline/Autism_annotation');
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/wrongly-separated-row.csv');
     await page.locator('[id="CHROM,POS,REF,ALT-header"]').locator('mat-select').click();
     await page.getByRole('option', { name: 'chrom', exact: true }).click();
@@ -466,7 +410,7 @@ test.describe('Validation tests', () => {
   });
 
   test('should expect error message when no columns are specified', async({ page }) => {
-    await page.getByLabel('pipeline/Autism_annotation').click();
+    await selectPipeline(page, 'pipeline/Autism_annotation');
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/wrongly-separated-row.csv');
 
     await page.locator('#create-button').click();
@@ -474,12 +418,17 @@ test.describe('Validation tests', () => {
   });
 
   test('should upload file with more than 1000 variants', async({ page }) => {
-    await page.getByLabel('pipeline/Autism_annotation').click();
+    await selectPipeline(page, 'pipeline/Autism_annotation');
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/more-than-1000.vcf');
     await page.locator('#create-button').click();
     await expect(page.getByText('Upload limit reached!')).toBeVisible();
   });
 });
+
+async function selectPipeline(page: Page, pipeline: string): Promise<void> {
+  await page.locator('#pipelines-input').click();
+  await page.getByRole('option', { name: pipeline, exact: true }).click();
+}
 
 async function waitForJobStatus(page: Page, color: string): Promise<void> {
   await expect(async() => {
@@ -490,7 +439,7 @@ async function waitForJobStatus(page: Page, color: string): Promise<void> {
 }
 
 async function createJobWithPipeline(page: Page, pipeline: string, inputFileName: string): Promise<void> {
-  await page.getByLabel(pipeline).click();
+  await selectPipeline(page, pipeline);
   await page.locator('input[id="file-upload"]').setInputFiles(`./fixtures/${inputFileName}`);
   await page.locator('#create-button').click();
 }

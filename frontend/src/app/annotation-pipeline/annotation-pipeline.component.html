@@ -16,15 +16,24 @@
 </div>
 <div id="annotation-details">
   <ng-container *ngIf="view === 'pipeline list'">
-    <div *ngFor="let pipeline of pipelines" class="pipeline-option">
-      <input
-        type="radio"
-        name="pipeline"
-        [id]="pipeline.id"
-        [value]="pipeline.id"
-        (click)="onPipelineClick(pipeline.id)" />
-      <label [attr.for]="pipeline.id">{{ pipeline.id }}</label>
-    </div>
+    <input
+      [title]="pipelineId"
+      id="pipelines-input"
+      matInput
+      [matAutocomplete]="pipelinesDropdown"
+      [formControl]="dropdownControl" />
+
+    <mat-autocomplete #pipelinesDropdown="matAutocomplete">
+      <mat-option
+        *ngFor="let pipelineId of filteredPipelines$ | async"
+        class="pipeline-option"
+        (click)="onPipelineClick(pipelineId)"
+        (onSelectionChange)="onPipelineClick(pipelineId)"
+        [title]="pipelineId"
+        [value]="pipelineId">
+        {{ pipelineId }}
+      </mat-option>
+    </mat-autocomplete>
   </ng-container>
   <ng-container *ngIf="view === 'text editor'">
     <textarea

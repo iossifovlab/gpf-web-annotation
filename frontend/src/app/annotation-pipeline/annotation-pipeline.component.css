@@ -47,10 +47,6 @@
   color: #85a2b9;
 }
 
-.pipeline-option {
-  margin: 10px;
-}
-
 textarea {
   width: 97%;
   height: 90%;
@@ -71,4 +67,33 @@ textarea:focus-visible {
 .invalid-config {
   border: 2px solid #d74b59;
   box-shadow: 0 0 0 0.2rem #edbec3;
+}
+
+.pipeline-option {
+  color: #435869;
+}
+
+::ng-deep .mat-mdc-option.mat-mdc-option-active.mdc-list-item {
+  background-color: #f4f7fb !important;
+}
+
+::ng-deep div.mat-mdc-autocomplete-panel {
+  padding: 0;
+  box-shadow: none !important;
+  border: 1px solid #dee2e6 !important;
+}
+
+#pipelines-input {
+  padding: 10px;
+  border: 1px solid #cfd8df;
+  border-radius: 5px;
+  color: #252e34;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+#pipelines-input:focus {
+  border: 2px solid #85a2b9;
+  outline: 0;
+  background-color: #f4f7fb;
 }
