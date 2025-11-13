@@ -1,14 +1,18 @@
 # pylint: disable=W0621,C0114,C0116,W0212,W0613
 from types import SimpleNamespace
+from typing import Any
+from unittest.mock import MagicMock
 
 from pytest_mock import MockerFixture
 
 from dae.annotation.annotation_config import AttributeInfo
 from dae.genomic_resources.repository import GenomicResourceRepo
+from web_annotation.pipeline_cache import LRUPipelineCache
 from web_annotation.views import SingleAnnotation
 
 
 class DummyResource:
+    """Dummy genomic resource."""
     def __init__(self, resource_id: str) -> None:
         self.resource_id = resource_id
 
@@ -17,12 +21,31 @@ class DummyResource:
 
 
 class DummyRepo:
+    """Dummy GRR."""
     def __init__(self, resource: DummyResource) -> None:
         self._resource = resource
 
     def get_resource(self, resource_id: str) -> DummyResource:
         assert resource_id == self._resource.resource_id
         return self._resource
+
+
+class DummyPipeline:
+    """Dummy pipeline."""
+    def __init__(self) -> None:
+        self.repository = DummyRepo(DummyResource("test"))
+        self.annotators: list = []
+        self.preamble = ""
+        self.raw = ""
+
+    def open(self) -> None:
+        pass
+
+    def close(self) -> None:
+        pass
+
+    def annotate(self, *args: Any, **kwargs: Any) -> dict:
+        return {"test": 1}
 
 
 def test_build_attribute_description_with_histogram(
@@ -106,3 +129,34 @@ def test_build_attribute_description_stringifies_non_mapping_objects(
 
     assert description["result"]["histogram"] is None
     assert description["result"]["value"] == "456"
+
+
+def test_use_of_thread_safe_pipelines(
+    mocker: MockerFixture,
+) -> None:
+    view = SingleAnnotation()
+    custom_cache = LRUPipelineCache(16)
+    dummy_pipeline = DummyPipeline()
+    custom_cache.put_pipeline("dummy", dummy_pipeline)  # type: ignore
+    thread_safe_dummy = custom_cache.get_pipeline("dummy")
+    assert thread_safe_dummy is not None
+    thread_safe_dummy.lock = MagicMock()
+    request_data = MagicMock()
+    request_data.data = {
+        "pipeline": "dummy",
+        "variant": {
+            "chrom": "1",
+            "pos": 12345,
+            "ref": "A",
+            "alt": "T",
+        },
+    }
+    mocker.patch(
+        "web_annotation.views.SingleAnnotation.lru_cache", new=custom_cache,
+    )
+    assert thread_safe_dummy.lock.__enter__.call_count == 0
+    view.post(request_data)
+    assert thread_safe_dummy.lock.__enter__.call_count == 1
+    view.post(request_data)
+    view.post(request_data)
+    assert thread_safe_dummy.lock.__enter__.call_count == 3

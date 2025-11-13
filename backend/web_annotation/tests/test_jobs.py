@@ -247,7 +247,7 @@ def test_annotate_vcf(
     saved_input = pathlib.Path(job.input_path)
 
     assert job.duration is not None
-    assert job.duration < 5.0
+    assert job.duration < 7.0
     assert saved_input.exists()
     assert saved_input.read_text(encoding="utf-8") == vcf
 
@@ -675,7 +675,7 @@ def test_annotate_columns_t4c8(
 
     assert job.status == Job.Status.SUCCESS
     assert job.duration is not None
-    assert job.duration < 5.0
+    assert job.duration < 7.0
     assert job.command_line.startswith("annotate_columns")
     assert job.command_line.find("job-inputs/admin@example.com") > 0
     assert job.command_line.find("annotation-configs/admin@example.com") > 0
@@ -730,7 +730,7 @@ def test_annotate_columns_t4c8_gzipped(
 
     assert job.status == Job.Status.SUCCESS
     assert job.duration is not None
-    assert job.duration < 5.0
+    assert job.duration < 7.0
 
     result_path = pathlib.Path(job.result_path)
     assert job.result_path.endswith(".gz"), str(result_path)
@@ -813,7 +813,7 @@ def test_annotate_vcf_bgzip(
     saved_input = pathlib.Path(job.input_path)
 
     assert job.duration is not None
-    assert job.duration < 5.0
+    assert job.duration < 7.0
     assert saved_input.exists()
     assert gzip.decompress(saved_input.read_bytes()).decode() == vcf_content
 

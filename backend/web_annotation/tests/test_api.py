@@ -498,7 +498,7 @@ def test_single_annotation(admin_client: Client) -> None:
     response = admin_client.post(
         "/api/single_annotate",
         {
-            "genome": "hg38",
+            "pipeline": "pipeline/test_pipeline",
             "variant": {
                 "chrom": "chr1", "pos": 1, "ref": "C", "alt": "A",
             }
@@ -557,7 +557,7 @@ def test_single_annotation_unauthorized(anonymous_client: Client) -> None:
     response = anonymous_client.post(
         "/api/single_annotate",
         {
-            "genome": "hg38",
+            "pipeline": "pipeline/test_pipeline",
             "variant": {
                 "chrom": "chr1", "pos": 1, "ref": "C", "alt": "A",
             }
@@ -616,7 +616,7 @@ def test_single_annotation_no_variant(admin_client: Client) -> None:
     response = admin_client.post(
         "/api/single_annotate",
         {
-            "genome": "hg38",
+            "pipeline": "pipeline/test_pipeline",
         },
         content_type="application/json",
     )
@@ -624,7 +624,7 @@ def test_single_annotation_no_variant(admin_client: Client) -> None:
     assert response.status_code == 400
 
 
-def test_single_annotation_no_genome(admin_client: Client) -> None:
+def test_single_annotation_no_pipeline(admin_client: Client) -> None:
     response = admin_client.post(
         "/api/single_annotate",
         {
@@ -699,7 +699,7 @@ def test_single_annotation_throttled(user_client: Client) -> None:
         response = user_client.post(
             "/api/single_annotate",
             {
-                "genome": "hg38",
+                "pipeline": "pipeline/test_pipeline",
                 "variant": {
                     "chrom": "chr1", "pos": 1, "ref": "C", "alt": "A",
                 }
@@ -711,7 +711,7 @@ def test_single_annotation_throttled(user_client: Client) -> None:
     response = user_client.post(
         "/api/single_annotate",
         {
-            "genome": "hg38",
+            "pipeline": "pipeline/test_pipeline",
             "variant": {
                 "chrom": "chr1", "pos": 1, "ref": "C", "alt": "A",
             }
@@ -931,14 +931,14 @@ def test_single_annotation_t4c8(admin_client: Client) -> None:
     response = admin_client.post(
         "/api/single_annotate",
         {
-            "genome": "t4c8",
+            "pipeline": "t4c8/t4c8_pipeline",
             "variant": {
                 "chrom": "chr1", "pos": 53, "ref": "C", "alt": "A",
             }
         },
         content_type="application/json",
     )
-    assert response.status_code == 200
+    assert response.status_code == 200, response.content
 
     data = response.data  # type: ignore
     assert "variant" in data
@@ -983,7 +983,7 @@ def test_single_annotation_t4c8(admin_client: Client) -> None:
     response = admin_client.post(
         "/api/single_annotate",
         {
-            "genome": "t4c8",
+            "pipeline": "t4c8/t4c8_pipeline",
             "variant": {
                 "chrom": "chr1", "pos": 102, "ref": "C", "alt": "A",
             }
