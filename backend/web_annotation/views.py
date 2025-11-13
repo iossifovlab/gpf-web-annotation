@@ -72,7 +72,7 @@ from web_annotation.executor import (
     TaskExecutor,
     ThreadedTaskExecutor,
 )
-from web_annotation.pipeline_cache import LRUPipelineCache, ThreadSafePipeline
+from web_annotation.pipeline_cache import LRUPipelineCache
 from web_annotation.utils import (
     PasswordForgottenForm,
     ResetPasswordForm,
@@ -844,7 +844,8 @@ class AnnotateVCF(AnnotationBaseView):
             job, str(work_dir), str(self.get_grr_definition()))
         start_time = time.time()
 
-        def on_success(result: None) -> None:
+        def on_success(
+                result: None) -> None:  # pylint: disable=unused-argument
             """Callback when annotation is done."""
             job.duration = time.time() - start_time
             update_job_success(job, ["annotate_vcf", *args])

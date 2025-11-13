@@ -1,5 +1,6 @@
 # pylint: disable=W0621,C0114,C0116,W0212,W0613
 from types import SimpleNamespace
+from typing import Any
 from unittest.mock import MagicMock
 
 from pytest_mock import MockerFixture
@@ -11,6 +12,7 @@ from web_annotation.views import SingleAnnotation
 
 
 class DummyResource:
+    """Dummy genomic resource."""
     def __init__(self, resource_id: str) -> None:
         self.resource_id = resource_id
 
@@ -19,6 +21,7 @@ class DummyResource:
 
 
 class DummyRepo:
+    """Dummy GRR."""
     def __init__(self, resource: DummyResource) -> None:
         self._resource = resource
 
@@ -28,19 +31,20 @@ class DummyRepo:
 
 
 class DummyPipeline:
+    """Dummy pipeline."""
     def __init__(self) -> None:
         self.repository = DummyRepo(DummyResource("test"))
-        self.annotators = []
+        self.annotators: list = []
         self.preamble = ""
         self.raw = ""
 
-    def open(self):
-        pass
-    
-    def close(self):
+    def open(self) -> None:
         pass
 
-    def annotate(self, *args, **kwargs):
+    def close(self) -> None:
+        pass
+
+    def annotate(self, *args: Any, **kwargs: Any) -> dict:
         return {"test": 1}
 
 

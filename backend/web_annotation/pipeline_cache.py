@@ -1,7 +1,8 @@
+"""Module for thread-safe annotation utilities."""
 import logging
 from threading import Lock
 from types import TracebackType
-from typing import Callable, Sequence
+from typing import Sequence
 from dae.annotation.annotatable import Annotatable
 from dae.annotation.annotation_config import AnnotatorInfo, AttributeInfo
 from dae.annotation.annotation_pipeline import AnnotationPipeline, Annotator
@@ -11,6 +12,8 @@ logger = logging.getLogger(__name__)
 
 
 class ThreadSafePipeline(AnnotationPipeline):
+    """Thread-safe annotation pipeline wrapper."""
+
     def __init__(self, pipeline: AnnotationPipeline):
         super().__init__(pipeline.repository)
         self.pipeline = pipeline
@@ -86,6 +89,8 @@ class ThreadSafePipeline(AnnotationPipeline):
 
 
 class LRUPipelineCache:
+    """LRU cache that wraps and provides thread-safe annotation pipelines."""
+
     def __init__(
         self, capacity: int,
     ):
