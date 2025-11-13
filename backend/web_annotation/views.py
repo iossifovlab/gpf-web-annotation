@@ -6,6 +6,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, cast
+import yaml
 
 import magic
 from dae.annotation.annotatable import VCFAllele
@@ -94,11 +95,11 @@ from .permissions import has_job_permission
 from .serializers import JobSerializer, UserSerializer
 from .tasks import (
     annotate_columns_job,
-    annotate_vcf_job,
     get_args_columns,
     get_args_vcf,
     get_job,
     get_job_details,
+    run_vcf_job,
     specify_job,
     update_job_failed,
     update_job_in_progress,
@@ -224,6 +225,8 @@ PIPELINES = get_pipelines(GRR)
 class AnnotationBaseView(views.APIView):
     """Base view for views which access annotation resources."""
 
+    lru_cache = LRUPipelineCache(32)
+
     TASK_EXECUTOR: TaskExecutor = ThreadedTaskExecutor(
             max_workers=settings.ANNOTATION_MAX_WORKERS)
 
@@ -323,29 +326,17 @@ class AnnotationBaseView(views.APIView):
 
     def _get_pipeline_yaml(
         self,
-        request: Request,
+        pipeline_id: str,
+        user: User,
     ) -> str:
         """Get annotation config contents from a request."""
-        assert isinstance(request.data, QueryDict)
-        assert isinstance(request.FILES, MultiValueDict)
-        if "pipeline" in request.data:
-            pipeline_id = request.data["pipeline"]
-            if pipeline_id in self.pipelines:
-                content = self.pipelines[pipeline_id]["content"]
-            else:
-                if not isinstance(pipeline_id, str):
-                    raise ValueError("Pipeline id is not a string!")
-                content = self._get_user_pipeline_yaml(
-                    pipeline_id, request.user)
+        if pipeline_id in self.pipelines:
+            content = self.pipelines[pipeline_id]["content"]
         else:
-            config_file = request.FILES["config"]
-            assert isinstance(config_file, UploadedFile)
-            try:
-                raw_content = config_file.read()
-                content = raw_content.decode()
-            except UnicodeDecodeError as e:
-                raise ValueError(
-                    f"Invalid pipeline configuration file: {str(e)}") from e
+            if not isinstance(pipeline_id, str):
+                raise ValueError("Pipeline id is not a string!")
+            content = self._get_user_pipeline_yaml(
+                pipeline_id, user)
 
         if "ASCII text" not in magic.from_buffer(content):
             raise ValueError("Invalid pipeline configuration file!")
@@ -356,6 +347,18 @@ class AnnotationBaseView(views.APIView):
             raise ValueError(str(e)) from e
 
         return content
+
+    def get_pipeline(self, pipeline_id: str, user: User) -> AnnotationPipeline:
+        pipeline = self.lru_cache.get_pipeline(pipeline_id)
+
+        if pipeline is None:
+            pipeline_config = self._get_pipeline_yaml(pipeline_id, user)
+
+            pipeline = self.lru_cache.put_pipeline(
+                pipeline_id, load_pipeline_from_yaml(pipeline_config, self.grr)
+            )
+
+        return pipeline
 
     def get_genome(self, data: QueryDict) -> str:
         """Get genome from a request."""
@@ -377,11 +380,18 @@ class AnnotationBaseView(views.APIView):
         self,
         request: Request,
         config_path: Path,
-    ) -> Response | None:
+    ) -> Response | AnnotationPipeline:
         assert isinstance(request.data, QueryDict)
         assert isinstance(request.FILES, MultiValueDict)
+        if "pipeline" not in request.data:
+            raise ValueError("Pipeline id not provided!")
         try:
-            content = self._get_pipeline_yaml(request)
+            pipeline_id = request.data["pipeline"]
+            if not isinstance(pipeline_id, str):
+                raise ValueError("Pipeline id is not a string!")
+            pipeline = self.get_pipeline(pipeline_id, request.user)
+            if pipeline is None:
+                raise KeyError(f"Pipeline {pipeline_id} not found!")
         except ValueError as e:
             return Response(
                 {"reason": str(e)},
@@ -390,14 +400,14 @@ class AnnotationBaseView(views.APIView):
 
         try:
             config_path.parent.mkdir(parents=True, exist_ok=True)
-            config_path.write_text(content)
+            config_path.write_text(yaml.safe_dump(pipeline.raw))
         except OSError:
             logger.exception("Could not write config file")
             return Response(
                 {"reason": "Could not write file!"},
                 status=views.status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-        return None
+        return pipeline
 
     def _save_input_file(
         self,
@@ -497,7 +507,7 @@ class AnnotationBaseView(views.APIView):
         self,
         request: Request,
         annotation_type: str,
-    ) -> Response | tuple[int, Job]:
+    ) -> Response | tuple[int, AnnotationPipeline, Job]:
         validation_response = self._validate_request(request)
         if validation_response is not None:
             return validation_response
@@ -522,9 +532,11 @@ class AnnotationBaseView(views.APIView):
             request.user.email,
             config_filename,
         )
-        save_response = self._save_annotation_config(request, config_path)
-        if save_response is not None:
-            return save_response
+        save_response_or_pipeline = self._save_annotation_config(
+            request, config_path)
+        if isinstance(save_response_or_pipeline, Response):
+            return save_response_or_pipeline
+        pipeline = save_response_or_pipeline
 
         uploaded_file = request.FILES["data"]
         assert isinstance(uploaded_file, UploadedFile)
@@ -571,7 +583,7 @@ class AnnotationBaseView(views.APIView):
             owner=request.user,
             annotation_type=annotation_type
         )
-        return (job_name, job)
+        return (job_name, pipeline, job)
 
 
 class JobAll(generics.ListAPIView):
@@ -814,7 +826,7 @@ class AnnotateVCF(AnnotationBaseView):
         job_or_response = self._create_job(request, "vcf")
         if isinstance(job_or_response, Response):
             return job_or_response
-        job_name, job = job_or_response
+        job_name, pipeline, job = job_or_response
 
         try:
             vcf = VariantFile(job.input_path)
@@ -845,15 +857,17 @@ class AnnotateVCF(AnnotationBaseView):
 
         job.save()
         work_dir = self.result_storage_dir / request.user.email
+        pipeline = load_pipeline_from_yaml(
+            yaml.safe_dump(pipeline.raw), pipeline.repository)
         args = get_args_vcf(
-            job, str(work_dir), str(self.get_grr_definition()))
+            job, pipeline, str(work_dir))
         start_time = time.time()
 
         def on_success(
                 result: None) -> None:  # pylint: disable=unused-argument
             """Callback when annotation is done."""
             job.duration = time.time() - start_time
-            update_job_success(job, ["annotate_vcf", *args])
+            update_job_success(job)
 
         def on_failure(exception: BaseException) -> None:
             """Callback when annotation fails."""
@@ -878,15 +892,15 @@ class AnnotateVCF(AnnotationBaseView):
                     f"{str(exception)}"
                 )
             logger.error("VCF annotation job failed!\n%s", reason)
-            update_job_failed(job, ["annotate_vcf", *args])
+            update_job_failed(job)
 
         update_job_in_progress(job)
 
         self.TASK_EXECUTOR.execute(
-            annotate_vcf_job,
+            run_vcf_job,
             callback_success=on_success,
             callback_failure=on_failure,
-            args=args,
+            **args,
         )
 
         return Response({"job_id": job.pk}, status=views.status.HTTP_200_OK)
@@ -1318,8 +1332,6 @@ class ListGenomePipelines(AnnotationBaseView):
 
 class SingleAnnotation(AnnotationBaseView):
     """Single annotation view."""
-
-    lru_cache = LRUPipelineCache(32)
 
     throttle_classes = [UserRateThrottle]
 

@@ -1,13 +1,18 @@
 """Web annotation tasks"""
 import logging
 from datetime import timedelta
+from typing import Any
 
+from dae.annotation.annotation_pipeline import AnnotationPipeline
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.utils import timezone
 
+from dae.annotation.annotate_vcf import annotate_vcf
+
 from .annotation import annotate_columns_file, annotate_vcf_file
 from .models import Job, JobDetails
+
 
 
 logger = logging.getLogger(__name__)
@@ -77,7 +82,7 @@ def update_job_in_progress(job: Job) -> None:
     job.save()
 
 
-def update_job_failed(job: Job, args: list[str]) -> None:
+def update_job_failed(job: Job) -> None:
     """Update a job's state to failed."""
     if job.status != Job.Status.IN_PROGRESS:
         raise ValueError(
@@ -85,7 +90,6 @@ def update_job_failed(job: Job, args: list[str]) -> None:
             f"which is not in in progress! ({job.status})",
         )
     job.status = Job.Status.FAILED
-    job.command_line = " ".join(args)
     job.save()
 
     # pylint: disable=import-outside-toplevel
@@ -101,7 +105,7 @@ def update_job_failed(job: Job, args: list[str]) -> None:
     )
 
 
-def update_job_success(job: Job, args: list[str]) -> None:
+def update_job_success(job: Job) -> None:
     """Update a job's state to success."""
     if job.status != Job.Status.IN_PROGRESS:
         raise ValueError(
@@ -109,7 +113,6 @@ def update_job_success(job: Job, args: list[str]) -> None:
             f"({job.status})",
         )
     job.status = Job.Status.SUCCESS
-    job.command_line = " ".join(args)
     job.save()
     # pylint: disable=import-outside-toplevel
     from django.conf import settings
@@ -125,31 +128,30 @@ def update_job_success(job: Job, args: list[str]) -> None:
 
 
 def get_args_vcf(
-    job: Job, storage_dir: str, grr_definition_path: str | None,
-) -> list[str]:
+    job: Job, pipeline: AnnotationPipeline, storage_dir: str,
+) -> dict[str, Any]:
     """Prepare command line arguments for VCF annotation."""
-    args = [
-        str(job.input_path),
-        str(job.config_path),
-        "-o", str(job.result_path),
-        "-w", storage_dir,
-        "-j 1",
-        "-vv",
-    ]
-
-    if grr_definition_path is not None:
-        args.extend(["--grr-filename", grr_definition_path])
-    return args
+    return {
+        "input_path": str(job.input_path),
+        "pipeline": pipeline,
+        "output_path": str(job.result_path),
+        "args": {
+            "work_dir": storage_dir,
+        }
+    }
 
 
 def run_vcf_job(
-    args: list[str],
+    input_path: str,
+    pipeline: AnnotationPipeline,
+    output_path: str,
+    args: dict[str, Any],
 ) -> None:
     """Run a VCF annotation."""
     logger.debug("Running vcf job")
-    logger.debug(args)
+    logger.debug("%s, %s %s %s", input_path, pipeline, output_path, args)
 
-    annotate_vcf_file(*args)
+    annotate_vcf(input_path, pipeline, output_path, {})
 
 
 def delete_old_jobs(days_old: int = 0) -> None:

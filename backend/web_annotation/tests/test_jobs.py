@@ -221,7 +221,13 @@ def test_annotate_vcf(
 ) -> None:
     user = User.objects.get(email="user@example.com")
 
-    annotation_config = "- position_score: scores/pos1"
+    annotation_config = textwrap.dedent("""
+        - position_score:
+            attributes:
+            - name: position_1
+              source: pos1
+            resource_id: scores/pos1
+    """).lstrip()
     vcf = textwrap.dedent("""
         ##fileformat=VCFv4.1
         ##contig=<ID=chr1>
@@ -232,11 +238,11 @@ def test_annotate_vcf(
     response = user_client.post(
         "/api/jobs/annotate_vcf",
         {
-            "config": ContentFile(annotation_config),
-            "data": ContentFile(vcf, "test_input.vcf")
+            "pipeline": "pipeline/test_pipeline",
+            "data": ContentFile(vcf, "test_input.vcf"),
         },
     )
-    assert response.status_code == 200
+    assert response.status_code == 200, response.data
 
     assert Job.objects.filter(owner=user).count() == 2
 
