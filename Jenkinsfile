@@ -188,7 +188,7 @@ pipeline {
             junit 'reports/*-junit-report.xml'
 
             sh "test ${resultBeforeTests} == ${currentBuild.currentResult}"
-            currentBuild.currentResult = resultBeforeTests
+            currentBuild.result = resultBeforeTests
 
         } finally {
           zulipNotification(
