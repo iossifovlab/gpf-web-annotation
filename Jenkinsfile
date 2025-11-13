@@ -184,9 +184,11 @@ pipeline {
                 reportTitles: 'Frontend Coverage'])
 
             def resultBeforeTests = currentBuild.currentResult
+            currentBuild.currentResult = 'SUCCESS'
             junit 'reports/*-junit-report.xml'
 
             sh "test ${resultBeforeTests} == ${currentBuild.currentResult}"
+            currentBuild.currentResult = resultBeforeTests
 
         } finally {
           zulipNotification(
