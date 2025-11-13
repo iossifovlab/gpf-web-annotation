@@ -3,7 +3,6 @@ import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { map, Observable, of, startWith, take } from 'rxjs';
 import { JobsService } from '../job-creation/jobs.service';
 import { SingleAnnotationService } from '../single-annotation.service';
-import { JobCreationView } from '../job-creation/jobs';
 import { Pipeline } from '../job-creation/pipelines';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -17,14 +16,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 })
 
 export class AnnotationPipelineComponent implements OnInit {
-  public view: JobCreationView = 'pipeline list';
   public pipelines : Pipeline[] = [];
   public pipelineId = '';
   public ymlConfig = '';
   public configError = '';
   @Output() public emitPipelineId = new EventEmitter<string>();
   @Output() public emitConfig = new EventEmitter<string>();
-  @Output() public emitView = new EventEmitter<JobCreationView>();
   @Output() public emitIsConfigValid = new EventEmitter<boolean>();
   public filteredPipelines$: Observable<string[]> = null;
   public dropdownControl = new FormControl<string>('');
@@ -35,8 +32,6 @@ export class AnnotationPipelineComponent implements OnInit {
   ) { }
 
   public ngOnInit(): void {
-    this.emitView.emit(this.view);
-
     this.jobsService.getAnnotationPipelines().pipe(take(1)).subscribe(pipelines => {
       this.pipelines = pipelines;
       this.filteredPipelines$ = of(this.pipelines.map(p => p.id));
@@ -60,7 +55,6 @@ export class AnnotationPipelineComponent implements OnInit {
   }
 
   public resetState(): void {
-    this.changeView('pipeline list');
     this.onPipelineClick('');
   }
 
@@ -76,19 +70,6 @@ export class AnnotationPipelineComponent implements OnInit {
         this.emitIsConfigValid.emit(false);
       }
     });
-  }
-
-  public changeView(view: JobCreationView): void {
-    if (view === 'pipeline list') {
-      this.ymlConfig = '';
-      this.configError = '';
-    } else {
-      this.pipelineId = '';
-    }
-    this.view = view;
-    this.emitView.emit(this.view);
-    this.emitConfig.emit(this.ymlConfig);
-    this.emitPipelineId.emit(this.pipelineId);
   }
 
   public onPipelineClick(option: string): void {

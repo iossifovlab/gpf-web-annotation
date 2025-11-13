@@ -39,7 +39,6 @@ export class Job {
   }
 }
 
-export type JobCreationView = 'text editor' | 'pipeline list';
 export type Status = 'waiting' | 'in process' | 'success' | 'failed';
 
 export function getStatusClassName(status: string): string {

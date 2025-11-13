@@ -106,34 +106,6 @@ describe('AnnotationPipelineComponent', () => {
     expect(component.pipelines).toStrictEqual(mockPipelines);
   });
 
-  it('should change view to text editor, clear state and emit to parent', () => {
-    const emitViewSpy = jest.spyOn(component.emitView, 'emit');
-    const emitConfigSpy = jest.spyOn(component.emitConfig, 'emit');
-    const emitPipelineIdSpy = jest.spyOn(component.emitPipelineId, 'emit');
-
-    component.pipelineId = 'autism';
-    component.view = 'pipeline list';
-    component.changeView('text editor');
-    expect(component.pipelineId).toBe('');
-    expect(emitViewSpy).toHaveBeenCalledWith('text editor');
-    expect(emitConfigSpy).toHaveBeenCalledWith('');
-    expect(emitPipelineIdSpy).toHaveBeenCalledWith('');
-  });
-
-  it('should change view to pipeline list, clear state and emit to parent', () => {
-    const emitViewSpy = jest.spyOn(component.emitView, 'emit');
-    const emitConfigSpy = jest.spyOn(component.emitConfig, 'emit');
-    const emitPipelineIdSpy = jest.spyOn(component.emitPipelineId, 'emit');
-
-    component.ymlConfig = 'config';
-    component.view = 'text editor';
-    component.changeView('pipeline list');
-    expect(component.ymlConfig).toBe('');
-    expect(emitViewSpy).toHaveBeenCalledWith('pipeline list');
-    expect(emitConfigSpy).toHaveBeenCalledWith('');
-    expect(emitPipelineIdSpy).toHaveBeenCalledWith('id1');
-  });
-
   it('should select new pipeline and emit to parent', () => {
     const emitPipelineIdSpy = jest.spyOn(component.emitPipelineId, 'emit');
     component.onPipelineClick('other pipeline');

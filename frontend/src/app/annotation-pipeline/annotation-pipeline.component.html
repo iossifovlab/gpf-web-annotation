@@ -1,21 +1,6 @@
-<div id="annotation-mode">
-  <div>
-    <button
-      id="pipelines-list"
-      [ngClass]="view === 'pipeline list' ? 'active-view' : 'inactive-view'"
-      (click)="changeView('pipeline list')"
-      >Annotation pipelines</button
-    >
-    <button
-      id="text-editor"
-      [ngClass]="view === 'text editor' ? 'active-view' : 'inactive-view'"
-      (click)="changeView('text editor')"
-      >YML text editor</button
-    >
-  </div>
-</div>
-<div id="annotation-details">
-  <ng-container *ngIf="view === 'pipeline list'">
+<div id="pipelines-container">
+  <div id="pipelines-header">Annotation pipelines</div>
+  <ng-container>
     <input
       [title]="pipelineId"
       id="pipelines-input"
@@ -34,13 +19,5 @@
         {{ pipelineId }}
       </mat-option>
     </mat-autocomplete>
-  </ng-container>
-  <ng-container *ngIf="view === 'text editor'">
-    <textarea
-      id="yml-textarea"
-      [(ngModel)]="ymlConfig"
-      [ngClass]="{ 'invalid-config': configError }"
-      (change)="isConfigValid(ymlConfig)"></textarea>
-    <div *ngIf="configError" class="error-message">{{ configError }}</div>
   </ng-container>
 </div>

@@ -3,7 +3,7 @@ import { JobsTableComponent } from '../jobs-table/jobs-table.component';
 import { Observable, repeat, switchMap, take, takeWhile } from 'rxjs';
 import { JobsService } from '../job-creation/jobs.service';
 import { AnnotationPipelineComponent } from '../annotation-pipeline/annotation-pipeline.component';
-import { getStatusClassName, Job, JobCreationView, Status } from '../job-creation/jobs';
+import { getStatusClassName, Job, Status } from '../job-creation/jobs';
 import { JobCreationComponent } from '../job-creation/job-creation.component';
 import { CommonModule } from '@angular/common';
 
@@ -22,7 +22,6 @@ export class AnnotationWrapperComponent {
   public ymlConfig = '';
   public isConfigValid = true;
   public creationError = '';
-  public view: JobCreationView = 'pipeline list';
   public selectedGenome = '';
   public isCreationFormVisible = true;
   @ViewChild(AnnotationPipelineComponent) public pipelinesComponent: AnnotationPipelineComponent;
@@ -40,7 +39,7 @@ export class AnnotationWrapperComponent {
     if (this.file) {
       let createObservable: Observable<number>;
       if (this.file.type !== 'text/vcard') {
-        if (this.view === 'text editor') {
+        if (this.ymlConfig) {
           createObservable = this.jobsService.createNonVcfJob(
             this.file,
             null,
@@ -60,7 +59,7 @@ export class AnnotationWrapperComponent {
           );
         }
       } else if (this.file.type === 'text/vcard') {
-        if (this.view === 'text editor') {
+        if (this.ymlConfig) {
           createObservable = this.jobsService.createVcfJob(
             this.file,
             null,
@@ -131,10 +130,6 @@ export class AnnotationWrapperComponent {
     this.creationError = '';
   }
 
-  public setView(newView: JobCreationView): void {
-    this.view = newView;
-  }
-
   public setGenome(genome: string): void {
     this.selectedGenome = genome;
   }
@@ -172,8 +167,7 @@ export class AnnotationWrapperComponent {
     return !this.file
       || !this.fileHeader
       || !this.isConfigValid
-      || !this.isGenomeValid()
-      || (this.view === 'text editor' ? !this.ymlConfig : !this.pipelineId);
+      || !this.isGenomeValid();
   }
 
   public isJobFinished(status: Status): boolean {

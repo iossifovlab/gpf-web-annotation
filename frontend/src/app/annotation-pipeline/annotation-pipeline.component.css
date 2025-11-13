@@ -97,3 +97,17 @@ textarea:focus-visible {
   outline: 0;
   background-color: #f4f7fb;
 }
+
+#pipelines-header {
+  font-weight: bold;
+  color: #435869;
+  align-self: center;
+}
+
+#pipelines-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  gap: 25px;
+}

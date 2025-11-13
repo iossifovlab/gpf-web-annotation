@@ -22,7 +22,7 @@ test.describe('Create job tests', () => {
     await page.locator('#create-button').click();
   });
 
-  test('should be able to create job with yml config and input file', async({ page }) => {
+  test.skip('should be able to create job with yml config and input file', async({ page }) => {
     await page.getByText('YML text editor').click();
 
     const config = fs.readFileSync('./fixtures/test-config.yaml').toString();
@@ -35,14 +35,6 @@ test.describe('Create job tests', () => {
     await page.locator('#create-button').click();
   });
 
-  test('should check if create button is disabled when no pipeline is selected', async({ page }) => {
-    await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
-
-    await expect(page.locator('#create-button')).toBeDisabled();
-    await selectPipeline(page, 'pipeline/Autism_annotation');
-    await expect(page.locator('#create-button')).toBeEnabled();
-  });
-
   test('should check if create button is disabled when no file is uploaded', async({ page }) => {
     await selectPipeline(page, 'pipeline/Autism_annotation');
 
@@ -51,7 +43,7 @@ test.describe('Create job tests', () => {
     await expect(page.locator('#create-button')).toBeEnabled();
   });
 
-  test('should check if create button is disabled when no yml is written', async({ page }) => {
+  test.skip('should check if create button is disabled when no yml is written', async({ page }) => {
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-file-1.vcf');
     await page.getByText('YML text editor').click();
     await expect(page.locator('#create-button')).toBeDisabled();
@@ -135,7 +127,7 @@ test.describe('Job details tests', () => {
     expect(fixtureFrame.toString()).toEqual(downloadFrame.toString());
   });
 
-  test('should download config file of a job created with yml config', async({ page }) => {
+  test.skip('should download config file of a job created with yml config', async({ page }) => {
     const config = fs.readFileSync('./fixtures/test-config.yaml').toString();
     await createJobWithConfig(page, config, 'input-file-1.vcf');
 
@@ -333,7 +325,7 @@ test.describe('Validation tests', () => {
     await page.getByRole('link', {name: 'Jobs'}).click();
   });
 
-  test('should type config without annotators and show error message', async({ page }) => {
+  test.skip('should type config without annotators and show error message', async({ page }) => {
     await page.getByText('YML text editor').click();
 
     await page.locator('#yml-textarea').fill('preamble:\n' +
@@ -347,7 +339,7 @@ test.describe('Validation tests', () => {
     await expect(page.getByText('Invalid configuration, reason: \'annotators\'')).toBeVisible();
   });
 
-  test('should type config without peamble and show error message', async({ page }) => {
+  test.skip('should type config without peamble and show error message', async({ page }) => {
     await page.getByText('YML text editor').click();
 
     await page.locator('#yml-textarea').fill('annotators:\n' +
@@ -361,7 +353,7 @@ test.describe('Validation tests', () => {
     await expect(page.getByText('Invalid configuration, reason: \'preamble\'')).toBeVisible();
   });
 
-  test('should type semantically invalid config and see error', async({ page }) => {
+  test.skip('should type semantically invalid config and see error', async({ page }) => {
     await page.getByText('YML text editor').click();
 
     await page.locator('#yml-textarea').fill('- A');

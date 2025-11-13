@@ -99,19 +99,6 @@ describe('AnnotationWrapperComponent', () => {
     expect(component.disableCreate()).toBe(true);
   });
 
-  it('should disable Create button if no pipeline is chosen', () => {
-    component.file = new File([], 'mockFile', { type: 'json' });
-    component.pipelineId = '';
-    expect(component.disableCreate()).toBe(true);
-  });
-
-  it('should disable Create button if no yml config is set', () => {
-    component.file = new File([], 'mockFile', { type: 'json' });
-    component.view = 'text editor';
-    component.ymlConfig = '';
-    expect(component.disableCreate()).toBe(true);
-  });
-
   it('should disable Create button if yml config is invalid', () => {
     component.isConfigValid = false;
     expect(component.disableCreate()).toBe(true);
@@ -120,7 +107,6 @@ describe('AnnotationWrapperComponent', () => {
   it('should create job with yml config entered by user and vcf file', () => {
     const mockFile = new File([], 'mockFile', { type: 'text/vcard' });
     component.file = mockFile;
-    component.view = 'text editor';
     component.selectedGenome = 'hg38';
     fixture.detectChanges();
 
@@ -170,7 +156,6 @@ describe('AnnotationWrapperComponent', () => {
     component.file = mockFile;
     component.fileSeparator = '\t';
     component.fileHeader = new Map([['chr', 'CHROM']]);
-    component.view = 'text editor';
     component.selectedGenome = 'hg38';
     fixture.detectChanges();
 
