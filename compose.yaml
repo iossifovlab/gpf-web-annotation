@@ -38,13 +38,6 @@ services:
       - "1025:1025"
       - "8025:8025"
 
-  rabbitmq:
-    extends:
-      file: compose-jenkins.yaml
-      service: rabbitmq
-    ports:
-      - "5672:5672"
-
   backend:
     extends:
       file: compose-jenkins.yaml
