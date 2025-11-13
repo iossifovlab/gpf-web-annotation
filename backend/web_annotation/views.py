@@ -36,7 +36,9 @@ from dae.genomic_resources.implementations.annotation_pipeline_impl import (
     AnnotationPipelineImplementation,
 )
 from dae.genomic_resources.repository import GenomicResource, GenomicResourceRepo
-from dae.genomic_resources.repository_factory import build_genomic_resource_repository
+from dae.genomic_resources.repository_factory import (
+    build_genomic_resource_repository,
+)
 from dae.genomic_scores.scores import _build_score_help
 from django import forms
 from django.conf import settings
@@ -70,6 +72,7 @@ from web_annotation.executor import (
     TaskExecutor,
     ThreadedTaskExecutor,
 )
+from web_annotation.pipeline_cache import LRUPipelineCache, ThreadSafePipeline
 from web_annotation.utils import (
     PasswordForgottenForm,
     ResetPasswordForm,
@@ -303,7 +306,7 @@ class AnnotationBaseView(views.APIView):
             return False
         return True
 
-    def _get_user_pipeline_content(
+    def _get_user_pipeline_yaml(
         self,
         pipeline_id: str,
         user: User,
@@ -318,7 +321,7 @@ class AnnotationBaseView(views.APIView):
             return Path(user_pipeline.config_path).read_text(encoding="utf-8")
         raise ValueError(f"Pipeline {pipeline_id} not found!")
 
-    def _get_annotation_config(
+    def _get_pipeline_yaml(
         self,
         request: Request,
     ) -> str:
@@ -327,9 +330,13 @@ class AnnotationBaseView(views.APIView):
         assert isinstance(request.FILES, MultiValueDict)
         if "pipeline" in request.data:
             pipeline_id = request.data["pipeline"]
-            if not isinstance(pipeline_id, str):
-                raise ValueError("Pipeline id is not a string!")
-            content = self._get_user_pipeline_content(pipeline_id, request.user)
+            if pipeline_id in self.pipelines:
+                content = self.pipelines[pipeline_id]["content"]
+            else:
+                if not isinstance(pipeline_id, str):
+                    raise ValueError("Pipeline id is not a string!")
+                content = self._get_user_pipeline_yaml(
+                    pipeline_id, request.user)
         else:
             config_file = request.FILES["config"]
             assert isinstance(config_file, UploadedFile)
@@ -374,7 +381,7 @@ class AnnotationBaseView(views.APIView):
         assert isinstance(request.data, QueryDict)
         assert isinstance(request.FILES, MultiValueDict)
         try:
-            content = self._get_annotation_config(request)
+            content = self._get_pipeline_yaml(request)
         except ValueError as e:
             return Response(
                 {"reason": str(e)},
@@ -660,7 +667,7 @@ class UserPipeline(AnnotationBaseView):
     ) -> Response | None:
         assert isinstance(request.FILES, MultiValueDict)
         try:
-            content = self._get_annotation_config(request)
+            content = self._get_pipeline_yaml(request)
         except ValueError as e:
             return Response(
                 {"reason": str(e)},
@@ -1306,6 +1313,8 @@ class ListGenomePipelines(AnnotationBaseView):
 class SingleAnnotation(AnnotationBaseView):
     """Single annotation view."""
 
+    lru_cache = LRUPipelineCache(32)
+
     throttle_classes = [UserRateThrottle]
 
     def generate_annotator_help(
@@ -1336,6 +1345,27 @@ class SingleAnnotation(AnnotationBaseView):
                 )
         return None
 
+    def _get_pipeline_yaml(
+        self,
+        request: Request,
+    ) -> str:
+        """Get annotation config contents from a request."""
+        # Temporary overwrite until this function no longer depends on FILES
+        assert isinstance(request.data, dict)
+        content = None
+        if "pipeline" in request.data:
+            pipeline_id = request.data["pipeline"]
+            if pipeline_id in self.pipelines:
+                content = self.pipelines[pipeline_id]["content"]
+            else:
+                if not isinstance(pipeline_id, str):
+                    raise ValueError("Pipeline id is not a string!")
+                content = self._get_user_pipeline_yaml(
+                    pipeline_id, request.user)
+        if content is None:
+            raise ValueError("Pipeline not found!")
+        return content
+
     def post(self, request: Request) -> Response:
         """View for single annotation"""
 
@@ -1345,17 +1375,36 @@ class SingleAnnotation(AnnotationBaseView):
                 {"reason": "Variant not provided!"},
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
-        if "genome" not in request.data:
-            return Response(
-                {"reason": "Genome not provided!"},
-                status=views.status.HTTP_400_BAD_REQUEST,
-            )
         variant = request.data["variant"]
         assert isinstance(variant, dict)
-        genome = request.data["genome"]
-        assert isinstance(genome, str)
 
-        pipeline = self.get_genome_pipeline(genome)
+        if "pipeline" not in request.data:
+            return Response(
+                {"reason": "Pipeline not provided!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        pipeline_id = request.data["pipeline"]
+        if not isinstance(pipeline_id, str):
+            return Response(
+                {"reason": "Invalid pipeline provided!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        pipeline = self.lru_cache.get_pipeline(pipeline_id)
+
+        if pipeline is None:
+            try:
+                pipeline_config = self._get_pipeline_yaml(request)
+            except ValueError as e:
+                return Response(
+                    {"reason": str(e)},
+                    status=views.status.HTTP_400_BAD_REQUEST,
+                )
+
+            pipeline = self.lru_cache.put_pipeline(
+                pipeline_id, load_pipeline_from_yaml(pipeline_config, self.grr)
+            )
 
         vcf_annotatable = VCFAllele(
             variant["chrom"], variant["pos"],

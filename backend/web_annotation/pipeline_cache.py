@@ -14,6 +14,9 @@ class ThreadSafePipeline(AnnotationPipeline):
     def __init__(self, pipeline: AnnotationPipeline):
         super().__init__(pipeline.repository)
         self.pipeline = pipeline
+        self.annotators = pipeline.annotators
+        self.preamble = pipeline.preamble
+        self.raw = pipeline.raw
         self.lock = Lock()
 
     def get_info(self) -> list[AnnotatorInfo]:
