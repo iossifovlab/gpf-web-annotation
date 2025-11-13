@@ -44,8 +44,6 @@ def test_thread_safe_pipeline(
 def test_thread_safe_pipeline_concurrent(
     sample_pipeline_factory: Callable[[], AnnotationPipeline],
 ) -> None:
-    import concurrent.futures
-
     pipeline = ThreadSafePipeline(sample_pipeline_factory())
 
     pipeline.open()
