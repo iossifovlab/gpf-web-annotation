@@ -1,7 +1,7 @@
 #wrapper-container {
   display: flex;
   gap: 35px;
-  margin: 60px 2% 60px 10%;
+  margin: 60px 2%;
   min-width: 715px;
   max-width: 3000px;
 }

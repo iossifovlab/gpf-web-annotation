@@ -1,7 +1,8 @@
 export class Pipeline {
   public constructor(
     public id: string,
-    public content: string
+    public content: string,
+    public type: string
   ) {}
 
   public static fromJsonArray(jsonArray: object[]): Pipeline[] {
@@ -18,7 +19,8 @@ export class Pipeline {
 
     return new Pipeline(
       json['id'] as string,
-      json['content'] as string
+      json['content'] as string,
+      json['type'] as string
     );
   }
 }

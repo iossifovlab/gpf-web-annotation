@@ -368,9 +368,9 @@ describe('JobsService', () => {
   it('should get pipeline list', async() => {
     const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
     httpGetSpy.mockReturnValue(of([
-      { id: 'pipeline1', content: '' },
-      { id: 'pipeline2', content: '' },
-      { id: 'pipeline3', content: '' },
+      { id: 'pipeline1', content: '', type: 'default' },
+      { id: 'pipeline2', content: '', type: 'default' },
+      { id: 'pipeline3', content: '', type: 'default' },
     ]));
 
     const getResponse = service.getAnnotationPipelines();
@@ -381,9 +381,9 @@ describe('JobsService', () => {
     );
     const res = await lastValueFrom(getResponse.pipe(take(1)));
     expect(res).toStrictEqual([
-      new Pipeline('pipeline1', ''),
-      new Pipeline('pipeline2', ''),
-      new Pipeline('pipeline3', ''),
+      new Pipeline('pipeline1', '', 'default'),
+      new Pipeline('pipeline2', '', 'default'),
+      new Pipeline('pipeline3', '', 'default'),
     ]);
   });
 
@@ -404,7 +404,7 @@ describe('JobsService', () => {
   it('should return undefined for each invalid pipeline from response array', async() => {
     const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
     httpGetSpy.mockReturnValue(of([
-      { id: 'pipeline1', content: '' },
+      { id: 'pipeline1', content: '', type: 'default' },
       null
     ]));
 
@@ -416,7 +416,7 @@ describe('JobsService', () => {
     );
     const res = await lastValueFrom(getResponse.pipe(take(1)));
     expect(res).toStrictEqual([
-      new Pipeline('pipeline1', ''),
+      new Pipeline('pipeline1', '', 'default'),
       undefined
     ]);
   });

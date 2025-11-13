@@ -1,23 +1,28 @@
 <div id="pipelines-container">
   <div id="pipelines-header">Annotation pipelines</div>
-  <ng-container>
-    <input
-      [title]="pipelineId"
-      id="pipelines-input"
-      matInput
-      [matAutocomplete]="pipelinesDropdown"
-      [formControl]="dropdownControl" />
+  <input
+    [title]="pipelineId"
+    id="pipelines-input"
+    matInput
+    [matAutocomplete]="pipelinesDropdown"
+    [formControl]="dropdownControl" />
 
-    <mat-autocomplete #pipelinesDropdown="matAutocomplete">
-      <mat-option
-        *ngFor="let pipelineId of filteredPipelines$ | async"
-        class="pipeline-option"
-        (click)="onPipelineClick(pipelineId)"
-        (onSelectionChange)="onPipelineClick(pipelineId)"
-        [title]="pipelineId"
-        [value]="pipelineId">
-        {{ pipelineId }}
-      </mat-option>
-    </mat-autocomplete>
-  </ng-container>
+  <mat-autocomplete #pipelinesDropdown="matAutocomplete">
+    <mat-option
+      *ngFor="let pipeline of filteredPipelines$ | async"
+      class="pipeline-option"
+      (click)="onPipelineClick(pipeline)"
+      (onSelectionChange)="onPipelineClick(pipeline)"
+      [title]="pipeline.id"
+      [value]="pipeline.id">
+      {{ pipeline.id }}
+    </mat-option>
+  </mat-autocomplete>
+
+  <textarea
+    id="yml-textarea"
+    [(ngModel)]="ymlConfig"
+    [ngClass]="{ 'invalid-config': configError }"
+    (change)="isConfigValid(ymlConfig)"></textarea>
+  <div *ngIf="configError" class="error-message">{{ configError }}</div>
 </div>

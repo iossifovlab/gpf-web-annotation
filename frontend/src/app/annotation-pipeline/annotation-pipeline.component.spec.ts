@@ -18,9 +18,9 @@ class SingleAnnotationServiceMock {
 }
 
 const mockPipelines = [
-  new Pipeline('id1', 'content1'),
-  new Pipeline('id2', 'content2'),
-  new Pipeline('id3', 'content3'),
+  new Pipeline('id1', 'content1', 'defualt'),
+  new Pipeline('id2', 'content2', 'defualt'),
+  new Pipeline('id3', 'content3', 'defualt'),
 ];
 class JobsServiceMock {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -108,20 +108,19 @@ describe('AnnotationPipelineComponent', () => {
 
   it('should select new pipeline and emit to parent', () => {
     const emitPipelineIdSpy = jest.spyOn(component.emitPipelineId, 'emit');
-    component.onPipelineClick('other pipeline');
+    component.onPipelineClick(new Pipeline('other pipeline', 'config', 'default'));
     expect(component.pipelineId).toBe('other pipeline');
+    expect(component.ymlConfig).toBe('config');
     expect(emitPipelineIdSpy).toHaveBeenCalledWith('other pipeline');
   });
 
   it('should success config validation', () => {
-    const emitConfigSpy = jest.spyOn(component.emitConfig, 'emit');
     const emitIsConfigValid = jest.spyOn(component.emitIsConfigValid, 'emit');
 
     const configValidationSpy = jest.spyOn(jobsServiceMock, 'validateJobConfig');
     component.isConfigValid('config content');
     expect(configValidationSpy).toHaveBeenCalledWith('config content');
     expect(component.configError).toBe('');
-    expect(emitConfigSpy).toHaveBeenCalledWith('config content');
     expect(emitIsConfigValid).toHaveBeenCalledWith(true);
   });
 

@@ -23,7 +23,7 @@ export class AnnotationPipelineComponent implements OnInit {
   @Output() public emitPipelineId = new EventEmitter<string>();
   @Output() public emitConfig = new EventEmitter<string>();
   @Output() public emitIsConfigValid = new EventEmitter<boolean>();
-  public filteredPipelines$: Observable<string[]> = null;
+  public filteredPipelines$: Observable<Pipeline[]> = null;
   public dropdownControl = new FormControl<string>('');
 
   public constructor(
@@ -34,8 +34,8 @@ export class AnnotationPipelineComponent implements OnInit {
   public ngOnInit(): void {
     this.jobsService.getAnnotationPipelines().pipe(take(1)).subscribe(pipelines => {
       this.pipelines = pipelines;
-      this.filteredPipelines$ = of(this.pipelines.map(p => p.id));
-      this.onPipelineClick(this.pipelines[0].id);
+      this.filteredPipelines$ = of(this.pipelines);
+      this.onPipelineClick(this.pipelines[0]);
       this.dropdownControl.setValue(this.pipelineId);
     });
 
@@ -45,9 +45,9 @@ export class AnnotationPipelineComponent implements OnInit {
     );
   }
 
-  private filter(value: string): string[] {
+  private filter(value: string): Pipeline[] {
     const filterValue = this.normalizeValue(value);
-    return this.pipelines.map(p => p.id).filter(pipelineId => this.normalizeValue(pipelineId).includes(filterValue));
+    return this.pipelines.filter(p => this.normalizeValue(p.id).includes(filterValue));
   }
 
   private normalizeValue(value: string): string {
@@ -55,7 +55,7 @@ export class AnnotationPipelineComponent implements OnInit {
   }
 
   public resetState(): void {
-    this.onPipelineClick('');
+    this.onPipelineClick(this.pipelines[0]);
   }
 
   public isConfigValid(config: string): void {
@@ -64,7 +64,6 @@ export class AnnotationPipelineComponent implements OnInit {
     ).subscribe((errorReason: string) => {
       this.configError = errorReason;
       if (!this.configError) {
-        this.emitConfig.emit(config);
         this.emitIsConfigValid.emit(true);
       } else {
         this.emitIsConfigValid.emit(false);
@@ -72,8 +71,9 @@ export class AnnotationPipelineComponent implements OnInit {
     });
   }
 
-  public onPipelineClick(option: string): void {
-    this.pipelineId = option;
+  public onPipelineClick(pipeline: Pipeline): void {
+    this.pipelineId = pipeline.id;
+    this.ymlConfig = pipeline.content;
     this.emitPipelineId.emit(this.pipelineId);
   }
 }
