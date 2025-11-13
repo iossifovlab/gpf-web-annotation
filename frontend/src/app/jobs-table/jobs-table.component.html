@@ -4,8 +4,8 @@
     <div class="grid-header">Actions</div>
 
     <ng-container *ngFor="let j of jobs">
-      <div class="grid-cell job-id" [ngClass]="getStatusClass(j.status)"
-        >{{ j.id }}<span class="material-symbols-outlined info-icon" (click)="openDetailsModal(j.id)">info</span></div
+      <div class="grid-cell job-name" [ngClass]="getStatusClass(j.status)"
+        >{{ j.name }}<span class="material-symbols-outlined info-icon" (click)="openDetailsModal(j.id)">info</span></div
       >
       <div class="grid-cell actions" [ngClass]="getStatusClass(j.status)">
         <a *ngIf="j.status === 'success'" id="download-result" [href]="getDownloadLink(j.id)" download

@@ -8,10 +8,22 @@ import { Pipeline } from './pipelines';
 
 /* eslint-disable camelcase */
 const jobsMockJson = [
-  { id: 1, created: '1.10.2025', owner: 'test@email.com', status: 2, duration: 4.7, result_filename: 'job-file.txt' },
-  { id: 2, created: '1.10.2025', owner: 'test@email.com', status: 4, duration: 2.5, result_filename: 'job-file.txt' },
-  { id: 3, created: '1.10.2025', owner: 'test@email.com', status: 3, duration: 2.3, result_filename: 'job-file.txt' },
-  { id: 4, created: '1.10.2025', owner: 'test@email.com', status: 1, duration: 1.9, result_filename: 'job-file.txt' },
+  {
+    id: 1, name: 1, created: '1.10.2025', owner: 'test@email.com',
+    status: 2, duration: 4.7, result_filename: 'job-file.txt'
+  },
+  {
+    id: 2, name: 2, created: '1.10.2025', owner: 'test@email.com',
+    status: 4, duration: 2.5, result_filename: 'job-file.txt'
+  },
+  {
+    id: 3, name: 3, created: '1.10.2025', owner: 'test@email.com',
+    status: 3, duration: 2.3, result_filename: 'job-file.txt'
+  },
+  {
+    id: 4, name: 4, created: '1.10.2025', owner: 'test@email.com',
+    status: 1, duration: 1.9, result_filename: 'job-file.txt'
+  },
 ];
 /* eslint-enable */
 
@@ -262,10 +274,10 @@ describe('JobsService', () => {
     httpGetSpy.mockReturnValue(of(jobsMockJson));
 
     const jobsMockResult = [
-      new Job(1, new Date('1.10.2025'), 'test@email.com', 'in process', 4.7, 'job-file.txt'),
-      new Job(2, new Date('1.10.2025'), 'test@email.com', 'failed', 2.5, 'job-file.txt'),
-      new Job(3, new Date('1.10.2025'), 'test@email.com', 'success', 2.3, 'job-file.txt'),
-      new Job(4, new Date('1.10.2025'), 'test@email.com', 'waiting', 1.9, 'job-file.txt'),
+      new Job(1, 1, new Date('1.10.2025'), 'test@email.com', 'in process', 4.7, 'job-file.txt'),
+      new Job(2, 2, new Date('1.10.2025'), 'test@email.com', 'failed', 2.5, 'job-file.txt'),
+      new Job(3, 3, new Date('1.10.2025'), 'test@email.com', 'success', 2.3, 'job-file.txt'),
+      new Job(4, 4, new Date('1.10.2025'), 'test@email.com', 'waiting', 1.9, 'job-file.txt'),
     ];
 
     const getResponse = service.getJobs();
@@ -299,6 +311,7 @@ describe('JobsService', () => {
     httpGetSpy.mockReturnValue(of(
       {
         id: 16,
+        name: 16,
         created: '2025-08-26',
         status: 1,
         owner: 'register@email.com',
@@ -308,7 +321,7 @@ describe('JobsService', () => {
       }
     ));
 
-    const job = new Job(16, new Date('2025-08-26'), 'register@email.com', 'waiting', 3.3, 'job-file.txt');
+    const job = new Job(16, 16, new Date('2025-08-26'), 'register@email.com', 'waiting', 3.3, 'job-file.txt');
 
     const getResponse = service.getJobDetails(16);
 

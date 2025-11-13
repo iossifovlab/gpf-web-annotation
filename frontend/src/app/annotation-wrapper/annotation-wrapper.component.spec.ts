@@ -28,8 +28,8 @@ const mockPipelines = [
 ];
 
 const jobs = [
-  new Job(1, new Date('1.10.2025'), 'test@email.com', 'in process', 3.2, 'fileName'),
-  new Job(2, new Date('1.10.2025'), 'test@email.com', 'failed', 2.7, 'fileName'),
+  new Job(1, 1, new Date('1.10.2025'), 'test@email.com', 'in process', 3.2, 'fileName'),
+  new Job(2, 2, new Date('1.10.2025'), 'test@email.com', 'failed', 2.7, 'fileName'),
 ];
 class JobsServiceMock {
   public getJobs(): Observable<Job[]> {
