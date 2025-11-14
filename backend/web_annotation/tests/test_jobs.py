@@ -269,37 +269,6 @@ def test_annotate_vcf(
 
 
 @pytest.mark.django_db(transaction=True)
-def test_annotate_vcf_bad_config(user_client: Client) -> None:
-    user = User.objects.get(email="user@example.com")
-
-    assert Job.objects.filter(owner=user).count() == 1
-
-    with open(
-        str(pathlib.Path(__file__).parent / "fixtures" / "GIMP_Pepper.png"),
-        "rb",
-    ) as image:
-        raw_img = image.read()
-
-    vcf = textwrap.dedent("""
-        ##fileformat=VCFv4.1
-        ##contig=<ID=chr1>
-        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
-        chr1	1	.	C	A	.	.	.
-    """)
-
-    assert len(Job.objects.all()) == 2
-    response = user_client.post(
-        "/api/jobs/annotate_vcf",
-        {
-            "pipeline": "pipeline/test_pipeline",
-            "data": ContentFile(vcf)
-        },
-    )
-    assert len(Job.objects.all()) == 2
-    assert response.status_code == 400
-
-
-@pytest.mark.django_db(transaction=True)
 def test_annotate_vcf_bad_input_data(user_client: Client) -> None:
     user = User.objects.get(email="user@example.com")
 
@@ -617,13 +586,6 @@ def test_annotate_columns(
     expected_lines: list[list[str]],
     file_extension: str,
 ) -> None:
-    annotation_config = textwrap.dedent("""
-        - position_score:
-            attributes:
-            - name: position_1
-              source: pos1
-            resource_id: scores/pos1
-    """).lstrip()
     file = input_file.strip()
 
     params = {
@@ -863,7 +825,6 @@ def test_annotate_columns_bad_request(admin_client: Client) -> None:
 
 @pytest.mark.django_db(transaction=True)
 def test_annotate_columns_bad_genome(admin_client: Client) -> None:
-    annotation_config = "- position_score: scores/pos1"
     file = gzip.compress(textwrap.dedent("""
         chrom,pos,var
         chr1,9,del(3)

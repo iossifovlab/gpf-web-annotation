@@ -10,7 +10,6 @@ from django.core.files.base import ContentFile
 from django.conf import LazySettings
 from django.test import Client
 from django.utils import timezone
-from dae.genomic_resources.repository import GenomicResourceRepo
 
 from web_annotation.models import Job, User
 
