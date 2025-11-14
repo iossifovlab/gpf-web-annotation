@@ -4,8 +4,10 @@ from datetime import timedelta
 from typing import Any
 
 from dae.annotation.annotation_pipeline import AnnotationPipeline
-from dae.annotation.record_to_annotatable import CSHLAlleleRecordToAnnotatable, build_record_to_annotatable
-from dae.genomic_resources.reference_genome import ReferenceGenome, build_reference_genome_from_resource
+from dae.genomic_resources.reference_genome import (
+    ReferenceGenome,
+    build_reference_genome_from_resource,
+)
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.utils import timezone
@@ -13,9 +15,7 @@ from django.utils import timezone
 from dae.annotation.annotate_vcf import annotate_vcf
 from dae.annotation.annotate_columns import annotate_columns
 
-from .annotation import annotate_columns_file, annotate_vcf_file
 from .models import Job, JobDetails
-
 
 
 logger = logging.getLogger(__name__)

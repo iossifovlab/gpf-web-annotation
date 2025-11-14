@@ -209,10 +209,12 @@ def test_user_list(admin_client: Client) -> None:
         }
     ]
 
+
 @pytest.mark.django_db
 def test_user_list_unauthorized(user_client: Client) -> None:
     response = user_client.get("/api/users")
     assert response.status_code == 403
+
 
 @pytest.mark.django_db
 def test_daily_user_quota(
@@ -223,7 +225,6 @@ def test_daily_user_quota(
         "web_annotation.tasks.run_vcf_job",
     )
 
-    annotation_config = "- position_score: scores/pos1"
     vcf = textwrap.dedent("""
         ##fileformat=VCFv4.1
         ##contig=<ID=chr1>
@@ -234,7 +235,7 @@ def test_daily_user_quota(
     job_created_at = timezone.now() - \
         timezone.timedelta(seconds=1)  # type: ignore
     user = User.objects.get(email="user@example.com")
-    for i in range(4):
+    for _ in range(4):
         Job(
             input_path="test",
             config_path="test",
@@ -275,7 +276,6 @@ def test_daily_admin_quota(
         "web_annotation.tasks.run_vcf_job",
     )
 
-    annotation_config = "- position_score: scores/pos1"
     vcf = textwrap.dedent("""
         ##fileformat=VCFv4.1
         ##contig=<ID=chr1>
@@ -286,7 +286,7 @@ def test_daily_admin_quota(
     job_created_at = timezone.now() - \
         timezone.timedelta(seconds=1)  # type: ignore
     admin = User.objects.get(email="user@example.com")
-    for i in range(4):
+    for _ in range(4):
         Job(
             input_path="test",
             config_path="test",
@@ -332,7 +332,6 @@ def test_filesize_limit_user(
         "web_annotation.tasks.run_vcf_job",
     )
 
-    annotation_config = "- position_score: scores/pos1"
     vcf = textwrap.dedent("""
         ##fileformat=VCFv4.1
         ##contig=<ID=chr1>
@@ -365,7 +364,6 @@ def test_filesize_limit_admin(
         "web_annotation.tasks.run_vcf_job",
     )
 
-    annotation_config = "- position_score: scores/pos1"
     vcf = textwrap.dedent("""
         ##fileformat=VCFv4.1
         ##contig=<ID=chr1>
@@ -400,7 +398,6 @@ def test_variant_limit_user(
         "web_annotation.tasks.run_vcf_job",
     )
 
-    annotation_config = "- position_score: scores/pos1"
     vcf = textwrap.dedent("""
         ##fileformat=VCFv4.1
         ##contig=<ID=chr1>
@@ -434,7 +431,6 @@ def test_variant_limit_admin(
         "web_annotation.tasks.run_vcf_job",
     )
 
-    annotation_config = "- position_score: scores/pos1"
     vcf = textwrap.dedent("""
         ##fileformat=VCFv4.1
         ##contig=<ID=chr1>
@@ -456,7 +452,7 @@ def test_variant_limit_admin(
 
 @pytest.mark.django_db
 def test_validate_annotation_config(
-    user_client: Client, test_grr: GenomicResourceRepo,
+    user_client: Client,
 ) -> None:
     annotation_config = "- position_score: scores/pos1"
 
@@ -976,7 +972,7 @@ def test_single_annotation_t4c8(admin_client: Client) -> None:
     assert gene_score_attributes[0]["type"] == "object"
     assert gene_score_attributes[0]["result"] == {
         "value": {"t4": 10.123456789},
-        "histogram": \
+        "histogram":
             "histograms/t4c8/gene_scores/t4c8_score?score_id=t4c8_score",
     }
 
@@ -1028,6 +1024,6 @@ def test_single_annotation_t4c8(admin_client: Client) -> None:
     assert gene_score_attributes[0]["type"] == "object"
     assert gene_score_attributes[0]["result"] == {
         "value": {"c8": 20.0},
-        "histogram": \
+        "histogram":
             "histograms/t4c8/gene_scores/t4c8_score?score_id=t4c8_score",
     }

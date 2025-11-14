@@ -352,6 +352,7 @@ class AnnotationBaseView(views.APIView):
         return content
 
     def get_pipeline(self, pipeline_id: str, user: User) -> AnnotationPipeline:
+        """Get an annotation pipeline by id."""
         pipeline = self.lru_cache.get_pipeline(pipeline_id)
 
         if pipeline is None:
@@ -1033,9 +1034,12 @@ class ColumnValidation(AnnotationBaseView):
 
         all_columns = data.get("file_columns")
         if not all_columns or all_columns == []:
-            return Response(
-                {"errors":
-                        "File header must be provided for column validation!"},
+            return Response({
+                    "errors": (
+                        "File header must be provided "
+                        "for column validation!"
+                    )
+                },
                 status=views.status.HTTP_200_OK)
         assert isinstance(all_columns, list)
         all_columns = [str(col) for col in all_columns]
