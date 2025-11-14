@@ -897,7 +897,8 @@ def test_user_create_pipeline(
     response = user_client.post("/api/user_pipeline", params)
 
     assert response is not None
-    assert response.status_code == 204
+    assert response.status_code == 200
+    assert response.json() == {"name": "test_pipeline"}
     assert Pipeline.objects.filter(owner=user).count() == 1
     pipeline = Pipeline.objects.last()
     assert pipeline is not None
@@ -918,7 +919,8 @@ def test_user_update_pipeline(
     response = user_client.post("/api/user_pipeline", params)
 
     assert response is not None
-    assert response.status_code == 204
+    assert response.status_code == 200
+    assert response.json() == {"name": "test_pipeline"}
     assert Pipeline.objects.filter(owner=user).count() == 1
     pipeline = Pipeline.objects.last()
     assert pipeline is not None
@@ -931,7 +933,8 @@ def test_user_update_pipeline(
     response = user_client.post("/api/user_pipeline", params)
 
     assert response is not None
-    assert response.status_code == 204
+    assert response.status_code == 200
+    assert response.json() == {"name": "test_pipeline"}
     assert Pipeline.objects.filter(owner=user).count() == 1
     pipeline = Pipeline.objects.last()
     assert pipeline is not None
@@ -954,7 +957,8 @@ def test_user_delete_pipeline(
     response = user_client.post("/api/user_pipeline", params)
 
     assert response is not None
-    assert response.status_code == 204
+    assert response.status_code == 200
+    assert response.json() == {"name": "test-pipeline"}
     assert Pipeline.objects.filter(owner=user).count() == 1
 
     response = user_client.delete("/api/user_pipeline?name=test-pipeline")
@@ -979,7 +983,8 @@ def test_user_get_pipeline(
     response = user_client.post("/api/user_pipeline", params)
 
     assert response is not None
-    assert response.status_code == 204
+    assert response.status_code == 200
+    assert response.json() == {"name": "test-pipeline"}
     assert Pipeline.objects.filter(owner=user).count() == 1
 
     response = user_client.get("/api/user_pipeline?name=test-pipeline")
@@ -1036,7 +1041,8 @@ def test_get_pipelines(
     response = user_client.post("/api/user_pipeline", params)
 
     assert response is not None
-    assert response.status_code == 204
+    assert response.status_code == 200
+    assert response.json() == {"name": "test-user-pipeline"}
     assert Pipeline.objects.filter(owner=user).count() == 1
 
     response = user_client.get("/api/pipelines")
@@ -1062,7 +1068,8 @@ def test_get_pipelines_annonymous(
     response = user_client.post("/api/user_pipeline", params)
 
     assert response is not None
-    assert response.status_code == 204
+    assert response.status_code == 200
+    assert response.json() == {"name": "test-user-pipeline"}
     assert Pipeline.objects.filter(owner=user).count() == 1
 
     response = anonymous_client.get("/api/pipelines")
@@ -1085,7 +1092,8 @@ def test_annotate_vcf_user_pipeline(
     response = user_client.post("/api/user_pipeline", params)
 
     assert response is not None
-    assert response.status_code == 204
+    assert response.status_code == 200
+    assert response.json() == {"name": "test-user-pipeline"}
     assert Pipeline.objects.filter(owner=user).count() == 1
 
     user = User.objects.get(email="user@example.com")

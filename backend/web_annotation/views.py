@@ -738,7 +738,10 @@ class UserPipeline(AnnotationBaseView):
 
         pipeline.save()
 
-        return Response(status=views.status.HTTP_204_NO_CONTENT)
+        return Response(
+            {"name": pipeline_name},
+            status=views.status.HTTP_200_OK,
+        )
 
     def get(self, request: Request) -> Response:
         """Get user annotation pipeline"""
