@@ -4,8 +4,14 @@ from threading import Lock
 from types import TracebackType
 from typing import Sequence
 from dae.annotation.annotatable import Annotatable
-from dae.annotation.annotation_config import AnnotatorInfo, AttributeInfo
+from dae.annotation.annotation_config import (
+    AnnotationPreamble,
+    AnnotatorInfo,
+    AttributeInfo,
+    RawPipelineConfig,
+)
 from dae.annotation.annotation_pipeline import AnnotationPipeline, Annotator
+from dae.genomic_resources.repository import GenomicResourceRepo
 
 
 logger = logging.getLogger(__name__)
@@ -14,13 +20,30 @@ logger = logging.getLogger(__name__)
 class ThreadSafePipeline(AnnotationPipeline):
     """Thread-safe annotation pipeline wrapper."""
 
-    def __init__(self, pipeline: AnnotationPipeline):
-        super().__init__(pipeline.repository)
+    def __init__(
+        self, pipeline: AnnotationPipeline,
+    ):  # pylint: disable=super-init-not-called
         self.pipeline = pipeline
-        self.annotators = pipeline.annotators
-        self.preamble = pipeline.preamble
-        self.raw = pipeline.raw
         self.lock = Lock()
+
+    @property
+    def annotators(self) -> list[Annotator]:
+        """Return the list of annotators in the pipeline."""
+        return self.pipeline.annotators
+
+    @property
+    def preamble(self) -> AnnotationPreamble:
+        """Return the pipeline's preamble."""
+        return self.pipeline.preamble
+
+    @property
+    def raw(self) -> RawPipelineConfig:
+        """Return the pipeline's raw configuration."""
+        return self.pipeline.raw
+
+    @property
+    def repository(self) -> GenomicResourceRepo:
+        return self.pipeline.repository
 
     def get_info(self) -> list[AnnotatorInfo]:
         return self.pipeline.get_info()

@@ -4,11 +4,14 @@ from datetime import timedelta
 from typing import Any
 
 from dae.annotation.annotation_pipeline import AnnotationPipeline
+from dae.annotation.record_to_annotatable import CSHLAlleleRecordToAnnotatable, build_record_to_annotatable
+from dae.genomic_resources.reference_genome import ReferenceGenome, build_reference_genome_from_resource
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.utils import timezone
 
 from dae.annotation.annotate_vcf import annotate_vcf
+from dae.annotation.annotate_columns import annotate_columns
 
 from .annotation import annotate_columns_file, annotate_vcf_file
 from .models import Job, JobDetails
@@ -151,7 +154,7 @@ def run_vcf_job(
     logger.debug("Running vcf job")
     logger.debug("%s, %s %s %s", input_path, pipeline, output_path, args)
 
-    annotate_vcf(input_path, pipeline, output_path, {})
+    annotate_vcf(input_path, pipeline, output_path, args)
 
 
 def delete_old_jobs(days_old: int = 0) -> None:
@@ -167,76 +170,82 @@ def delete_old_jobs(days_old: int = 0) -> None:
 
 def get_args_columns(
     job: Job, details: JobDetails,
-    storage_dir: str, grr_definition_path: str | None,
-) -> list[str]:
+    pipeline: AnnotationPipeline, storage_dir: str,
+) -> dict[str, Any]:
     """Prepare command line arguments for columnar annotation."""
-    args = [
-        str(job.input_path),
-        str(job.config_path),
-    ]
 
-    if str(job.reference_genome) != "":
-        args.extend(
-            ["--reference-genome-resource-id", str(job.reference_genome)])
+    columns_args = {}
+    columns = []
     if details.col_chr:
-        args.extend(["--col-chrom", details.col_chr])
+        columns_args["col_chrom"] = details.col_chr
+        columns.append(details.col_chr)
     if details.col_pos:
-        args.extend(["--col-pos", details.col_pos])
+        columns_args["col_pos"] = details.col_pos
+        columns.append(details.col_pos)
     if details.col_ref:
-        args.extend(["--col-ref", details.col_ref])
+        columns_args["col_ref"] = details.col_ref
+        columns.append(details.col_ref)
     if details.col_alt:
-        args.extend(["--col-alt", details.col_alt])
+        columns_args["col_alt"] = details.col_alt
+        columns.append(details.col_alt)
     if details.col_pos_beg:
-        args.extend(["--col-pos-beg", details.col_pos_beg])
+        columns_args["col_pos_beg"] = details.col_pos_beg
+        columns.append(details.col_pos_beg)
     if details.col_pos_end:
-        args.extend(["--col-pos-end", details.col_pos_end])
+        columns_args["col_pos_end"] = details.col_pos_end
+        columns.append(details.col_pos_end)
     if details.col_cnv_type:
-        args.extend(["--col-cnv-type", details.col_cnv_type])
+        columns_args["col_cnv_type"] = details.col_cnv_type
+        columns.append(details.col_cnv_type)
     if details.col_vcf_like:
-        args.extend(["--col-vcf-like", details.col_vcf_like])
+        columns_args["col_vcf_like"] = details.col_vcf_like
+        columns.append(details.col_vcf_like)
     if details.col_variant:
-        args.extend(["--col-variant", details.col_variant])
+        columns_args["col_variant"] = details.col_variant
+        columns.append(details.col_variant)
     if details.col_location:
-        args.extend(["--col-location", details.col_location])
+        columns_args["col_location"] = details.col_location
+        columns.append(details.col_location)
+
+    args: dict[str, Any] = {
+        "work_dir": storage_dir,
+        "columns_args": columns_args,
+    }
 
     if details.separator is not None:
-        args.extend([
-            "--input-separator", details.separator,
-            "--output-separator", details.separator,
-        ])
+        args["input_separator"] = details.separator
+        args["output_separator"] = details.separator
+    else:
+        args["input_separator"] = ","
+        args["output_separator"] = ","
 
-    args.extend([
-        "-o", str(job.result_path),
-        "-w", storage_dir,
-        "-j 1",
-        "-vv",
-    ])
-    if grr_definition_path is not None:
-        args.extend(["--grr-filename", grr_definition_path])
-    return args
+    fn_args = {
+        "input_path": str(job.input_path),
+        "pipeline": pipeline,
+        "output_path": str(job.result_path),
+        "args": args,
+    }
+    if job.reference_genome != "":
+        fn_args["reference_genome"] = build_reference_genome_from_resource(
+            pipeline.repository.get_resource(job.reference_genome)
+        )
+
+    return fn_args
 
 
 def run_columns_job(  # pylint: disable=too-many-branches
-    args: list[str],
+    input_path: str,
+    pipeline: AnnotationPipeline,
+    output_path: str,
+    args: dict[str, Any],
+    reference_genome: ReferenceGenome | None = None,
 ) -> None:
     """Run a columnar annotation."""
     logger.debug("Running columns job")
     logger.debug(args)
-    annotate_columns_file(*args)
-
-
-def annotate_vcf_job(
-    args: list[str],
-) -> None:
-    """Task for running annotation."""
-    run_vcf_job(args)
-
-
-def annotate_columns_job(
-    args: list[str],
-) -> None:
-    """Task for running annotation."""
-    run_columns_job(args)
+    annotate_columns(
+        input_path, pipeline, output_path,
+        args, reference_genome=reference_genome)
 
 
 def send_email(
