@@ -8,6 +8,9 @@ import { ActivatedRoute, provideRouter, Router } from '@angular/router';
 import { provideMarkdown } from 'ngx-markdown';
 import { HelperModalComponent } from '../helper-modal/helper-modal.component';
 import { MatDialog, MatDialogConfig, MatDialogRef } from '@angular/material/dialog';
+import { JobsService } from '../job-creation/jobs.service';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 const mockReport = new SingleAnnotationReport(
   new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
@@ -17,7 +20,7 @@ const mockReport = new SingleAnnotationReport(
 );
 class MockSingleAnnotationService {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getReport(variant: Variant, genome: string): Observable<SingleAnnotationReport> {
+  public getReport(variant: Variant, pipeline: string): Observable<SingleAnnotationReport> {
     return of(mockReport);
   }
 
@@ -52,6 +55,9 @@ describe('SingleAnnotationReportComponent', () => {
           provide: MatDialog,
           useValue: mockMatDialog
         },
+        JobsService,
+        provideHttpClient(),
+        provideHttpClientTesting(),
         provideRouter([]),
         provideMarkdown()
       ]
@@ -62,9 +68,9 @@ describe('SingleAnnotationReportComponent', () => {
     component = fixture.componentInstance;
 
     const activatedRoute = TestBed.inject(ActivatedRoute);
-    (activatedRoute.queryParams as BehaviorSubject<{variant: string, genome: string}>).next({
+    (activatedRoute.queryParams as BehaviorSubject<{variant: string, pipeline: string}>).next({
       variant: 'chr14 204000100 A AA',
-      genome: 'hg38'
+      pipeline: 'pipeline'
     });
 
     fixture.detectChanges();
@@ -82,7 +88,7 @@ describe('SingleAnnotationReportComponent', () => {
   it('should check if query params from url are passed to get report method', () => {
     const getReportSpy = jest.spyOn(mockSingleAnnotationService, 'getReport');
     component.ngOnInit();
-    expect(getReportSpy).toHaveBeenCalledWith(new Variant('chr14', 204000100, 'A', 'AA', null), 'hg38');
+    expect(getReportSpy).toHaveBeenCalledWith(new Variant('chr14', 204000100, 'A', 'AA', null), 'pipeline');
   });
 
   it('should open modal on icon click', () => {

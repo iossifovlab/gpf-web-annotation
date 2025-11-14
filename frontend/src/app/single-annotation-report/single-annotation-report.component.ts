@@ -42,7 +42,7 @@ export class SingleAnnotationReportComponent implements OnInit {
         }
         return this.singleAnnotationService.getReport(
           this.parseVariantToObject(params['variant'] as string),
-          params['genome'] as string
+          params['pipeline'] as string
         );
       })
     ).subscribe(report => {

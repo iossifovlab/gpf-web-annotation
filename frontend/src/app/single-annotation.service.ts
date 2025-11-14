@@ -12,7 +12,7 @@ export class SingleAnnotationService {
   private readonly getHistogramUrl = `${environment.apiPath}`;
   public constructor(private http: HttpClient) { }
 
-  public getReport(variant: Variant, genome: string): Observable<SingleAnnotationReport> {
+  public getReport(variant: Variant, pipeline: string): Observable<SingleAnnotationReport> {
     const variantJson = {
       chrom: variant.chromosome,
       pos: variant.position,
@@ -21,7 +21,7 @@ export class SingleAnnotationService {
     };
     return this.http.post<object>(
       this.getReportUrl,
-      { variant: variantJson, genome: genome },
+      { variant: variantJson, pipeline: pipeline },
     ).pipe(map((response: object) => SingleAnnotationReport.fromJson(response)));
   }
 

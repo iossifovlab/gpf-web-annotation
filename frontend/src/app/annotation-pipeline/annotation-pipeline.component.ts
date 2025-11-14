@@ -2,7 +2,6 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { map, Observable, of, startWith, take } from 'rxjs';
 import { JobsService } from '../job-creation/jobs.service';
-import { SingleAnnotationService } from '../single-annotation.service';
 import { Pipeline } from '../job-creation/pipelines';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -28,7 +27,6 @@ export class AnnotationPipelineComponent implements OnInit {
 
   public constructor(
     private jobsService: JobsService,
-    private singleAnnotationService: SingleAnnotationService,
   ) { }
 
   public ngOnInit(): void {

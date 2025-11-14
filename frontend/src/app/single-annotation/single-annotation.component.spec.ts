@@ -1,19 +1,13 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SingleAnnotationComponent } from './single-annotation.component';
-import { Observable, of } from 'rxjs';
-import { SingleAnnotationService } from '../single-annotation.service';
 import { provideRouter, Router } from '@angular/router';
-
-class SingleAnnotationServiceMock {
-  public getGenomes(): Observable<string[]> {
-    return of(['hg38', 'hg19']);
-  }
-}
+import { JobsService } from '../job-creation/jobs.service';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 describe('SingleAnnotationComponent', () => {
   let component: SingleAnnotationComponent;
   let fixture: ComponentFixture<SingleAnnotationComponent>;
-  const singleAnnotationService = new SingleAnnotationServiceMock();
   let router: Router;
 
   beforeEach(async() => {
@@ -21,10 +15,12 @@ describe('SingleAnnotationComponent', () => {
       imports: [SingleAnnotationComponent],
       providers: [
         provideRouter([]),
+        JobsService,
+        provideHttpClient(),
+        provideHttpClientTesting(),
       ],
     }).compileComponents();
 
-    TestBed.overrideProvider(SingleAnnotationService, {useValue: singleAnnotationService});
     router = TestBed.inject(Router);
 
     fixture = TestBed.createComponent(SingleAnnotationComponent);
@@ -36,14 +32,8 @@ describe('SingleAnnotationComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should get genomes on component initialization', () => {
-    component.ngOnInit();
-    expect(component.genomes).toStrictEqual(['hg38', 'hg19']);
-    expect(component.selectedGenome).toBe('hg38');
-  });
-
   it('should reload and navigate to report page and pass parameters', async() => {
-    component.selectedGenome = 'hg19';
+    component.pipelineId = 'example_pipeline';
 
     const navigateSpy = jest.spyOn(router, 'navigate');
     const navigateByUrlSpy = jest.spyOn(router, 'navigateByUrl');
@@ -55,7 +45,7 @@ describe('SingleAnnotationComponent', () => {
     expect(navigateSpy).toHaveBeenCalledWith(
       ['/single-annotation/report'],
       {
-        queryParams: {genome: 'hg19', variant: 'variant1'},
+        queryParams: {pipeline: 'example_pipeline', variant: 'variant1'},
       }
     );
   });
@@ -71,26 +61,6 @@ describe('SingleAnnotationComponent', () => {
     expect(component.validationMessage).toBe('Invalid variant format!');
     component.validateVariant('  chr1 11796321 G A ');
     expect(component.validationMessage).toBe('');
-  });
-
-  it('should validate chromosome of a variant for hg19', () => {
-    component.selectedGenome = 'hg19';
-    expect(component.isChromValid('chr1')).toBe(false);
-    expect(component.isChromValid('20')).toBe(true);
-    expect(component.isChromValid('chrX')).toBe(false);
-    expect(component.isChromValid('chr5:148481536')).toBe(false);
-    expect(component.isChromValid('100')).toBe(false);
-    expect(component.isChromValid('aaa')).toBe(false);
-  });
-
-  it('should validate chromosome of a variant for hg38', () => {
-    component.selectedGenome = 'hg38';
-    expect(component.isChromValid('chr1')).toBe(true);
-    expect(component.isChromValid('20')).toBe(false);
-    expect(component.isChromValid('chrX')).toBe(true);
-    expect(component.isChromValid('chr5:148481536')).toBe(false);
-    expect(component.isChromValid('100')).toBe(false);
-    expect(component.isChromValid('aaa')).toBe(false);
   });
 
   it('should validate position of a variant', () => {
