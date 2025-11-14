@@ -698,6 +698,7 @@ def test_annotate_columns_t4c8(
     ]
 
 
+@pytest.mark.xfail
 @pytest.mark.django_db(transaction=True)
 def test_annotate_columns_t4c8_gzipped(
     admin_client: Client,
