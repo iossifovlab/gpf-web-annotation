@@ -207,7 +207,7 @@ test.describe('Jobs table tests', () => {
     await utils.registerUser(page, email, password);
 
     await utils.loginUser(page, email, password);
-    await page.getByRole('link', {name: 'Jobs'}).click();
+    await page.goto('/jobs', {waitUntil: 'load'});
   });
 
   test('should create job and check first row', async({ page }) => {
