@@ -908,6 +908,34 @@ def test_user_create_pipeline(
 
 
 @pytest.mark.django_db(transaction=True)
+def test_user_create_anonymous_pipeline(
+    user_client: Client,
+) -> None:
+    user = User.objects.get(email="user@example.com")
+    pipeline_config = "- position_score: scores/pos1"
+
+    params = {
+        "config": ContentFile(pipeline_config),
+    }
+
+    assert Pipeline.objects.filter(owner=user).count() == 0
+
+    response = user_client.post("/api/user_pipeline", params)
+
+    assert response is not None
+    assert response.status_code == 200
+    anon_pipeline_name = response.json()["name"]
+    assert Pipeline.objects.filter(owner=user).count() == 1
+    pipeline = Pipeline.objects.last()
+    assert pipeline is not None
+    assert pipeline.name == anon_pipeline_name
+    assert pipeline.name.startswith("pipeline-")
+    assert pipeline.name.endswith(".yaml")
+    output = pathlib.Path(pipeline.config_path).read_text(encoding="utf-8")
+    assert output == "- position_score: scores/pos1"
+
+
+@pytest.mark.django_db(transaction=True)
 def test_user_update_pipeline(
     user_client: Client,
 ) -> None:
@@ -1033,6 +1061,8 @@ def test_get_pipelines(
     user_client: Client,
 ) -> None:
     user = User.objects.get(email="user@example.com")
+
+    # Named pipeline
     pipeline_config = "- position_score: scores/pos1"
     params = {
         "config": ContentFile(pipeline_config),
@@ -1045,6 +1075,18 @@ def test_get_pipelines(
     assert response.json() == {"name": "test-user-pipeline"}
     assert Pipeline.objects.filter(owner=user).count() == 1
 
+    # Anonymous pipeline
+    pipeline_config = "- position_score: scores/pos2"
+    params = {
+        "config": ContentFile(pipeline_config),
+    }
+    response = user_client.post("/api/user_pipeline", params)
+
+    assert response is not None
+    assert response.status_code == 200
+    assert isinstance(response.json()["name"], str)
+    assert Pipeline.objects.filter(owner=user).count() == 2
+
     response = user_client.get("/api/pipelines")
     pipelines = response.json()
     assert len(pipelines) == 3
@@ -1055,7 +1097,7 @@ def test_get_pipelines(
 
 
 @pytest.mark.django_db(transaction=True)
-def test_get_pipelines_annonymous(
+def test_get_pipelines_annonymous_user(
     user_client: Client,
     anonymous_client: Client,
 ) -> None:

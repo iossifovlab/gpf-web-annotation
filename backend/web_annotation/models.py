@@ -34,13 +34,13 @@ class User(AbstractUser):
 class Pipeline(models.Model):
     """Model for saving user created pipeline configs"""
     name = models.CharField(max_length=1024, default="")
-    config_path = models.FilePathField(
-        path=settings.ANNOTATION_CONFIG_STORAGE_DIR)
+    config_path = models.FilePathField()
     owner = models.ForeignKey(
         'web_annotation.User',
         related_name='pipelines',
         on_delete=models.CASCADE,
     )
+    is_anonymous = models.BooleanField(default=False)
 
     def remove(self) -> None:
         """Diactivate a job and clean its resources."""
@@ -57,12 +57,9 @@ class Job(models.Model):
         SUCCESS = 3
         FAILED = 4
 
-    input_path = models.FilePathField(
-        path=settings.JOB_INPUT_STORAGE_DIR)
-    config_path = models.FilePathField(
-        path=settings.ANNOTATION_CONFIG_STORAGE_DIR)
-    result_path = models.FilePathField(
-        path=settings.JOB_RESULT_STORAGE_DIR)
+    input_path = models.FilePathField()
+    config_path = models.FilePathField()
+    result_path = models.FilePathField()
     name = models.IntegerField(default=0)
     reference_genome = models.CharField(max_length=1024, default="")
     created = models.DateTimeField(default=timezone.now)
