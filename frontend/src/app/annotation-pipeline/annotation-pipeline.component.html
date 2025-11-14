@@ -1,7 +1,8 @@
-<div id="pipelines-container">
+<div *ngIf="pipelines.length" id="pipelines-container">
   <div id="pipelines-header">Annotation pipelines</div>
   <input
-    [title]="pipelineId"
+    placeholder="Select pipeline"
+    [title]="selectedPipeline ? selectedPipeline.id : ''"
     id="pipelines-input"
     matInput
     [matAutocomplete]="pipelinesDropdown"
@@ -21,8 +22,28 @@
 
   <textarea
     id="yml-textarea"
-    [(ngModel)]="ymlConfig"
+    [(ngModel)]="currentPipelineText"
     [ngClass]="{ 'invalid-config': configError }"
-    (change)="isConfigValid(ymlConfig)"></textarea>
+    (change)="isConfigValid(currentPipelineText)"></textarea>
   <div *ngIf="configError" class="error-message">{{ configError }}</div>
+
+  <div id="pipeline-actions">
+    <button (click)="clearPipeline()" id="add-button"
+      ><span class="material-symbols-outlined add-icon">add</span>New</button
+    >
+    <button (click)="saveAs()" id="save-as-button"
+      ><span class="material-symbols-outlined save-as-icon">save_as</span>Save as</button
+    >
+  </div>
+
+  <ng-template #nameInput>
+    <div id="name-modal">
+      <div>Set pipeline name</div>
+      <input #inputRef />
+      <div id="buttons-wrapper">
+        <button id="save-name-button" (click)="saveName(inputRef.value)">Save</button>
+        <button id="cancel-button" (click)="cancel()">Cancel</button>
+      </div>
+    </div>
+  </ng-template>
 </div>
