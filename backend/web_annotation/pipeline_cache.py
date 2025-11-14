@@ -45,6 +45,10 @@ class ThreadSafePipeline(AnnotationPipeline):
     def repository(self) -> GenomicResourceRepo:
         return self.pipeline.repository
 
+    @property
+    def _is_open(self) -> bool:
+        return self.pipeline._is_open
+
     def get_info(self) -> list[AnnotatorInfo]:
         return self.pipeline.get_info()
 

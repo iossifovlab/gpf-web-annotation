@@ -108,7 +108,7 @@ def test_annotate_vcf_job_details(user_client: Client) -> None:
 def test_annotate_columns_job_details(user_client: Client) -> None:
     params = {
         "genome": "hg38",
-        "config": ContentFile("- position_score: scores/pos1"),
+        "pipeline": "pipeline/test_pipeline",
         "data": ContentFile(
             textwrap.dedent("""chr,pos_beg,pos_end,cnv\nchr1,7,20,cnv+"""),
             "test_input.csv"
@@ -220,7 +220,7 @@ def test_daily_user_quota(
     mocker: MockerFixture,
 ) -> None:
     mocker.patch(
-        "web_annotation.tasks.annotate_vcf_job",
+        "web_annotation.tasks.run_vcf_job",
     )
 
     annotation_config = "- position_score: scores/pos1"
@@ -246,7 +246,7 @@ def test_daily_user_quota(
         "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
-            "config": ContentFile(annotation_config),
+            "pipeline": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
     )
@@ -256,7 +256,7 @@ def test_daily_user_quota(
         "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
-            "config": ContentFile(annotation_config),
+            "pipeline": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
     )
@@ -272,7 +272,7 @@ def test_daily_admin_quota(
     mocker: MockerFixture,
 ) -> None:
     mocker.patch(
-        "web_annotation.tasks.annotate_vcf_job",
+        "web_annotation.tasks.run_vcf_job",
     )
 
     annotation_config = "- position_score: scores/pos1"
@@ -298,7 +298,7 @@ def test_daily_admin_quota(
         "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
-            "config": ContentFile(annotation_config),
+            "pipeline": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
     )
@@ -308,7 +308,7 @@ def test_daily_admin_quota(
         "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
-            "config": ContentFile(annotation_config),
+            "pipeline": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
          },
     )
@@ -329,7 +329,7 @@ def test_filesize_limit_user(
     }
 
     mocker.patch(
-        "web_annotation.tasks.annotate_vcf_job",
+        "web_annotation.tasks.run_vcf_job",
     )
 
     annotation_config = "- position_score: scores/pos1"
@@ -344,7 +344,7 @@ def test_filesize_limit_user(
         "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
-            "config": ContentFile(annotation_config),
+            "pipeline": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
     )
@@ -362,7 +362,7 @@ def test_filesize_limit_admin(
     }
 
     mocker.patch(
-        "web_annotation.tasks.annotate_vcf_job",
+        "web_annotation.tasks.run_vcf_job",
     )
 
     annotation_config = "- position_score: scores/pos1"
@@ -377,7 +377,7 @@ def test_filesize_limit_admin(
         "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
-            "config": ContentFile(annotation_config),
+            "pipeline": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
     )
@@ -397,7 +397,7 @@ def test_variant_limit_user(
     }
 
     mocker.patch(
-        "web_annotation.tasks.annotate_vcf_job",
+        "web_annotation.tasks.run_vcf_job",
     )
 
     annotation_config = "- position_score: scores/pos1"
@@ -413,7 +413,7 @@ def test_variant_limit_user(
         "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
-            "config": ContentFile(annotation_config),
+            "pipeline": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
     )
@@ -431,7 +431,7 @@ def test_variant_limit_admin(
     }
 
     mocker.patch(
-        "web_annotation.tasks.annotate_vcf_job",
+        "web_annotation.tasks.run_vcf_job",
     )
 
     annotation_config = "- position_score: scores/pos1"
@@ -447,7 +447,7 @@ def test_variant_limit_admin(
         "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
-            "config": ContentFile(annotation_config),
+            "pipeline": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
     )

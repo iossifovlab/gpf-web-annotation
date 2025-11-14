@@ -37,7 +37,9 @@ from dae.genomic_resources.histogram import (
 from dae.genomic_resources.implementations.annotation_pipeline_impl import (
     AnnotationPipelineImplementation,
 )
-from dae.genomic_resources.repository import GenomicResource, GenomicResourceRepo
+from dae.genomic_resources.repository import (
+    GenomicResource, GenomicResourceRepo,
+)
 from dae.genomic_resources.repository_factory import (
     build_genomic_resource_repository,
 )
@@ -1032,7 +1034,7 @@ class ColumnValidation(AnnotationBaseView):
         all_columns = data.get("file_columns")
         if not all_columns or all_columns == []:
             return Response(
-                {"errors": \
+                {"errors":
                         "File header must be provided for column validation!"},
                 status=views.status.HTTP_200_OK)
         assert isinstance(all_columns, list)
@@ -1046,7 +1048,12 @@ class ColumnValidation(AnnotationBaseView):
         except ValueError:
             logger.exception("Annotatable error.\n")
             return Response(
-                {"errors": "Specified set of columns cannot be used together!"},
+                {
+                    "errors": (
+                        "Specified set of columns"
+                        " cannot be used together!"
+                    ),
+                },
                 status=views.status.HTTP_200_OK)
 
         return Response({"errors": ""}, status=views.status.HTTP_200_OK)
@@ -1317,7 +1324,8 @@ class PreviewFileUpload(AnnotationBaseView):
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
 
-        preview_data = columns_file_preview(file, request.data.get("separator"))
+        preview_data = columns_file_preview(
+            file, request.data.get("separator"))
         return Response(
             preview_data,
             status=views.status.HTTP_200_OK,
