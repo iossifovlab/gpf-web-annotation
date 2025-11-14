@@ -7,6 +7,7 @@ import { UsersService } from './users.service';
 import { JobsService } from './job-creation/jobs.service';
 import { SingleAnnotationService } from './single-annotation.service';
 import { provideMarkdown } from 'ngx-markdown';
+import { AnnotationPipelineService } from './annotation-pipeline.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -16,6 +17,7 @@ export const appConfig: ApplicationConfig = {
     UsersService,
     JobsService,
     SingleAnnotationService,
+    AnnotationPipelineService,
     provideMarkdown(),
   ]
 };

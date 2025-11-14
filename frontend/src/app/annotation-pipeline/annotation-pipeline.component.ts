@@ -1,11 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { map, Observable, of, startWith, take } from 'rxjs';
+import { Component, ElementRef, EventEmitter, OnInit, Output, TemplateRef, ViewChild } from '@angular/core';
+import { map, Observable, of, startWith, switchMap, take } from 'rxjs';
 import { JobsService } from '../job-creation/jobs.service';
 import { Pipeline } from '../job-creation/pipelines';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { AnnotationPipelineService } from '../annotation-pipeline.service';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-annotation-pipeline',
@@ -16,31 +18,40 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 
 export class AnnotationPipelineComponent implements OnInit {
   public pipelines : Pipeline[] = [];
-  public pipelineId = '';
-  public ymlConfig = '';
+  public currentPipelineText = '';
+  public selectedPipeline: Pipeline = null;
   public configError = '';
   @Output() public emitPipelineId = new EventEmitter<string>();
-  @Output() public emitConfig = new EventEmitter<string>();
   @Output() public emitIsConfigValid = new EventEmitter<boolean>();
   public filteredPipelines$: Observable<Pipeline[]> = null;
   public dropdownControl = new FormControl<string>('');
+  @ViewChild('nameInput') public nameInputTemplateRef: TemplateRef<ElementRef>;
 
   public constructor(
     private jobsService: JobsService,
+    private annotationPipelineService: AnnotationPipelineService,
+    private dialog: MatDialog,
   ) { }
 
   public ngOnInit(): void {
-    this.jobsService.getAnnotationPipelines().pipe(take(1)).subscribe(pipelines => {
-      this.pipelines = pipelines;
-      this.filteredPipelines$ = of(this.pipelines);
-      this.onPipelineClick(this.pipelines[0]);
-      this.dropdownControl.setValue(this.pipelineId);
-    });
+    this.getPipelines();
 
     this.filteredPipelines$ = this.dropdownControl.valueChanges.pipe(
       startWith(''),
       map(value => this.filter(value || '')),
     );
+  }
+
+  private getPipelines(defaultPipelineId: string = ''): void {
+    this.jobsService.getAnnotationPipelines().pipe(take(1)).subscribe(pipelines => {
+      this.pipelines = pipelines;
+      this.filteredPipelines$ = of(this.pipelines);
+      if (defaultPipelineId) {
+        this.onPipelineClick(this.pipelines.find(p => p.id === defaultPipelineId));
+      } else {
+        this.onPipelineClick(this.pipelines[0]);
+      }
+    });
   }
 
   private filter(value: string): Pipeline[] {
@@ -70,8 +81,48 @@ export class AnnotationPipelineComponent implements OnInit {
   }
 
   public onPipelineClick(pipeline: Pipeline): void {
-    this.pipelineId = pipeline.id;
-    this.ymlConfig = pipeline.content;
-    this.emitPipelineId.emit(this.pipelineId);
+    if (!pipeline) {
+      return;
+    }
+    this.selectedPipeline = pipeline;
+    this.currentPipelineText = pipeline.content;
+    this.emitPipelineId.emit(this.selectedPipeline.id);
+    this.dropdownControl.setValue(this.selectedPipeline.id);
+  }
+
+  public clearPipeline(): void {
+    this.selectedPipeline = null;
+    this.currentPipelineText = '';
+    this.dropdownControl.setValue('');
+  }
+
+  public saveAs(): void {
+    const newNameModalRef = this.dialog.open(this.nameInputTemplateRef, {
+      id: 'setPipelineName',
+      width: '30vw',
+      maxWidth: '700px'
+    });
+
+    newNameModalRef.afterClosed().pipe(
+      switchMap((name: string) => {
+        if (name) {
+          return this.annotationPipelineService.savePipeline(name, this.currentPipelineText);
+        }
+        return of(null);
+      }),
+    ).subscribe((pipelineId: string) => {
+      if (!pipelineId) {
+        return;
+      }
+      this.getPipelines(pipelineId);
+    });
+  }
+
+  public saveName(name: string): void {
+    this.dialog.getDialogById('setPipelineName').close(name);
+  }
+
+  public cancel(): void {
+    this.dialog.getDialogById('setPipelineName').close();
   }
 }
