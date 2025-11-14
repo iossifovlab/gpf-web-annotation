@@ -41,6 +41,7 @@ class Pipeline(models.Model):
         related_name='pipelines',
         on_delete=models.CASCADE,
     )
+    is_anonymous = models.BooleanField(default=False)
 
     def remove(self) -> None:
         """Diactivate a job and clean its resources."""

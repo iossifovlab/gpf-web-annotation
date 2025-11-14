@@ -690,13 +690,14 @@ class UserPipeline(AnnotationBaseView):
         assert isinstance(request.data, QueryDict)
         assert isinstance(request.FILES, MultiValueDict)
 
+        anonymous = False
+
         pipeline_name = request.data.get("name")
         if not pipeline_name:
-            return Response(
-                {"reason": "Pipeline name not provided!"},
-                status=views.status.HTTP_400_BAD_REQUEST,
-            )
-        if pipeline_name in self.pipelines:
+            pipeline_name = f'pipeline-{int(time.time())}.yaml'
+            anonymous = True
+
+        if not anonymous and pipeline_name in self.pipelines:
             return Response(
                 {"reason": (
                     "Pipeline with such name cannot be created or updated!"
@@ -704,15 +705,15 @@ class UserPipeline(AnnotationBaseView):
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
 
-        config_filename = f'{request.data.get("name")}.yaml'
+        config_filename = f'{pipeline_name}.yaml'
 
-        pipelines = Pipeline.objects.filter(
+        user_pipelines = Pipeline.objects.filter(
             owner=request.user,
             name=pipeline_name,
         )
-        pipelines_count = pipelines.count()
+        user_pipelines_count = user_pipelines.count()
 
-        if pipelines_count == 0:
+        if user_pipelines_count == 0:
             config_path = Path(
                 settings.ANNOTATION_CONFIG_STORAGE_DIR,
                 request.user.email,
@@ -722,9 +723,10 @@ class UserPipeline(AnnotationBaseView):
                 name=pipeline_name,
                 config_path=config_path,
                 owner=request.user,
+                is_anonymous=anonymous,
             )
-        elif pipelines_count == 1:
-            pipeline = pipelines[0]
+        elif user_pipelines_count == 1:
+            pipeline = user_pipelines[0]
             config_path = Path(str(pipeline.config_path))
         else:
             return Response(
@@ -1215,7 +1217,7 @@ class ListPipelines(AnnotationBaseView):
         return pipelines
 
     def _get_user_pipelines(self, user: User) -> list[dict[str, str]]:
-        pipelines = Pipeline.objects.filter(owner=user)
+        pipelines = Pipeline.objects.filter(owner=user, is_anonymous=False)
         return [
             {
                 "id": pipeline.name,
