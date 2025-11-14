@@ -10,7 +10,6 @@ from django.core.files.base import ContentFile
 from django.conf import LazySettings
 from django.test import Client
 from django.utils import timezone
-from dae.genomic_resources.repository import GenomicResourceRepo
 
 from web_annotation.models import Job, User
 
@@ -108,7 +107,7 @@ def test_annotate_vcf_job_details(user_client: Client) -> None:
 def test_annotate_columns_job_details(user_client: Client) -> None:
     params = {
         "genome": "hg38",
-        "config": ContentFile("- position_score: scores/pos1"),
+        "pipeline": "pipeline/test_pipeline",
         "data": ContentFile(
             textwrap.dedent("""chr,pos_beg,pos_end,cnv\nchr1,7,20,cnv+"""),
             "test_input.csv"
@@ -209,10 +208,12 @@ def test_user_list(admin_client: Client) -> None:
         }
     ]
 
+
 @pytest.mark.django_db
 def test_user_list_unauthorized(user_client: Client) -> None:
     response = user_client.get("/api/users")
     assert response.status_code == 403
+
 
 @pytest.mark.django_db
 def test_daily_user_quota(
@@ -220,10 +221,9 @@ def test_daily_user_quota(
     mocker: MockerFixture,
 ) -> None:
     mocker.patch(
-        "web_annotation.tasks.annotate_vcf_job",
+        "web_annotation.tasks.run_vcf_job",
     )
 
-    annotation_config = "- position_score: scores/pos1"
     vcf = textwrap.dedent("""
         ##fileformat=VCFv4.1
         ##contig=<ID=chr1>
@@ -234,7 +234,7 @@ def test_daily_user_quota(
     job_created_at = timezone.now() - \
         timezone.timedelta(seconds=1)  # type: ignore
     user = User.objects.get(email="user@example.com")
-    for i in range(4):
+    for _ in range(4):
         Job(
             input_path="test",
             config_path="test",
@@ -246,7 +246,7 @@ def test_daily_user_quota(
         "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
-            "config": ContentFile(annotation_config),
+            "pipeline": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
     )
@@ -256,7 +256,7 @@ def test_daily_user_quota(
         "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
-            "config": ContentFile(annotation_config),
+            "pipeline": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
     )
@@ -272,10 +272,9 @@ def test_daily_admin_quota(
     mocker: MockerFixture,
 ) -> None:
     mocker.patch(
-        "web_annotation.tasks.annotate_vcf_job",
+        "web_annotation.tasks.run_vcf_job",
     )
 
-    annotation_config = "- position_score: scores/pos1"
     vcf = textwrap.dedent("""
         ##fileformat=VCFv4.1
         ##contig=<ID=chr1>
@@ -286,7 +285,7 @@ def test_daily_admin_quota(
     job_created_at = timezone.now() - \
         timezone.timedelta(seconds=1)  # type: ignore
     admin = User.objects.get(email="user@example.com")
-    for i in range(4):
+    for _ in range(4):
         Job(
             input_path="test",
             config_path="test",
@@ -298,7 +297,7 @@ def test_daily_admin_quota(
         "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
-            "config": ContentFile(annotation_config),
+            "pipeline": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
     )
@@ -308,7 +307,7 @@ def test_daily_admin_quota(
         "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
-            "config": ContentFile(annotation_config),
+            "pipeline": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
          },
     )
@@ -329,10 +328,9 @@ def test_filesize_limit_user(
     }
 
     mocker.patch(
-        "web_annotation.tasks.annotate_vcf_job",
+        "web_annotation.tasks.run_vcf_job",
     )
 
-    annotation_config = "- position_score: scores/pos1"
     vcf = textwrap.dedent("""
         ##fileformat=VCFv4.1
         ##contig=<ID=chr1>
@@ -344,7 +342,7 @@ def test_filesize_limit_user(
         "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
-            "config": ContentFile(annotation_config),
+            "pipeline": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
     )
@@ -362,10 +360,9 @@ def test_filesize_limit_admin(
     }
 
     mocker.patch(
-        "web_annotation.tasks.annotate_vcf_job",
+        "web_annotation.tasks.run_vcf_job",
     )
 
-    annotation_config = "- position_score: scores/pos1"
     vcf = textwrap.dedent("""
         ##fileformat=VCFv4.1
         ##contig=<ID=chr1>
@@ -377,7 +374,7 @@ def test_filesize_limit_admin(
         "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
-            "config": ContentFile(annotation_config),
+            "pipeline": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
     )
@@ -397,10 +394,9 @@ def test_variant_limit_user(
     }
 
     mocker.patch(
-        "web_annotation.tasks.annotate_vcf_job",
+        "web_annotation.tasks.run_vcf_job",
     )
 
-    annotation_config = "- position_score: scores/pos1"
     vcf = textwrap.dedent("""
         ##fileformat=VCFv4.1
         ##contig=<ID=chr1>
@@ -413,7 +409,7 @@ def test_variant_limit_user(
         "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
-            "config": ContentFile(annotation_config),
+            "pipeline": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
     )
@@ -431,10 +427,9 @@ def test_variant_limit_admin(
     }
 
     mocker.patch(
-        "web_annotation.tasks.annotate_vcf_job",
+        "web_annotation.tasks.run_vcf_job",
     )
 
-    annotation_config = "- position_score: scores/pos1"
     vcf = textwrap.dedent("""
         ##fileformat=VCFv4.1
         ##contig=<ID=chr1>
@@ -447,7 +442,7 @@ def test_variant_limit_admin(
         "/api/jobs/annotate_vcf",
         {
             "genome": "hg38",
-            "config": ContentFile(annotation_config),
+            "pipeline": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
     )
@@ -456,7 +451,7 @@ def test_variant_limit_admin(
 
 @pytest.mark.django_db
 def test_validate_annotation_config(
-    user_client: Client, test_grr: GenomicResourceRepo,
+    user_client: Client,
 ) -> None:
     annotation_config = "- position_score: scores/pos1"
 
@@ -976,7 +971,7 @@ def test_single_annotation_t4c8(admin_client: Client) -> None:
     assert gene_score_attributes[0]["type"] == "object"
     assert gene_score_attributes[0]["result"] == {
         "value": {"t4": 10.123456789},
-        "histogram": \
+        "histogram":
             "histograms/t4c8/gene_scores/t4c8_score?score_id=t4c8_score",
     }
 
@@ -1028,6 +1023,6 @@ def test_single_annotation_t4c8(admin_client: Client) -> None:
     assert gene_score_attributes[0]["type"] == "object"
     assert gene_score_attributes[0]["result"] == {
         "value": {"c8": 20.0},
-        "histogram": \
+        "histogram":
             "histograms/t4c8/gene_scores/t4c8_score?score_id=t4c8_score",
     }
