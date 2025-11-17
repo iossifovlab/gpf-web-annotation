@@ -7,7 +7,7 @@ import { map, Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class AnnotationPipelineService {
-  private readonly savePipelineUrl = `${environment.apiPath}/user_pipeline`;
+  private readonly pipelineUrl = `${environment.apiPath}/user_pipeline`;
 
   public constructor(private http: HttpClient) { }
 
@@ -29,11 +29,19 @@ export class AnnotationPipelineService {
     formData.append('config', configFile);
 
     return this.http.post(
-      this.savePipelineUrl,
+      this.pipelineUrl,
       formData,
       options
     ).pipe(
       map((response: object) => response['name'] as string)
+    );
+  }
+
+  public deletePipeline(name: string): Observable<object> {
+    const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
+    return this.http.delete(
+      `${this.pipelineUrl}?name=${name}`,
+      options
     );
   }
 }

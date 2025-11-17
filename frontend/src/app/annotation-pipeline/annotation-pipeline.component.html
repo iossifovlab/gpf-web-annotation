@@ -34,6 +34,9 @@
     <button (click)="saveAs()" id="save-as-button"
       ><span class="material-symbols-outlined save-as-icon">save_as</span>Save as</button
     >
+    <button *ngIf="selectedPipeline.type === 'user'" (click)="delete()" id="delete-button"
+      ><span class="material-symbols-outlined delete-icon">delete</span>Delete</button
+    >
   </div>
 
   <ng-template #nameInput>

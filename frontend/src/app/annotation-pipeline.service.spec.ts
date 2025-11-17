@@ -78,4 +78,22 @@ describe('AnnotationPipelineService', () => {
     const res = await lastValueFrom(postResponse.pipe(take(1)));
     expect(res).toBe('pipeline-name');
   });
+
+
+  it('should delete pipeline by id', async() => {
+    const httpDelteSpy = jest.spyOn(HttpClient.prototype, 'delete');
+    const options = {
+      headers: {
+        'X-CSRFToken': ''
+      },
+      withCredentials: true
+    };
+
+    service.deletePipeline('pipeline-name');
+
+    expect(httpDelteSpy).toHaveBeenCalledWith(
+       '//localhost:8000/api/user_pipeline?name=pipeline-name',
+      options
+    );
+  });
 });

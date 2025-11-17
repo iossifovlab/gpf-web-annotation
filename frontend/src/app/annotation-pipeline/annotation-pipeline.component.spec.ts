@@ -16,7 +16,7 @@ import { ElementRef, TemplateRef } from '@angular/core';
 const mockPipelines = [
   new Pipeline('id1', 'content1', 'defualt'),
   new Pipeline('id2', 'content2', 'defualt'),
-  new Pipeline('id3', 'content3', 'defualt'),
+  new Pipeline('id3', 'content3', 'user'),
 ];
 class JobsServiceMock {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -86,7 +86,10 @@ class MatDialogMock {
 class AnnotationPipelineServiceMock {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public savePipeline(name: string, content: string): Observable<string> {
-    return of('pipeline-name');
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public deletePipeline(name: string): Observable<object> {
+    return of({});
   }
 }
 
@@ -250,5 +253,16 @@ describe('AnnotationPipelineComponent', () => {
     expect(getAnnotationPipelinesSpy).not.toHaveBeenCalledTimes(2);
     expect(onPipelineClickSpy).not.toHaveBeenCalledWith();
     expect(component.selectedPipeline.id).toBe('id1');
+  });
+
+  it('should delete pipeline', () => {
+    const deletePipelineSpy = jest.spyOn(annotationPipelineServiceMock, 'deletePipeline');
+    const selectNewPipelineSpy = jest.spyOn(component, 'onPipelineClick');
+
+    component.selectedPipeline = new Pipeline('name', 'content', 'type');
+
+    component.delete();
+    expect(deletePipelineSpy).toHaveBeenCalledWith('name');
+    expect(selectNewPipelineSpy).toHaveBeenCalledWith(mockPipelines[0]);
   });
 });

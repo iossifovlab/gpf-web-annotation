@@ -118,6 +118,10 @@ export class AnnotationPipelineComponent implements OnInit {
     });
   }
 
+  public delete(): void {
+    this.annotationPipelineService.deletePipeline(this.selectedPipeline.id).subscribe(() => this.getPipelines());
+  }
+
   public saveName(name: string): void {
     this.dialog.getDialogById('setPipelineName').close(name);
   }
