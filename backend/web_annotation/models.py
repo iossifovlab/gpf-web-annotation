@@ -43,8 +43,22 @@ class Pipeline(models.Model):
     is_anonymous = models.BooleanField(default=False)
 
     def remove(self) -> None:
-        """Diactivate a job and clean its resources."""
+        """Clean a user pipeline's resources."""
         os.remove(self.config_path)
+        self.delete()
+
+
+class AlleleQuery(models.Model):
+    """Model for saving user created pipeline configs"""
+    allele = models.CharField(max_length=1024)
+    owner = models.ForeignKey(
+        'web_annotation.User',
+        related_name='allele_query',
+        on_delete=models.CASCADE,
+    )
+
+    def remove(self) -> None:
+        """Diactivate a job and clean its resources."""
         self.delete()
 
 
