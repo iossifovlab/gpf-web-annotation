@@ -10,6 +10,9 @@ from dae.genomic_resources.reference_genome import (
     ReferenceGenome,
     build_reference_genome_from_resource,
 )
+from dae.annotation.annotate_vcf import annotate_vcf
+from dae.annotation.annotate_columns import annotate_columns
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.utils import timezone

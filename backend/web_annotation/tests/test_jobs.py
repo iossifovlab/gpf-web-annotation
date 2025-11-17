@@ -223,10 +223,10 @@ def test_annotate_vcf(
 
     annotation_config = textwrap.dedent("""
         - position_score:
+            resource_id: scores/pos1
             attributes:
             - name: position_1
               source: pos1
-            resource_id: scores/pos1
     """).lstrip()
     vcf = textwrap.dedent("""
         ##fileformat=VCFv4.1
@@ -743,10 +743,10 @@ def test_annotate_vcf_bgzip(
 
     annotation_config = textwrap.dedent("""
         - position_score:
+            resource_id: scores/pos1
             attributes:
             - name: position_1
               source: pos1
-            resource_id: scores/pos1
     """).lstrip()
     test_dir = tmp_path / "vcf_gzip"
     test_dir.mkdir(parents=True, exist_ok=True)
