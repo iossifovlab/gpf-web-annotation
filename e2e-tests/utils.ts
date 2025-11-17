@@ -18,6 +18,10 @@ export async function registerUser(page: Page, email: string, password: string):
   await page.locator('#password').pressSequentially(password);
   await page.getByRole('button', { name: 'Create' }).click();
 
+  await page.waitForResponse(
+    resp => resp.url().includes('/api/register') && resp.status() === 200
+  );
+
   const href = await getLinkInEmail(page, email, 'GPFWA: Registration validation');
   await page.goto(href, {waitUntil: 'load'});
 
