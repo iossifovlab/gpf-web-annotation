@@ -63,4 +63,5 @@ urlpatterns = [
         name="reset_password",
     ),
     path("api/user_pipeline", views.UserPipeline.as_view()),
+    path("api/allele_history", views.AlleleHistory.as_view()),
 ]
