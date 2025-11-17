@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { AnnotationPipelineComponent } from './annotation-pipeline.component';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
@@ -86,6 +85,8 @@ class MatDialogMock {
 class AnnotationPipelineServiceMock {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public savePipeline(name: string, content: string): Observable<string> {
+    return of(name);
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public deletePipeline(name: string): Observable<object> {
@@ -264,5 +265,37 @@ describe('AnnotationPipelineComponent', () => {
     component.delete();
     expect(deletePipelineSpy).toHaveBeenCalledWith('name');
     expect(selectNewPipelineSpy).toHaveBeenCalledWith(mockPipelines[0]);
+  });
+
+    it('should save pipeline and update list with pipelines', () => {
+    const updatedMockPipelines: Pipeline[] = [
+      new Pipeline('id1', 'content1', 'default'),
+      new Pipeline('id2', 'content2', 'default'),
+      new Pipeline('id3', 'new content', 'user'),
+    ];
+      
+    const savePipelineSpy = jest.spyOn(annotationPipelineServiceMock, 'savePipeline');
+    jest.spyOn(jobsServiceMock, 'getAnnotationPipelines')
+      .mockReturnValueOnce(of(updatedMockPipelines));
+    const selectNewPipelineSpy = jest.spyOn(component, 'onPipelineClick');
+
+    component.selectedPipeline = mockPipelines[2];
+    component.currentPipelineText = 'new content';
+
+    component.save();
+    expect(savePipelineSpy).toHaveBeenCalledWith('id3', 'new content');
+    expect(selectNewPipelineSpy).toHaveBeenCalledWith(new Pipeline('id3', 'new content', 'user'));
+  });
+
+    it('should save pipeline and not update pipeline list when response is invalid', () => {
+    const savePipelineSpy = jest.spyOn(annotationPipelineServiceMock, 'savePipeline').mockReturnValueOnce(of(null));
+    const getAnnotationPipelinesSpy = jest.spyOn(jobsServiceMock, 'getAnnotationPipelines');
+
+    component.selectedPipeline = mockPipelines[2];
+    component.currentPipelineText = 'new content';
+
+    component.save();
+    expect(savePipelineSpy).toHaveBeenCalledWith('id3', 'new content');
+    expect(getAnnotationPipelinesSpy).not.toHaveBeenCalledTimes(2);
   });
 });

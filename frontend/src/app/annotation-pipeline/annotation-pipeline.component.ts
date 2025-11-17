@@ -118,6 +118,15 @@ export class AnnotationPipelineComponent implements OnInit {
     });
   }
 
+  public save(): void {
+    this.annotationPipelineService.savePipeline(this.selectedPipeline.id, this.currentPipelineText).subscribe((pipelineId: string) => {
+      if (!pipelineId) {
+        return;
+      }
+      this.getPipelines(pipelineId);
+    });
+  }
+
   public delete(): void {
     this.annotationPipelineService.deletePipeline(this.selectedPipeline.id).subscribe(() => this.getPipelines());
   }
