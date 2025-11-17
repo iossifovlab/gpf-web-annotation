@@ -1141,7 +1141,7 @@ class UserInfo(views.APIView):
     def get(self, request: Request) -> Response:
         user = request.user
         if not user.is_authenticated:
-            return Response({"loggedIn": False})
+            return Response({"loggedIn": False}, views.status.HTTP_200_OK)
 
         return Response(
             {
