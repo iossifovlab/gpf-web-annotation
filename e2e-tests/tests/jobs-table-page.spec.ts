@@ -3,7 +3,6 @@ import * as utils from '../utils';
 import fs from 'fs';
 import { scanCSV } from 'nodejs-polars';
 
-
 test.describe('Create job tests', () => {
   test.beforeEach(async({ page }) => {
     await page.goto('/', {waitUntil: 'load'});
@@ -13,7 +12,7 @@ test.describe('Create job tests', () => {
     await utils.registerUser(page, email, password);
 
     await utils.loginUser(page, email, password);
-    await page.getByRole('link', {name: 'Jobs'}).click();
+    await page.goto('/jobs', {waitUntil: 'load'});
   });
 
   test('should be able to create job with pipeline and input file', async({ page }) => {
@@ -72,7 +71,7 @@ test.describe('Job details tests', () => {
     await utils.registerUser(page, email, password);
 
     await utils.loginUser(page, email, password);
-    await page.getByRole('link', {name: 'Jobs'}).click();
+    await page.goto('/jobs', {waitUntil: 'load'});
   });
 
   test('should check job details of the first job', async({ page }) => {
@@ -323,7 +322,7 @@ test.describe('Validation tests', () => {
     await utils.registerUser(page, email, password);
 
     await utils.loginUser(page, email, password);
-    await page.getByRole('link', {name: 'Jobs'}).click();
+    await page.goto('/jobs', {waitUntil: 'load'});
   });
 
   test.skip('should type config without annotators and show error message', async({ page }) => {
