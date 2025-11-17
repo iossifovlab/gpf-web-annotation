@@ -35,6 +35,15 @@ export class AnnotationWrapperComponent {
   ) { }
 
   public onCreateClick(): void {
+    this.pipelinesComponent.autoSave().subscribe(annonymousPipelineName => {
+      if (annonymousPipelineName) {
+        this.pipelineId = annonymousPipelineName;
+      }
+      this.create();
+    });
+  }
+
+  private create(): void {
     if (this.file) {
       let createObservable: Observable<number>;
       if (this.file.type !== 'text/vcard') {
@@ -86,6 +95,7 @@ export class AnnotationWrapperComponent {
     this.pipelinesComponent.resetState();
     this.createdJobStatus = undefined;
     this.downloadLink = '';
+    this.file = null;
   }
 
   public onResetClick(): void {
@@ -96,6 +106,7 @@ export class AnnotationWrapperComponent {
 
   public setPipeline(newPipeline: string): void {
     this.pipelineId = newPipeline;
+    this.disableCreate();
   }
 
   public clearErrorMessage(): void {
@@ -108,10 +119,12 @@ export class AnnotationWrapperComponent {
 
   public setConfigValid(newState: boolean): void {
     this.isConfigValid = newState;
+    this.disableCreate();
   }
 
   public setFile(newFile: File): void {
     this.file = newFile;
+    this.disableCreate();
   }
 
   public setFileSeparator(newSeparator: string): void {

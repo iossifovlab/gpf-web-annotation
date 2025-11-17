@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { AnnotationPipelineComponent } from './annotation-pipeline.component';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
@@ -14,9 +13,9 @@ import { AnnotationPipelineService } from '../annotation-pipeline.service';
 import { ElementRef, TemplateRef } from '@angular/core';
 
 const mockPipelines = [
-  new Pipeline('id1', 'content1', 'defualt'),
-  new Pipeline('id2', 'content2', 'defualt'),
-  new Pipeline('id3', 'content3', 'defualt'),
+  new Pipeline('id1', 'content1', 'default'),
+  new Pipeline('id2', 'content2', 'default'),
+  new Pipeline('id3', 'content3', 'user'),
 ];
 class JobsServiceMock {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -86,7 +85,12 @@ class MatDialogMock {
 class AnnotationPipelineServiceMock {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public savePipeline(name: string, content: string): Observable<string> {
-    return of('pipeline-name');
+    return of(name);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public deletePipeline(name: string): Observable<object> {
+    return of({});
   }
 }
 
@@ -250,5 +254,94 @@ describe('AnnotationPipelineComponent', () => {
     expect(getAnnotationPipelinesSpy).not.toHaveBeenCalledTimes(2);
     expect(onPipelineClickSpy).not.toHaveBeenCalledWith();
     expect(component.selectedPipeline.id).toBe('id1');
+  });
+
+  it('should delete pipeline', () => {
+    const deletePipelineSpy = jest.spyOn(annotationPipelineServiceMock, 'deletePipeline');
+    const selectNewPipelineSpy = jest.spyOn(component, 'onPipelineClick');
+
+    component.selectedPipeline = new Pipeline('name', 'content', 'type');
+
+    component.delete();
+    expect(deletePipelineSpy).toHaveBeenCalledWith('name');
+    expect(selectNewPipelineSpy).toHaveBeenCalledWith(mockPipelines[0]);
+  });
+
+  it('should save pipeline and update list with pipelines', () => {
+    const updatedMockPipelines: Pipeline[] = [
+      new Pipeline('id1', 'content1', 'default'),
+      new Pipeline('id2', 'content2', 'default'),
+      new Pipeline('id3', 'new content', 'user'),
+    ];
+
+    const savePipelineSpy = jest.spyOn(annotationPipelineServiceMock, 'savePipeline');
+    jest.spyOn(jobsServiceMock, 'getAnnotationPipelines')
+      .mockReturnValueOnce(of(updatedMockPipelines));
+    const selectNewPipelineSpy = jest.spyOn(component, 'onPipelineClick');
+
+    component.selectedPipeline = mockPipelines[2];
+    component.currentPipelineText = 'new content';
+
+    component.save();
+    expect(savePipelineSpy).toHaveBeenCalledWith('id3', 'new content');
+    expect(selectNewPipelineSpy).toHaveBeenCalledWith(new Pipeline('id3', 'new content', 'user'));
+  });
+
+  it('should save pipeline and not update pipeline list when response is invalid', () => {
+    const savePipelineSpy = jest.spyOn(annotationPipelineServiceMock, 'savePipeline').mockReturnValueOnce(of(null));
+    const getAnnotationPipelinesSpy = jest.spyOn(jobsServiceMock, 'getAnnotationPipelines');
+
+    component.selectedPipeline = mockPipelines[0];
+    component.currentPipelineText = 'new content';
+
+    component.save();
+    expect(savePipelineSpy).toHaveBeenCalledWith('id3', 'new content');
+    expect(getAnnotationPipelinesSpy).not.toHaveBeenCalledTimes(2);
+  });
+
+  it('should not save pipeline when there are no changes', () => {
+    const savePipelineSpy = jest.spyOn(annotationPipelineServiceMock, 'savePipeline').mockReturnValueOnce(of(null));
+
+    component.selectedPipeline = mockPipelines[0];
+    component.currentPipelineText = 'content1';
+
+    component.save();
+    expect(savePipelineSpy).not.toHaveBeenCalledWith();
+  });
+
+  it('should auto save current pipeline', () => {
+    const savePipelineSpy = jest.spyOn(annotationPipelineServiceMock, 'savePipeline').mockReturnValueOnce(of(null));
+    const saveSpy = jest.spyOn(component, 'save');
+
+    component.selectedPipeline = mockPipelines[2];
+    component.currentPipelineText = 'new content';
+
+    component.autoSave();
+    expect(savePipelineSpy).toHaveBeenCalledWith('id3', 'new content');
+    expect(saveSpy).toHaveBeenCalledWith();
+  });
+
+  it('should save annonymous pipeline', () => {
+    const savePipelineSpy = jest.spyOn(annotationPipelineServiceMock, 'savePipeline').mockReturnValueOnce(of(null));
+    const saveSpy = jest.spyOn(component, 'save');
+
+    component.selectedPipeline = null;
+    component.currentPipelineText = 'new content';
+
+    component.autoSave();
+    expect(savePipelineSpy).toHaveBeenCalledWith('', 'new content');
+    expect(saveSpy).not.toHaveBeenCalledWith();
+  });
+
+  it('should save edited public pipeline as annonymous', () => {
+    const savePipelineSpy = jest.spyOn(annotationPipelineServiceMock, 'savePipeline').mockReturnValueOnce(of(null));
+    const saveSpy = jest.spyOn(component, 'save');
+
+    component.selectedPipeline = mockPipelines[0];
+    component.currentPipelineText = 'new content';
+
+    component.autoSave();
+    expect(savePipelineSpy).toHaveBeenCalledWith('', 'new content');
+    expect(saveSpy).not.toHaveBeenCalledWith();
   });
 });
