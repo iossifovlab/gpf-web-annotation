@@ -1,7 +1,6 @@
 # pylint: disable=too-many-lines
 """View classes for web annotation."""
 import logging
-from subprocess import CalledProcessError
 import time
 from datetime import datetime
 from pathlib import Path
@@ -16,13 +15,11 @@ from dae.annotation.annotation_config import (
     AttributeInfo,
 )
 from dae.annotation.annotation_factory import (
-    build_annotation_pipeline,
     load_pipeline_from_grr,
     load_pipeline_from_yaml,
 )
 from dae.annotation.annotation_pipeline import AnnotationPipeline, Annotator
 from dae.annotation.gene_score_annotator import GeneScoreAnnotator
-from dae.annotation.record_to_annotatable import build_record_to_annotatable
 from dae.annotation.score_annotator import GenomicScoreAnnotatorBase
 from dae.gene_scores.gene_scores import (
     _build_gene_score_help,
@@ -53,25 +50,23 @@ from django.contrib.auth import (
     logout,
 )
 from django.core.files.uploadedfile import UploadedFile
-from django.db.models import ObjectDoesNotExist, QuerySet
+from django.db.models import QuerySet
 from django.http import HttpRequest
 from django.http.response import (
-    FileResponse,
     HttpResponse,
     HttpResponseRedirect,
 )
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import render
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import last_modified
 from pysam import VariantFile
 from rest_framework import generics, permissions, views
-from rest_framework.parsers import JSONParser, MultiPartParser
+from rest_framework.parsers import JSONParser
 from rest_framework.request import MultiValueDict, QueryDict, Request
 from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle
 
-from web_annotation.annotate_helpers import columns_file_preview, extract_head
 from web_annotation.executor import (
     TaskExecutor,
     ThreadedTaskExecutor,
@@ -97,20 +92,7 @@ from .models import (
     ResetPasswordCode,
     User,
 )
-from .permissions import has_job_permission
-from .serializers import AlleleSerializer, JobSerializer, UserSerializer
-from .tasks import (
-    get_job,
-    get_job_details,
-    get_args_columns,
-    run_columns_job,
-    get_args_vcf,
-    run_vcf_job,
-    specify_job,
-    update_job_failed,
-    update_job_in_progress,
-    update_job_success,
-)
+from .serializers import AlleleSerializer, UserSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -594,89 +576,6 @@ class AnnotationBaseView(views.APIView):
         return (job_name, pipeline, job)
 
 
-class JobAll(generics.ListAPIView):
-    """Generic view for listing all jobs."""
-    queryset = Job.objects.filter(is_active=True)
-    serializer_class = JobSerializer
-    permission_classes = [permissions.IsAdminUser]
-
-
-class JobList(generics.ListAPIView):
-    """Generic view for listing jobs for the user."""
-    def get_queryset(self) -> QuerySet:
-        return Job.objects.filter(owner=self.request.user, is_active=True)
-
-    serializer_class = JobSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-
-class JobDetail(AnnotationBaseView):
-    """View for listing job details."""
-
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get(self, request: Request, pk: int) -> Response:
-        """
-        Get job details.
-
-        Returns extra column information for TSV/CSV jobs.
-        """
-
-        try:
-            job = get_job(pk)
-        except ObjectDoesNotExist:
-            return Response(status=views.status.HTTP_404_NOT_FOUND)
-
-        if job.owner != request.user:
-            return Response(status=views.status.HTTP_403_FORBIDDEN)
-
-        response = {
-            "id": job.pk,
-            "name": job.name,
-            "owner": job.owner.email,
-            "created": str(job.created),
-            "duration": job.duration,
-            "command_line": job.command_line,
-            "status": job.status,
-            "result_filename": Path(job.result_path).name,
-            "size": f"{calculate_used_disk_space(request.user) // 10**6}MB" 
-        }
-        try:
-            details = get_job_details(pk)
-        except ObjectDoesNotExist:
-            return Response(response, status=views.status.HTTP_200_OK)
-
-        if job.annotation_type == "columns":
-            response["columns"] = details.columns.split(";")
-            file_head = extract_head(
-                str(job.input_path),
-                details.separator,
-                n_lines=5,
-            )
-            response["head"] = file_head
-
-        return Response(response, status=views.status.HTTP_200_OK)
-
-    def delete(self, request: Request, pk: int) -> Response:
-        """
-        Delete job details.
-
-        Returns extra column information for TSV/CSV jobs.
-        """
-
-        try:
-            job = get_job(pk)
-        except ObjectDoesNotExist:
-            return Response(status=views.status.HTTP_404_NOT_FOUND)
-
-        if job.owner != request.user:
-            return Response(status=views.status.HTTP_403_FORBIDDEN)
-
-        job.deactivate()
-
-        return Response(status=views.status.HTTP_200_OK)
-
-
 class UserPipeline(AnnotationBaseView):
     """View for saving user annotation pipelines."""
     permission_classes = [permissions.IsAuthenticated]
@@ -862,6 +761,7 @@ class AlleleHistory(generics.ListAPIView):
         return Response(status=views.status.HTTP_204_NO_CONTENT)
 
 
+<<<<<<< HEAD
 class AnnotateVCF(AnnotationBaseView):
     """View for creating jobs."""
 
@@ -1133,6 +1033,8 @@ class JobGetFile(views.APIView):
         return FileResponse(open(file_path, "rb"), as_attachment=True)
 
 
+=======
+>>>>>>> 1813166 (Move jobs and the annotation base view to their own module)
 class UserList(generics.ListAPIView):
     """Generic view for listing users."""
     queryset = User.objects.all()
@@ -1344,54 +1246,6 @@ class AnnotationConfigValidation(AnnotationBaseView):
             result = {"errors": "Invalid configuration"}
 
         return Response(result, status=views.status.HTTP_200_OK)
-
-
-class PreviewFileUpload(AnnotationBaseView):
-    """Try to determine the separator of a file split into columns"""
-
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request: Request) -> Response:
-        """Determine the separator of a file split into columns."""
-        assert isinstance(request.FILES, MultiValueDict)
-        assert isinstance(request.data, QueryDict)
-
-        file = request.FILES["data"]
-        assert isinstance(file, UploadedFile)
-        if file is None:
-            return Response(
-                {"reason": "No preview file provided!"},
-                status=views.status.HTTP_400_BAD_REQUEST,
-            )
-        if not self.check_valid_upload_size(file, request.user):
-            return Response(
-                status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
-
-        assert file.name is not None
-
-        if file.name.find(".vcf") > 0:
-            return Response(
-                {"reason": "VCF files cannot be previewed!"},
-                status=views.status.HTTP_400_BAD_REQUEST,
-            )
-
-        preview_data = columns_file_preview(
-            file, request.data.get("separator"))
-        return Response(
-            preview_data,
-            status=views.status.HTTP_200_OK,
-        )
-
-
-class ListGenomePipelines(AnnotationBaseView):
-    """View for listing available single annotation genomes."""
-
-    def get(self, request: Request) -> Response:
-        """Return list of genome pipelines for single annotation."""
-        return Response(
-            list(self.genome_pipelines.keys()),
-            status=views.status.HTTP_200_OK,
-        )
 
 
 class SingleAnnotation(AnnotationBaseView):

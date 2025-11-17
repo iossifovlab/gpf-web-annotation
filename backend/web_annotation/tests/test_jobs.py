@@ -33,7 +33,7 @@ def sequential_task_executor(
     mocker: pytest_mock.MockerFixture,
 ) -> None:
     mocker.patch(
-        "web_annotation.views.AnnotationBaseView.TASK_EXECUTOR",
+        "web_annotation.annotation_base_view.AnnotationBaseView.TASK_EXECUTOR",
         new_callable=SequentialTaskExecutor,
     )
 
@@ -459,7 +459,7 @@ def test_validate_columns(
     response_body: dict[str, str],
 ) -> None:
     response = admin_client.post(
-        "/api/validate_columns",
+        "/api/jobs/validate_columns",
         data,
         content_type="application/json",
     )

@@ -1,0 +1,428 @@
+"""Module with views for job operations."""
+import logging
+from pathlib import Path
+from subprocess import CalledProcessError
+import time
+from typing import cast
+from dae.annotation.annotation_factory import build_annotation_pipeline
+from dae.annotation.record_to_annotatable import build_record_to_annotatable
+from django.core.files.uploadedfile import UploadedFile
+from django.db.models import ObjectDoesNotExist, QuerySet
+from django.http import FileResponse, QueryDict
+from django.shortcuts import get_object_or_404
+from pysam import VariantFile
+from rest_framework import generics
+from rest_framework import views, permissions
+from rest_framework.parsers import MultiPartParser
+from rest_framework.request import MultiValueDict
+from rest_framework.views import Request, Response
+from web_annotation.annotate_helpers import columns_file_preview, extract_head
+from web_annotation.annotation_base_view import AnnotationBaseView
+from web_annotation.models import Job
+from web_annotation.permissions import has_job_permission
+from web_annotation.serializers import JobSerializer
+from web_annotation.utils import calculate_used_disk_space
+from web_annotation.tasks import (
+    get_args_columns,
+    get_args_vcf,
+    get_job,
+    get_job_details,
+    run_columns_job,
+    run_vcf_job,
+    specify_job,
+    update_job_failed,
+    update_job_in_progress,
+    update_job_success,
+)
+
+
+logger = logging.getLogger(__name__)
+
+
+class JobAll(generics.ListAPIView):
+    """Generic view for listing all jobs."""
+    queryset = Job.objects.filter(is_active=True)
+    serializer_class = JobSerializer
+    permission_classes = [permissions.IsAdminUser]
+
+
+class JobList(generics.ListAPIView):
+    """Generic view for listing jobs for the user."""
+    def get_queryset(self) -> QuerySet:
+        return Job.objects.filter(owner=self.request.user, is_active=True)
+
+    serializer_class = JobSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+class JobDetail(AnnotationBaseView):
+    """View for listing job details."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request: Request, pk: int) -> Response:
+        """
+        Get job details.
+
+        Returns extra column information for TSV/CSV jobs.
+        """
+
+        try:
+            job = get_job(pk)
+        except ObjectDoesNotExist:
+            return Response(status=views.status.HTTP_404_NOT_FOUND)
+
+        if job.owner != request.user:
+            return Response(status=views.status.HTTP_403_FORBIDDEN)
+
+        response = {
+            "id": job.pk,
+            "name": job.name,
+            "owner": job.owner.email,
+            "created": str(job.created),
+            "duration": job.duration,
+            "command_line": job.command_line,
+            "status": job.status,
+            "result_filename": Path(job.result_path).name,
+            "size": f"{calculate_used_disk_space(request.user) // 10**6}MB",
+        }
+        try:
+            details = get_job_details(pk)
+        except ObjectDoesNotExist:
+            return Response(response, status=views.status.HTTP_200_OK)
+
+        if job.annotation_type == "columns":
+            response["columns"] = details.columns.split(";")
+            file_head = extract_head(
+                str(job.input_path),
+                details.separator,
+                n_lines=5,
+            )
+            response["head"] = file_head
+
+        return Response(response, status=views.status.HTTP_200_OK)
+
+    def delete(self, request: Request, pk: int) -> Response:
+        """
+        Delete job details.
+
+        Returns extra column information for TSV/CSV jobs.
+        """
+
+        try:
+            job = get_job(pk)
+        except ObjectDoesNotExist:
+            return Response(status=views.status.HTTP_404_NOT_FOUND)
+
+        if job.owner != request.user:
+            return Response(status=views.status.HTTP_403_FORBIDDEN)
+
+        job.deactivate()
+
+        return Response(status=views.status.HTTP_200_OK)
+
+
+class AnnotateVCF(AnnotationBaseView):
+    """View for creating jobs."""
+
+    parser_classes = [MultiPartParser]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request: Request) -> Response:
+        """Run VCF annotation job."""
+        job_or_response = self._create_job(request, "vcf")
+        if isinstance(job_or_response, Response):
+            return job_or_response
+        job_name, pipeline, job = job_or_response
+
+        try:
+            vcf = VariantFile(job.input_path)
+        except (ValueError, OSError):
+            logger.exception("Failed to parse VCF file")
+            self._cleanup(job_name, job.owner.email)
+            return Response(
+                {"reason": "Invalid VCF file"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+        except NotImplementedError:
+            logger.exception("GZip upload")
+            self._cleanup(job_name, job.owner.email)
+            return Response(
+                {
+                    "reason": (
+                        "Uploaded VCF file not supported"
+                        " (GZipped not supported)."
+                    )
+                },
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not self.check_variants_limit(vcf, request.user):
+            self._cleanup(job_name, job.owner.email)
+            return Response(
+                status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
+
+        job.save()
+        work_dir = self.result_storage_dir / request.user.email
+        pipeline = build_annotation_pipeline(pipeline.raw, pipeline.repository)
+        args = get_args_vcf(
+            job, pipeline, str(work_dir))
+        start_time = time.time()
+
+        def on_success(
+                result: None) -> None:  # pylint: disable=unused-argument
+            """Callback when annotation is done."""
+            job.duration = time.time() - start_time
+            update_job_success(job)
+
+        def on_failure(exception: BaseException) -> None:
+            """Callback when annotation fails."""
+            logger.error(
+                "VCF annotation job failed with exception: %s", str(exception)
+            )
+            job.duration = time.time() - start_time
+            reason = (
+                f"Unexpected error, {type(exception)}\n"
+                f"{str(exception)}"
+            )
+            if isinstance(exception, CalledProcessError):
+                reason = (
+                    "annotate_vcf failed internally:\n"
+                    f"{exception.stderr}"
+                )
+            if isinstance(
+                exception, (OSError, TypeError, ValueError),
+            ):
+                reason = (
+                    "Failed to execute annotate_vcf\n"
+                    f"{str(exception)}"
+                )
+            logger.error("VCF annotation job failed!\n%s", reason)
+            update_job_failed(job)
+
+        update_job_in_progress(job)
+
+        self.TASK_EXECUTOR.execute(
+            run_vcf_job,
+            callback_success=on_success,
+            callback_failure=on_failure,
+            **args,
+        )
+
+        return Response({"job_id": job.pk}, status=views.status.HTTP_200_OK)
+
+
+class AnnotateColumns(AnnotationBaseView):
+    """View for creating jobs."""
+
+    parser_classes = [MultiPartParser]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def is_vcf_file(self, file: UploadedFile, input_path: Path) -> bool:
+        """Check if a file is a VCF file."""
+        assert file.name is not None
+        if file.name.endswith(".vcf"):
+            return True
+        if file.name.endswith(".tsv") or file.name.endswith(".csv"):
+            return False
+
+        try:
+            VariantFile(str(input_path.absolute()), "r")
+        except ValueError:
+            return False
+        except OSError:
+            return False
+
+        return True
+
+    def post(self, request: Request) -> Response:
+        """Run column annotation job."""
+
+        job_or_response = self._create_job(request, "columns")
+        if isinstance(job_or_response, Response):
+            return job_or_response
+        _, pipeline, job = job_or_response
+
+        job.save()
+
+        assert isinstance(request.data, QueryDict)
+        if not any(param in self.tool_columns for param in request.data):
+            logger.debug("No column options sent in request body!")
+            return Response(
+                {"reason": "Invalid column specification!"},
+                status=views.status.HTTP_400_BAD_REQUEST)
+
+        sep = request.data.get("separator")
+
+        params = {"separator": sep}
+        for col in self.tool_columns:
+            params[col] = request.data.get(col, "")
+            assert isinstance(params[col], str)
+
+        grr_definition = self.get_grr_definition()
+        assert grr_definition is not None
+        work_dir = self.result_storage_dir / request.user.email
+
+        try:
+            specify_job(job, **cast(dict[str, str], params))
+            details = get_job_details(job.pk)
+        except ObjectDoesNotExist:
+            logger.exception("Job not found!")
+            return Response(status=views.status.HTTP_404_NOT_FOUND)
+
+        pipeline = build_annotation_pipeline(pipeline.raw, pipeline.repository)
+        args = get_args_columns(
+            job, details, pipeline, str(work_dir))
+        start_time = time.time()
+
+        def on_success(result: None) -> None:
+            job.duration = time.time() - start_time
+            update_job_success(job)
+
+        def on_failure(exception: BaseException) -> None:
+            job.duration = time.time() - start_time
+            reason = (
+                f"Unexpected error, {type(exception)}\n"
+                f"{(exception)}"
+            )
+            if isinstance(exception, CalledProcessError):
+                reason = (
+                    "annotate_columns failed internally:\n"
+                    f"{exception.stderr}"
+                )
+            if isinstance(
+                exception, (OSError, TypeError, ValueError),
+            ):
+                reason = (
+                    "Failed to execute annotate_vcf\n"
+                    f"{str(exception)}"
+                )
+            logger.error("columns annotation job failed!\n%s", reason)
+            update_job_failed(job)
+
+        update_job_in_progress(job)
+
+        self.TASK_EXECUTOR.execute(
+            run_columns_job,
+            callback_success=on_success,
+            callback_failure=on_failure,
+            **args,
+        )
+
+        return Response({"job_id": job.pk}, status=views.status.HTTP_200_OK)
+
+
+class ColumnValidation(AnnotationBaseView):
+    """Validate if column selection returns annotatable."""
+    def post(self, request: Request) -> Response:
+        """Validate columns selection."""
+        data = request.data
+        assert isinstance(data, dict)
+
+        column_mapping = data.get("column_mapping")
+        if not column_mapping or column_mapping == {}:
+            return Response(
+                {"errors": "No columns selected from the file!"},
+                status=views.status.HTTP_200_OK)
+        assert isinstance(column_mapping, dict)
+
+        if not any(param in self.tool_columns for param in column_mapping):
+            return Response(
+                {"errors": "Invalid column specification!"},
+                status=views.status.HTTP_200_OK)
+
+        all_columns = data.get("file_columns")
+        if not all_columns or all_columns == []:
+            return Response({
+                    "errors": (
+                        "File header must be provided "
+                        "for column validation!"
+                    )
+                },
+                status=views.status.HTTP_200_OK)
+        assert isinstance(all_columns, list)
+        all_columns = [str(col) for col in all_columns]
+
+        try:
+            build_record_to_annotatable(
+                column_mapping,
+                set(all_columns),
+            )
+        except ValueError:
+            logger.exception("Annotatable error.\n")
+            return Response(
+                {
+                    "errors": (
+                        "Specified set of columns"
+                        " cannot be used together!"
+                    ),
+                },
+                status=views.status.HTTP_200_OK)
+
+        return Response({"errors": ""}, status=views.status.HTTP_200_OK)
+
+
+class JobGetFile(views.APIView):
+    """View for downloading job files."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(
+        self, request: Request, pk: int, file: str,
+    ) -> Response | FileResponse:
+        """Download a file from a job."""
+        job = get_object_or_404(Job, id=pk, is_active=True)
+        if not has_job_permission(job, request.user):
+            return Response(status=views.status.HTTP_403_FORBIDDEN)
+
+        if file == "input":
+            file_path = Path(job.input_path)
+        elif file == "config":
+            file_path = Path(job.config_path)
+        elif file == "result":
+            file_path = Path(job.result_path)
+        else:
+            return Response(
+                {"reason": "Not requesting input, config or result file!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not file_path.exists():
+            return Response(status=views.status.HTTP_404_NOT_FOUND)
+        return FileResponse(open(file_path, "rb"), as_attachment=True)
+
+
+class PreviewFileUpload(AnnotationBaseView):
+    """Try to determine the separator of a file split into columns"""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request: Request) -> Response:
+        """Determine the separator of a file split into columns."""
+        assert isinstance(request.FILES, MultiValueDict)
+        assert isinstance(request.data, QueryDict)
+
+        file = request.FILES["data"]
+        assert isinstance(file, UploadedFile)
+        if file is None:
+            return Response(
+                {"reason": "No preview file provided!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+        if not self.check_valid_upload_size(file, request.user):
+            return Response(
+                status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
+
+        assert file.name is not None
+
+        if file.name.find(".vcf") > 0:
+            return Response(
+                {"reason": "VCF files cannot be previewed!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        preview_data = columns_file_preview(
+            file, request.data.get("separator"))
+        return Response(
+            preview_data,
+            status=views.status.HTTP_200_OK,
+        )

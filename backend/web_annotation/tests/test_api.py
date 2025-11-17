@@ -682,16 +682,6 @@ def test_histogram_view_bad_resource(admin_client: Client) -> None:
     assert response.status_code == 404
 
 
-def test_genomes_view(admin_client: Client) -> None:
-    response = admin_client.get("/api/genomes")
-
-    assert response.status_code == 200
-    data = response.json()
-    assert len(data) == 2
-    assert data[0] == "hg38"
-    assert data[1] == "t4c8"
-
-
 def test_single_annotation_throttled(user_client: Client) -> None:
     for _ in range(10):
         response = user_client.post(
