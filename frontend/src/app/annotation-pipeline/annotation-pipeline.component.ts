@@ -92,6 +92,7 @@ export class AnnotationPipelineComponent implements OnInit {
 
   public clearPipeline(): void {
     this.selectedPipeline = null;
+    this.emitPipelineId.emit(null);
     this.currentPipelineText = '';
     this.dropdownControl.setValue('');
   }
@@ -118,13 +119,27 @@ export class AnnotationPipelineComponent implements OnInit {
     });
   }
 
+  public autoSave(): Observable<string> {
+    if (!this.selectedPipeline || (this.isPipelineChanged() && this.selectedPipeline.type === 'default')) {
+      return this.annotationPipelineService.savePipeline('', this.currentPipelineText);
+    } else {
+      this.save();
+      return of(null);
+    }
+  }
+
   public save(): void {
-    this.annotationPipelineService.savePipeline(this.selectedPipeline.id, this.currentPipelineText).subscribe((pipelineId: string) => {
-      if (!pipelineId) {
-        return;
-      }
-      this.getPipelines(pipelineId);
-    });
+    if (!this.isPipelineChanged()) {
+      return;
+    }
+
+    this.annotationPipelineService.savePipeline(this.selectedPipeline.id, this.currentPipelineText)
+      .subscribe((pipelineId: string) => {
+        if (!pipelineId) {
+          return;
+        }
+        this.getPipelines(pipelineId);
+      });
   }
 
   public delete(): void {
@@ -137,5 +152,9 @@ export class AnnotationPipelineComponent implements OnInit {
 
   public cancel(): void {
     this.dialog.getDialogById('setPipelineName').close();
+  }
+
+  public isPipelineChanged(): boolean {
+    return this.selectedPipeline?.content.trim() !== this.currentPipelineText.trim();
   }
 }

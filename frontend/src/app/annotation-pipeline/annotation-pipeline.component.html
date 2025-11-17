@@ -34,10 +34,14 @@
     <button (click)="saveAs()" id="save-as-button"
       ><span class="material-symbols-outlined save-as-icon">save_as</span>Save as</button
     >
-    <button *ngIf="selectedPipeline.type === 'user'" (click)="save()" id="save-button"
+    <button
+      *ngIf="selectedPipeline && selectedPipeline.type === 'user'"
+      (click)="save()"
+      id="save-button"
+      [disabled]="!isPipelineChanged()"
       ><span class="material-symbols-outlined save-icon">save</span>Save</button
     >
-    <button *ngIf="selectedPipeline.type === 'user'" (click)="delete()" id="delete-button"
+    <button *ngIf="selectedPipeline && selectedPipeline.type === 'user'" (click)="delete()" id="delete-button"
       ><span class="material-symbols-outlined delete-icon">delete</span>Delete</button
     >
   </div>

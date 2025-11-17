@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-
 import { AnnotationPipelineService } from './annotation-pipeline.service';
 import { HttpClient, provideHttpClient } from '@angular/common/http';
 import { lastValueFrom, of, take } from 'rxjs';
@@ -80,7 +79,7 @@ describe('AnnotationPipelineService', () => {
   });
 
 
-  it('should delete pipeline by id', async() => {
+  it('should delete pipeline by id', () => {
     const httpDelteSpy = jest.spyOn(HttpClient.prototype, 'delete');
     const options = {
       headers: {
@@ -92,7 +91,7 @@ describe('AnnotationPipelineService', () => {
     service.deletePipeline('pipeline-name');
 
     expect(httpDelteSpy).toHaveBeenCalledWith(
-       '//localhost:8000/api/user_pipeline?name=pipeline-name',
+      '//localhost:8000/api/user_pipeline?name=pipeline-name',
       options
     );
   });

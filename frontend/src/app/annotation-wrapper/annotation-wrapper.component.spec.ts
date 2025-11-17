@@ -28,25 +28,30 @@ const mockPipelines = [
 ];
 
 const jobs = [
-  new Job(1, 1, new Date('1.10.2025'), 'test@email.com', 'in process', 3.2, 'fileName'),
-  new Job(2, 2, new Date('1.10.2025'), 'test@email.com', 'failed', 2.7, 'fileName'),
+  new Job(1, 1, new Date('1.10.2025'), 'test@email.com', 'success', 3.2, 'fileName1'),
+  new Job(2, 2, new Date('1.10.2025'), 'test@email.com', 'failed', 2.7, 'fileName2'),
 ];
 class JobsServiceMock {
   public getJobs(): Observable<Job[]> {
     return of(jobs);
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public createVcfJob(file1: File, pipeline: string, content: string, genome: string): Observable<object> {
-    return of({});
+  public createVcfJob(file1: File, pipeline: string, content: string, genome: string): Observable<number> {
+    return of(2);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, @stylistic/max-len
-  public createNonVcfJob(file1: File, pipeline: string, config: string, genome: string, fileSeparator: string): Observable<object> {
-    return of({});
+  public createNonVcfJob(file1: File, pipeline: string, config: string, genome: string, fileSeparator: string): Observable<number> {
+    return of(1);
   }
 
   public getAnnotationPipelines(): Observable<Pipeline[]> {
     return of(mockPipelines);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public getJobDetails(jobId: string): Observable<Job> {
+    return of(jobs[0]);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -57,6 +62,10 @@ class JobsServiceMock {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public submitSeparator(file: File, separator: string): Observable<FileContent> {
     return of(new FileContent(',', ['chr', 'pos'], [['1', '123']]));
+  }
+
+  public getDownloadJobResultLink(jobId: string): string {
+    return `url/${jobId}`;
   }
 }
 
@@ -115,11 +124,15 @@ describe('AnnotationWrapperComponent', () => {
     expect(component.isCreationFormVisible).toBe(false);
   });
 
-  it('should show creation job form and reset pipelines state', () => {
+  it('should show creation job form and reset pipelines state and file', () => {
     component.isCreationFormVisible = false;
     const pipelinesComponentSpy = jest.spyOn(component.pipelinesComponent, 'resetState');
     component.showCreateMode();
     expect(pipelinesComponentSpy).toHaveBeenCalledWith();
+    expect(component.isCreationFormVisible).toBe(true);
+    expect(component.createdJobStatus).toBeUndefined();
+    expect(component.downloadLink).toBe('');
+    expect(component.file).toBeNull();
   });
 
   it('should reset state when resetting the creation process', () => {
@@ -130,5 +143,72 @@ describe('AnnotationWrapperComponent', () => {
     expect(pipelinesComponentSpy).toHaveBeenCalledWith();
     expect(createJobComponentSpy).toHaveBeenCalledWith();
     expect(component.creationError).toBe('');
+  });
+
+  it('should auto save and get annonymous pipeline name', () => {
+    const pipelinesComponentSpy = jest.spyOn(component.pipelinesComponent, 'autoSave')
+      .mockReturnValue(of('annonymous pipeline'));
+    component.onCreateClick();
+    expect(pipelinesComponentSpy).toHaveBeenCalledWith();
+    expect(component.pipelineId).toBe('annonymous pipeline');
+  });
+
+  it('should auto save pipeline', () => {
+    const pipelinesComponentSpy = jest.spyOn(component.pipelinesComponent, 'autoSave')
+      .mockReturnValue(of(null));
+    component.onCreateClick();
+    expect(pipelinesComponentSpy).toHaveBeenCalledWith();
+    expect(component.pipelineId).toBe('id1');
+  });
+
+  it('should create job with vcf file', () => {
+    component.file = new File([], 'mock.vcf', { type: 'text/vcard' });
+    component.pipelineId = 'pipeline';
+    component.selectedGenome = 'hg38';
+    component.fileSeparator = '';
+    component.fileHeader = null;
+    component.createdJobStatus = 'in process';
+
+    const createJobSpy = jest.spyOn(jobsServiceMock, 'createVcfJob');
+
+    const jobDetailsSpy = jest.spyOn(jobsServiceMock, 'getJobDetails').mockReturnValue(of(jobs[0]));
+
+    component.onCreateClick();
+
+    expect(createJobSpy).toHaveBeenCalledWith(
+      new File([], 'mock.vcf'),
+      'pipeline',
+      'hg38',
+    );
+    expect(jobDetailsSpy).toHaveBeenCalledWith(2);
+    expect(component.annotatedFileName).toBe('fileName2');
+    expect(component.downloadLink).toBe('url/2');
+    expect(component.createdJobStatus).toBe('failed');
+  });
+
+  it('should create job with csv file', () => {
+    component.file = new File([], 'mock.csv', { type: 'text/comma-separated-values' });
+    component.pipelineId = 'pipeline';
+    component.selectedGenome = 'hg38';
+    component.fileSeparator = ',';
+    component.fileHeader = new Map<string, string>([['a', '1']]);
+    component.createdJobStatus = 'in process';
+    const createJobSpy = jest.spyOn(jobsServiceMock, 'createNonVcfJob');
+
+    const jobDetailsSpy = jest.spyOn(jobsServiceMock, 'getJobDetails').mockReturnValue(of(jobs[0]));
+
+    component.onCreateClick();
+
+    expect(createJobSpy).toHaveBeenCalledWith(
+      new File([], 'mock.csv'),
+      'pipeline',
+      'hg38',
+      ',',
+      new Map<string, string>([['a', '1']])
+    );
+    expect(jobDetailsSpy).toHaveBeenCalledWith(1);
+    expect(component.annotatedFileName).toBe('fileName1');
+    expect(component.downloadLink).toBe('url/1');
+    expect(component.createdJobStatus).toBe('success');
   });
 });
