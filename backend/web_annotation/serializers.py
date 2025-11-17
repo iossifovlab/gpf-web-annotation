@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Job, User
+from .models import AlleleQuery, Job, User
 
 
 class JobSerializer(serializers.ModelSerializer):
@@ -22,3 +22,12 @@ class UserSerializer(serializers.ModelSerializer):
         """Meta class for user serializer."""
         model = User
         fields = ["email", "jobs"]
+
+class AlleleSerializer(serializers.ModelSerializer):
+    """Allele model serializer class."""
+    owner = serializers.ReadOnlyField(source='owner.email')
+
+    class Meta:  # pylint: disable=too-few-public-methods
+        """Meta class for job serializer."""
+        model = AlleleQuery
+        fields = ["id", "allele", "owner"]

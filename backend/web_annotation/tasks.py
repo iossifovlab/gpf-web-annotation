@@ -3,6 +3,8 @@ import logging
 from datetime import timedelta
 from typing import Any
 
+from dae.annotation.annotate_columns import annotate_columns
+from dae.annotation.annotate_vcf import annotate_vcf
 from dae.annotation.annotation_pipeline import AnnotationPipeline
 from dae.genomic_resources.reference_genome import (
     ReferenceGenome,
@@ -12,11 +14,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.utils import timezone
 
-from dae.annotation.annotate_vcf import annotate_vcf
-from dae.annotation.annotate_columns import annotate_columns
-
 from .models import Job, JobDetails
-
 
 logger = logging.getLogger(__name__)
 

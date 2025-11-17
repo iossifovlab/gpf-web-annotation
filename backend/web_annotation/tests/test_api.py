@@ -1026,3 +1026,75 @@ def test_single_annotation_t4c8(admin_client: Client) -> None:
         "histogram":
             "histograms/t4c8/gene_scores/t4c8_score?score_id=t4c8_score",
     }
+
+
+def test_single_annotation_saves_query_in_history(admin_client: Client) -> None:
+    response = admin_client.post(
+        "/api/single_annotate",
+        {
+            "pipeline": "t4c8/t4c8_pipeline",
+            "variant": {
+                "chrom": "chr1", "pos": 53, "ref": "C", "alt": "A",
+            }
+        },
+        content_type="application/json",
+    )
+    assert response.status_code == 200, response.content
+
+    response = admin_client.post(
+        "/api/single_annotate",
+        {
+            "pipeline": "t4c8/t4c8_pipeline",
+            "variant": {
+                "chrom": "chr2", "pos": 62, "ref": "T", "alt": "G",
+            }
+        },
+        content_type="application/json",
+    )
+    assert response.status_code == 200, response.content
+
+    response = admin_client.get("/api/allele_history")
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "id": 1,
+            "owner": "admin@example.com",
+            "allele": "chr1 53 C A",
+        },
+        {
+            "id": 2,
+            "owner": "admin@example.com",
+            "allele": "chr2 62 T G",
+        }
+    ]
+
+
+def test_user_delete_allele_query_from_history(admin_client: Client) -> None:
+    response = admin_client.post(
+        "/api/single_annotate",
+        {
+            "pipeline": "t4c8/t4c8_pipeline",
+            "variant": {
+                "chrom": "chr1", "pos": 53, "ref": "C", "alt": "A",
+            }
+        },
+        content_type="application/json",
+    )
+    assert response.status_code == 200, response.content
+
+    response = admin_client.get("/api/allele_history")
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "id": 1,
+            "owner": "admin@example.com",
+            "allele": "chr1 53 C A",
+        },
+    ]
+
+    response = admin_client.delete("/api/allele_history?id=1")
+    assert response.status_code == 204
+
+    response = admin_client.get("/api/allele_history")
+    assert response.status_code == 200
+    assert response.json() == []

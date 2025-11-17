@@ -88,6 +88,7 @@ from web_annotation.utils import (
 
 from .models import (
     AccountConfirmationCode,
+    AlleleQuery,
     BaseVerificationCode,
     Job,
     Pipeline,
@@ -95,7 +96,7 @@ from .models import (
     User,
 )
 from .permissions import has_job_permission
-from .serializers import JobSerializer, UserSerializer
+from .serializers import AlleleSerializer, JobSerializer, UserSerializer
 from .tasks import (
     get_job,
     get_job_details,
@@ -823,6 +824,40 @@ class UserPipeline(AnnotationBaseView):
         return Response(status=views.status.HTTP_204_NO_CONTENT)
 
 
+class AlleleHistory(generics.ListAPIView):
+    """View for managing a user's allele annotation history."""
+
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = AlleleSerializer
+
+    def get_queryset(self) -> QuerySet:
+        return AlleleQuery.objects.filter(owner=self.request.user)
+
+    def delete(self, request: Request) -> Response:
+        """Delete user allele annotation query from history"""
+        query_id = request.query_params.get("id")
+        if not query_id:
+            return Response(
+                {"reason": "Allele query ID must be provided!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        allele_query = AlleleQuery.objects.filter(
+            id=query_id,
+            owner=request.user,
+        )
+
+        if allele_query.count() == 0:
+            return Response(
+                {"reason": "Allele query id not recognized!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        allele_query.delete()
+
+        return Response(status=views.status.HTTP_204_NO_CONTENT)
+
+
 class AnnotateVCF(AnnotationBaseView):
     """View for creating jobs."""
 
@@ -1141,7 +1176,7 @@ class UserInfo(views.APIView):
     def get(self, request: Request) -> Response:
         user = request.user
         if not user.is_authenticated:
-            return Response({"loggedIn": False})
+            return Response({"loggedIn": False}, views.status.HTTP_200_OK)
 
         return Response(
             {
@@ -1467,6 +1502,18 @@ class SingleAnnotation(AnnotationBaseView):
             annotators_data.append(
                 {"details": details, "attributes": attributes},
             )
+
+        if request.user \
+            and request.user.is_authenticated \
+            and isinstance(request.user, User):
+            allele_query = AlleleQuery(
+                allele=(
+                    f"{variant['chrom']} {variant['pos']} "
+                    f"{variant['ref']} {variant['alt']}"
+                ),
+                owner=request.user,
+            )
+            allele_query.save()
 
         variant = {
             "chromosome": vcf_annotatable.chrom,
