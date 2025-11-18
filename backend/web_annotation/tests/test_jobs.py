@@ -38,7 +38,7 @@ def sequential_task_executor(
     )
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_job_update_new() -> None:
     test_job = Job(
         owner_id=1,
@@ -56,7 +56,7 @@ def test_job_update_new() -> None:
     assert test_job.status == Job.Status.IN_PROGRESS
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_job_update_in_progress() -> None:
     test_job = Job(
         owner_id=1,
@@ -78,7 +78,7 @@ def test_job_update_in_progress() -> None:
     assert test_job.status == Job.Status.FAILED
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_job_update_failed() -> None:
     test_job = Job(
         owner_id=1,
@@ -95,7 +95,7 @@ def test_job_update_failed() -> None:
     assert test_job.status == Job.Status.FAILED
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_job_update_success() -> None:
     test_job = Job(
         owner_id=1,
@@ -112,7 +112,7 @@ def test_job_update_success() -> None:
     assert test_job.status == Job.Status.SUCCESS
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_send_email(mail_client: MailhogClient) -> None:
     email_result = send_email(
         "TEST SUBJECT",
@@ -124,7 +124,7 @@ def test_send_email(mail_client: MailhogClient) -> None:
     assert email_result == 1
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_job_failure_starts_email_task(
     mocker: MockerFixture,
 ) -> None:
@@ -147,7 +147,7 @@ def test_job_failure_starts_email_task(
     assert ['user@example.com'] == recipient
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_job_success_starts_email_task(
     mocker: MockerFixture,
 ) -> None:
@@ -170,7 +170,7 @@ def test_job_success_starts_email_task(
     assert ['user@example.com'] == recipient
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_clean_old_jobs_removes_old_jobs(
     tmp_path: pathlib.Path,
 ) -> None:
@@ -215,7 +215,7 @@ def test_clean_old_jobs_removes_old_jobs(
     assert pathlib.Path(recent_job.result_path).exists()
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_annotate_vcf(
     user_client: Client, test_grr: GenomicResourceRepo,
 ) -> None:
@@ -268,7 +268,7 @@ def test_annotate_vcf(
     assert job.result_path.endswith(".vcf") is True
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_annotate_vcf_bad_input_data(user_client: Client) -> None:
     user = User.objects.get(email="user@example.com")
 
@@ -291,7 +291,7 @@ def test_annotate_vcf_bad_input_data(user_client: Client) -> None:
     assert response.status_code == 400
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
     user = User.objects.get(email="user@example.com")
 
@@ -309,7 +309,7 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
     assert response.status_code == 400
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "data, response_body",
     [
@@ -435,7 +435,7 @@ def test_validate_columns(
     assert response.json() == response_body
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "input_file, separator, specification, expected_lines, file_extension",
     [
@@ -619,7 +619,7 @@ def test_annotate_columns(
     assert lines == expected_lines
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_annotate_columns_t4c8(
     admin_client: Client,
 ) -> None:
@@ -660,8 +660,7 @@ def test_annotate_columns_t4c8(
     ]
 
 
-@pytest.mark.xfail
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_annotate_columns_t4c8_gzipped(
     admin_client: Client,
 ) -> None:
@@ -706,7 +705,7 @@ def test_annotate_columns_t4c8_gzipped(
     ]
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_annotate_vcf_gzip_fails(
     user_client: Client, test_grr: GenomicResourceRepo,
 ) -> None:
@@ -733,7 +732,7 @@ def test_annotate_vcf_gzip_fails(
     assert Job.objects.filter(owner=user).count() == 1
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_annotate_vcf_bgzip(
     user_client: Client, test_grr: GenomicResourceRepo,
     tmp_path: pathlib.Path,
@@ -806,7 +805,7 @@ def test_annotate_vcf_bgzip(
     assert output == expected
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_annotate_columns_bad_request(admin_client: Client) -> None:
     input_file = textwrap.dedent("""
         chrom;pos;ref;alt
@@ -823,7 +822,7 @@ def test_annotate_columns_bad_request(admin_client: Client) -> None:
     assert response.status_code == 400
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_annotate_columns_bad_genome(admin_client: Client) -> None:
     file = gzip.compress(textwrap.dedent("""
         chrom,pos,var
@@ -845,7 +844,7 @@ def test_annotate_columns_bad_genome(admin_client: Client) -> None:
     assert response.status_code == 404
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_user_create_pipeline(
     user_client: Client,
 ) -> None:
@@ -872,7 +871,7 @@ def test_user_create_pipeline(
     assert output == "- position_score: scores/pos1"
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_user_create_anonymous_pipeline(
     user_client: Client,
 ) -> None:
@@ -900,7 +899,7 @@ def test_user_create_anonymous_pipeline(
     assert output == "- position_score: scores/pos1"
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_user_update_pipeline(
     user_client: Client,
 ) -> None:
@@ -935,7 +934,7 @@ def test_user_update_pipeline(
     output = pathlib.Path(pipeline.config_path).read_text(encoding="utf-8")
     assert output == "- position_score: scores/pos2"
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_user_delete_pipeline(
     user_client: Client,
 ) -> None:
@@ -961,7 +960,7 @@ def test_user_delete_pipeline(
     assert Pipeline.objects.filter(owner=user).count() == 0
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_user_get_pipeline(
     user_client: Client,
 ) -> None:
@@ -991,7 +990,7 @@ def test_user_get_pipeline(
     }
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_user_create_pipeline_with_bad_name(
     user_client: Client,
 ) -> None:
@@ -1021,7 +1020,7 @@ def test_user_create_pipeline_with_bad_name(
     assert Pipeline.objects.filter(owner=user).count() == 0
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_get_pipelines(
     user_client: Client,
 ) -> None:
@@ -1061,7 +1060,7 @@ def test_get_pipelines(
     assert pipelines[2]["content"] == "- position_score: scores/pos1"
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_get_pipelines_annonymous_user(
     user_client: Client,
     anonymous_client: Client,
@@ -1086,7 +1085,7 @@ def test_get_pipelines_annonymous_user(
     assert pipelines[1]["id"] == "t4c8/t4c8_pipeline"
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_annotate_vcf_user_pipeline(
     user_client: Client, test_grr: GenomicResourceRepo,
 ) -> None:
