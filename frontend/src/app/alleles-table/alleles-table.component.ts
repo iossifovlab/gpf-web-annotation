@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
 import { Subscription, take } from 'rxjs';
 import { SingleAnnotationService } from '../single-annotation.service';
 import { CommonModule } from '@angular/common';
@@ -13,6 +13,7 @@ import { Allele } from '../single-annotation';
 export class AllelesTableComponent implements OnInit, OnDestroy {
   public allelesHistory: Allele[] = [];
   private refreshAllelesSubscription = new Subscription();
+  @Output() public emitAllele = new EventEmitter<string>();
 
   public constructor(private singleAnnotationService: SingleAnnotationService) {}
 
@@ -41,5 +42,9 @@ export class AllelesTableComponent implements OnInit, OnDestroy {
 
   public ngOnDestroy(): void {
     this.refreshAllelesSubscription.unsubscribe();
+  }
+
+  public makeRequest(allele: string): void {
+    this.emitAllele.emit(allele);
   }
 }

@@ -44,3 +44,13 @@
   color: #5b778c;
   margin-top: 5px;
 }
+
+.allele-button {
+  color: #5b778c;
+  text-decoration: underline;
+}
+
+.allele-button:hover {
+  cursor: pointer;
+  color: #85a2b9;
+}

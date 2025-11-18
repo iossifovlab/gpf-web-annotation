@@ -35,6 +35,11 @@ export class SingleAnnotationComponent {
     }
   }
 
+  public triggerAnnotation(allele: string): void {
+    this.currentAlleleInput = allele;
+    this.annotateAllele();
+  }
+
   private isAlleleValid(): boolean {
     this.currentAlleleInput = this.currentAlleleInput.trim();
     const a = this.currentAlleleInput.split(' ');

@@ -36,6 +36,7 @@ export class AnnotationWrapperComponent {
   @ViewChild(JobCreationComponent) public createJobComponent: JobCreationComponent;
   @ViewChild(JobsTableComponent) public jobsTableComponent: JobsTableComponent;
   @ViewChild(AllelesTableComponent) public allelesTableComponent: AllelesTableComponent;
+  @ViewChild(SingleAnnotationComponent) public singleAnnotationComponent: SingleAnnotationComponent;
   public createdJobStatus: Status;
   public downloadLink = '';
   public annotatedFileName = '';
@@ -175,5 +176,9 @@ export class AnnotationWrapperComponent {
 
   public refreshAllelesTable(): void {
     this.allelesTableComponent.refreshTable();
+  }
+
+  public makeSingleAlleleAnnotation(allele: string): void {
+    this.singleAnnotationComponent.triggerAnnotation(allele);
   }
 }
