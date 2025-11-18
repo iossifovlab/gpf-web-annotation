@@ -81,6 +81,7 @@ class Job(models.Model):
     duration = models.FloatField(null=True, default=None)
     command_line = models.TextField(default="")
     annotation_type = models.CharField(max_length=1024, default="")
+    disk_size = models.IntegerField(default=0)
 
     owner = models.ForeignKey(
         'web_annotation.User', related_name='jobs', on_delete=models.CASCADE)
