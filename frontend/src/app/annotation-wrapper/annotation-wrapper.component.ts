@@ -172,4 +172,8 @@ export class AnnotationWrapperComponent {
   public switchView(view: 'jobs' | 'single allele'): void {
     this.currentView = view;
   }
+
+  public refreshAllelesTable(): void {
+    this.allelesTableComponent.refreshTable();
+  }
 }

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -19,6 +19,7 @@ export class SingleAnnotationComponent {
   public currentAlleleInput: string = '';
   public allele: string = '';
   public report: SingleAnnotationReport = null;
+  @Output() public alleleUpdateEmit = new EventEmitter<void>();
 
   public constructor(private singleAnnotationService: SingleAnnotationService,) { }
 
@@ -77,6 +78,7 @@ export class SingleAnnotationComponent {
       this.pipelineId
     ).subscribe(report => {
       this.report = report;
+      this.alleleUpdateEmit.emit();
     });
   }
 

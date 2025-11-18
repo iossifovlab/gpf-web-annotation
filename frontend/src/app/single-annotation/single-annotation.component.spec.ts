@@ -150,4 +150,13 @@ describe('SingleAnnotationComponent', () => {
     component.annotateAllele();
     expect(component.report).toBeNull();
   });
+
+  it('should trigger update table in parent after getting the report', () => {
+    component.currentAlleleInput = 'chr1 11796321 G GT';
+    component.pipelineId = 'pipeline';
+    const emitSpy = jest.spyOn(component.alleleUpdateEmit, 'emit');
+
+    component.annotateAllele();
+    expect(emitSpy).toHaveBeenCalledWith();
+  });
 });
