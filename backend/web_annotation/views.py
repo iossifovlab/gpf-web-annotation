@@ -1,6 +1,5 @@
 # pylint: disable=too-many-lines
 """View classes for web annotation."""
-from functools import reduce
 import logging
 from subprocess import CalledProcessError
 import time
@@ -81,7 +80,9 @@ from web_annotation.pipeline_cache import LRUPipelineCache
 from web_annotation.utils import (
     PasswordForgottenForm,
     ResetPasswordForm,
+    calculate_used_disk_space,
     check_request_verification_path,
+    convert_size,
     deauthenticate,
     reset_password,
     verify_user,
@@ -278,47 +279,21 @@ class AnnotationBaseView(views.APIView):
         """Return pipeline used for a genome in single variant annotation."""
         return self.genome_pipelines[genome]
 
-    @staticmethod
-    def _convert_size(filesize: str | int) -> int:
-        """Convert a human readable filesize string to bytes."""
-        if isinstance(filesize, int):
-            return filesize
-        filesize = filesize.upper()
-        units: dict[str, int] = {
-            "KB": 10**3, "MB": 10**6, "GB": 10**9, "TB": 10**12,
-            "K": 10**3, "M": 10**6, "G": 10**9, "T": 10**12,
-        }
-        for unit, mult in units.items():
-            if filesize.endswith(unit):
-                return int(filesize.rstrip(f"{unit}")) * mult
-        return int(filesize)
-
-    @staticmethod
-    def _calculate_used_disk_space(user: User) -> int:
-        user_jobs = Job.objects.filter(
-            owner=user,
-        )
-        used_disk_space = reduce(
-            lambda x, y: x + y,
-            [int(job.disk_size) for job in user_jobs],
-        )
-        return used_disk_space
-
     def check_valid_upload_size(self, file: UploadedFile, user: User) -> bool:
         """Check if a file upload does not exceed the upload size limit."""
         if user.is_superuser:
             return True
         assert file.size is not None
-        filesize_limit = self._convert_size(
+        filesize_limit = convert_size(
             cast(str, settings.QUOTAS["filesize"]),
         )
         if file.size >= filesize_limit:
             return False
-        disk_space_limit = self._convert_size(
+        disk_space_limit = convert_size(
             cast(str, settings.QUOTAS["disk_space"]),
         )
         if (
-            file.size + self._calculate_used_disk_space(user)
+            file.size + calculate_used_disk_space(user)
         ) >= disk_space_limit:
             return False
         return True
@@ -664,6 +639,7 @@ class JobDetail(AnnotationBaseView):
             "command_line": job.command_line,
             "status": job.status,
             "result_filename": Path(job.result_path).name,
+            "size": f"{calculate_used_disk_space(request.user) // 10**6}MB" 
         }
         try:
             details = get_job_details(pk)
@@ -1215,6 +1191,12 @@ class UserInfo(views.APIView):
                 "limitations": {
                     "dailyJobs": self.get_user_daily_limit(user),
                     "filesize": self.get_user_filesize_limit(user),
+                    "disk_space": (
+                        f"{calculate_used_disk_space(user) // 10**6}MB / "
+                        f"{convert_size(
+                            str(settings.QUOTAS["disk_space"])
+                        ) // 10**6}MB"
+                    ),
                     "variantCount": self.get_user_variant_limit(user),
                     "jobsLeft": self.get_user_jobs_left(user),
                 }

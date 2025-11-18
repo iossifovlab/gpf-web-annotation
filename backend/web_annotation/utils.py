@@ -1,5 +1,6 @@
 
 from typing import Any
+from functools import reduce
 
 from django import forms
 from django.conf import settings
@@ -13,6 +14,7 @@ from rest_framework.views import Request
 from web_annotation.models import (
     AccountConfirmationCode,
     BaseVerificationCode,
+    Job,
     ResetPasswordCode,
     User,
 )
@@ -268,3 +270,31 @@ def check_request_verification_path(
         return verif_code, f"Expired {code_type} code"
 
     return verif_code, None
+
+
+def convert_size(filesize: str | int) -> int:
+    """Convert a human readable filesize string to bytes."""
+    if isinstance(filesize, int):
+        return filesize
+    filesize = filesize.upper()
+    units: dict[str, int] = {
+        "KB": 10**3, "MB": 10**6, "GB": 10**9, "TB": 10**12,
+        "K": 10**3, "M": 10**6, "G": 10**9, "T": 10**12,
+    }
+    for unit, mult in units.items():
+        if filesize.endswith(unit):
+            return int(filesize.rstrip(f"{unit}")) * mult
+    return int(filesize)
+
+
+def calculate_used_disk_space(user: User) -> int:
+    """Calculate used job disk space for a user."""
+    user_jobs = Job.objects.filter(
+        owner=user,
+    )
+    used_disk_space = reduce(
+        lambda x, y: x + y,
+        [int(job.disk_size) for job in user_jobs],
+        0,
+    )
+    return used_disk_space
