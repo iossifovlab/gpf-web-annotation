@@ -183,7 +183,8 @@ describe('AnnotationPipelineComponent', () => {
     const emitIsConfigValid = jest.spyOn(component.emitIsConfigValid, 'emit');
 
     const configValidationSpy = jest.spyOn(jobsServiceMock, 'validateJobConfig');
-    component.isConfigValid('config content');
+    component.currentPipelineText = 'config content';
+    component.isConfigValid();
     expect(configValidationSpy).toHaveBeenCalledWith('config content');
     expect(component.configError).toBe('');
     expect(emitIsConfigValid).toHaveBeenCalledWith(true);
@@ -193,7 +194,8 @@ describe('AnnotationPipelineComponent', () => {
     const emitIsConfigValid = jest.spyOn(component.emitIsConfigValid, 'emit');
 
     const configValidationSpy = jest.spyOn(jobsServiceMock, 'validateJobConfig').mockReturnValue(of('error message'));
-    component.isConfigValid('config content');
+    component.currentPipelineText = 'config content';
+    component.isConfigValid();
     expect(configValidationSpy).toHaveBeenCalledWith('config content');
     expect(component.configError).toBe('error message');
     expect(emitIsConfigValid).toHaveBeenCalledWith(false);

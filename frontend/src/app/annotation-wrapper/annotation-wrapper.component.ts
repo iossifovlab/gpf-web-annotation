@@ -92,7 +92,6 @@ export class AnnotationWrapperComponent {
 
   public showCreateMode(): void {
     this.isCreationFormVisible = true;
-    this.pipelinesComponent.resetState();
     this.createdJobStatus = undefined;
     this.downloadLink = '';
     this.file = null;

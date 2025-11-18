@@ -67,8 +67,8 @@ export class AnnotationPipelineComponent implements OnInit {
     this.onPipelineClick(this.pipelines[0]);
   }
 
-  public isConfigValid(config: string): void {
-    this.jobsService.validateJobConfig(config).pipe(
+  public isConfigValid(): void {
+    this.jobsService.validateJobConfig(this.currentPipelineText).pipe(
       take(1)
     ).subscribe((errorReason: string) => {
       this.configError = errorReason;
@@ -84,6 +84,8 @@ export class AnnotationPipelineComponent implements OnInit {
     if (!pipeline) {
       return;
     }
+    this.configError = '';
+    this.emitIsConfigValid.emit(true);
     this.selectedPipeline = pipeline;
     this.currentPipelineText = pipeline.content;
     this.emitPipelineId.emit(this.selectedPipeline.id);
@@ -94,6 +96,7 @@ export class AnnotationPipelineComponent implements OnInit {
     this.selectedPipeline = null;
     this.emitPipelineId.emit(null);
     this.currentPipelineText = '';
+    this.configError = '';
     this.dropdownControl.setValue('');
   }
 

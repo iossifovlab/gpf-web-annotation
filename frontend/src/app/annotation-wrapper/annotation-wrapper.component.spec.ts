@@ -124,11 +124,9 @@ describe('AnnotationWrapperComponent', () => {
     expect(component.isCreationFormVisible).toBe(false);
   });
 
-  it('should show creation job form and reset pipelines state and file', () => {
+  it('should show creation job form and reset file', () => {
     component.isCreationFormVisible = false;
-    const pipelinesComponentSpy = jest.spyOn(component.pipelinesComponent, 'resetState');
     component.showCreateMode();
-    expect(pipelinesComponentSpy).toHaveBeenCalledWith();
     expect(component.isCreationFormVisible).toBe(true);
     expect(component.createdJobStatus).toBeUndefined();
     expect(component.downloadLink).toBe('');
