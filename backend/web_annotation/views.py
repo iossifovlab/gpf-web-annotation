@@ -80,7 +80,9 @@ from web_annotation.pipeline_cache import LRUPipelineCache
 from web_annotation.utils import (
     PasswordForgottenForm,
     ResetPasswordForm,
+    calculate_used_disk_space,
     check_request_verification_path,
+    convert_size,
     deauthenticate,
     reset_password,
     verify_user,
@@ -277,29 +279,24 @@ class AnnotationBaseView(views.APIView):
         """Return pipeline used for a genome in single variant annotation."""
         return self.genome_pipelines[genome]
 
-    @staticmethod
-    def _convert_size(filesize: str | int) -> int:
-        """Convert a human readable filesize string to bytes."""
-        if isinstance(filesize, int):
-            return filesize
-        filesize = filesize.upper()
-        units: dict[str, int] = {
-            "KB": 10**3, "MB": 10**6, "GB": 10**9, "TB": 10**12,
-            "K": 10**3, "M": 10**6, "G": 10**9, "T": 10**12,
-        }
-        for unit, mult in units.items():
-            if filesize.endswith(unit):
-                return int(filesize.rstrip(f"{unit}")) * mult
-        return int(filesize)
-
     def check_valid_upload_size(self, file: UploadedFile, user: User) -> bool:
         """Check if a file upload does not exceed the upload size limit."""
         if user.is_superuser:
             return True
         assert file.size is not None
-        return file.size < self._convert_size(
-            cast(str, settings.LIMITS["filesize"]),
+        filesize_limit = convert_size(
+            cast(str, settings.QUOTAS["filesize"]),
         )
+        if file.size >= filesize_limit:
+            return False
+        disk_space_limit = convert_size(
+            cast(str, settings.QUOTAS["disk_space"]),
+        )
+        if (
+            file.size + calculate_used_disk_space(user)
+        ) >= disk_space_limit:
+            return False
+        return True
 
     def check_if_user_can_create(self, user: User) -> bool:
         """Check if a user is not limited by the daily quota."""
@@ -309,7 +306,7 @@ class AnnotationBaseView(views.APIView):
             hour=0, minute=0, second=0, microsecond=0)
         jobs_made = Job.objects.filter(
             created__gte=today, owner__exact=user.pk)
-        if len(jobs_made) > cast(int, settings.LIMITS["daily_jobs"]):
+        if len(jobs_made) > cast(int, settings.QUOTAS["daily_jobs"]):
             return False
         return True
 
@@ -452,7 +449,7 @@ class AnnotationBaseView(views.APIView):
         if user.is_superuser:
             return True
         return len(list(file.fetch())) < cast(
-            int, settings.LIMITS["variant_count"])
+            int, settings.QUOTAS["variant_count"])
 
     def _validate_request(self, request: Request) -> Response | None:
         """Validate the request for creating a job."""
@@ -580,6 +577,10 @@ class AnnotationBaseView(views.APIView):
         )
         result_path.parent.mkdir(parents=True, exist_ok=True)
 
+        job_size = (
+            input_path.stat().st_size + config_path.stat().st_size
+        )
+
         job = Job(
             name=job_name,
             input_path=input_path,
@@ -587,7 +588,8 @@ class AnnotationBaseView(views.APIView):
             result_path=result_path,
             reference_genome=reference_genome,
             owner=request.user,
-            annotation_type=annotation_type
+            annotation_type=annotation_type,
+            disk_size=job_size,
         )
         return (job_name, pipeline, job)
 
@@ -637,6 +639,7 @@ class JobDetail(AnnotationBaseView):
             "command_line": job.command_line,
             "status": job.status,
             "result_filename": Path(job.result_path).name,
+            "size": f"{calculate_used_disk_space(request.user) // 10**6}MB" 
         }
         try:
             details = get_job_details(pk)
@@ -910,6 +913,7 @@ class AnnotateVCF(AnnotationBaseView):
                 result: None) -> None:  # pylint: disable=unused-argument
             """Callback when annotation is done."""
             job.duration = time.time() - start_time
+            job.disk_size = job.disk_size + Path(job.result_path).stat().st_size
             update_job_success(job)
 
         def on_failure(exception: BaseException) -> None:
@@ -1014,6 +1018,7 @@ class AnnotateColumns(AnnotationBaseView):
 
         def on_success(result: None) -> None:
             job.duration = time.time() - start_time
+            job.disk_size = job.disk_size + Path(job.result_path).stat().st_size
             update_job_success(job)
 
         def on_failure(exception: BaseException) -> None:
@@ -1149,19 +1154,19 @@ class UserInfo(views.APIView):
         """Return the daily job limit for a user."""
         if user.is_superuser:
             return None
-        return cast(int, settings.LIMITS["daily_jobs"])
+        return cast(int, settings.QUOTAS["daily_jobs"])
 
     def get_user_filesize_limit(self, user: User) -> str | None:
         """Return the file size limit for a user."""
         if user.is_superuser:
             return None
-        return cast(str, settings.LIMITS["filesize"])
+        return cast(str, settings.QUOTAS["filesize"])
 
     def get_user_variant_limit(self, user: User) -> int | None:
         """Return the variant count limit for a user."""
         if user.is_superuser:
             return None
-        return cast(int, settings.LIMITS["variant_count"])
+        return cast(int, settings.QUOTAS["variant_count"])
 
     def get_user_jobs_left(self, user: User) -> int | None:
         """Return the number of jobs left for a user today."""
@@ -1171,7 +1176,7 @@ class UserInfo(views.APIView):
             hour=0, minute=0, second=0, microsecond=0)
         jobs_made = Job.objects.filter(
             created__gte=today, owner__exact=user.pk)
-        daily_limit = cast(int, settings.LIMITS["daily_jobs"])
+        daily_limit = cast(int, settings.QUOTAS["daily_jobs"])
         return max(0, daily_limit - len(jobs_made))
 
     def get(self, request: Request) -> Response:
@@ -1186,6 +1191,12 @@ class UserInfo(views.APIView):
                 "limitations": {
                     "dailyJobs": self.get_user_daily_limit(user),
                     "filesize": self.get_user_filesize_limit(user),
+                    "disk_space": (
+                        f"{calculate_used_disk_space(user) // 10**6}MB / "
+                        f"{convert_size(
+                            str(settings.QUOTAS["disk_space"])
+                        ) // 10**6}MB"
+                    ),
                     "variantCount": self.get_user_variant_limit(user),
                     "jobsLeft": self.get_user_jobs_left(user),
                 }
@@ -1507,14 +1518,19 @@ class SingleAnnotation(AnnotationBaseView):
         if request.user \
             and request.user.is_authenticated \
             and isinstance(request.user, User):
-            allele_query = AlleleQuery(
-                allele=(
-                    f"{variant['chrom']} {variant['pos']} "
-                    f"{variant['ref']} {variant['alt']}"
-                ),
-                owner=request.user,
+            allele = (
+                f"{variant['chrom']} {variant['pos']} "
+                f"{variant['ref']} {variant['alt']}"
             )
-            allele_query.save()
+            if AlleleQuery.objects.filter(
+                allele=allele,
+                owner=request.user,
+            ).first() is None:
+                allele_query = AlleleQuery(
+                    allele=allele,
+                    owner=request.user,
+                )
+                allele_query.save()
 
         variant = {
             "chromosome": vcf_annotatable.chrom,

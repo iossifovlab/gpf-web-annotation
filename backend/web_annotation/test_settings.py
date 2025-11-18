@@ -18,9 +18,10 @@ JOB_INPUT_STORAGE_DIR = f"{DATA_STORAGE_DIR}/job-inputs"
 # Subdir to store results of annotation in
 JOB_RESULT_STORAGE_DIR = f"{DATA_STORAGE_DIR}/job-results"
 
-LIMITS = {
+QUOTAS = {
     "daily_jobs": 5,
     "filesize": "64M",
+    "disk_space": "2048M",
     "variant_count": 1000,
 }
 

@@ -441,6 +441,7 @@ def test_get_user_info(user_client: Client) -> None:
             "filesize": "64M",
             "variantCount": 1000,
             "jobsLeft": 4,
+            "disk_space": "10MB / 2048MB",
         }
     }
 
