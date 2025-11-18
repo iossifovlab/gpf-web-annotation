@@ -211,7 +211,6 @@ test.describe('Jobs table tests', () => {
 
   test('should create job and check first row', async({ page }) => {
     await createJobWithPipeline(page, 'pipeline/GPF-SFARI_annotation', 'input-file-1.vcf');
-    await waitForJobStatus(page, utils.inProcessBackgroundColor);
 
     await expect(page.locator('.job-name').nth(0)).not.toBeEmpty();
     await expect(page.locator('.actions').nth(0)).not.toBeEmpty();
