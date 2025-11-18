@@ -49,5 +49,5 @@ export async function loginUser(page: Page, email: string, password: string): Pr
   await page.locator('#email').pressSequentially(email);
   await page.locator('#password').pressSequentially(password);
   await page.locator('#login-container').getByRole('button', { name: 'Login' }).click();
-  await expect(page.locator('app-single-annotation')).toBeVisible();
+  await expect(page.locator('app-annotation-wrapper')).toBeVisible();
 }
