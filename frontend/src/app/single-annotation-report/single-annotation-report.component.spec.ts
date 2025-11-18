@@ -11,7 +11,6 @@ import { MatDialog, MatDialogConfig, MatDialogRef } from '@angular/material/dial
 import { JobsService } from '../job-creation/jobs.service';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { consumerPollProducersForChange } from '@angular/core/primitives/signals';
 
 const mockReport = new SingleAnnotationReport(
   new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
