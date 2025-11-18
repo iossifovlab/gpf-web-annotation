@@ -1,11 +1,9 @@
-from django.urls import path, include, re_path
+from django.urls import path
 
 from web_annotation.jobs import views
 
 
 urlpatterns = [
-    path('api-auth', include('rest_framework.urls')),
-
     path('api/jobs', views.JobList.as_view()),
     path('api/jobs/all', views.JobAll.as_view()),
     path('api/jobs/annotate_columns', views.AnnotateColumns.as_view()),
