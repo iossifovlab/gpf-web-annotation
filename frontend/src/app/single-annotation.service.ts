@@ -12,6 +12,16 @@ export class SingleAnnotationService {
   private readonly getHistogramUrl = `${environment.apiPath}`;
   public constructor(private http: HttpClient) { }
 
+  private getCSRFToken(): string {
+    let res = '';
+    const value = `; ${document.cookie}`;
+    const parts = value.split('; csrftoken=');
+    if (parts.length === 2) {
+      res = parts.pop().split(';').shift();
+    }
+    return res;
+  }
+
   public getReport(variant: Variant, pipeline: string): Observable<SingleAnnotationReport> {
     const variantJson = {
       chrom: variant.chromosome,
@@ -19,9 +29,14 @@ export class SingleAnnotationService {
       ref: variant.reference,
       alt: variant.alernative
     };
+
+    const userToken = this.getCSRFToken();
+    const options = userToken ? { headers: {'X-CSRFToken': userToken}, withCredentials: true } : {};
+
     return this.http.post<object>(
       this.getReportUrl,
       { variant: variantJson, pipeline: pipeline },
+      options
     ).pipe(map((response: object) => SingleAnnotationReport.fromJson(response)));
   }
 

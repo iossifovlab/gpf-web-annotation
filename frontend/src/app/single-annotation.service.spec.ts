@@ -147,7 +147,8 @@ describe('SingleAnnotationService', () => {
     service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'pipeline');
     expect(httpGetSpy).toHaveBeenCalledWith(
       '//localhost:8000/api/single_annotate',
-      { variant: { chrom: 'chr14', pos: 204000100, ref: 'A', alt: 'AA'}, pipeline: 'pipeline' }
+      { variant: { chrom: 'chr14', pos: 204000100, ref: 'A', alt: 'AA'}, pipeline: 'pipeline' },
+      {}
     );
   });
 
