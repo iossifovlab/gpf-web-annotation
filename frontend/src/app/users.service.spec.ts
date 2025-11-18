@@ -153,7 +153,7 @@ describe('UsersService', () => {
     const navigateSpy = jest.spyOn(router, 'navigate');
     const queryResponse = service.logout();
     await lastValueFrom(queryResponse.pipe(take(1)));
-    expect(navigateSpy).toHaveBeenCalledWith(['/single-annotation']);
+    expect(navigateSpy).toHaveBeenCalledWith(['/']);
   });
 
   it('should delete csrf token from cookies after logout', async() => {
