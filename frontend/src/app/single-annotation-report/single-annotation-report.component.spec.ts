@@ -4,13 +4,14 @@ import { SingleAnnotationReportComponent } from './single-annotation-report.comp
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { Annotator, AnnotatorDetails, Attribute, Result, SingleAnnotationReport, Variant } from '../single-annotation';
 import { SingleAnnotationService } from '../single-annotation.service';
-import { ActivatedRoute, provideRouter, Router } from '@angular/router';
+import { ActivatedRoute, provideRouter } from '@angular/router';
 import { provideMarkdown } from 'ngx-markdown';
 import { HelperModalComponent } from '../helper-modal/helper-modal.component';
 import { MatDialog, MatDialogConfig, MatDialogRef } from '@angular/material/dialog';
 import { JobsService } from '../job-creation/jobs.service';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { consumerPollProducersForChange } from '@angular/core/primitives/signals';
 
 const mockReport = new SingleAnnotationReport(
   new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
@@ -40,7 +41,6 @@ describe('SingleAnnotationReportComponent', () => {
   let component: SingleAnnotationReportComponent;
   let fixture: ComponentFixture<SingleAnnotationReportComponent>;
   const mockSingleAnnotationService = new MockSingleAnnotationService();
-  let router: Router;
   const mockMatDialog = new MatDialogMock();
 
   beforeEach(async() => {
@@ -63,7 +63,6 @@ describe('SingleAnnotationReportComponent', () => {
       ]
     }).compileComponents();
 
-    router = TestBed.inject(Router);
     fixture = TestBed.createComponent(SingleAnnotationReportComponent);
     component = fixture.componentInstance;
 
@@ -81,13 +80,15 @@ describe('SingleAnnotationReportComponent', () => {
   });
 
   it('should get report from service', () => {
-    component.ngOnInit();
+    component.ngOnChanges();
     expect(component.report).toBe(mockReport);
   });
 
   it('should check if query params from url are passed to get report method', () => {
     const getReportSpy = jest.spyOn(mockSingleAnnotationService, 'getReport');
-    component.ngOnInit();
+    component.pipelineId = 'pipeline';
+    component.variant = 'chr14 204000100 A AA';
+    component.ngOnChanges();
     expect(getReportSpy).toHaveBeenCalledWith(new Variant('chr14', 204000100, 'A', 'AA', null), 'pipeline');
   });
 
@@ -125,14 +126,5 @@ describe('SingleAnnotationReportComponent', () => {
     expect(allValueElements[0].innerHTML).toBe('true');
     expect(allValueElements[1].innerHTML).toBe('false');
     expect(allValueElements[2].innerHTML).toBe('0');
-  });
-
-  it('should redirect to single annotation page if there are no params in url', () => {
-    const activatedRoute = TestBed.inject(ActivatedRoute);
-    (activatedRoute.queryParams as BehaviorSubject<object>).next({});
-
-    const navigateSpy = jest.spyOn(router, 'navigate');
-    component.ngOnInit();
-    expect(navigateSpy).toHaveBeenCalledWith(['/single-annotation']);
   });
 });

@@ -1,7 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { SingleAnnotationReportComponent } from '../single-annotation-report/single-annotation-report.component';
 
@@ -12,40 +11,33 @@ import { SingleAnnotationReportComponent } from '../single-annotation-report/sin
   styleUrl: './single-annotation.component.css'
 })
 export class SingleAnnotationComponent {
-  @Input() public isMainComponent = true;
-  public pipelineId = '';
+  @Input() public pipelineId = '';
   public readonly environment = environment;
   public validationMessage = '';
+  public showReport = false;
+  public currentAlleleInput: string = '';
+  public allele: string = '';
 
-  public constructor(
-    private router: Router,
-  ) { }
+  public constructor() { }
 
-  public loadReport(variant: string): void {
-    this.router.navigateByUrl('/', { skipLocationChange: true })
-      .then(() => this.router.navigate(
-        ['/single-annotation/report'],
-        {
-          queryParams: { pipeline: this.pipelineId, variant: variant },
-        },
-      ));
-  }
-
-  public validateVariant(variant: string): void {
-    variant = variant.trim();
-    const v = variant.split(' ');
+  public validateVariant(): void {
+    this.showReport = false;
+    this.currentAlleleInput = this.currentAlleleInput.trim();
+    const a = this.currentAlleleInput.split(' ');
     let valid: boolean;
-    if (v.length === 3) {
-      valid = this.isPosValid(v[0]) && this.isRefValid(v[1]) && this.isAltValid(v[2]);
-    } else if (v.length === 4) {
-      valid = this.isPosValid(v[1]) && this.isRefValid(v[2]) && this.isAltValid(v[3]);
+    if (a.length === 3) {
+      valid = this.isPosValid(a[0]) && this.isRefValid(a[1]) && this.isAltValid(a[2]);
+    } else if (a.length === 4) {
+      valid = this.isPosValid(a[1]) && this.isRefValid(a[2]) && this.isAltValid(a[3]);
     } else {
       valid = false;
     }
 
     if (valid) {
       this.validationMessage = '';
-      this.loadReport(variant);
+      this.showReport = true;
+      this.allele = this.currentAlleleInput;
+      this.currentAlleleInput = '';
     } else {
       this.validationMessage = 'Invalid variant format!';
     }

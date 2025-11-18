@@ -58,7 +58,7 @@
       </div>
 
       <div *ngIf="currentView === 'single allele'">
-        <app-single-annotation></app-single-annotation>
+        <app-single-annotation [pipelineId]="pipelineId"></app-single-annotation>
       </div>
     </div>
   </div>
