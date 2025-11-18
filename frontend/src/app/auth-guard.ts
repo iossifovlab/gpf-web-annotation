@@ -8,7 +8,7 @@ export const authGuard: CanActivateFn = () => {
 
   service.autoLogin().subscribe(isLoggedIn => {
     if (!isLoggedIn) {
-      router.navigate(['/single-annotation']);
+      router.navigate(['/']);
     }
   });
   return service.autoLogin();

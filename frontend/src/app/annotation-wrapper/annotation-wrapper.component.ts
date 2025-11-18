@@ -6,10 +6,19 @@ import { AnnotationPipelineComponent } from '../annotation-pipeline/annotation-p
 import { getStatusClassName, Job, Status } from '../job-creation/jobs';
 import { JobCreationComponent } from '../job-creation/job-creation.component';
 import { CommonModule } from '@angular/common';
+import { SingleAnnotationComponent } from '../single-annotation/single-annotation.component';
+import { AllelesTableComponent } from '../alleles-table/alleles-table.component';
 
 @Component({
   selector: 'app-annotation-wrapper',
-  imports: [CommonModule, JobsTableComponent, AnnotationPipelineComponent, JobCreationComponent],
+  imports: [
+    CommonModule,
+    JobsTableComponent,
+    AnnotationPipelineComponent,
+    JobCreationComponent,
+    SingleAnnotationComponent,
+    AllelesTableComponent
+  ],
   templateUrl: './annotation-wrapper.component.html',
   styleUrl: './annotation-wrapper.component.css'
 })
@@ -25,10 +34,13 @@ export class AnnotationWrapperComponent {
   public isCreationFormVisible = true;
   @ViewChild(AnnotationPipelineComponent) public pipelinesComponent: AnnotationPipelineComponent;
   @ViewChild(JobCreationComponent) public createJobComponent: JobCreationComponent;
-  @ViewChild(JobsTableComponent) public tableComponent: JobsTableComponent;
+  @ViewChild(JobsTableComponent) public jobsTableComponent: JobsTableComponent;
+  @ViewChild(AllelesTableComponent) public allelesTableComponent: AllelesTableComponent;
+  @ViewChild(SingleAnnotationComponent) public singleAnnotationComponent: SingleAnnotationComponent;
   public createdJobStatus: Status;
   public downloadLink = '';
   public annotatedFileName = '';
+  public currentView:'jobs' | 'single allele' = 'jobs';
 
   public constructor(
       private jobsService: JobsService,
@@ -70,7 +82,7 @@ export class AnnotationWrapperComponent {
       ).subscribe({
         next: (job: Job) => {
           if (this.createdJobStatus !== job.status) {
-            this.tableComponent.refreshTable();
+            this.jobsTableComponent.refreshTable();
             this.createdJobStatus = job.status;
             this.downloadLink = this.jobsService.getDownloadJobResultLink(job.id);
             this.annotatedFileName = job.annotatedFileName;
@@ -156,5 +168,17 @@ export class AnnotationWrapperComponent {
 
   public isJobFinished(status: Status): boolean {
     return status === 'success' || status === 'failed';
+  }
+
+  public switchView(view: 'jobs' | 'single allele'): void {
+    this.currentView = view;
+  }
+
+  public refreshAllelesTable(): void {
+    this.allelesTableComponent.refreshTable();
+  }
+
+  public makeSingleAlleleAnnotation(allele: string): void {
+    this.singleAnnotationComponent.triggerAnnotation(allele);
   }
 }

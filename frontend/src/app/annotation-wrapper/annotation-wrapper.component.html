@@ -6,45 +6,67 @@
       (emitIsConfigValid)="setConfigValid($event)"></app-annotation-pipeline>
     <div style="width: 60%">
       <div id="annotation-mode">
-        <button id="annotation-jobs" class="active-view">Annotation jobs</button>
+        <button
+          id="annotation-jobs"
+          (click)="switchView('jobs')"
+          [ngClass]="currentView === 'jobs' ? 'active-view' : 'inactive-view'"
+          >Annotation jobs</button
+        >
+        <button
+          id="annotation-jobs"
+          (click)="switchView('single allele')"
+          [ngClass]="currentView === 'single allele' ? 'active-view' : 'inactive-view'"
+          >Single allele annotation</button
+        >
       </div>
 
-      <div *ngIf="isCreationFormVisible">
-        <app-job-creation
-          (emitFile)="setFile($event)"
-          (emitFileSeparator)="setFileSeparator($event)"
-          (emitGenome)="setGenome($event)"
-          (emitUpdatedFileHeader)="setUpdatedFileHeader($event)"></app-job-creation>
-        <div style="margin-top: 10px">
-          <span class="error-message">{{ creationError }}</span>
-          <div id="buttons-wrapper">
-            <button id="create-button" (click)="onCreateClick()" tabindex="1" [disabled]="disableCreate()"
-              >Create</button
+      <div *ngIf="currentView === 'jobs'">
+        <div *ngIf="isCreationFormVisible">
+          <app-job-creation
+            (emitFile)="setFile($event)"
+            (emitFileSeparator)="setFileSeparator($event)"
+            (emitGenome)="setGenome($event)"
+            (emitUpdatedFileHeader)="setUpdatedFileHeader($event)"></app-job-creation>
+          <div style="margin-top: 10px">
+            <span class="error-message">{{ creationError }}</span>
+            <div id="buttons-wrapper">
+              <button id="create-button" (click)="onCreateClick()" tabindex="1" [disabled]="disableCreate()"
+                >Create</button
+              >
+              <button id="reset-button" (click)="onResetClick()" tabindex="-1">Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="!isCreationFormVisible" id="result">
+          <div id="current-job-info">
+            <span class="status-label" [ngClass]="getStatusClass()">{{ createdJobStatus }}</span>
+            <ng-container *ngIf="createdJobStatus === 'success'">
+              <span>{{ annotatedFileName }}</span>
+              <a *ngIf="createdJobStatus === 'success'" id="download-result" [href]="downloadLink" download
+                ><span class="material-symbols-outlined download-icon">download</span></a
+              >
+            </ng-container>
+          </div>
+
+          <div *ngIf="isJobFinished(createdJobStatus)" id="new-job-section">
+            <button id="new-job-button" (click)="showCreateMode()"
+              ><span class="material-symbols-outlined">add</span>new job</button
             >
-            <button id="reset-button" (click)="onResetClick()" tabindex="-1">Reset</button>
           </div>
         </div>
       </div>
 
-      <div *ngIf="!isCreationFormVisible" id="result">
-        <div id="current-job-info">
-          <span class="status-label" [ngClass]="getStatusClass()">{{ createdJobStatus }}</span>
-          <ng-container *ngIf="createdJobStatus === 'success'">
-            <span>{{ annotatedFileName }}</span>
-            <a *ngIf="createdJobStatus === 'success'" id="download-result" [href]="downloadLink" download
-              ><span class="material-symbols-outlined download-icon">download</span></a
-            >
-          </ng-container>
-        </div>
-
-        <div *ngIf="isJobFinished(createdJobStatus)" id="new-job-section">
-          <button id="new-job-button" (click)="showCreateMode()"
-            ><span class="material-symbols-outlined">add</span>new job</button
-          >
-        </div>
+      <div *ngIf="currentView === 'single allele'">
+        <app-single-annotation
+          (alleleUpdateEmit)="refreshAllelesTable()"
+          [pipelineId]="pipelineId"></app-single-annotation>
       </div>
     </div>
   </div>
 
-  <app-jobs-table></app-jobs-table>
+  <app-jobs-table *ngIf="currentView === 'jobs'"></app-jobs-table>
+  <app-alleles-table
+    *ngIf="currentView === 'single allele'"
+    (emitAllele)="makeSingleAlleleAnnotation($event)"></app-alleles-table>
 </div>

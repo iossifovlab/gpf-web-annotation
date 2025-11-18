@@ -1,10 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { SingleAnnotationReportComponent } from './single-annotation-report.component';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { Annotator, AnnotatorDetails, Attribute, Result, SingleAnnotationReport, Variant } from '../single-annotation';
-import { SingleAnnotationService } from '../single-annotation.service';
-import { ActivatedRoute, provideRouter, Router } from '@angular/router';
+import { ActivatedRoute, provideRouter } from '@angular/router';
 import { provideMarkdown } from 'ngx-markdown';
 import { HelperModalComponent } from '../helper-modal/helper-modal.component';
 import { MatDialog, MatDialogConfig, MatDialogRef } from '@angular/material/dialog';
@@ -12,22 +11,6 @@ import { JobsService } from '../job-creation/jobs.service';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 
-const mockReport = new SingleAnnotationReport(
-  new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
-  [
-    new Annotator(new AnnotatorDetails('allele_score', 'desc', 'resourceId', 'resourceUrl'), [])
-  ],
-);
-class MockSingleAnnotationService {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getReport(variant: Variant, pipeline: string): Observable<SingleAnnotationReport> {
-    return of(mockReport);
-  }
-
-  public getGenomes(): Observable<string[]> {
-    return of(['hg38']);
-  }
-}
 
 class MatDialogMock {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -39,18 +22,12 @@ class MatDialogMock {
 describe('SingleAnnotationReportComponent', () => {
   let component: SingleAnnotationReportComponent;
   let fixture: ComponentFixture<SingleAnnotationReportComponent>;
-  const mockSingleAnnotationService = new MockSingleAnnotationService();
-  let router: Router;
   const mockMatDialog = new MatDialogMock();
 
   beforeEach(async() => {
     await TestBed.configureTestingModule({
       imports: [SingleAnnotationReportComponent],
       providers: [
-        {
-          provide: SingleAnnotationService,
-          useValue: mockSingleAnnotationService
-        },
         {
           provide: MatDialog,
           useValue: mockMatDialog
@@ -63,7 +40,6 @@ describe('SingleAnnotationReportComponent', () => {
       ]
     }).compileComponents();
 
-    router = TestBed.inject(Router);
     fixture = TestBed.createComponent(SingleAnnotationReportComponent);
     component = fixture.componentInstance;
 
@@ -78,17 +54,6 @@ describe('SingleAnnotationReportComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
-  });
-
-  it('should get report from service', () => {
-    component.ngOnInit();
-    expect(component.report).toBe(mockReport);
-  });
-
-  it('should check if query params from url are passed to get report method', () => {
-    const getReportSpy = jest.spyOn(mockSingleAnnotationService, 'getReport');
-    component.ngOnInit();
-    expect(getReportSpy).toHaveBeenCalledWith(new Variant('chr14', 204000100, 'A', 'AA', null), 'pipeline');
   });
 
   it('should open modal on icon click', () => {
@@ -125,14 +90,5 @@ describe('SingleAnnotationReportComponent', () => {
     expect(allValueElements[0].innerHTML).toBe('true');
     expect(allValueElements[1].innerHTML).toBe('false');
     expect(allValueElements[2].innerHTML).toBe('0');
-  });
-
-  it('should redirect to single annotation page if there are no params in url', () => {
-    const activatedRoute = TestBed.inject(ActivatedRoute);
-    (activatedRoute.queryParams as BehaviorSubject<object>).next({});
-
-    const navigateSpy = jest.spyOn(router, 'navigate');
-    component.ngOnInit();
-    expect(navigateSpy).toHaveBeenCalledWith(['/single-annotation']);
   });
 });

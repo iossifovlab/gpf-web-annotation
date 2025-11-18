@@ -5,10 +5,6 @@
       <span id="app-title">GPF Web Annotation</span>
     </div>
     <div id="header-right">
-      <div id="nav-links">
-        <a routerLink="single-annotation" routerLinkActive="active-link">Single Allele Annotation</a>
-        <a routerLink="/jobs" routerLinkActive="active-link">Annotation Jobs</a>
-      </div>
       <div id="user-data" *ngIf="currentUserData">
         <span id="user-email">{{ currentUserData.email }}</span>
         <button id="logout-button" (click)="logout()">Logout</button>

@@ -1,61 +1,64 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { AnnotationPipelineComponent } from '../annotation-pipeline/annotation-pipeline.component';
+import { SingleAnnotationReportComponent } from '../single-annotation-report/single-annotation-report.component';
+import { SingleAnnotationService } from '../single-annotation.service';
+import { SingleAnnotationReport, Variant } from '../single-annotation';
 
 @Component({
   selector: 'app-single-annotation',
-  imports: [CommonModule, FormsModule, AnnotationPipelineComponent],
+  imports: [CommonModule, FormsModule, SingleAnnotationReportComponent],
   templateUrl: './single-annotation.component.html',
   styleUrl: './single-annotation.component.css'
 })
 export class SingleAnnotationComponent {
-  @Input() public isMainComponent = true;
-  public pipelineId = '';
+  @Input() public pipelineId = '';
   public readonly environment = environment;
   public validationMessage = '';
+  public currentAlleleInput: string = '';
+  public allele: string = '';
+  public report: SingleAnnotationReport = null;
+  @Output() public alleleUpdateEmit = new EventEmitter<void>();
 
-  public constructor(
-    private router: Router,
-  ) { }
+  public constructor(private singleAnnotationService: SingleAnnotationService,) { }
 
-  public loadReport(variant: string): void {
-    this.router.navigateByUrl('/', { skipLocationChange: true })
-      .then(() => this.router.navigate(
-        ['/single-annotation/report'],
-        {
-          queryParams: { pipeline: this.pipelineId, variant: variant },
-        },
-      ));
-  }
-
-  public validateVariant(variant: string): void {
-    variant = variant.trim();
-    const v = variant.split(' ');
-    let valid: boolean;
-    if (v.length === 3) {
-      valid = this.isPosValid(v[0]) && this.isRefValid(v[1]) && this.isAltValid(v[2]);
-    } else if (v.length === 4) {
-      valid = this.isPosValid(v[1]) && this.isRefValid(v[2]) && this.isAltValid(v[3]);
-    } else {
-      valid = false;
-    }
-
-    if (valid) {
+  public annotateAllele(): void {
+    if (this.isAlleleValid()) {
       this.validationMessage = '';
-      this.loadReport(variant);
+      this.allele = this.currentAlleleInput;
+      this.currentAlleleInput = '';
+      this.getReport();
     } else {
-      this.validationMessage = 'Invalid variant format!';
+      this.validationMessage = 'Invalid allele format!';
+      this.report = null;
     }
   }
 
-  public isPosValid(position: string): boolean {
+  public triggerAnnotation(allele: string): void {
+    this.currentAlleleInput = allele;
+    this.annotateAllele();
+  }
+
+  private isAlleleValid(): boolean {
+    this.currentAlleleInput = this.currentAlleleInput.trim();
+    const a = this.currentAlleleInput.split(' ');
+
+    let valid = false;
+    if (a.length === 3) {
+      valid = this.isPosValid(a[0]) && this.isRefValid(a[1]) && this.isAltValid(a[2]);
+    } else if (a.length === 4) {
+      valid = this.isPosValid(a[1]) && this.isRefValid(a[2]) && this.isAltValid(a[3]);
+    }
+
+    return valid;
+  }
+
+  private isPosValid(position: string): boolean {
     return !isNaN(Number(position));
   }
 
-  public isRefValid(reference: string): boolean {
+  private isRefValid(reference: string): boolean {
     return reference !== '' && this.areBasesValid(reference);
   }
 
@@ -65,12 +68,27 @@ export class SingleAnnotationComponent {
     return bList.filter(b => !validBases.includes(b)).length === 0;
   }
 
-  public isAltValid(alternative: string): boolean {
+  private isAltValid(alternative: string): boolean {
     const aList = alternative.split(',');
     return aList.filter(a => !this.areBasesValid(a)).length === 0;
   }
 
   public setPipeline(newPipeline: string): void {
     this.pipelineId = newPipeline;
+  }
+
+  private getReport(): void {
+    this.singleAnnotationService.getReport(
+      this.parseVariantToObject(this.allele),
+      this.pipelineId
+    ).subscribe(report => {
+      this.report = report;
+      this.alleleUpdateEmit.emit();
+    });
+  }
+
+  private parseVariantToObject(variant: string): Variant {
+    const variantFields = variant.split(' ');
+    return new Variant(variantFields[0], Number(variantFields[1]), variantFields[2], variantFields[3], null);
   }
 }
