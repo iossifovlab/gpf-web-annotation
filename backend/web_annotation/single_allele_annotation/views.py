@@ -1,0 +1,367 @@
+"""Module for single allele annotation views."""
+from datetime import datetime
+from typing import Any
+
+from dae.annotation.annotatable import VCFAllele
+from dae.annotation.annotation_config import AttributeInfo
+from dae.annotation.annotation_factory import load_pipeline_from_yaml
+from dae.annotation.annotation_pipeline import Annotator
+from dae.annotation.gene_score_annotator import GeneScoreAnnotator
+from dae.annotation.score_annotator import GenomicScoreAnnotatorBase
+from dae.gene_scores.gene_scores import (
+    _build_gene_score_help,
+    build_gene_score_from_resource,
+)
+from dae.genomic_scores.scores import _build_score_help
+from dae.genomic_resources.genomic_scores import build_score_from_resource
+from dae.genomic_resources.histogram import (
+    Histogram,
+    NullHistogram,
+    NullHistogramConfig,
+)
+from dae.genomic_resources.repository import GenomicResource
+from django.conf import settings
+from django.db.models import QuerySet
+from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.decorators.http import last_modified
+from rest_framework import generics, permissions, views
+from rest_framework.throttling import UserRateThrottle
+from rest_framework.views import Request, Response
+
+from web_annotation.annotation_base_view import AnnotationBaseView
+from web_annotation.models import AlleleQuery, User
+from web_annotation.serializers import AlleleSerializer
+
+
+def get_histogram_genomic_score(
+    resource: GenomicResource, score_id: str,
+) -> tuple[Histogram, dict[str, Any]]:
+    """Get histogram and extra data for a genomic score."""
+    if resource.get_type() not in [
+        "allele_score", "position_score",
+    ]:
+        raise ValueError(f"{resource.resource_id} is not a genomic score!")
+    score = build_score_from_resource(resource)
+    score_def = score.score_definitions[score_id]
+    return (
+        score.get_score_histogram(score_id),
+        {
+            "small_values_desc": score_def.small_values_desc,
+            "large_values_desc": score_def.large_values_desc,
+        },
+    )
+
+
+def get_histogram_gene_score(
+    resource: GenomicResource, score_id: str,
+) -> tuple[Histogram, dict[str, Any]]:
+    """Get histogram and extra data for a gene score."""
+    if resource.get_type() != "gene_score":
+        raise ValueError(f"{resource.resource_id} is not a genomic score!")
+    score = build_gene_score_from_resource(resource)
+    score_def = score.score_definitions[score_id]
+    return (
+        score.get_score_histogram(score_id),
+        {
+            "small_values_desc": score_def.small_values_desc,
+            "large_values_desc": score_def.large_values_desc,
+        },
+    )
+
+
+def get_histogram_not_supported(
+    _resource: GenomicResource, _score: str,  # pylint: disable=unused-argument
+) -> tuple[Histogram, dict[str, Any]]:
+    """Return an empty histogram for unsupported resources."""
+    return (NullHistogram(NullHistogramConfig("not supported")), {})
+
+
+HISTOGRAM_GETTERS = {
+    "allele_score": get_histogram_genomic_score,
+    "position_score": get_histogram_genomic_score,
+    "gene_score": get_histogram_gene_score,
+}
+
+
+def has_histogram(resource: GenomicResource, score: str) -> bool:
+    """Check if a resource has a histogram for a score."""
+    histogram_getter = HISTOGRAM_GETTERS.get(
+        resource.get_type(), get_histogram_not_supported,
+    )
+    histogram, _details = histogram_getter(resource, score)
+    return not isinstance(histogram, NullHistogram)
+
+
+STARTUP_TIME = timezone.now()
+
+
+def always_cache(
+    *_args: list[Any], **_kwargs: dict[str, Any],
+) -> datetime:
+    """Function to enable a view to always be cached, due to static data."""
+    return STARTUP_TIME
+
+
+class SingleAnnotation(AnnotationBaseView):
+    """Single annotation view."""
+
+    throttle_classes = [UserRateThrottle]
+
+    def generate_annotator_help(
+        self,
+        annotator: Annotator,
+        attribute_info: AttributeInfo,
+    ) -> str | None:
+        """Generate annotator help for gene scores and genomic scores"""
+        if not isinstance(
+            annotator, (GeneScoreAnnotator, GenomicScoreAnnotatorBase),
+        ):
+            return None
+
+        if isinstance(annotator, GenomicScoreAnnotatorBase):
+            assert isinstance(annotator, GenomicScoreAnnotatorBase)
+            return _build_score_help(
+                annotator,
+                attribute_info,
+                annotator.score,
+            )
+
+        assert isinstance(annotator, GeneScoreAnnotator)
+        for score_def in annotator.score.score_definitions.values():
+            if score_def.score_id == attribute_info.source:
+                return _build_gene_score_help(
+                    score_def,
+                    annotator.score,
+                )
+        return None
+
+    def post(self, request: Request) -> Response:
+        """View for single annotation"""
+
+        assert isinstance(request.data, dict)
+        if "variant" not in request.data:
+            return Response(
+                {"reason": "Variant not provided!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+        variant = request.data["variant"]
+        assert isinstance(variant, dict)
+
+        if "pipeline" not in request.data:
+            return Response(
+                {"reason": "Pipeline not provided!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        pipeline_id = request.data["pipeline"]
+        if not isinstance(pipeline_id, str):
+            return Response(
+                {"reason": "Invalid pipeline provided!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        pipeline = self.lru_cache.get_pipeline(pipeline_id)
+
+        if pipeline is None:
+            try:
+                pipeline_config = self._get_pipeline_yaml(
+                    pipeline_id, request.user)
+            except ValueError as e:
+                return Response(
+                    {"reason": str(e)},
+                    status=views.status.HTTP_400_BAD_REQUEST,
+                )
+
+            pipeline = self.lru_cache.put_pipeline(
+                pipeline_id, load_pipeline_from_yaml(pipeline_config, self.grr)
+            )
+
+        vcf_annotatable = VCFAllele(
+            variant["chrom"], variant["pos"],
+            variant["ref"], variant["alt"],
+        )
+
+        annotation = pipeline.annotate(vcf_annotatable, {})
+
+        annotators_data = []
+        if (
+            getattr(settings, "RESOURCES_BASE_URL") is None
+            or settings.RESOURCES_BASE_URL is None
+        ):
+            base_url = None
+        else:
+            base_url = settings.RESOURCES_BASE_URL
+
+        for annotator in pipeline.annotators:
+            details = {}
+            attributes = []
+            annotator_info = annotator.get_info()
+            details = {
+                "name": annotator_info.type,
+                "description": annotator_info.documentation,
+                "resource_id": ", ".join(
+                    r.resource_id for r in annotator_info.resources),
+            }
+            if base_url is not None:
+                details["resource_url"] = \
+                    f"{base_url}{annotator_info.resources[0].resource_id}"
+            else:
+                details["resource_url"] = \
+                    annotator_info.resources[0].resource_id
+            details["resource_url"] = f'{details["resource_url"]}/index.html'
+            for attribute_info in annotator.attributes:
+                if attribute_info.internal:
+                    continue
+                attributes.append(
+                    self._build_attribute_description(
+                        annotation, annotator,
+                        attribute_info)
+                )
+            if len(attributes) == 0:
+                continue
+            annotators_data.append(
+                {"details": details, "attributes": attributes},
+            )
+
+        if (
+            request.user
+            and request.user.is_authenticated
+            and isinstance(request.user, User)
+        ):
+            allele_query = AlleleQuery(
+                allele=(
+                    f"{variant['chrom']} {variant['pos']} "
+                    f"{variant['ref']} {variant['alt']}"
+                ),
+                owner=request.user,
+            )
+            if AlleleQuery.objects.filter(
+                allele=allele,
+                owner=request.user,
+            ).first() is None:
+                allele_query = AlleleQuery(
+                    allele=allele,
+                    owner=request.user,
+                )
+                allele_query.save()
+
+        variant = {
+            "chromosome": vcf_annotatable.chrom,
+            "position": vcf_annotatable.pos,
+            "reference": vcf_annotatable.ref,
+            "alternative": vcf_annotatable.alt,
+            "variant_type": vcf_annotatable.type.name,
+        }
+
+        response_data = {
+            "variant": variant,
+            "annotators": annotators_data,
+        }
+
+        return Response(response_data)
+
+    def _build_attribute_description(
+            self, result: dict[str, Any], annotator: Annotator,
+            attribute_info: AttributeInfo,
+    ) -> dict[str, Any]:
+        resource = self.grr.get_resource(
+                    list(annotator.resource_ids)[0])
+        if has_histogram(resource, attribute_info.source):
+            histogram_path = (
+                        f"histograms/{resource.resource_id}"
+                        f"?score_id={attribute_info.source}"
+                    )
+        else:
+            histogram_path = None
+        value = result[attribute_info.name]
+
+        annotator_help = self.generate_annotator_help(
+                    annotator,
+                    attribute_info,
+                )
+
+        if attribute_info.type in ["object", "annotatable"]:
+            if not isinstance(value, (dict, list)):
+                value = str(value)
+        return {
+                    "name": attribute_info.name,
+                    "description": attribute_info.description,
+                    "help": annotator_help,
+                    "source": attribute_info.source,
+                    "type": attribute_info.type,
+                    "result": {
+                        "value": value,
+                        "histogram": histogram_path,
+                    },
+        }
+
+
+class HistogramView(AnnotationBaseView):
+    """View for returning histogram data."""
+
+    @method_decorator(last_modified(always_cache))
+    def get(self, request: Request, resource_id: str) -> Response:
+        """Return histogram data for a resource and score ID."""
+        try:
+            resource = self.grr.get_resource(resource_id)
+        except (FileNotFoundError, ValueError):
+            return Response(status=views.status.HTTP_404_NOT_FOUND)
+
+        score_id = request.query_params.get("score_id")
+        if score_id is None:
+            return Response(
+                {"reason": "Score id not provided!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        histogram_getter = HISTOGRAM_GETTERS.get(
+            resource.get_type(), get_histogram_not_supported,
+        )
+
+        histogram, extra_data = histogram_getter(
+            resource, score_id,
+        )
+        if isinstance(histogram, NullHistogram):
+            return Response(status=views.status.HTTP_404_NOT_FOUND)
+
+        output = {
+            **histogram.to_dict(),
+            **extra_data,
+        }
+
+        return Response(output)
+
+
+class AlleleHistory(generics.ListAPIView):
+    """View for managing a user's allele annotation history."""
+
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = AlleleSerializer
+
+    def get_queryset(self) -> QuerySet:
+        return AlleleQuery.objects.filter(owner=self.request.user)
+
+    def delete(self, request: Request) -> Response:
+        """Delete user allele annotation query from history"""
+        query_id = request.query_params.get("id")
+        if not query_id:
+            return Response(
+                {"reason": "Allele query ID must be provided!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        allele_query = AlleleQuery.objects.filter(
+            id=query_id,
+            owner=request.user,
+        )
+
+        if allele_query.count() == 0:
+            return Response(
+                {"reason": "Allele query id not recognized!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        allele_query.delete()
+
+        return Response(status=views.status.HTTP_204_NO_CONTENT)

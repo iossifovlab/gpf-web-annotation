@@ -8,7 +8,7 @@ from pytest_mock import MockerFixture
 from dae.annotation.annotation_config import AttributeInfo
 from dae.genomic_resources.repository import GenomicResourceRepo
 from web_annotation.pipeline_cache import LRUPipelineCache
-from web_annotation.views import SingleAnnotation
+from web_annotation.single_allele_annotation.views import SingleAnnotation
 
 
 class DummyResource:
@@ -69,7 +69,7 @@ def test_build_attribute_description_with_histogram(
     annotator = SimpleNamespace(resource_ids={"dummy_resource"})
 
     histogram_mock = mocker.patch(
-        "web_annotation.views.has_histogram",
+        "web_annotation.single_allele_annotation.views.has_histogram",
         return_value=True,
     )
     help_mock = mocker.patch.object(
@@ -116,7 +116,7 @@ def test_build_attribute_description_stringifies_non_mapping_objects(
     annotator = SimpleNamespace(resource_ids={"dummy_resource"})
 
     mocker.patch(
-        "web_annotation.views.has_histogram",
+        "web_annotation.single_allele_annotation.views.has_histogram",
         return_value=False,
     )
     mocker.patch.object(view, "generate_annotator_help", return_value=None)
@@ -152,7 +152,9 @@ def test_use_of_thread_safe_pipelines(
         },
     }
     mocker.patch(
-        "web_annotation.views.SingleAnnotation.lru_cache", new=custom_cache,
+        "web_annotation.single_allele_annotation"
+        ".views.SingleAnnotation.lru_cache",
+        new=custom_cache,
     )
     assert thread_safe_dummy.lock.__enter__.call_count == 0
     view.post(request_data)

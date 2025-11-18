@@ -14,26 +14,22 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.urls import path, include, re_path
+from django.urls import path, include
 
 from web_annotation import views
 
 from web_annotation.jobs.urls import urlpatterns as job_urls
 from web_annotation.pipelines.urls import urlpatterns as pipeline_urls
+from web_annotation.single_allele_annotation.urls import (
+    urlpatterns as single_allele_urls,
+)
 
 
 urlpatterns = [
     path('api-auth', include('rest_framework.urls')),
 
     *job_urls,
-
-    path('api/single_annotate', views.SingleAnnotation.as_view()),
-    re_path(
-        r'api/histograms/(?P<resource_id>.+)',
-        views.HistogramView.as_view(),
-    ),
-    path("api/allele_history", views.AlleleHistory.as_view()),
-
+    *single_allele_urls,
     *pipeline_urls,
 
     path('api/users', views.UserList.as_view()),

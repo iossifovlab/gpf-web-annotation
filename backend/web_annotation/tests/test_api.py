@@ -494,7 +494,7 @@ def test_validate_annotation_config(
 
 def test_single_annotation(admin_client: Client) -> None:
     response = admin_client.post(
-        "/api/single_annotate",
+        "/api/single_allele/annotate",
         {
             "pipeline": "pipeline/test_pipeline",
             "variant": {
@@ -553,7 +553,7 @@ def test_single_annotation(admin_client: Client) -> None:
 
 def test_single_annotation_unauthorized(anonymous_client: Client) -> None:
     response = anonymous_client.post(
-        "/api/single_annotate",
+        "/api/single_allele/annotate",
         {
             "pipeline": "pipeline/test_pipeline",
             "variant": {
@@ -612,7 +612,7 @@ def test_single_annotation_unauthorized(anonymous_client: Client) -> None:
 
 def test_single_annotation_no_variant(admin_client: Client) -> None:
     response = admin_client.post(
-        "/api/single_annotate",
+        "/api/single_allele/annotate",
         {
             "pipeline": "pipeline/test_pipeline",
         },
@@ -624,7 +624,7 @@ def test_single_annotation_no_variant(admin_client: Client) -> None:
 
 def test_single_annotation_no_pipeline(admin_client: Client) -> None:
     response = admin_client.post(
-        "/api/single_annotate",
+        "/api/single_allele/annotate",
         {
             "variant": {
                 "chrom": "chr1", "pos": 1, "ref": "C", "alt": "A",
@@ -637,7 +637,7 @@ def test_single_annotation_no_pipeline(admin_client: Client) -> None:
 
 
 def test_histogram_view(admin_client: Client) -> None:
-    response = admin_client.get("/api/histograms/scores/pos1?score_id=pos1")
+    response = admin_client.get("/api/single_allele/histograms/scores/pos1?score_id=pos1")
 
     assert response.status_code == 200
     data = response.json()
@@ -673,19 +673,19 @@ def test_histogram_view(admin_client: Client) -> None:
 
 
 def test_histogram_view_no_score(admin_client: Client) -> None:
-    response = admin_client.get("/api/histograms/scores/pos1")
+    response = admin_client.get("/api/single_allele/histograms/scores/pos1")
     assert response.status_code == 400
 
 
 def test_histogram_view_bad_resource(admin_client: Client) -> None:
-    response = admin_client.get("/api/histograms/shcores/pos1")
+    response = admin_client.get("/api/single_allele/histograms/shcores/pos1")
     assert response.status_code == 404
 
 
 def test_single_annotation_throttled(user_client: Client) -> None:
     for _ in range(10):
         response = user_client.post(
-            "/api/single_annotate",
+            "/api/single_allele/annotate",
             {
                 "pipeline": "pipeline/test_pipeline",
                 "variant": {
@@ -697,7 +697,7 @@ def test_single_annotation_throttled(user_client: Client) -> None:
         assert response.status_code == 200
 
     response = user_client.post(
-        "/api/single_annotate",
+        "/api/single_allele/annotate",
         {
             "pipeline": "pipeline/test_pipeline",
             "variant": {
@@ -917,7 +917,7 @@ def test_preview_delimeter_anonymous(
 
 def test_single_annotation_t4c8(admin_client: Client) -> None:
     response = admin_client.post(
-        "/api/single_annotate",
+        "/api/single_allele/annotate",
         {
             "pipeline": "t4c8/t4c8_pipeline",
             "variant": {
@@ -969,7 +969,7 @@ def test_single_annotation_t4c8(admin_client: Client) -> None:
     }
 
     response = admin_client.post(
-        "/api/single_annotate",
+        "/api/single_allele/annotate",
         {
             "pipeline": "t4c8/t4c8_pipeline",
             "variant": {
@@ -1023,7 +1023,7 @@ def test_single_annotation_t4c8(admin_client: Client) -> None:
 
 def test_single_annotation_save_query_in_history(admin_client: Client) -> None:
     response = admin_client.post(
-        "/api/single_annotate",
+        "/api/single_allele/annotate",
         {
             "pipeline": "t4c8/t4c8_pipeline",
             "variant": {
@@ -1035,7 +1035,7 @@ def test_single_annotation_save_query_in_history(admin_client: Client) -> None:
     assert response.status_code == 200, response.content
 
     response = admin_client.post(
-        "/api/single_annotate",
+        "/api/single_allele/annotate",
         {
             "pipeline": "t4c8/t4c8_pipeline",
             "variant": {
@@ -1046,7 +1046,7 @@ def test_single_annotation_save_query_in_history(admin_client: Client) -> None:
     )
     assert response.status_code == 200, response.content
 
-    response = admin_client.get("/api/allele_history")
+    response = admin_client.get("/api/single_allele/history")
     assert response.status_code == 200
     assert response.json() == [
         {
@@ -1100,7 +1100,7 @@ def test_single_annotation_save_duplicate_query_in_history(admin_client: Client)
 
 def test_user_delete_allele_query_from_history(admin_client: Client) -> None:
     response = admin_client.post(
-        "/api/single_annotate",
+        "/api/single_allele/annotate",
         {
             "pipeline": "t4c8/t4c8_pipeline",
             "variant": {
@@ -1111,7 +1111,7 @@ def test_user_delete_allele_query_from_history(admin_client: Client) -> None:
     )
     assert response.status_code == 200, response.content
 
-    response = admin_client.get("/api/allele_history")
+    response = admin_client.get("/api/single_allele/history")
     assert response.status_code == 200
     assert response.json() == [
         {
@@ -1121,9 +1121,9 @@ def test_user_delete_allele_query_from_history(admin_client: Client) -> None:
         },
     ]
 
-    response = admin_client.delete("/api/allele_history?id=1")
+    response = admin_client.delete("/api/single_allele/history?id=1")
     assert response.status_code == 204
 
-    response = admin_client.get("/api/allele_history")
+    response = admin_client.get("/api/single_allele/history")
     assert response.status_code == 200
     assert response.json() == []
