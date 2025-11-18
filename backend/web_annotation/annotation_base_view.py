@@ -226,7 +226,8 @@ class AnnotationBaseView(views.APIView):
 
         try:
             config_path.parent.mkdir(parents=True, exist_ok=True)
-            config_path.write_text(yaml.safe_dump(pipeline.raw))
+            config_path.write_text(yaml.safe_dump(
+                pipeline.raw, sort_keys=False))
         except OSError:
             logger.exception("Could not write config file")
             return Response(

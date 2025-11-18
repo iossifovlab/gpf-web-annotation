@@ -459,7 +459,7 @@ def test_validate_annotation_config(
     annotation_config = "- position_score: scores/pos1"
 
     response = user_client.post(
-        "/api/jobs/validate",
+        "/api/pipelines/validate",
         {"config": annotation_config},
     )
     assert response.status_code == 200
@@ -468,7 +468,7 @@ def test_validate_annotation_config(
     annotation_config = "position_score: scores/pos1"
 
     response = user_client.post(
-        "/api/jobs/validate",
+        "/api/pipelines/validate",
         {"config": annotation_config},
     )
     assert response.status_code == 200
@@ -482,7 +482,7 @@ def test_validate_annotation_config(
     )
 
     response = user_client.post(
-        "/api/jobs/validate",
+        "/api/pipelines/validate",
         {"config": annotation_config},
     )
     assert response.status_code == 200

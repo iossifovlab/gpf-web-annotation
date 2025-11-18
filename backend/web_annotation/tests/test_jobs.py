@@ -921,7 +921,7 @@ def test_user_create_pipeline(
 
     assert Pipeline.objects.filter(owner=user).count() == 0
 
-    response = user_client.post("/api/user_pipeline", params)
+    response = user_client.post("/api/pipelines/user", params)
 
     assert response is not None
     assert response.status_code == 200
@@ -955,7 +955,7 @@ def test_create_job_for_pipeline_with_preamble(
 
     assert Pipeline.objects.filter(owner=user).count() == 0
 
-    response = user_client.post("/api/user_pipeline", params)
+    response = user_client.post("/api/pipelines/user", params)
 
     assert response is not None
     assert response.status_code == 200
@@ -1006,7 +1006,7 @@ def test_user_create_anonymous_pipeline(
 
     assert Pipeline.objects.filter(owner=user).count() == 0
 
-    response = user_client.post("/api/user_pipeline", params)
+    response = user_client.post("/api/pipelines/user", params)
 
     assert response is not None
     assert response.status_code == 200
@@ -1030,7 +1030,7 @@ def test_user_update_pipeline(
 
     assert Pipeline.objects.filter(owner=user).count() == 0
     params = {"config": ContentFile(pipeline_config), "name": "test_pipeline"}
-    response = user_client.post("/api/user_pipeline", params)
+    response = user_client.post("/api/pipelines/user", params)
 
     assert response is not None
     assert response.status_code == 200
@@ -1044,7 +1044,7 @@ def test_user_update_pipeline(
 
     pipeline_config = "- position_score: scores/pos2"
     params = {"config": ContentFile(pipeline_config), "name": "test_pipeline"}
-    response = user_client.post("/api/user_pipeline", params)
+    response = user_client.post("/api/pipelines/user", params)
 
     assert response is not None
     assert response.status_code == 200
@@ -1068,14 +1068,14 @@ def test_user_delete_pipeline(
         "name": "test-pipeline",
     }
 
-    response = user_client.post("/api/user_pipeline", params)
+    response = user_client.post("/api/pipelines/user", params)
 
     assert response is not None
     assert response.status_code == 200
     assert response.json() == {"name": "test-pipeline"}
     assert Pipeline.objects.filter(owner=user).count() == 1
 
-    response = user_client.delete("/api/user_pipeline?name=test-pipeline")
+    response = user_client.delete("/api/pipelines/user?name=test-pipeline")
 
     assert response is not None
     assert response.status_code == 204
@@ -1094,14 +1094,14 @@ def test_user_get_pipeline(
         "name": "test-pipeline",
     }
 
-    response = user_client.post("/api/user_pipeline", params)
+    response = user_client.post("/api/pipelines/user", params)
 
     assert response is not None
     assert response.status_code == 200
     assert response.json() == {"name": "test-pipeline"}
     assert Pipeline.objects.filter(owner=user).count() == 1
 
-    response = user_client.get("/api/user_pipeline?name=test-pipeline")
+    response = user_client.get("/api/pipelines/user?name=test-pipeline")
 
     assert response is not None
     assert response.status_code == 200
@@ -1123,7 +1123,7 @@ def test_user_create_pipeline_with_bad_name(
         "config": ContentFile(pipeline_config),
         "name": "pipeline/test_pipeline",
     }
-    response = user_client.post("/api/user_pipeline", params)
+    response = user_client.post("/api/pipelines/user", params)
     assert response.json() == {
         "reason": "Pipeline with such name cannot be created or updated!",
     }
@@ -1134,7 +1134,7 @@ def test_user_create_pipeline_with_bad_name(
         "config": ContentFile(pipeline_config),
         "name": "t4c8/t4c8_pipeline",
     }
-    response = user_client.post("/api/user_pipeline", params)
+    response = user_client.post("/api/pipelines/user", params)
     assert response.json() == {
         "reason": "Pipeline with such name cannot be created or updated!",
     }
@@ -1154,7 +1154,7 @@ def test_get_pipelines(
         "config": ContentFile(pipeline_config),
         "name": "test-user-pipeline",
     }
-    response = user_client.post("/api/user_pipeline", params)
+    response = user_client.post("/api/pipelines/user", params)
 
     assert response is not None
     assert response.status_code == 200
@@ -1166,7 +1166,7 @@ def test_get_pipelines(
     params = {
         "config": ContentFile(pipeline_config),
     }
-    response = user_client.post("/api/user_pipeline", params)
+    response = user_client.post("/api/pipelines/user", params)
 
     assert response is not None
     assert response.status_code == 200
@@ -1193,7 +1193,7 @@ def test_get_pipelines_annonymous_user(
         "config": ContentFile(pipeline_config),
         "name": "test-user-pipeline",
     }
-    response = user_client.post("/api/user_pipeline", params)
+    response = user_client.post("/api/pipelines/user", params)
 
     assert response is not None
     assert response.status_code == 200
@@ -1217,7 +1217,7 @@ def test_annotate_vcf_user_pipeline(
         "config": ContentFile(pipeline_config),
         "name": "test-user-pipeline",
     }
-    response = user_client.post("/api/user_pipeline", params)
+    response = user_client.post("/api/pipelines/user", params)
 
     assert response is not None
     assert response.status_code == 200

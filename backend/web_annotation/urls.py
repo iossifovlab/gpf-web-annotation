@@ -18,31 +18,23 @@ from django.urls import path, include, re_path
 
 from web_annotation import views
 
-from web_annotation.jobs import views as job_views
+from web_annotation.jobs.urls import urlpatterns as job_urls
+from web_annotation.pipelines.urls import urlpatterns as pipeline_urls
 
 
 urlpatterns = [
     path('api-auth', include('rest_framework.urls')),
 
-    path('api/jobs', job_views.JobList.as_view()),
-    path('api/jobs/all', job_views.JobAll.as_view()),
-    path('api/jobs/annotate_columns', job_views.AnnotateColumns.as_view()),
-    path('api/jobs/annotate_vcf', job_views.AnnotateVCF.as_view()),
-    path('api/jobs/<int:pk>/file/<str:file>', job_views.JobGetFile.as_view()),
-    path('api/jobs/<int:pk>', job_views.JobDetail.as_view()),
-    path('api/jobs/validate_columns', job_views.ColumnValidation.as_view()),
-    path(
-        'api/jobs/preview',
-        job_views.PreviewFileUpload.as_view(),
-    ),
+    *job_urls,
 
     path('api/single_annotate', views.SingleAnnotation.as_view()),
     re_path(
         r'api/histograms/(?P<resource_id>.+)',
         views.HistogramView.as_view(),
     ),
+    path("api/allele_history", views.AlleleHistory.as_view()),
 
-    path('api/pipelines', views.ListPipelines.as_view()),
+    *pipeline_urls,
 
     path('api/users', views.UserList.as_view()),
     path('api/users/<int:pk>', views.UserDetail.as_view()),
@@ -51,7 +43,6 @@ urlpatterns = [
     path('api/logout', views.Logout.as_view()),
     path('api/register', views.Registration.as_view()),
     path('api/user_info', views.UserInfo.as_view()),
-    path('api/jobs/validate', views.AnnotationConfigValidation.as_view()),
     path('api/confirm_account', views.ConfirmAccount.as_view()),
     path(
         "api/forgotten_password",
@@ -63,6 +54,4 @@ urlpatterns = [
         views.PasswordReset.as_view(),
         name="reset_password",
     ),
-    path("api/user_pipeline", views.UserPipeline.as_view()),
-    path("api/allele_history", views.AlleleHistory.as_view()),
 ]
