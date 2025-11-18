@@ -4,7 +4,7 @@
     <div class="grid-header">Actions</div>
 
     <ng-container *ngFor="let allele of allelesHistory">
-      <div class="grid-cell allele-name">{{ allele }}</div>
+      <div class="grid-cell allele-name">{{ allele.name }}</div>
       <div class="grid-cell actions">
         <button id="delete-allele"><span class="material-symbols-outlined delete-icon">delete</span></button>
       </div>

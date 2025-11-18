@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription, take } from 'rxjs';
 import { SingleAnnotationService } from '../single-annotation.service';
 import { CommonModule } from '@angular/common';
+import { Allele } from '../single-annotation';
 
 @Component({
   selector: 'app-alleles-table',
@@ -10,7 +11,7 @@ import { CommonModule } from '@angular/common';
   styleUrl: './alleles-table.component.css'
 })
 export class AllelesTableComponent implements OnInit, OnDestroy {
-  public allelesHistory: string[] = [];
+  public allelesHistory: Allele[] = [];
   private refreshAllelesSubscription = new Subscription();
 
   public constructor(private singleAnnotationService: SingleAnnotationService) {}

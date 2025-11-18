@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
-import { CategoricalHistogram, NumberHistogram, SingleAnnotationReport, Variant } from './single-annotation';
+import { Allele, CategoricalHistogram, NumberHistogram, SingleAnnotationReport, Variant } from './single-annotation';
 
 
 @Injectable()
@@ -10,7 +10,7 @@ export class SingleAnnotationService {
   private readonly getReportUrl = `${environment.apiPath}/single_annotate`;
   private readonly getGenomesUrl = `${environment.apiPath}/genomes`;
   private readonly getHistogramUrl = `${environment.apiPath}`;
-  private readonly getAllelesHistoryUrl = `${environment.apiPath}/allele_history`;
+  private readonly allelesHistoryUrl = `${environment.apiPath}/allele_history`;
   public constructor(private http: HttpClient) { }
 
   private getCSRFToken(): string {
@@ -55,11 +55,11 @@ export class SingleAnnotationService {
     return this.http.get<string[]>(this.getGenomesUrl);
   }
 
-  public getAllelesHistory(): Observable<string[]> {
+  public getAllelesHistory(): Observable<Allele[]> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
-    return this.http.get<{allele: string, id: number, owner: string}[]>(
-      this.getAllelesHistoryUrl,
+    return this.http.get<Allele[]>(
+      this.allelesHistoryUrl,
       options
-    ).pipe(map((rawAlleles: {allele: string, id: number, owner: string}[]) => rawAlleles.map(a => a.allele)));
+    ).pipe(map((rawAlleles: object[]) => Allele.fromJsonArray(rawAlleles)));
   }
 }

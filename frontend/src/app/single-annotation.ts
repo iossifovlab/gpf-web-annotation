@@ -229,3 +229,29 @@ export class SingleAnnotationReport {
     );
   }
 }
+
+export class Allele {
+  public constructor(
+    public id: number,
+    public name: string,
+  ) {}
+
+  public static fromJsonArray(jsonArray: object[]): Allele[] {
+    if (!jsonArray) {
+      return undefined;
+    }
+    return jsonArray.map((json) => Allele.fromJson(json));
+  }
+
+
+  public static fromJson(json: object): Allele {
+    if (!json) {
+      return undefined;
+    }
+
+    return new Allele(
+      json['id'] as number,
+      json['allele'] as string,
+    );
+  }
+}
