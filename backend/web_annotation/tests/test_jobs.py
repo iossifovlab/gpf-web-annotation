@@ -310,6 +310,37 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
 
 
 @pytest.mark.django_db
+def test_annotate_vcf_disk_size(
+    user_client: Client, test_grr: GenomicResourceRepo,
+) -> None:
+
+    vcf = textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        ##contig=<ID=chr1>
+        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+        chr1	1	.	C	A	.	.	.
+    """).strip()
+
+    response = user_client.post(
+        "/api/jobs/annotate_vcf",
+        {
+            "pipeline": "pipeline/test_pipeline",
+            "data": ContentFile(vcf, "test_input.vcf"),
+        },
+    )
+    assert response.status_code == 200
+
+    job = Job.objects.last()
+    assert job is not None
+    assert job.disk_size == (
+        pathlib.Path(job.config_path).stat().st_size
+        + pathlib.Path(job.input_path).stat().st_size
+        + pathlib.Path(job.result_path).stat().st_size
+    )
+    assert job.disk_size == 494
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "data, response_body",
     [
@@ -658,6 +689,38 @@ def test_annotate_columns_t4c8(
         ['chrom', 'pos', 'var', 'position_1'],
         ['chr1', '9', 'del(3)', '0.425']
     ]
+
+
+@pytest.mark.django_db
+def test_annotate_columns_disk_size(
+    user_client: Client, test_grr: GenomicResourceRepo,
+) -> None:
+    file = textwrap.dedent("""
+        chrom,pos,var
+        chr1,9,del(3)
+    """).strip()
+
+    params = {
+        "genome": "t4c8",
+        "pipeline": "pipeline/test_pipeline",
+        "data": ContentFile(file, "test_input.tsv"),
+        "col_chrom": "chrom",
+        "col_pos": "pos",
+        "col_variant": "var",
+    }
+    params["separator"] = ","
+
+    response = user_client.post("/api/jobs/annotate_columns", params)
+    assert response.status_code == 200
+
+    job = Job.objects.last()
+    assert job is not None
+    assert job.disk_size == (
+        pathlib.Path(job.config_path).stat().st_size
+        + pathlib.Path(job.input_path).stat().st_size
+        + pathlib.Path(job.result_path).stat().st_size
+    )
+    assert job.disk_size == 177
 
 
 @pytest.mark.django_db

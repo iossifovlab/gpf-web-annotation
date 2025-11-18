@@ -1,5 +1,6 @@
 # pylint: disable=too-many-lines
 """View classes for web annotation."""
+from functools import reduce
 import logging
 from subprocess import CalledProcessError
 import time
@@ -292,14 +293,35 @@ class AnnotationBaseView(views.APIView):
                 return int(filesize.rstrip(f"{unit}")) * mult
         return int(filesize)
 
+    @staticmethod
+    def _calculate_used_disk_space(user: User) -> int:
+        user_jobs = Job.objects.filter(
+            owner=user,
+        )
+        used_disk_space = reduce(
+            lambda x, y: x + y,
+            [int(job.disk_size) for job in user_jobs],
+        )
+        return used_disk_space
+
     def check_valid_upload_size(self, file: UploadedFile, user: User) -> bool:
         """Check if a file upload does not exceed the upload size limit."""
         if user.is_superuser:
             return True
         assert file.size is not None
-        return file.size < self._convert_size(
+        filesize_limit = self._convert_size(
             cast(str, settings.QUOTAS["filesize"]),
         )
+        if file.size >= filesize_limit:
+            return False
+        disk_space_limit = self._convert_size(
+            cast(str, settings.QUOTAS["disk_space"]),
+        )
+        if (
+            file.size + self._calculate_used_disk_space(user)
+        ) >= disk_space_limit:
+            return False
+        return True
 
     def check_if_user_can_create(self, user: User) -> bool:
         """Check if a user is not limited by the daily quota."""
@@ -309,7 +331,7 @@ class AnnotationBaseView(views.APIView):
             hour=0, minute=0, second=0, microsecond=0)
         jobs_made = Job.objects.filter(
             created__gte=today, owner__exact=user.pk)
-        if len(jobs_made) > cast(int, settings.LIMITS["daily_jobs"]):
+        if len(jobs_made) > cast(int, settings.QUOTAS["daily_jobs"]):
             return False
         return True
 
@@ -580,6 +602,10 @@ class AnnotationBaseView(views.APIView):
         )
         result_path.parent.mkdir(parents=True, exist_ok=True)
 
+        job_size = (
+            input_path.stat().st_size + config_path.stat().st_size
+        )
+
         job = Job(
             name=job_name,
             input_path=input_path,
@@ -587,7 +613,8 @@ class AnnotationBaseView(views.APIView):
             result_path=result_path,
             reference_genome=reference_genome,
             owner=request.user,
-            annotation_type=annotation_type
+            annotation_type=annotation_type,
+            disk_size=job_size,
         )
         return (job_name, pipeline, job)
 
@@ -910,6 +937,7 @@ class AnnotateVCF(AnnotationBaseView):
                 result: None) -> None:  # pylint: disable=unused-argument
             """Callback when annotation is done."""
             job.duration = time.time() - start_time
+            job.disk_size = job.disk_size + Path(job.result_path).stat().st_size
             update_job_success(job)
 
         def on_failure(exception: BaseException) -> None:
@@ -1014,6 +1042,7 @@ class AnnotateColumns(AnnotationBaseView):
 
         def on_success(result: None) -> None:
             job.duration = time.time() - start_time
+            job.disk_size = job.disk_size + Path(job.result_path).stat().st_size
             update_job_success(job)
 
         def on_failure(exception: BaseException) -> None:
