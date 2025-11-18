@@ -1,0 +1,15 @@
+<div>
+  <div id="grid-container">
+    <div class="grid-header">Alleles</div>
+    <div class="grid-header">Actions</div>
+
+    <ng-container *ngFor="let allele of allelesHistory">
+      <div class="grid-cell allele-name">{{ allele }}</div>
+      <div class="grid-cell actions">
+        <button id="delete-allele"><span class="material-symbols-outlined delete-icon">delete</span></button>
+      </div>
+    </ng-container>
+  </div>
+
+  <span id="note">Note: Alleles are stored for 30 days</span>
+</div>

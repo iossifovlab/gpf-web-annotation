@@ -7,6 +7,7 @@ import { getStatusClassName, Job, Status } from '../job-creation/jobs';
 import { JobCreationComponent } from '../job-creation/job-creation.component';
 import { CommonModule } from '@angular/common';
 import { SingleAnnotationComponent } from '../single-annotation/single-annotation.component';
+import { AllelesTableComponent } from '../alleles-table/alleles-table.component';
 
 @Component({
   selector: 'app-annotation-wrapper',
@@ -15,8 +16,9 @@ import { SingleAnnotationComponent } from '../single-annotation/single-annotatio
     JobsTableComponent,
     AnnotationPipelineComponent,
     JobCreationComponent,
-    SingleAnnotationComponent
-  ],
+    SingleAnnotationComponent,
+    AllelesTableComponent
+],
   templateUrl: './annotation-wrapper.component.html',
   styleUrl: './annotation-wrapper.component.css'
 })

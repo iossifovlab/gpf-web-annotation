@@ -1,0 +1,44 @@
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Subscription, take } from 'rxjs';
+import { SingleAnnotationService } from '../single-annotation.service';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-alleles-table',
+  imports: [CommonModule],
+  templateUrl: './alleles-table.component.html',
+  styleUrl: './alleles-table.component.css'
+})
+export class AllelesTableComponent implements OnInit, OnDestroy {
+  public allelesHistory: string[] = [];
+  private refreshAllelesSubscription = new Subscription();
+
+  public constructor(private singleAnnotationService: SingleAnnotationService) {}
+
+  public ngOnInit(): void {
+    this.getAlleles();
+    this.refreshTable();
+  }
+
+  public refreshTable(): void {
+    this.refreshAllelesSubscription.unsubscribe();
+    this.refreshAllelesSubscription = this.singleAnnotationService.getAllelesHistory().pipe(
+    ).subscribe(alleles => {
+      this.allelesHistory = alleles.reverse();
+    });
+  }
+
+  private getAlleles(): void {
+    this.singleAnnotationService.getAllelesHistory().pipe(take(1)).subscribe(alleles => {
+      this.allelesHistory = alleles.reverse();
+    });
+  }
+
+  // public onDelete(jobId: number): void {
+  //   this.jobsService.deleteJob(jobId).subscribe(() => this.getJobs());
+  // }
+
+  public ngOnDestroy(): void {
+    this.refreshAllelesSubscription.unsubscribe();
+  }
+}
