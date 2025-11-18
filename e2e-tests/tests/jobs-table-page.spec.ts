@@ -421,9 +421,9 @@ async function selectPipeline(page: Page, pipeline: string): Promise<void> {
 
 async function waitForJobStatus(page: Page, color: string): Promise<void> {
   await expect(async() => {
+    await expect(page.locator('.grid-cell').nth(0)).toHaveCSS('background-color', color);
     await page.reload();
     await page.goto('/jobs', {waitUntil: 'load'});
-    await expect(page.locator('.grid-cell').nth(0)).toHaveCSS('background-color', color);
   }).toPass({intervals: [1000, 2000, 3000]});
 }
 
