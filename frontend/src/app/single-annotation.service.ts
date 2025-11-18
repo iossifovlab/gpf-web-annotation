@@ -62,4 +62,9 @@ export class SingleAnnotationService {
       options
     ).pipe(map((rawAlleles: object[]) => Allele.fromJsonArray(rawAlleles)));
   }
+
+  public deleteAllele(alleleId: number): Observable<object> {
+    const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
+    return this.http.delete(`${this.allelesHistoryUrl}?id=${alleleId}`, options);
+  }
 }

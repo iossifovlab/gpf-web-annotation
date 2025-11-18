@@ -35,9 +35,9 @@ export class AllelesTableComponent implements OnInit, OnDestroy {
     });
   }
 
-  // public onDelete(jobId: number): void {
-  //   this.jobsService.deleteJob(jobId).subscribe(() => this.getJobs());
-  // }
+  public onDelete(alleleId: number): void {
+    this.singleAnnotationService.deleteAllele(alleleId).subscribe(() => this.getAlleles());
+  }
 
   public ngOnDestroy(): void {
     this.refreshAllelesSubscription.unsubscribe();
