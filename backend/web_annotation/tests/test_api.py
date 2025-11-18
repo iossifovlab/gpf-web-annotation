@@ -1031,7 +1031,7 @@ def test_single_annotation_t4c8(admin_client: Client) -> None:
     }
 
 
-def test_single_annotation_saves_query_in_history(admin_client: Client) -> None:
+def test_single_annotation_save_query_in_history(admin_client: Client) -> None:
     response = admin_client.post(
         "/api/single_annotate",
         {
@@ -1069,6 +1069,42 @@ def test_single_annotation_saves_query_in_history(admin_client: Client) -> None:
             "owner": "admin@example.com",
             "allele": "chr2 62 T G",
         }
+    ]
+
+
+def test_single_annotation_save_duplicate_query_in_history(admin_client: Client) -> None:
+    response = admin_client.post(
+        "/api/single_annotate",
+        {
+            "pipeline": "t4c8/t4c8_pipeline",
+            "variant": {
+                "chrom": "chr1", "pos": 53, "ref": "C", "alt": "A",
+            }
+        },
+        content_type="application/json",
+    )
+    assert response.status_code == 200, response.content
+
+    response = admin_client.post(
+        "/api/single_annotate",
+        {
+            "pipeline": "t4c8/t4c8_pipeline",
+            "variant": {
+                "chrom": "chr1", "pos": 53, "ref": "C", "alt": "A",
+            }
+        },
+        content_type="application/json",
+    )
+    assert response.status_code == 200, response.content
+
+    response = admin_client.get("/api/allele_history")
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "id": 1,
+            "owner": "admin@example.com",
+            "allele": "chr1 53 C A",
+        },
     ]
 
 

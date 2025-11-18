@@ -1518,14 +1518,19 @@ class SingleAnnotation(AnnotationBaseView):
         if request.user \
             and request.user.is_authenticated \
             and isinstance(request.user, User):
-            allele_query = AlleleQuery(
-                allele=(
-                    f"{variant['chrom']} {variant['pos']} "
-                    f"{variant['ref']} {variant['alt']}"
-                ),
-                owner=request.user,
+            allele = (
+                f"{variant['chrom']} {variant['pos']} "
+                f"{variant['ref']} {variant['alt']}"
             )
-            allele_query.save()
+            if AlleleQuery.objects.filter(
+                allele=allele,
+                owner=request.user,
+            ).first() is None:
+                allele_query = AlleleQuery(
+                    allele=allele,
+                    owner=request.user,
+                )
+                allele_query.save()
 
         variant = {
             "chromosome": vcf_annotatable.chrom,
