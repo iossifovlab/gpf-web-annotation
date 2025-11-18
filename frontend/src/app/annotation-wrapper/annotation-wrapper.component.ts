@@ -6,10 +6,17 @@ import { AnnotationPipelineComponent } from '../annotation-pipeline/annotation-p
 import { getStatusClassName, Job, Status } from '../job-creation/jobs';
 import { JobCreationComponent } from '../job-creation/job-creation.component';
 import { CommonModule } from '@angular/common';
+import { SingleAnnotationComponent } from '../single-annotation/single-annotation.component';
 
 @Component({
   selector: 'app-annotation-wrapper',
-  imports: [CommonModule, JobsTableComponent, AnnotationPipelineComponent, JobCreationComponent],
+  imports: [
+    CommonModule,
+    JobsTableComponent,
+    AnnotationPipelineComponent,
+    JobCreationComponent,
+    SingleAnnotationComponent
+  ],
   templateUrl: './annotation-wrapper.component.html',
   styleUrl: './annotation-wrapper.component.css'
 })
@@ -29,6 +36,7 @@ export class AnnotationWrapperComponent {
   public createdJobStatus: Status;
   public downloadLink = '';
   public annotatedFileName = '';
+  public currentView:'jobs' | 'single allele' = 'jobs';
 
   public constructor(
       private jobsService: JobsService,
@@ -156,5 +164,9 @@ export class AnnotationWrapperComponent {
 
   public isJobFinished(status: Status): boolean {
     return status === 'success' || status === 'failed';
+  }
+
+  public switchView(view: 'jobs' | 'single allele'): void {
+    this.currentView = view;
   }
 }

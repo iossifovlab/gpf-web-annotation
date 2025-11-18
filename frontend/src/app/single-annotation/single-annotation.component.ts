@@ -3,11 +3,11 @@ import { environment } from '../../../environments/environment';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { AnnotationPipelineComponent } from '../annotation-pipeline/annotation-pipeline.component';
+import { SingleAnnotationReportComponent } from '../single-annotation-report/single-annotation-report.component';
 
 @Component({
   selector: 'app-single-annotation',
-  imports: [CommonModule, FormsModule, AnnotationPipelineComponent],
+  imports: [CommonModule, FormsModule, SingleAnnotationReportComponent],
   templateUrl: './single-annotation.component.html',
   styleUrl: './single-annotation.component.css'
 })

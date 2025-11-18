@@ -4,6 +4,7 @@ import { provideRouter, Router } from '@angular/router';
 import { JobsService } from '../job-creation/jobs.service';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { SingleAnnotationService } from '../single-annotation.service';
 
 describe('SingleAnnotationComponent', () => {
   let component: SingleAnnotationComponent;
@@ -14,6 +15,7 @@ describe('SingleAnnotationComponent', () => {
     await TestBed.configureTestingModule({
       imports: [SingleAnnotationComponent],
       providers: [
+        SingleAnnotationService,
         provideRouter([]),
         JobsService,
         provideHttpClient(),

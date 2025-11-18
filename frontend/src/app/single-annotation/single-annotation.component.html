@@ -1,10 +1,4 @@
 <div id="single-annotation-container" [ngClass]="isMainComponent ? 'main-component' : 'inline-component'">
-  <img
-    *ngIf="isMainComponent"
-    src="{{ environment.imgPathPrefix }}/logo-64x64.png"
-    alt="GPF Logo"
-    id="single-annotation-logo" />
-  <h1 *ngIf="isMainComponent">Single Allele Annotation</h1>
   <div>
     <input
       #variantInput
@@ -15,5 +9,6 @@
   </div>
   <span *ngIf="validationMessage" id="validation-message">{{ validationMessage }}</span>
   <span id="variant-examples">Example: chr1 11796321 G A</span>
-  <app-annotation-pipeline style="width: 35%" (emitPipelineId)="setPipeline($event)"></app-annotation-pipeline>
 </div>
+
+<app-single-annotation-report></app-single-annotation-report>
