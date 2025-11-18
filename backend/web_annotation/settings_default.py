@@ -33,9 +33,9 @@ JOB_RESULT_STORAGE_DIR = f"{DATA_STORAGE_DIR}/job-results"
 PIPELINES_STORAGE_DIR = f"{DATA_STORAGE_DIR}/pipelines"
 
 LIMITS = {
-    "daily_jobs": 5,
+    "daily_jobs": 20,
     "filesize": "64M",
-    "variant_count": 1000,
+    "variant_count": 50000,
 }
 
 JOB_CLEANUP_INTERVAL_DAYS = 30
@@ -279,6 +279,11 @@ LOGGING = {
         "fsspec": {
             "handlers": ["console", "logdebug"],
             "level": "WARNING",
+            "propagate": True,
+        },
+        "dae.effect_annotation": {
+            "handlers": ["console", "logdebug"],
+            "level": "INFO",
             "propagate": True,
         },
         "matplotlib": {
