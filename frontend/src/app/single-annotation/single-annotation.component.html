@@ -4,14 +4,11 @@
       [(ngModel)]="currentAlleleInput"
       type="text"
       placeholder="Type variant..."
-      (keydown.enter)="validateVariant()" />
-    <button (click)="validateVariant()">Go</button>
+      (keydown.enter)="annotateAllele()" />
+    <button (click)="annotateAllele()">Go</button>
   </div>
   <span *ngIf="validationMessage" id="validation-message">{{ validationMessage }}</span>
   <span id="variant-examples">Example: chr1 11796321 G A</span>
 </div>
 
-<app-single-annotation-report
-  *ngIf="showReport"
-  [variant]="allele"
-  [pipelineId]="pipelineId"></app-single-annotation-report>
+<app-single-annotation-report [report]="report"></app-single-annotation-report>

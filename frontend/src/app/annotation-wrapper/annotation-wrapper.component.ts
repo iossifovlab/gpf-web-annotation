@@ -18,7 +18,7 @@ import { AllelesTableComponent } from '../alleles-table/alleles-table.component'
     JobCreationComponent,
     SingleAnnotationComponent,
     AllelesTableComponent
-],
+  ],
   templateUrl: './annotation-wrapper.component.html',
   styleUrl: './annotation-wrapper.component.css'
 })
@@ -34,7 +34,8 @@ export class AnnotationWrapperComponent {
   public isCreationFormVisible = true;
   @ViewChild(AnnotationPipelineComponent) public pipelinesComponent: AnnotationPipelineComponent;
   @ViewChild(JobCreationComponent) public createJobComponent: JobCreationComponent;
-  @ViewChild(JobsTableComponent) public tableComponent: JobsTableComponent;
+  @ViewChild(JobsTableComponent) public jobsTableComponent: JobsTableComponent;
+  @ViewChild(AllelesTableComponent) public allelesTableComponent: AllelesTableComponent;
   public createdJobStatus: Status;
   public downloadLink = '';
   public annotatedFileName = '';
@@ -80,7 +81,7 @@ export class AnnotationWrapperComponent {
       ).subscribe({
         next: (job: Job) => {
           if (this.createdJobStatus !== job.status) {
-            this.tableComponent.refreshTable();
+            this.jobsTableComponent.refreshTable();
             this.createdJobStatus = job.status;
             this.downloadLink = this.jobsService.getDownloadJobResultLink(job.id);
             this.annotatedFileName = job.annotatedFileName;
