@@ -223,10 +223,10 @@ def test_annotate_vcf(
 
     annotation_config = textwrap.dedent("""
         - position_score:
+            resource_id: scores/pos1
             attributes:
             - name: position_1
               source: pos1
-            resource_id: scores/pos1
     """).lstrip()
     vcf = textwrap.dedent("""
         ##fileformat=VCFv4.1
@@ -743,10 +743,10 @@ def test_annotate_vcf_bgzip(
 
     annotation_config = textwrap.dedent("""
         - position_score:
+            resource_id: scores/pos1
             attributes:
             - name: position_1
               source: pos1
-            resource_id: scores/pos1
     """).lstrip()
     test_dir = tmp_path / "vcf_gzip"
     test_dir.mkdir(parents=True, exist_ok=True)
@@ -869,6 +869,65 @@ def test_user_create_pipeline(
     assert pipeline.name == "test_pipeline"
     output = pathlib.Path(pipeline.config_path).read_text(encoding="utf-8")
     assert output == "- position_score: scores/pos1"
+
+
+@pytest.mark.django_db
+def test_create_job_for_pipeline_with_preamble(
+    user_client: Client,
+) -> None:
+    user = User.objects.get(email="user@example.com")
+    pipeline_config = textwrap.dedent("""
+        preamble:
+          input_reference_genome: hg38/GRCh38-hg38/genome
+          summary: test_annotation_pipeline
+          description: some annotation pipeline
+        annotators:
+        - position_score: scores/pos1
+    """)
+
+    params = {
+        "config": ContentFile(pipeline_config),
+        "name": "test_pipeline",
+    }
+
+    assert Pipeline.objects.filter(owner=user).count() == 0
+
+    response = user_client.post("/api/user_pipeline", params)
+
+    assert response is not None
+    assert response.status_code == 200
+    assert response.json() == {"name": "test_pipeline"}
+    assert Pipeline.objects.filter(owner=user).count() == 1
+    pipeline = Pipeline.objects.last()
+    assert pipeline is not None
+    assert pipeline.name == "test_pipeline"
+    saved_pipeline = pathlib.Path(pipeline.config_path).read_text(
+        encoding="utf-8")
+    assert saved_pipeline == pipeline_config
+
+    vcf = textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        ##contig=<ID=chr1>
+        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+        chr1	1	.	C	A	.	.	.
+    """).strip()
+
+    response = user_client.post(
+        "/api/jobs/annotate_vcf",
+        {
+            "pipeline": "test_pipeline",
+            "data": ContentFile(vcf, "test_input.vcf")
+        },
+    )
+
+    job = Job.objects.last()
+
+    assert job is not None
+
+    config_path = pathlib.Path(job.config_path)
+    assert config_path.exists()
+
+    assert config_path.read_text().strip() == saved_pipeline.strip()
 
 
 @pytest.mark.django_db
