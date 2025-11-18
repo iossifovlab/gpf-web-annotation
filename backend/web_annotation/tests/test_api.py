@@ -321,10 +321,10 @@ def test_filesize_limit_user(
     mocker: MockerFixture,
     settings: LazySettings,
 ) -> None:
-    settings.LIMITS = {
+    settings.QUOTAS = {
         "filesize": 1,
-        "daily_jobs": settings.LIMITS["daily_jobs"],
-        "variant_count": settings.LIMITS["variant_count"],
+        "daily_jobs": settings.QUOTAS["daily_jobs"],
+        "variant_count": settings.QUOTAS["variant_count"],
     }
 
     mocker.patch(
@@ -355,7 +355,7 @@ def test_filesize_limit_admin(
     mocker: MockerFixture,
     settings: LazySettings,
 ) -> None:
-    settings.LIMITS = {
+    settings.QUOTAS = {
         "filesize": 1,
     }
 
@@ -387,10 +387,10 @@ def test_variant_limit_user(
     mocker: MockerFixture,
     settings: LazySettings,
 ) -> None:
-    settings.LIMITS = {
+    settings.QUOTAS = {
         "variant_count": 1,
-        "daily_jobs": settings.LIMITS["daily_jobs"],
-        "filesize": settings.LIMITS["filesize"],
+        "daily_jobs": settings.QUOTAS["daily_jobs"],
+        "filesize": settings.QUOTAS["filesize"],
     }
 
     mocker.patch(
@@ -422,7 +422,7 @@ def test_variant_limit_admin(
     mocker: MockerFixture,
     settings: LazySettings,
 ) -> None:
-    settings.LIMITS = {
+    settings.QUOTAS = {
         "variant_count": 1,
     }
 

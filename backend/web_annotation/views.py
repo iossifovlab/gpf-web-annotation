@@ -298,7 +298,7 @@ class AnnotationBaseView(views.APIView):
             return True
         assert file.size is not None
         return file.size < self._convert_size(
-            cast(str, settings.LIMITS["filesize"]),
+            cast(str, settings.QUOTAS["filesize"]),
         )
 
     def check_if_user_can_create(self, user: User) -> bool:
@@ -452,7 +452,7 @@ class AnnotationBaseView(views.APIView):
         if user.is_superuser:
             return True
         return len(list(file.fetch())) < cast(
-            int, settings.LIMITS["variant_count"])
+            int, settings.QUOTAS["variant_count"])
 
     def _validate_request(self, request: Request) -> Response | None:
         """Validate the request for creating a job."""
@@ -1149,19 +1149,19 @@ class UserInfo(views.APIView):
         """Return the daily job limit for a user."""
         if user.is_superuser:
             return None
-        return cast(int, settings.LIMITS["daily_jobs"])
+        return cast(int, settings.QUOTAS["daily_jobs"])
 
     def get_user_filesize_limit(self, user: User) -> str | None:
         """Return the file size limit for a user."""
         if user.is_superuser:
             return None
-        return cast(str, settings.LIMITS["filesize"])
+        return cast(str, settings.QUOTAS["filesize"])
 
     def get_user_variant_limit(self, user: User) -> int | None:
         """Return the variant count limit for a user."""
         if user.is_superuser:
             return None
-        return cast(int, settings.LIMITS["variant_count"])
+        return cast(int, settings.QUOTAS["variant_count"])
 
     def get_user_jobs_left(self, user: User) -> int | None:
         """Return the number of jobs left for a user today."""
@@ -1171,7 +1171,7 @@ class UserInfo(views.APIView):
             hour=0, minute=0, second=0, microsecond=0)
         jobs_made = Job.objects.filter(
             created__gte=today, owner__exact=user.pk)
-        daily_limit = cast(int, settings.LIMITS["daily_jobs"])
+        daily_limit = cast(int, settings.QUOTAS["daily_jobs"])
         return max(0, daily_limit - len(jobs_made))
 
     def get(self, request: Request) -> Response:

@@ -7,8 +7,9 @@ USERS_ACTIVATED_BY_DEFAULT = True
 STATIC_ROOT = '/static/gpf/static'
 
 
-LIMITS = {
+QUOTAS = {
     "daily_jobs": 50,
     "filesize": "64M",
+    "disk_space": "2048M",
     "variant_count": 1000,
 }

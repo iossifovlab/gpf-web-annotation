@@ -32,9 +32,10 @@ JOB_RESULT_STORAGE_DIR = f"{DATA_STORAGE_DIR}/job-results"
 
 PIPELINES_STORAGE_DIR = f"{DATA_STORAGE_DIR}/pipelines"
 
-LIMITS = {
+QUOTAS = {
     "daily_jobs": 20,
     "filesize": "64M",
+    "disk_space": "2048M",
     "variant_count": 50000,
 }
 
