@@ -1129,3 +1129,13 @@ def test_user_delete_allele_query_from_history(admin_client: Client) -> None:
     response = admin_client.get("/api/single_allele/history")
     assert response.status_code == 200
     assert response.json() == []
+
+
+def test_genomes_view(admin_client: Client) -> None:
+    response = admin_client.get("/api/jobs/genomes")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 2
+    assert data[0] == "hg38"
+    assert data[1] == "t4c8"

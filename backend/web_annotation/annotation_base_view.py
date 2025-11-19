@@ -6,7 +6,10 @@ from dae.annotation.annotation_config import (
     AnnotationConfigParser,
     AnnotationConfigurationError,
 )
-from dae.annotation.annotation_factory import load_pipeline_from_yaml
+from dae.annotation.annotation_factory import (
+    load_pipeline_from_grr,
+    load_pipeline_from_yaml,
+)
 from dae.annotation.annotation_pipeline import AnnotationPipeline
 from dae.genomic_resources.implementations.annotation_pipeline_impl import (
     AnnotationPipelineImplementation,
@@ -54,6 +57,33 @@ def get_pipelines(grr: GenomicResourceRepo) -> dict[str, dict[str, str]]:
 PIPELINES = get_pipelines(GRR)
 
 
+def get_genome_pipelines(
+    grr: GenomicResourceRepo,
+) -> dict[str, AnnotationPipeline]:
+    """Return genome pipelines used for single variant annotation."""
+
+    if (
+        getattr(settings, "GENOME_DEFINITIONS") is None
+        or settings.GENOME_DEFINITIONS is None
+    ):
+        return {}
+
+    pipelines: dict[str, AnnotationPipeline] = {}
+    for genome, definition in settings.GENOME_DEFINITIONS.items():
+        pipeline_id = definition.get("pipeline_id")
+        assert pipeline_id is not None
+        pipeline_resource = grr.get_resource(pipeline_id)
+        pipeline = load_pipeline_from_grr(grr, pipeline_resource)
+        pipeline.open()
+        pipelines[genome] = pipeline
+    genome_pipelines = pipelines
+
+    return genome_pipelines
+
+
+GENOME_PIPELINES: dict[str, AnnotationPipeline] = get_genome_pipelines(GRR)
+
+
 class AnnotationBaseView(views.APIView):
     """Base view for views which access annotation resources."""
 
@@ -80,6 +110,7 @@ class AnnotationBaseView(views.APIView):
         super().__init__()
         self._grr = GRR
         self.pipelines = PIPELINES
+        self.genome_pipelines = GENOME_PIPELINES
         self.result_storage_dir = Path(settings.JOB_RESULT_STORAGE_DIR)
 
     @property

@@ -15,4 +15,8 @@ urlpatterns = [
         'api/jobs/preview',
         views.PreviewFileUpload.as_view(),
     ),
+    path(
+        'api/jobs/genomes',
+        views.ListGenomePipelines.as_view(),
+    ),
 ]

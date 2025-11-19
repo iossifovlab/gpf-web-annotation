@@ -39,6 +39,17 @@ from web_annotation.tasks import (
 logger = logging.getLogger(__name__)
 
 
+class ListGenomePipelines(AnnotationBaseView):
+    """View for listing available single annotation genomes."""
+
+    def get(self, request: Request) -> Response:
+        """Return list of genome pipelines for single annotation."""
+        return Response(
+            list(self.genome_pipelines.keys()),
+            status=views.status.HTTP_200_OK,
+        )
+
+
 class JobAll(generics.ListAPIView):
     """Generic view for listing all jobs."""
     queryset = Job.objects.filter(is_active=True)
