@@ -8,7 +8,7 @@ import { Allele, CategoricalHistogram, NumberHistogram, SingleAnnotationReport, 
 @Injectable()
 export class SingleAnnotationService {
   private readonly getReportUrl = `${environment.apiPath}/single_allele/annotate`;
-  private readonly getGenomesUrl = `${environment.apiPath}/genomes`;
+  private readonly getGenomesUrl = `${environment.apiPath}/jobs/genomes`;
   private readonly allelesHistoryUrl = `${environment.apiPath}/single_allele/history`;
   private readonly getHistogramUrl = `${environment.apiPath}/single_allele`;
   public constructor(private http: HttpClient) { }
