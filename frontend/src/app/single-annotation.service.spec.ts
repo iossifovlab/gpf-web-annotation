@@ -146,7 +146,7 @@ describe('SingleAnnotationService', () => {
 
     service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'pipeline');
     expect(httpGetSpy).toHaveBeenCalledWith(
-      '//localhost:8000/api/single_annotate',
+      '//localhost:8000/api/single_allele/annotate',
       { variant: { chrom: 'chr14', pos: 204000100, ref: 'A', alt: 'AA'}, pipeline: 'pipeline' },
       {}
     );
@@ -362,7 +362,7 @@ describe('SingleAnnotationService', () => {
     service.getHistogram('histograms/score?test=1');
 
     expect(httpGetSpy).toHaveBeenCalledWith(
-      '//localhost:8000/api/histograms/score?test=1'
+      '//localhost:8000/api/single_allele/histograms/score?test=1'
     );
   });
 

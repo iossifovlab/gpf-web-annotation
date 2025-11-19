@@ -14,29 +14,23 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.urls import path, include, re_path
+from django.urls import path, include
 
 from web_annotation import views
+
+from web_annotation.jobs.urls import urlpatterns as job_urls
+from web_annotation.pipelines.urls import urlpatterns as pipeline_urls
+from web_annotation.single_allele_annotation.urls import (
+    urlpatterns as single_allele_urls,
+)
 
 
 urlpatterns = [
     path('api-auth', include('rest_framework.urls')),
 
-    path('api/jobs', views.JobList.as_view()),
-    path('api/jobs/all', views.JobAll.as_view()),
-    path('api/jobs/annotate_columns', views.AnnotateColumns.as_view()),
-    path('api/jobs/annotate_vcf', views.AnnotateVCF.as_view()),
-    path('api/jobs/<int:pk>/file/<str:file>', views.JobGetFile.as_view()),
-    path('api/jobs/<int:pk>', views.JobDetail.as_view()),
-
-    path('api/genomes', views.ListGenomePipelines.as_view()),
-    path('api/single_annotate', views.SingleAnnotation.as_view()),
-    re_path(
-        r'api/histograms/(?P<resource_id>.+)',
-        views.HistogramView.as_view(),
-    ),
-
-    path('api/pipelines', views.ListPipelines.as_view()),
+    *job_urls,
+    *single_allele_urls,
+    *pipeline_urls,
 
     path('api/users', views.UserList.as_view()),
     path('api/users/<int:pk>', views.UserDetail.as_view()),
@@ -45,12 +39,6 @@ urlpatterns = [
     path('api/logout', views.Logout.as_view()),
     path('api/register', views.Registration.as_view()),
     path('api/user_info', views.UserInfo.as_view()),
-    path('api/jobs/validate', views.AnnotationConfigValidation.as_view()),
-    path('api/validate_columns', views.ColumnValidation.as_view()),
-    path(
-        'api/jobs/preview',
-        views.PreviewFileUpload.as_view(),
-    ),
     path('api/confirm_account', views.ConfirmAccount.as_view()),
     path(
         "api/forgotten_password",
@@ -62,6 +50,4 @@ urlpatterns = [
         views.PasswordReset.as_view(),
         name="reset_password",
     ),
-    path("api/user_pipeline", views.UserPipeline.as_view()),
-    path("api/allele_history", views.AlleleHistory.as_view()),
 ]
