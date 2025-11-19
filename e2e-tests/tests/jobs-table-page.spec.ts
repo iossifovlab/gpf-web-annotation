@@ -78,7 +78,7 @@ test.describe('Job details tests', () => {
 
     await page.locator('.job-name').getByText('info').nth(0).click();
     await expect(page.locator('app-job-details')).toBeVisible();
-    await expect(page.locator('app-job-details').locator('.id')).not.toBeEmpty();
+    await expect(page.locator('app-job-details').locator('.owner')).not.toBeEmpty();
     await expect(page.locator('app-job-details').locator('.name')).not.toBeEmpty();
     await expect(page.locator('app-job-details').locator('.date')).not.toBeEmpty();
     await expect(page.locator('app-job-details').locator('.time')).not.toBeEmpty();
