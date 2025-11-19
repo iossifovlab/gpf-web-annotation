@@ -51,7 +51,7 @@ describe('AnnotationPipelineService', () => {
     service.savePipeline('pipeline-name', config);
 
     expect(httpPostSpy).toHaveBeenCalledWith(
-      '//localhost:8000/api/user_pipeline',
+      '//localhost:8000/api/pipelines/user',
       formData,
       options
     );
@@ -91,7 +91,7 @@ describe('AnnotationPipelineService', () => {
     service.deletePipeline('pipeline-name');
 
     expect(httpDelteSpy).toHaveBeenCalledWith(
-      '//localhost:8000/api/user_pipeline?name=pipeline-name',
+      '//localhost:8000/api/pipelines/user?name=pipeline-name',
       options
     );
   });

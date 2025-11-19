@@ -7,8 +7,8 @@ import { environment } from '../../../environments/environment';
 
 @Injectable()
 export class JobsService {
-  private readonly validateJobConfigUrl = `${environment.apiPath}/jobs/validate`;
-  private readonly validateColumnsUrl = `${environment.apiPath}/validate_columns`;
+  private readonly validateJobConfigUrl = `${environment.apiPath}/pipelines/validate`;
+  private readonly validateColumnsUrl = `${environment.apiPath}/jobs/validate_columns`;
   private readonly jobsUrl = `${environment.apiPath}/jobs`;
   private readonly jobPreviewUrl = `${environment.apiPath}/jobs/preview`;
   private readonly getPipelinesUrl = `${environment.apiPath}/pipelines`;
@@ -35,7 +35,9 @@ export class JobsService {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
     const formData = new FormData();
     formData.append('data', file);
-    formData.append('genome', genome);
+    if (genome) {
+      formData.append('genome', genome);
+    }
     formData.append('pipeline', pipeline);
 
     return this.http.post(
@@ -65,7 +67,10 @@ export class JobsService {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
     const formData = new FormData();
     formData.append('data', file);
-    formData.append('genome', genome);
+    if (genome) {
+      formData.append('genome', genome);
+    }
+
     if (fileSeparator) {
       formData.append('separator', fileSeparator);
     }

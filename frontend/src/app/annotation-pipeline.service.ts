@@ -7,7 +7,7 @@ import { map, Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class AnnotationPipelineService {
-  private readonly pipelineUrl = `${environment.apiPath}/user_pipeline`;
+  private readonly pipelineUrl = `${environment.apiPath}/pipelines/user`;
 
   public constructor(private http: HttpClient) { }
 
