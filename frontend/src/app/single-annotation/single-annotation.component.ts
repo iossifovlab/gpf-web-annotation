@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -13,31 +13,30 @@ import { SingleAnnotationReport, Variant } from '../single-annotation';
   styleUrl: './single-annotation.component.css'
 })
 export class SingleAnnotationComponent {
-  @Input() public pipelineId = '';
   public readonly environment = environment;
   public validationMessage = '';
   public currentAlleleInput: string = '';
   public allele: string = '';
   public report: SingleAnnotationReport = null;
   @Output() public alleleUpdateEmit = new EventEmitter<void>();
+  @Output() public autoSaveTrigger = new EventEmitter<void>();
 
   public constructor(private singleAnnotationService: SingleAnnotationService,) { }
 
-  public annotateAllele(): void {
-    if (this.isAlleleValid()) {
+  public triggerPipelineAutoSave(): void {
+    this.autoSaveTrigger.emit();
+  }
+
+  public annotateAllele(pipelineId: string): void {
+    if (this.isAlleleValid() && pipelineId) {
       this.validationMessage = '';
       this.allele = this.currentAlleleInput;
       this.currentAlleleInput = '';
-      this.getReport();
+      this.getReport(pipelineId);
     } else {
       this.validationMessage = 'Invalid allele format!';
       this.report = null;
     }
-  }
-
-  public triggerAnnotation(allele: string): void {
-    this.currentAlleleInput = allele;
-    this.annotateAllele();
   }
 
   private isAlleleValid(): boolean {
@@ -73,14 +72,14 @@ export class SingleAnnotationComponent {
     return aList.filter(a => !this.areBasesValid(a)).length === 0;
   }
 
-  public setPipeline(newPipeline: string): void {
-    this.pipelineId = newPipeline;
+  public setAllele(historyAllele: string): void {
+    this.currentAlleleInput = historyAllele;
   }
 
-  private getReport(): void {
+  private getReport(pipelineId: string): void {
     this.singleAnnotationService.getReport(
       this.parseVariantToObject(this.allele),
-      this.pipelineId
+      pipelineId
     ).subscribe(report => {
       this.report = report;
       this.alleleUpdateEmit.emit();

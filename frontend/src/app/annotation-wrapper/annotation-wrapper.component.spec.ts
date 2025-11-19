@@ -120,7 +120,7 @@ describe('AnnotationWrapperComponent', () => {
     component.pipelineId = 'autism';
     component.isCreationFormVisible = true;
 
-    component.onCreateClick();
+    component.autoSavePipeline();
     expect(component.isCreationFormVisible).toBe(false);
   });
 
@@ -146,7 +146,7 @@ describe('AnnotationWrapperComponent', () => {
   it('should auto save and get annonymous pipeline name', () => {
     const pipelinesComponentSpy = jest.spyOn(component.pipelinesComponent, 'autoSave')
       .mockReturnValue(of('annonymous pipeline'));
-    component.onCreateClick();
+    component.autoSavePipeline();
     expect(pipelinesComponentSpy).toHaveBeenCalledWith();
     expect(component.pipelineId).toBe('annonymous pipeline');
   });
@@ -154,7 +154,7 @@ describe('AnnotationWrapperComponent', () => {
   it('should auto save pipeline', () => {
     const pipelinesComponentSpy = jest.spyOn(component.pipelinesComponent, 'autoSave')
       .mockReturnValue(of(null));
-    component.onCreateClick();
+    component.autoSavePipeline();
     expect(pipelinesComponentSpy).toHaveBeenCalledWith();
     expect(component.pipelineId).toBe('id1');
   });
@@ -171,7 +171,7 @@ describe('AnnotationWrapperComponent', () => {
 
     const jobDetailsSpy = jest.spyOn(jobsServiceMock, 'getJobDetails').mockReturnValue(of(jobs[0]));
 
-    component.onCreateClick();
+    component.autoSavePipeline();
 
     expect(createJobSpy).toHaveBeenCalledWith(
       new File([], 'mock.vcf'),
@@ -195,7 +195,7 @@ describe('AnnotationWrapperComponent', () => {
 
     const jobDetailsSpy = jest.spyOn(jobsServiceMock, 'getJobDetails').mockReturnValue(of(jobs[0]));
 
-    component.onCreateClick();
+    component.autoSavePipeline();
 
     expect(createJobSpy).toHaveBeenCalledWith(
       new File([], 'mock.csv'),

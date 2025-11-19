@@ -53,110 +53,108 @@ describe('SingleAnnotationComponent', () => {
 
   it('should validate allele input', () => {
     component.currentAlleleInput = 'chr1 11796321 G A';
-    component.annotateAllele();
+    component.annotateAllele('pipelineId');
     expect(component.validationMessage).toBe('');
 
     component.currentAlleleInput = 'chr1 GTT A';
-    component.annotateAllele();
+    component.annotateAllele('pipelineId');
     expect(component.validationMessage).toBe('Invalid allele format!');
 
     component.currentAlleleInput = 'chr1 100 GTT A';
-    component.annotateAllele();
+    component.annotateAllele('pipelineId');
     expect(component.validationMessage).toBe('');
 
     component.currentAlleleInput = 'chr7 1    GTT A';
-    component.annotateAllele();
+    component.annotateAllele('pipelineId');
     expect(component.validationMessage).toBe('Invalid allele format!');
 
     component.currentAlleleInput = '  chr1 11796321 G A ';
-    component.annotateAllele();
+    component.annotateAllele('pipelineId');
     expect(component.validationMessage).toBe('');
   });
 
   it('should check if position of an allele is valid', () => {
     component.currentAlleleInput = 'chr1 11796321 G A';
-    component.annotateAllele();
+    component.annotateAllele('pipelineId');
     expect(component.validationMessage).toBe('');
 
     component.currentAlleleInput = 'chr1 pos:11796321 G A';
-    component.annotateAllele();
+    component.annotateAllele('pipelineId');
     expect(component.validationMessage).toBe('Invalid allele format!');
   });
 
   it('should check if reference of an allele is valid', () => {
     component.currentAlleleInput = 'chr1 11796321 G A';
-    component.annotateAllele();
+    component.annotateAllele('pipelineId');
     expect(component.validationMessage).toBe('');
 
     component.currentAlleleInput = 'chr1 11796321 GT A';
-    component.annotateAllele();
+    component.annotateAllele('pipelineId');
     expect(component.validationMessage).toBe('');
 
     component.currentAlleleInput = 'chr1 11796321 ZZ A';
-    component.annotateAllele();
+    component.annotateAllele('pipelineId');
     expect(component.validationMessage).toBe('Invalid allele format!');
 
     component.currentAlleleInput = 'chr1 11796321 GT,N A';
-    component.annotateAllele();
+    component.annotateAllele('pipelineId');
     expect(component.validationMessage).toBe('Invalid allele format!');
 
     component.currentAlleleInput = 'chr1 11796321 aaa A';
-    component.annotateAllele();
+    component.annotateAllele('pipelineId');
     expect(component.validationMessage).toBe('');
 
     component.currentAlleleInput = 'chr1 11796321  A';
-    component.annotateAllele();
+    component.annotateAllele('pipelineId');
     expect(component.validationMessage).toBe('Invalid allele format!');
   });
 
   it('should check if alternative of an allele is valid', () => {
     component.currentAlleleInput = 'chr1 11796321 G A';
-    component.annotateAllele();
+    component.annotateAllele('pipelineId');
     expect(component.validationMessage).toBe('');
 
     component.currentAlleleInput = 'chr1 11796321 G GT';
-    component.annotateAllele();
+    component.annotateAllele('pipelineId');
     expect(component.validationMessage).toBe('');
 
     component.currentAlleleInput = 'chr1 11796321 G GT,N';
-    component.annotateAllele();
+    component.annotateAllele('pipelineId');
     expect(component.validationMessage).toBe('');
 
     component.currentAlleleInput = 'chr1 11796321 G gt,a';
-    component.annotateAllele();
+    component.annotateAllele('pipelineId');
     expect(component.validationMessage).toBe('');
 
     component.currentAlleleInput = 'chr1 11796321 G A,NN,NNP';
-    component.annotateAllele();
+    component.annotateAllele('pipelineId');
     expect(component.validationMessage).toBe('Invalid allele format!');
 
     component.currentAlleleInput = 'chr1 11796321 G  ';
-    component.annotateAllele();
+    component.annotateAllele('pipelineId');
     expect(component.validationMessage).toBe('Invalid allele format!');
   });
 
   it('should get report when clicking go button and input is valid', () => {
     component.currentAlleleInput = 'chr1 11796321 G GT';
-    component.pipelineId = 'pipeline';
     const getReportSpy = jest.spyOn(mockSingleAnnotationService, 'getReport');
 
-    component.annotateAllele();
+    component.annotateAllele('pipelineId');
     expect(component.report).toBe(mockReport);
-    expect(getReportSpy).toHaveBeenCalledWith(new Variant('chr1', 11796321, 'G', 'GT', null), 'pipeline');
+    expect(getReportSpy).toHaveBeenCalledWith(new Variant('chr1', 11796321, 'G', 'GT', null), 'pipelineId');
   });
 
   it('should set report to null when input is not valid', () => {
     component.currentAlleleInput = 'chr1 11796321 G NNP';
-    component.annotateAllele();
+    component.annotateAllele('pipelineId');
     expect(component.report).toBeNull();
   });
 
   it('should trigger update table in parent after getting the report', () => {
     component.currentAlleleInput = 'chr1 11796321 G GT';
-    component.pipelineId = 'pipeline';
     const emitSpy = jest.spyOn(component.alleleUpdateEmit, 'emit');
 
-    component.annotateAllele();
+    component.annotateAllele('pipelineId');
     expect(emitSpy).toHaveBeenCalledWith();
   });
 });

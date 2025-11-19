@@ -46,13 +46,22 @@ export class AnnotationWrapperComponent {
       private jobsService: JobsService,
   ) { }
 
-  public onCreateClick(): void {
-    this.pipelinesComponent.autoSave().subscribe(annonymousPipelineName => {
+  public autoSavePipeline(): void {
+    this.pipelinesComponent.autoSave().pipe(take(1)).subscribe(annonymousPipelineName => {
       if (annonymousPipelineName) {
         this.pipelineId = annonymousPipelineName;
       }
-      this.create();
+      if (this.currentView === 'jobs') {
+        this.create();
+      } else {
+        this.singleAnnotationComponent.annotateAllele(this.pipelineId);
+      }
     });
+  }
+
+  public triggerSingleAlleleAnnotation(allele: string): void {
+    this.singleAnnotationComponent.setAllele(allele);
+    this.autoSavePipeline();
   }
 
   private create(): void {
@@ -176,9 +185,5 @@ export class AnnotationWrapperComponent {
 
   public refreshAllelesTable(): void {
     this.allelesTableComponent.refreshTable();
-  }
-
-  public makeSingleAlleleAnnotation(allele: string): void {
-    this.singleAnnotationComponent.triggerAnnotation(allele);
   }
 }

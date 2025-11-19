@@ -30,7 +30,7 @@
           <div style="margin-top: 10px">
             <span class="error-message">{{ creationError }}</span>
             <div id="buttons-wrapper">
-              <button id="create-button" (click)="onCreateClick()" tabindex="1" [disabled]="disableCreate()"
+              <button id="create-button" (click)="autoSavePipeline()" tabindex="1" [disabled]="disableCreate()"
                 >Create</button
               >
               <button id="reset-button" (click)="onResetClick()" tabindex="-1">Reset</button>
@@ -60,7 +60,7 @@
       <div *ngIf="currentView === 'single allele'">
         <app-single-annotation
           (alleleUpdateEmit)="refreshAllelesTable()"
-          [pipelineId]="pipelineId"></app-single-annotation>
+          (autoSaveTrigger)="autoSavePipeline()"></app-single-annotation>
       </div>
     </div>
   </div>
@@ -68,5 +68,5 @@
   <app-jobs-table *ngIf="currentView === 'jobs'"></app-jobs-table>
   <app-alleles-table
     *ngIf="currentView === 'single allele'"
-    (emitAllele)="makeSingleAlleleAnnotation($event)"></app-alleles-table>
+    (emitAllele)="triggerSingleAlleleAnnotation($event)"></app-alleles-table>
 </div>
