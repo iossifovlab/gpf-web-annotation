@@ -119,7 +119,7 @@ class AnnotationBaseView(views.APIView):
             return True
         assert file.size is not None
         return file.size < self._convert_size(
-            cast(str, settings.LIMITS["filesize"]),
+            cast(str, settings.QUOTAS["filesize"]),
         )
 
     def check_if_user_can_create(self, user: User) -> bool:
@@ -130,7 +130,7 @@ class AnnotationBaseView(views.APIView):
             hour=0, minute=0, second=0, microsecond=0)
         jobs_made = Job.objects.filter(
             created__gte=today, owner__exact=user.pk)
-        if len(jobs_made) > cast(int, settings.LIMITS["daily_jobs"]):
+        if len(jobs_made) > cast(int, settings.QUOTAS["daily_jobs"]):
             return False
         return True
 
@@ -273,7 +273,7 @@ class AnnotationBaseView(views.APIView):
         if user.is_superuser:
             return True
         return len(list(file.fetch())) < cast(
-            int, settings.LIMITS["variant_count"])
+            int, settings.QUOTAS["variant_count"])
 
     def _validate_request(self, request: Request) -> Response | None:
         """Validate the request for creating a job."""

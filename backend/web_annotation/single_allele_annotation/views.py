@@ -229,12 +229,9 @@ class SingleAnnotation(AnnotationBaseView):
             and request.user.is_authenticated
             and isinstance(request.user, User)
         ):
-            allele_query = AlleleQuery(
-                allele=(
-                    f"{variant['chrom']} {variant['pos']} "
-                    f"{variant['ref']} {variant['alt']}"
-                ),
-                owner=request.user,
+            allele = (
+                f"{variant['chrom']} {variant['pos']} "
+                f"{variant['ref']} {variant['alt']}"
             )
             if AlleleQuery.objects.filter(
                 allele=allele,

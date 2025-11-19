@@ -1062,9 +1062,11 @@ def test_single_annotation_save_query_in_history(admin_client: Client) -> None:
     ]
 
 
-def test_single_annotation_save_duplicate_query_in_history(admin_client: Client) -> None:
+def test_single_annotation_save_duplicate_query_in_history(
+    admin_client: Client,
+) -> None:
     response = admin_client.post(
-        "/api/single_annotate",
+        "/api/single_allele/annotate",
         {
             "pipeline": "t4c8/t4c8_pipeline",
             "variant": {
@@ -1076,7 +1078,7 @@ def test_single_annotation_save_duplicate_query_in_history(admin_client: Client)
     assert response.status_code == 200, response.content
 
     response = admin_client.post(
-        "/api/single_annotate",
+        "/api/single_allele/annotate",
         {
             "pipeline": "t4c8/t4c8_pipeline",
             "variant": {
@@ -1087,7 +1089,7 @@ def test_single_annotation_save_duplicate_query_in_history(admin_client: Client)
     )
     assert response.status_code == 200, response.content
 
-    response = admin_client.get("/api/allele_history")
+    response = admin_client.get("/api/single_allele/history")
     assert response.status_code == 200
     assert response.json() == [
         {

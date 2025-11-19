@@ -173,6 +173,7 @@ class AnnotateVCF(AnnotationBaseView):
                 result: None) -> None:  # pylint: disable=unused-argument
             """Callback when annotation is done."""
             job.duration = time.time() - start_time
+            job.disk_size += Path(job.result_path).stat().st_size
             update_job_success(job)
 
         def on_failure(exception: BaseException) -> None:
@@ -277,6 +278,7 @@ class AnnotateColumns(AnnotationBaseView):
 
         def on_success(result: None) -> None:
             job.duration = time.time() - start_time
+            job.disk_size += Path(job.result_path).stat().st_size
             update_job_success(job)
 
         def on_failure(exception: BaseException) -> None:
