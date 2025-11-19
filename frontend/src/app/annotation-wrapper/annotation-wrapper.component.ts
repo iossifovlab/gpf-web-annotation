@@ -125,6 +125,10 @@ export class AnnotationWrapperComponent {
   }
 
   public setPipeline(newPipeline: string): void {
+    if (this.pipelineId === newPipeline) {
+      return;
+    }
+    this.resetSingleAlleleReport();
     this.pipelineId = newPipeline;
     this.disableCreate();
   }
@@ -133,11 +137,21 @@ export class AnnotationWrapperComponent {
     this.creationError = '';
   }
 
+  public resetSingleAlleleReport(): void {
+    if (this.currentView === 'single allele') {
+      this.singleAnnotationComponent.resetReport();
+    }
+  }
+
   public setGenome(genome: string): void {
     this.selectedGenome = genome;
   }
 
   public setConfigValid(newState: boolean): void {
+    if (this.isConfigValid === newState) {
+      return;
+    }
+    this.resetSingleAlleleReport();
     this.isConfigValid = newState;
     this.disableCreate();
   }

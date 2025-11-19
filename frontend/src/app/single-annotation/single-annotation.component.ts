@@ -76,6 +76,10 @@ export class SingleAnnotationComponent {
     this.currentAlleleInput = historyAllele;
   }
 
+  public resetReport(): void {
+    this.report = null;
+  }
+
   private getReport(pipelineId: string): void {
     this.singleAnnotationService.getReport(
       this.parseVariantToObject(this.allele),
