@@ -26,6 +26,7 @@ from web_annotation.serializers import UserSerializer
 from web_annotation.utils import (
     PasswordForgottenForm,
     ResetPasswordForm,
+    bytes_to_readable,
     calculate_used_disk_space,
     check_request_verification_path,
     convert_size,
@@ -104,11 +105,10 @@ class UserInfo(views.APIView):
                 "limitations": {
                     "dailyJobs": self.get_user_daily_limit(user),
                     "filesize": self.get_user_filesize_limit(user),
-                    "disk_space": (
-                        f"{calculate_used_disk_space(user) // 10**6}MB / "
-                        f"{convert_size(
-                            str(settings.QUOTAS["disk_space"])
-                        ) // 10**6}MB"
+                    "diskSpace": (
+                        f"{bytes_to_readable(calculate_used_disk_space(user))} "
+                        f"/ {bytes_to_readable(
+                            convert_size(str(settings.QUOTAS["disk_space"])))}"
                     ),
                     "variantCount": self.get_user_variant_limit(user),
                     "jobsLeft": self.get_user_jobs_left(user),

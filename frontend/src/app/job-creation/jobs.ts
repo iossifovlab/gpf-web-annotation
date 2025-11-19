@@ -6,7 +6,8 @@ export class Job {
     public owner: string,
     public status: Status,
     public duration: number,
-    public annotatedFileName: string
+    public annotatedFileName: string,
+    public size: string,
   ) {}
 
   public static fromJsonArray(jsonArray: object[]): Job[] {
@@ -37,6 +38,7 @@ export class Job {
       status,
       json['duration'] as number,
       json['result_filename'] as string,
+      json['size'] as string,
     );
   }
 }

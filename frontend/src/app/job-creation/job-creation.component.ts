@@ -36,6 +36,7 @@ export class JobCreationComponent implements OnInit {
       filesize: string;
       jobsLeft: number;
       variantCount: number;
+      diskSpace: string;
   } = null;
 
   public constructor(

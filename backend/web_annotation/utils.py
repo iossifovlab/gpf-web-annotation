@@ -298,3 +298,22 @@ def calculate_used_disk_space(user: User) -> int:
         0,
     )
     return used_disk_space
+
+
+def bytes_to_readable(raw_bytes: int) -> str:
+    """Convert a human readable filesize string to bytes."""
+    if isinstance(raw_bytes, str):
+        return raw_bytes
+    units: dict[str, int] = {
+        "KB": 10**3,
+        "MB": 10**6,
+        "GB": 10**9,
+        "TB": 10**12,
+    }
+    result = "0.1 KB"
+    for unit, mult in units.items():
+        if raw_bytes > mult:
+            result = f"{format(raw_bytes / mult, '.1f')} {unit}"
+        else:
+            break
+    return result

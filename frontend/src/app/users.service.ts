@@ -14,6 +14,7 @@ export interface UserData {
     filesize: string;
     jobsLeft: number;
     variantCount: number;
+    diskSpace: string;
   }
 }
 

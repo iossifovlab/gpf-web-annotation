@@ -21,7 +21,7 @@ from web_annotation.annotation_base_view import AnnotationBaseView
 from web_annotation.models import Job
 from web_annotation.permissions import has_job_permission
 from web_annotation.serializers import JobSerializer
-from web_annotation.utils import calculate_used_disk_space
+from web_annotation.utils import bytes_to_readable
 from web_annotation.tasks import (
     get_args_columns,
     get_args_vcf,
@@ -95,7 +95,7 @@ class JobDetail(AnnotationBaseView):
             "command_line": job.command_line,
             "status": job.status,
             "result_filename": Path(job.result_path).name,
-            "size": f"{calculate_used_disk_space(request.user) // 10**6}MB",
+            "size": bytes_to_readable(int(job.disk_size)),
         }
         try:
             details = get_job_details(pk)

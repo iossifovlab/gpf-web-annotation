@@ -1,6 +1,9 @@
 #quota {
   font-weight: bold;
-  color: #5b778c;
+  color: #85a2b9;
+  margin-top: 25px;
+  display: flex;
+  justify-content: space-between;
 }
 
 #file-upload-field {

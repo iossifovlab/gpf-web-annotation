@@ -99,7 +99,7 @@ def test_annotate_vcf_job_details(user_client: Client) -> None:
     assert result["owner"] == "user@example.com"
     assert result["command_line"] == "annotate_vcf mock command line"
     assert result["duration"] == 1.0
-    assert result["size"] == "10MB"
+    assert result["size"] == "10.0 MB"
     assert result.get("head") is None
     assert result["result_filename"] == "user-result.vcf"
 
@@ -146,7 +146,7 @@ def test_annotate_columns_job_details(user_client: Client) -> None:
             'pos_end': '20',
         },
     ]
-    assert result["size"] == "10MB"
+    assert result["size"] == "0.1 KB"
     assert result["result_filename"] == "result-2.csv"
 
 
