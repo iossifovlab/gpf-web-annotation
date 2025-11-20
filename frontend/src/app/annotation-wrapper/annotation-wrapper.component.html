@@ -29,12 +29,9 @@
             (emitUpdatedFileHeader)="setUpdatedFileHeader($event)"></app-job-creation>
           <div style="margin-top: 10px">
             <span class="error-message">{{ creationError }}</span>
-            <div id="buttons-wrapper">
-              <button id="create-button" (click)="autoSavePipeline()" tabindex="1" [disabled]="disableCreate()"
-                >Create</button
-              >
-              <button id="reset-button" (click)="onResetClick()" tabindex="-1">Reset</button>
-            </div>
+            <button id="create-button" (click)="autoSavePipeline()" tabindex="1" [disabled]="disableCreate()"
+              >Create</button
+            >
           </div>
         </div>
 

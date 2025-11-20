@@ -15,7 +15,7 @@
   background: #435869;
   border-radius: 10px;
   color: white;
-  margin-right: 10px;
+  float: right;
 }
 
 #create-button:hover {
@@ -30,20 +30,6 @@
 #create-button:disabled:hover {
   cursor: auto;
   background-color: #435869;
-}
-
-#reset-button {
-  padding: 8px 10px;
-  font-size: 16px;
-  white-space: nowrap;
-  border: 1px solid #cfd8df;
-  background: #fff;
-  border-radius: 10px;
-}
-
-#reset-button:hover {
-  background: #f4f7fb;
-  cursor: pointer;
 }
 
 #annotation-container {
@@ -82,10 +68,6 @@
 .inactive-view {
   text-decoration: none;
   color: #85a2b9;
-}
-
-#buttons-wrapper {
-  float: right;
 }
 
 #new-job-button {

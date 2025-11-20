@@ -50,8 +50,8 @@ class JobsServiceMock {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getJobDetails(jobId: string): Observable<Job> {
-    return of(jobs[0]);
+  public getJobDetails(jobId: number): Observable<Job> {
+    return of(jobs.find(j => j.id === jobId));
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -133,16 +133,6 @@ describe('AnnotationWrapperComponent', () => {
     expect(component.file).toBeNull();
   });
 
-  it('should reset state when resetting the creation process', () => {
-    const pipelinesComponentSpy = jest.spyOn(component.pipelinesComponent, 'resetState');
-    const createJobComponentSpy = jest.spyOn(component.createJobComponent, 'removeFile');
-    component.creationError = 'some error';
-    component.onResetClick();
-    expect(pipelinesComponentSpy).toHaveBeenCalledWith();
-    expect(createJobComponentSpy).toHaveBeenCalledWith();
-    expect(component.creationError).toBe('');
-  });
-
   it('should auto save and get annonymous pipeline name', () => {
     const pipelinesComponentSpy = jest.spyOn(component.pipelinesComponent, 'autoSave')
       .mockReturnValue(of('annonymous pipeline'));
@@ -168,7 +158,7 @@ describe('AnnotationWrapperComponent', () => {
 
     const createJobSpy = jest.spyOn(jobsServiceMock, 'createVcfJob');
 
-    const jobDetailsSpy = jest.spyOn(jobsServiceMock, 'getJobDetails').mockReturnValue(of(jobs[0]));
+    const jobDetailsSpy = jest.spyOn(jobsServiceMock, 'getJobDetails');
 
     component.autoSavePipeline();
 
@@ -191,7 +181,7 @@ describe('AnnotationWrapperComponent', () => {
     component.fileHeader = new Map<string, string>([['a', '1']]);
     const createJobSpy = jest.spyOn(jobsServiceMock, 'createNonVcfJob');
 
-    const jobDetailsSpy = jest.spyOn(jobsServiceMock, 'getJobDetails').mockReturnValue(of(jobs[0]));
+    const jobDetailsSpy = jest.spyOn(jobsServiceMock, 'getJobDetails');
 
     component.autoSavePipeline();
 

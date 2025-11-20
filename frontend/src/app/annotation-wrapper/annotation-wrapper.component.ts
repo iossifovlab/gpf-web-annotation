@@ -117,12 +117,6 @@ export class AnnotationWrapperComponent {
     this.file = null;
   }
 
-  public onResetClick(): void {
-    this.clearErrorMessage();
-    this.pipelinesComponent.resetState();
-    this.createJobComponent.removeFile();
-  }
-
   public setPipeline(newPipeline: string): void {
     if (this.pipelineId === newPipeline) {
       return;
