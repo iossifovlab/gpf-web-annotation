@@ -23,7 +23,6 @@ from django.core.files.uploadedfile import UploadedFile
 from django.http import QueryDict
 from django.utils import timezone
 import magic
-from pysam import VariantFile
 from rest_framework import views
 from rest_framework.views import Request, Response
 from rest_framework.request import MultiValueDict
@@ -112,6 +111,8 @@ class AnnotationBaseView(views.APIView):
         self.pipelines = PIPELINES
         self.genome_pipelines = GENOME_PIPELINES
         self.result_storage_dir = Path(settings.JOB_RESULT_STORAGE_DIR)
+        self.max_variants: int = cast(
+            int, settings.QUOTAS["variant_count"])
 
     @property
     def grr(self) -> GenomicResourceRepo:
@@ -327,13 +328,6 @@ class AnnotationBaseView(views.APIView):
                 f"{user_email}/{data_filename}*")
         for out_file in results:
             out_file.unlink(missing_ok=True)
-
-    def check_variants_limit(self, file: VariantFile, user: User) -> bool:
-        """Check if a variants file does not exceed the variants limit."""
-        if user.is_superuser:
-            return True
-        return len(list(file.fetch())) < cast(
-            int, settings.QUOTAS["variant_count"])
 
     def _validate_request(self, request: Request) -> Response | None:
         """Validate the request for creating a job."""

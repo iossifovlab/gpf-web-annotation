@@ -9,7 +9,7 @@ from pysam import tabix_compress
 import pytest
 import pytest_mock
 from dae.genomic_resources.repository import GenomicResourceRepo
-from django.conf import settings
+from django.conf import LazySettings, settings
 from django.core.files.base import ContentFile
 from django.test import Client
 from django.utils import timezone
@@ -1289,3 +1289,86 @@ def test_annotate_vcf_user_pipeline(
 
     result_path = pathlib.Path(job.result_path)
     assert result_path.exists()
+
+
+def test_annotate_vcf_variant_quota(
+    user_client: Client,
+    settings: LazySettings,
+) -> None:
+    settings.QUOTAS["variant_count"] = 50
+
+    vcf = textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        ##contig=<ID=chr1>
+        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+    """).strip() + "\n" + "\n".join(
+        f"chr1\t{i}\t.\tA\tT\t.\t.\t." for i in range(1, 50)
+    )
+
+    response = user_client.post(
+        "/api/jobs/annotate_vcf",
+        {
+            "pipeline": "pipeline/test_pipeline",
+            "data": ContentFile(vcf, "test_input.vcf")
+        },
+    )
+    assert response.status_code == 200
+    settings.QUOTAS["variant_count"] = 48
+
+    vcf = textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        ##contig=<ID=chr1>
+        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+    """).strip() + "\n" + "\n".join(
+        f"chr1\t{i}\t.\tA\tT\t.\t.\t." for i in range(1, 50)
+    )
+
+    response = user_client.post(
+        "/api/jobs/annotate_vcf",
+        {
+            "pipeline": "pipeline/test_pipeline",
+            "data": ContentFile(vcf, "test_input.vcf")
+        },
+    )
+    assert response.status_code == 413
+
+
+def test_annotate_columns_variant_quota(
+    user_client: Client,
+    settings: LazySettings,
+) -> None:
+    settings.QUOTAS["variant_count"] = 50
+
+    file = "chrom,pos,ref,alt\n" + "\n".join(
+        f"chr1,{i},A,T" for i in range(1, 50)
+    )
+
+    params = {
+        "pipeline": "pipeline/test_pipeline",
+        "data": ContentFile(file, "test_input.tsv"),
+        "col_chrom": "chrom",
+        "col_pos": "pos",
+        "col_ref": "ref",
+        "col_alt": "alt",
+    }
+
+    response = user_client.post("/api/jobs/annotate_columns", params)
+    assert response.status_code == 200
+
+    settings.QUOTAS["variant_count"] = 48
+
+    file = "chrom,pos,ref,alt\n" + "\n".join(
+        f"chr1,{i},A,T" for i in range(1, 50)
+    )
+
+    params = {
+        "pipeline": "pipeline/test_pipeline",
+        "data": ContentFile(file, "test_input.tsv"),
+        "col_chrom": "chrom",
+        "col_pos": "pos",
+        "col_ref": "ref",
+        "col_alt": "alt",
+    }
+
+    response = user_client.post("/api/jobs/annotate_columns", params)
+    assert response.status_code == 413
