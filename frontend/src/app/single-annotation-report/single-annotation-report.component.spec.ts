@@ -2,7 +2,15 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { SingleAnnotationReportComponent } from './single-annotation-report.component';
 import { BehaviorSubject } from 'rxjs';
-import { Annotator, AnnotatorDetails, Attribute, Result, SingleAnnotationReport, Variant } from '../single-annotation';
+import {
+  Annotator,
+  AnnotatorDetails,
+  Attribute,
+  Resource,
+  Result,
+  SingleAnnotationReport,
+  Variant
+} from '../single-annotation';
 import { ActivatedRoute, provideRouter } from '@angular/router';
 import { provideMarkdown } from 'ngx-markdown';
 import { HelperModalComponent } from '../helper-modal/helper-modal.component';
@@ -74,7 +82,7 @@ describe('SingleAnnotationReportComponent', () => {
     const report = new SingleAnnotationReport(
       new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
       [
-        new Annotator(new AnnotatorDetails('allele_score', 'desc', 'resourceId', 'resourceUrl'), [
+        new Annotator(new AnnotatorDetails('allele_score', 'desc', [new Resource('resourceId', 'resourceUrl')]), [
           new Attribute('attr1', 'desc1', 'AF', {value: 'true', histogramLink: null} as Result, ''),
           new Attribute('attr2', 'desc2', 'AF', {value: 'false', histogramLink: null} as Result, ''),
           new Attribute('attr3', 'desc3', 'AF', {value: 0, histogramLink: null} as Result, ''),
@@ -98,7 +106,7 @@ describe('SingleAnnotationReportComponent', () => {
     const report = new SingleAnnotationReport(
       new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
       [
-        new Annotator(new AnnotatorDetails('allele_score', 'desc', 'resourceId', 'resourceUrl'), [
+        new Annotator(new AnnotatorDetails('allele_score', 'desc', [new Resource('resourceId', 'resourceUrl')]), [
           new Attribute('attr1', 'desc1', 'AF', {value: 'true', histogramLink: null} as Result, ''),
           new Attribute('attr2', 'desc2', 'AF', {value: 13, histogramLink: null} as Result, ''),
           new Attribute('attr3', 'desc3', 'AF', {value: 'mock_value', histogramLink: null} as Result, ''),

@@ -48,12 +48,37 @@ export class Annotator {
   }
 }
 
+export class Resource {
+  public constructor(
+    public resourceId: string,
+    public resourceUrl: string,
+  ) {}
+
+  public static fromJsonArray(jsonArray: object[]): Resource[] {
+    if (!jsonArray) {
+      return undefined;
+    }
+
+    return jsonArray.map(json => Resource.fromJson(json));
+  }
+
+  public static fromJson(json: object): Resource {
+    if (!json) {
+      return undefined;
+    }
+
+    return new Resource(
+      json['resource_id'] as string,
+      json['resource_url'] as string,
+    );
+  }
+}
+
 export class AnnotatorDetails {
   public constructor(
     public name: string,
     public description: string,
-    public resourceId: string,
-    public resourceUrl: string,
+    public resources: Resource[]
   ) {}
 
   public static fromJson(json: object): AnnotatorDetails {
@@ -64,8 +89,7 @@ export class AnnotatorDetails {
     return new AnnotatorDetails(
       json['name'] as string,
       json['description'] as string,
-      json['resource_id'] as string,
-      json['resource_url'] as string,
+      Resource.fromJsonArray(json['resources'] as { resourceId: string, resourceUrl: string }[])
     );
   }
 }

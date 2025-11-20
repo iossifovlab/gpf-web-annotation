@@ -11,7 +11,8 @@ import {
   Variant,
   Result,
   NumberHistogram,
-  CategoricalHistogram
+  CategoricalHistogram,
+  Resource
 } from './single-annotation';
 import { cloneDeep } from 'lodash';
 
@@ -99,10 +100,14 @@ const mockResponse = {
       details: {
         name: 'allele_score',
         description: 'description',
-        // eslint-disable-next-line camelcase
-        resource_id: 'resourceId',
-        // eslint-disable-next-line camelcase
-        resource_url: 'resourceUrl',
+        resources: [
+          {
+            // eslint-disable-next-line camelcase
+            resource_id: 'resourceId',
+            // eslint-disable-next-line camelcase
+            resource_url: 'resourceUrl',
+          }
+        ]
       },
       attributes: [
         {
@@ -157,7 +162,7 @@ describe('SingleAnnotationService', () => {
       new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
       [
         new Annotator(
-          new AnnotatorDetails('allele_score', 'description', 'resourceId', 'resourceUrl'),
+          new AnnotatorDetails('allele_score', 'description', [new Resource('resourceId', 'resourceUrl')]),
           [
             new Attribute(
               'cadd_raw',
@@ -185,7 +190,7 @@ describe('SingleAnnotationService', () => {
       new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
       [
         new Annotator(
-          new AnnotatorDetails('allele_score', 'description', 'resourceId', 'resourceUrl'),
+          new AnnotatorDetails('allele_score', 'description', [new Resource('resourceId', 'resourceUrl')]),
           [undefined]
         ),
       ]
@@ -208,7 +213,7 @@ describe('SingleAnnotationService', () => {
       new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
       [
         new Annotator(
-          new AnnotatorDetails('allele_score', 'description', 'resourceId', 'resourceUrl'),
+          new AnnotatorDetails('allele_score', 'description', [new Resource('resourceId', 'resourceUrl')]),
           undefined
         ),
       ]
@@ -267,7 +272,7 @@ describe('SingleAnnotationService', () => {
       undefined,
       [
         new Annotator(
-          new AnnotatorDetails('allele_score', 'description', 'resourceId', 'resourceUrl'),
+          new AnnotatorDetails('allele_score', 'description', [new Resource('resourceId', 'resourceUrl')]),
           [
             new Attribute(
               'cadd_raw',

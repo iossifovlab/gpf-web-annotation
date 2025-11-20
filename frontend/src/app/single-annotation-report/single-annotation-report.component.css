@@ -92,6 +92,14 @@
   margin-bottom: 6px;
 }
 
+.resource {
+  margin-bottom: 20px;
+}
+
+.resource:last-child {
+  margin-bottom: 0;
+}
+
 .resource-label {
   font-weight: 500;
   color: #435869;

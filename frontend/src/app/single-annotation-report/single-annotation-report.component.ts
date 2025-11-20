@@ -47,7 +47,7 @@ export class SingleAnnotationReportComponent {
         let value = '';
         if (attribute.result.value instanceof Map) {
           attribute.result.value.forEach((v, k) => {
-            value += `${k}:${v};`
+            value += `${k}:${v};`;
           });
           value = value.slice(0, -1); // Remove trailing ;
         } else {

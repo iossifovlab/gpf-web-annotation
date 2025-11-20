@@ -73,14 +73,14 @@
           <markdown class="annotator-description">{{ annotator.details.description }}</markdown>
         </div>
 
-        <div class="resource">
-          <div class="resource-label">Resource</div>
-          <div
-            ><span class="id-label">id: </span>
-            <a [href]="annotator.details.resourceUrl" class="annotator-resource">{{
-              annotator.details.resourceId
-            }}</a></div
-          >
+        <div *ngIf="annotator.details.resources.length" class="resources">
+          <div *ngFor="let resource of annotator.details.resources" class="resource">
+            <div class="resource-label">Resource</div>
+            <div
+              ><span class="id-label">id: </span>
+              <a [href]="resource.resourceUrl" class="annotator-resource">{{ resource.resourceId }}</a></div
+            >
+          </div>
         </div>
       </div>
     </div>
