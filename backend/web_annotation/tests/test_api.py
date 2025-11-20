@@ -530,8 +530,12 @@ def test_single_annotation(admin_client: Client) -> None:
             "administration/annotation.html#position-score\" "
             "target=\"_blank\">More info</a>\n\n"
         ),
-        "resource_id": "scores/pos1",
-        "resource_url": "http://test/scores/pos1/index.html",
+        "resources": [
+            {
+                "resource_id": "scores/pos1",
+                "resource_url": "http://test/scores/pos1/index.html",
+            },
+        ],
     }
 
     assert len(annotators_data[0]["attributes"]) == 1
@@ -589,8 +593,12 @@ def test_single_annotation_unauthorized(anonymous_client: Client) -> None:
             "administration/annotation.html#position-score\" "
             "target=\"_blank\">More info</a>\n\n"
         ),
-        "resource_id": "scores/pos1",
-        "resource_url": "http://test/scores/pos1/index.html",
+        "resources": [
+            {
+                "resource_id": "scores/pos1",
+                "resource_url": "http://test/scores/pos1/index.html",
+            },
+        ],
     }
 
     assert len(annotators_data[0]["attributes"]) == 1
@@ -946,15 +954,19 @@ def test_single_annotation_t4c8(admin_client: Client) -> None:
     effect_annotator = annotators_data[0]
     gene_score_annotator = annotators_data[1]
     assert effect_annotator["details"]["name"] == "effect_annotator"
-    assert effect_annotator["details"]["resource_id"] == \
-        "t4c8/t4c8_genome, t4c8/t4c8_genes"
-    assert effect_annotator["details"]["resource_url"] == \
+    assert effect_annotator["details"]["resources"][0]["resource_id"] == \
+        "t4c8/t4c8_genome"
+    assert effect_annotator["details"]["resources"][0]["resource_url"] == \
         "http://test/t4c8/t4c8_genome/index.html"
+    assert effect_annotator["details"]["resources"][1]["resource_id"] == \
+        "t4c8/t4c8_genes"
+    assert effect_annotator["details"]["resources"][1]["resource_url"] == \
+        "http://test/t4c8/t4c8_genes/index.html"
 
     assert gene_score_annotator["details"]["name"] == "gene_score_annotator"
-    assert gene_score_annotator["details"]["resource_id"] == \
+    assert gene_score_annotator["details"]["resources"][0]["resource_id"] == \
         "t4c8/gene_scores/t4c8_score"
-    assert gene_score_annotator["details"]["resource_url"] == \
+    assert gene_score_annotator["details"]["resources"][0]["resource_url"] == \
         "http://test/t4c8/gene_scores/t4c8_score/index.html"
 
     assert len(gene_score_annotator["attributes"]) == 1
@@ -998,15 +1010,19 @@ def test_single_annotation_t4c8(admin_client: Client) -> None:
     effect_annotator = annotators_data[0]
     gene_score_annotator = annotators_data[1]
     assert effect_annotator["details"]["name"] == "effect_annotator"
-    assert effect_annotator["details"]["resource_id"] == \
-        "t4c8/t4c8_genome, t4c8/t4c8_genes"
-    assert effect_annotator["details"]["resource_url"] == \
+    assert effect_annotator["details"]["resources"][0]["resource_id"] == \
+        "t4c8/t4c8_genome"
+    assert effect_annotator["details"]["resources"][0]["resource_url"] == \
         "http://test/t4c8/t4c8_genome/index.html"
+    assert effect_annotator["details"]["resources"][1]["resource_id"] == \
+        "t4c8/t4c8_genes"
+    assert effect_annotator["details"]["resources"][1]["resource_url"] == \
+        "http://test/t4c8/t4c8_genes/index.html"
 
     assert gene_score_annotator["details"]["name"] == "gene_score_annotator"
-    assert gene_score_annotator["details"]["resource_id"] == \
+    assert gene_score_annotator["details"]["resources"][0]["resource_id"] == \
         "t4c8/gene_scores/t4c8_score"
-    assert gene_score_annotator["details"]["resource_url"] == \
+    assert gene_score_annotator["details"]["resources"][0]["resource_url"] == \
         "http://test/t4c8/gene_scores/t4c8_score/index.html"
 
     assert len(gene_score_annotator["attributes"]) == 1
