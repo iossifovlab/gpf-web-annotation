@@ -133,8 +133,6 @@ class LRUPipelineCache:
     ) -> ThreadSafePipeline:
         """Put a pipeline into the cache."""
         with self._cache_lock:
-            if pipeline_id in self._cache:
-                raise KeyError(f"Pipeline '{pipeline_id}' already in cache.")
             if len(self._cache) >= self.capacity:
                 last_pipeline_id = self._order.pop(0)
                 del self._cache[last_pipeline_id]
