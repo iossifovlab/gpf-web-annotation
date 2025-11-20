@@ -1,7 +1,7 @@
 #grid-container {
   display: grid;
   width: max-content;
-  grid-template-columns: repeat(2, 150px);
+  grid-template-columns: repeat(2, minmax(80px, max-content));
   border: 1px solid #cfd8df;
   border-radius: 15px;
   margin-bottom: 5px;
@@ -83,4 +83,12 @@
 
 .fail-status {
   background-color: #ffedef;
+}
+
+.actions:last-child {
+  border-bottom-right-radius: 15px;
+}
+
+#grid-container > div:nth-last-child(2) {
+  border-bottom-left-radius: 15px;
 }

@@ -65,8 +65,10 @@
     </div>
   </div>
 
-  <app-jobs-table *ngIf="currentView === 'jobs'"></app-jobs-table>
-  <app-alleles-table
-    *ngIf="currentView === 'single allele'"
-    (emitAllele)="triggerSingleAlleleAnnotation($event)"></app-alleles-table>
+  <div style="width: 20%">
+    <app-jobs-table *ngIf="currentView === 'jobs'"></app-jobs-table>
+    <app-alleles-table
+      *ngIf="currentView === 'single allele'"
+      (emitAllele)="triggerSingleAlleleAnnotation($event)"></app-alleles-table>
+  </div>
 </div>
