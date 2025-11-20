@@ -359,6 +359,7 @@ def test_filesize_limit_admin(
 ) -> None:
     settings.QUOTAS = {
         "filesize": 1,
+        "variant_count": settings.QUOTAS["variant_count"],
     }
 
     mocker.patch(
