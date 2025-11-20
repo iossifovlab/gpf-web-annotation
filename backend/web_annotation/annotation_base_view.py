@@ -165,20 +165,25 @@ class AnnotationBaseView(views.APIView):
             return False
         return True
 
-    def _get_user_pipeline_yaml(
+    def _get_user_pipeline(
         self,
         pipeline_id: str,
         user: User,
-    ) -> str:
-        if pipeline_id in self.pipelines:
-            return self.pipelines[pipeline_id]["content"]
-        user_pipeline = Pipeline.objects.filter(
+    ) -> Pipeline:
+        pipeline = Pipeline.objects.filter(
             owner=user,
             name=pipeline_id,
         ).first()
-        if user_pipeline is not None:
-            return Path(user_pipeline.config_path).read_text(encoding="utf-8")
-        raise ValueError(f"Pipeline {pipeline_id} not found!")
+        if pipeline is None:
+            raise ValueError(f"Pipeline {pipeline_id} not found!")
+
+        return pipeline
+
+    def _get_user_pipeline_yaml(
+        self,
+        user_pipeline: Pipeline
+    ) -> str:
+        return Path(user_pipeline.config_path).read_text(encoding="utf-8")
 
     def _get_pipeline_yaml(
         self,
@@ -189,10 +194,8 @@ class AnnotationBaseView(views.APIView):
         if pipeline_id in self.pipelines:
             content = self.pipelines[pipeline_id]["content"]
         else:
-            if not isinstance(pipeline_id, str):
-                raise ValueError("Pipeline id is not a string!")
-            content = self._get_user_pipeline_yaml(
-                pipeline_id, user)
+            user_pipeline = self._get_user_pipeline(pipeline_id, user)
+            content = self._get_user_pipeline_yaml(user_pipeline)
 
         if "ASCII text" not in magic.from_buffer(content):
             raise ValueError("Invalid pipeline configuration file!")
@@ -204,12 +207,38 @@ class AnnotationBaseView(views.APIView):
 
         return content
 
-    def get_pipeline(self, pipeline_id: str, user: User) -> AnnotationPipeline:
-        """Get an annotation pipeline by id."""
+    def load_pipeline(
+        self, pipeline_name: str, user: User,
+    ) -> AnnotationPipeline:
+        pipeline = self._get_user_pipeline(pipeline_name, user)
+        pipeline_config = self._get_user_pipeline_yaml(pipeline)
+
+        return self.lru_cache.put_pipeline(
+            str(pipeline.pk),
+            load_pipeline_from_yaml(pipeline_config, self.grr),
+        )
+
+    def _get_pipeline_id(self, pipeline_name: str, user: User) -> str:
+        """Get an annotation pipeline ID by name."""
+        try:
+            user_pipeline = self._get_user_pipeline(pipeline_name, user)
+        except ValueError:
+            pipeline_id = pipeline_name
+        else:
+            pipeline_id = str(user_pipeline.pk)
+
+        return pipeline_id
+
+    def get_pipeline(
+        self, pipeline_name: str, user: User,
+    ) -> AnnotationPipeline:
+        """Get an annotation pipeline by name."""
+        pipeline_id = self._get_pipeline_id(pipeline_name, user)
+
         pipeline = self.lru_cache.get_pipeline(pipeline_id)
 
         if pipeline is None:
-            pipeline_config = self._get_pipeline_yaml(pipeline_id, user)
+            pipeline_config = self._get_pipeline_yaml(pipeline_name, user)
 
             pipeline = self.lru_cache.put_pipeline(
                 pipeline_id, load_pipeline_from_yaml(pipeline_config, self.grr)

@@ -109,6 +109,8 @@ class UserPipeline(AnnotationBaseView):
 
         pipeline.save()
 
+        assert self.load_pipeline(pipeline.name, request.user) is not None
+
         return Response(
             {"name": pipeline_name},
             status=views.status.HTTP_200_OK,
