@@ -1,4 +1,5 @@
 """Module with views for job operations."""
+import gzip
 import logging
 from pathlib import Path
 from subprocess import CalledProcessError
@@ -16,9 +17,13 @@ from rest_framework import views, permissions
 from rest_framework.parsers import MultiPartParser
 from rest_framework.request import MultiValueDict
 from rest_framework.views import Request, Response
-from web_annotation.annotate_helpers import columns_file_preview, extract_head
+from web_annotation.annotate_helpers import (
+    columns_file_preview,
+    extract_head,
+    is_compressed_filename,
+)
 from web_annotation.annotation_base_view import AnnotationBaseView
-from web_annotation.models import Job
+from web_annotation.models import Job, User
 from web_annotation.permissions import has_job_permission
 from web_annotation.serializers import JobSerializer
 from web_annotation.utils import bytes_to_readable
@@ -139,6 +144,19 @@ class AnnotateVCF(AnnotationBaseView):
     parser_classes = [MultiPartParser]
     permission_classes = [permissions.IsAuthenticated]
 
+    def check_variants_limit(self, file: VariantFile, user: User) -> bool:
+        """Check if a variants file does not exceed the variants limit."""
+        if user.is_superuser:
+            return True
+        for i, _ in enumerate(file.fetch()):
+            if i >= self.max_variants:
+                logger.debug(
+                    "User %s exceeded max variants limit: %d",
+                    user.email, self.max_variants,
+                )
+                return False
+        return True
+
     def post(self, request: Request) -> Response:
         """Run VCF annotation job."""
         job_or_response = self._create_job(request, "vcf")
@@ -247,6 +265,26 @@ class AnnotateColumns(AnnotationBaseView):
 
         return True
 
+    def check_variants_limit(self, filepath: Path, user: User) -> bool:
+        """Check if a variants file does not exceed the variants limit."""
+        if user.is_superuser:
+            return True
+
+        if is_compressed_filename(str(filepath)):
+            file = gzip.open(filepath, "rt")
+        else:
+            file = filepath.open("rt")
+
+        with file:
+            for i, _ in enumerate(file, start=-1):
+                if i >= self.max_variants:
+                    logger.debug(
+                        "User %s exceeded max variants limit: %d",
+                        user.email, self.max_variants,
+                    )
+                    return False
+            return True
+
     def post(self, request: Request) -> Response:
         """Run column annotation job."""
 
@@ -263,6 +301,12 @@ class AnnotateColumns(AnnotationBaseView):
             return Response(
                 {"reason": "Invalid column specification!"},
                 status=views.status.HTTP_400_BAD_REQUEST)
+
+        if self.check_variants_limit(
+                Path(job.input_path), request.user) is False:
+            self._cleanup(job.name, job.owner.email)
+            return Response(
+                status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
 
         sep = request.data.get("separator")
 

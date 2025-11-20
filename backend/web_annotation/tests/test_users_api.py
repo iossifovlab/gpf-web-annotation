@@ -1,4 +1,5 @@
 # pylint: disable=W0621,C0114,C0116,W0212,W0613
+from django.conf import LazySettings
 from django.test import Client
 import pytest
 from web_annotation.models import User
@@ -430,7 +431,8 @@ def test_activation_of_account_through_reset_password(
 
 
 @pytest.mark.django_db
-def test_get_user_info(user_client: Client) -> None:
+def test_get_user_info(user_client: Client, settings: LazySettings) -> None:
+    settings.QUOTAS["variant_count"] = 1000
     response = user_client.get("/api/user_info")
     assert response.status_code == 200
     assert response.json() == {
