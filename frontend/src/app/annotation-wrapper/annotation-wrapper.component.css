@@ -109,10 +109,16 @@
 #current-job-info {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
 }
 
 #new-job-section {
   border-top: 1px solid #dde4e8;
   margin-top: 10px;
+}
+
+.job-name,
+#file-name {
+  margin-right: 10px;
 }

@@ -10,19 +10,19 @@ import { Pipeline } from './pipelines';
 const jobsMockJson = [
   {
     id: 1, name: 1, created: '1.10.2025', owner: 'test@email.com',
-    status: 2, duration: 4.7, result_filename: 'job-file.txt'
+    status: 2, duration: 4.7, result_filename: 'job-file.txt', size: '10 KB'
   },
   {
     id: 2, name: 2, created: '1.10.2025', owner: 'test@email.com',
-    status: 4, duration: 2.5, result_filename: 'job-file.txt'
+    status: 4, duration: 2.5, result_filename: 'job-file.txt', size: '10 KB'
   },
   {
     id: 3, name: 3, created: '1.10.2025', owner: 'test@email.com',
-    status: 3, duration: 2.3, result_filename: 'job-file.txt'
+    status: 3, duration: 2.3, result_filename: 'job-file.txt', size: '10 KB'
   },
   {
     id: 4, name: 4, created: '1.10.2025', owner: 'test@email.com',
-    status: 1, duration: 1.9, result_filename: 'job-file.txt'
+    status: 1, duration: 1.9, result_filename: 'job-file.txt', size: '10 KB'
   },
 ];
 /* eslint-enable */
@@ -104,7 +104,7 @@ describe('JobsService', () => {
 
     const mockInputFile = new File(['mockData'], 'mockInput.vcf');
 
-    const postResult = service.createVcfJob(mockInputFile, 'autism', null, null);
+    const postResult = service.createVcfJob(mockInputFile, 'autism', null);
 
     await expect(() => lastValueFrom(postResult.pipe(take(1))))
       .rejects.toThrow('Daily quota limit reached!');
@@ -117,7 +117,7 @@ describe('JobsService', () => {
 
     const mockInputFile = new File(['mockData'], 'mockInput.vcf');
 
-    const postResult = service.createVcfJob(mockInputFile, 'autism', null, null);
+    const postResult = service.createVcfJob(mockInputFile, 'autism', null);
 
     await expect(() => lastValueFrom(postResult.pipe(take(1))))
       .rejects.toThrow('Upload limit reached!');
@@ -130,7 +130,7 @@ describe('JobsService', () => {
 
     const mockInputFile = new File(['mockData'], 'mockInput.vcf');
 
-    const postResult = service.createVcfJob(mockInputFile, 'autism', null, null);
+    const postResult = service.createVcfJob(mockInputFile, 'autism', null);
 
     await expect(() => lastValueFrom(postResult.pipe(take(1))))
       .rejects.toThrow('Invalid pipeline configuration file!');
@@ -143,7 +143,7 @@ describe('JobsService', () => {
 
     const mockInputFile = new File(['mockData'], 'mockInput.vcf');
 
-    const postResult = service.createVcfJob(mockInputFile, 'autism', null, null);
+    const postResult = service.createVcfJob(mockInputFile, 'autism', null);
 
     await expect(() => lastValueFrom(postResult.pipe(take(1))))
       .rejects.toThrow('Error occurred!');
@@ -230,10 +230,10 @@ describe('JobsService', () => {
     httpGetSpy.mockReturnValue(of(jobsMockJson));
 
     const jobsMockResult = [
-      new Job(1, 1, new Date('1.10.2025'), 'test@email.com', 'in process', 4.7, 'job-file.txt'),
-      new Job(2, 2, new Date('1.10.2025'), 'test@email.com', 'failed', 2.5, 'job-file.txt'),
-      new Job(3, 3, new Date('1.10.2025'), 'test@email.com', 'success', 2.3, 'job-file.txt'),
-      new Job(4, 4, new Date('1.10.2025'), 'test@email.com', 'waiting', 1.9, 'job-file.txt'),
+      new Job(1, 1, new Date('1.10.2025'), 'test@email.com', 'in process', 4.7, 'job-file.txt', '10 KB'),
+      new Job(2, 2, new Date('1.10.2025'), 'test@email.com', 'failed', 2.5, 'job-file.txt', '10 KB'),
+      new Job(3, 3, new Date('1.10.2025'), 'test@email.com', 'success', 2.3, 'job-file.txt', '10 KB'),
+      new Job(4, 4, new Date('1.10.2025'), 'test@email.com', 'waiting', 1.9, 'job-file.txt', '10 KB'),
     ];
 
     const getResponse = service.getJobs();
@@ -273,11 +273,12 @@ describe('JobsService', () => {
         owner: 'register@email.com',
         duration: 3.3,
         // eslint-disable-next-line camelcase
-        result_filename: 'job-file.txt'
+        result_filename: 'job-file.txt',
+        size: '12'
       }
     ));
 
-    const job = new Job(16, 16, new Date('2025-08-26'), 'register@email.com', 'waiting', 3.3, 'job-file.txt');
+    const job = new Job(16, 16, new Date('2025-08-26'), 'register@email.com', 'waiting', 3.3, 'job-file.txt', '12');
 
     const getResponse = service.getJobDetails(16);
 
