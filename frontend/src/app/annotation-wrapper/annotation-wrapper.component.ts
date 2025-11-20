@@ -151,6 +151,7 @@ export class AnnotationWrapperComponent {
 
   public setFile(newFile: File): void {
     this.file = newFile;
+    this.clearErrorMessage();
     this.disableCreate();
   }
 
