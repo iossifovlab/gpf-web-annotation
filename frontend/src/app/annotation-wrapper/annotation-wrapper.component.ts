@@ -37,16 +37,16 @@ export class AnnotationWrapperComponent {
   @ViewChild(JobsTableComponent) public jobsTableComponent: JobsTableComponent;
   @ViewChild(AllelesTableComponent) public allelesTableComponent: AllelesTableComponent;
   @ViewChild(SingleAnnotationComponent) public singleAnnotationComponent: SingleAnnotationComponent;
-  public createdJobStatus: Status;
   public downloadLink = '';
-  public annotatedFileName = '';
   public currentView:'jobs' | 'single allele' = 'jobs';
+  public currentJob: Job = null;
 
   public constructor(
       private jobsService: JobsService,
   ) { }
 
   public autoSavePipeline(): void {
+    this.currentJob = null;
     this.pipelinesComponent.autoSave().pipe(take(1)).subscribe(annonymousPipelineName => {
       if (annonymousPipelineName) {
         this.pipelineId = annonymousPipelineName;
@@ -90,11 +90,10 @@ export class AnnotationWrapperComponent {
         }),
       ).subscribe({
         next: (job: Job) => {
-          if (this.createdJobStatus !== job.status) {
+          if (!this.currentJob || this.currentJob.status !== job.status) {
+            this.currentJob = job;
             this.jobsTableComponent.refreshTable();
-            this.createdJobStatus = job.status;
             this.downloadLink = this.jobsService.getDownloadJobResultLink(job.id);
-            this.annotatedFileName = job.annotatedFileName;
           }
         },
         error: (err: Error) => {
@@ -113,15 +112,9 @@ export class AnnotationWrapperComponent {
 
   public showCreateMode(): void {
     this.isCreationFormVisible = true;
-    this.createdJobStatus = undefined;
+    this.currentJob = null;
     this.downloadLink = '';
     this.file = null;
-  }
-
-  public onResetClick(): void {
-    this.clearErrorMessage();
-    this.pipelinesComponent.resetState();
-    this.createJobComponent.removeFile();
   }
 
   public setPipeline(newPipeline: string): void {
@@ -158,6 +151,7 @@ export class AnnotationWrapperComponent {
 
   public setFile(newFile: File): void {
     this.file = newFile;
+    this.clearErrorMessage();
     this.disableCreate();
   }
 
@@ -179,14 +173,14 @@ export class AnnotationWrapperComponent {
   }
 
   public getStatusClass(): string {
-    return getStatusClassName(this.createdJobStatus);
+    return getStatusClassName(this.currentJob.status);
   }
 
   public disableCreate(): boolean {
     return !this.file
-      || !this.fileHeader
+      || (this.file.type !== 'text/vcard' && !this.fileHeader)
       || !this.isConfigValid
-      || !this.isGenomeValid();
+      || (this.file.type !== 'text/vcard' && !this.isGenomeValid());
   }
 
   public isJobFinished(status: Status): boolean {

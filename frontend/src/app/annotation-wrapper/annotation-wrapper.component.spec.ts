@@ -28,8 +28,8 @@ const mockPipelines = [
 ];
 
 const jobs = [
-  new Job(1, 1, new Date('1.10.2025'), 'test@email.com', 'success', 3.2, 'fileName1'),
-  new Job(2, 2, new Date('1.10.2025'), 'test@email.com', 'failed', 2.7, 'fileName2'),
+  new Job(1, 1, new Date('1.10.2025'), 'test@email.com', 'success', 3.2, 'fileName1', '12 KB'),
+  new Job(2, 2, new Date('1.10.2025'), 'test@email.com', 'failed', 2.7, 'fileName2', '12 KB'),
 ];
 class JobsServiceMock {
   public getJobs(): Observable<Job[]> {
@@ -50,8 +50,8 @@ class JobsServiceMock {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getJobDetails(jobId: string): Observable<Job> {
-    return of(jobs[0]);
+  public getJobDetails(jobId: number): Observable<Job> {
+    return of(jobs.find(j => j.id === jobId));
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -128,19 +128,9 @@ describe('AnnotationWrapperComponent', () => {
     component.isCreationFormVisible = false;
     component.showCreateMode();
     expect(component.isCreationFormVisible).toBe(true);
-    expect(component.createdJobStatus).toBeUndefined();
+    expect(component.currentJob).toBeNull();
     expect(component.downloadLink).toBe('');
     expect(component.file).toBeNull();
-  });
-
-  it('should reset state when resetting the creation process', () => {
-    const pipelinesComponentSpy = jest.spyOn(component.pipelinesComponent, 'resetState');
-    const createJobComponentSpy = jest.spyOn(component.createJobComponent, 'removeFile');
-    component.creationError = 'some error';
-    component.onResetClick();
-    expect(pipelinesComponentSpy).toHaveBeenCalledWith();
-    expect(createJobComponentSpy).toHaveBeenCalledWith();
-    expect(component.creationError).toBe('');
   });
 
   it('should auto save and get annonymous pipeline name', () => {
@@ -165,11 +155,10 @@ describe('AnnotationWrapperComponent', () => {
     component.selectedGenome = 'hg38';
     component.fileSeparator = '';
     component.fileHeader = null;
-    component.createdJobStatus = 'in process';
 
     const createJobSpy = jest.spyOn(jobsServiceMock, 'createVcfJob');
 
-    const jobDetailsSpy = jest.spyOn(jobsServiceMock, 'getJobDetails').mockReturnValue(of(jobs[0]));
+    const jobDetailsSpy = jest.spyOn(jobsServiceMock, 'getJobDetails');
 
     component.autoSavePipeline();
 
@@ -179,9 +168,9 @@ describe('AnnotationWrapperComponent', () => {
       'hg38',
     );
     expect(jobDetailsSpy).toHaveBeenCalledWith(2);
-    expect(component.annotatedFileName).toBe('fileName2');
+    expect(component.currentJob.annotatedFileName).toBe('fileName2');
     expect(component.downloadLink).toBe('url/2');
-    expect(component.createdJobStatus).toBe('failed');
+    expect(component.currentJob.status).toBe('failed');
   });
 
   it('should create job with csv file', () => {
@@ -190,10 +179,9 @@ describe('AnnotationWrapperComponent', () => {
     component.selectedGenome = 'hg38';
     component.fileSeparator = ',';
     component.fileHeader = new Map<string, string>([['a', '1']]);
-    component.createdJobStatus = 'in process';
     const createJobSpy = jest.spyOn(jobsServiceMock, 'createNonVcfJob');
 
-    const jobDetailsSpy = jest.spyOn(jobsServiceMock, 'getJobDetails').mockReturnValue(of(jobs[0]));
+    const jobDetailsSpy = jest.spyOn(jobsServiceMock, 'getJobDetails');
 
     component.autoSavePipeline();
 
@@ -205,8 +193,8 @@ describe('AnnotationWrapperComponent', () => {
       new Map<string, string>([['a', '1']])
     );
     expect(jobDetailsSpy).toHaveBeenCalledWith(1);
-    expect(component.annotatedFileName).toBe('fileName1');
+    expect(component.currentJob.annotatedFileName).toBe('fileName1');
     expect(component.downloadLink).toBe('url/1');
-    expect(component.createdJobStatus).toBe('success');
+    expect(component.currentJob.status).toBe('success');
   });
 });
