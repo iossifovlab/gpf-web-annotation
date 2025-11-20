@@ -21,9 +21,11 @@ class MatDialogRefMock {
 }
 
 class JobsServiceMock {
+  public validateColumnSpecification(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, @stylistic/max-len
-  public validateColumnSpecification(fileHeader: string[], columnSpecification: Map<string, string>): Observable<string> {
-    return of('');
+    fileHeader: string[], columnSpecification: Map<string, string>
+  ): Observable<[string, string]> {
+    return of(['', '']);
   }
 }
 

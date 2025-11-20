@@ -354,7 +354,10 @@ def test_annotate_vcf_disk_size(
                     "col_alt": "alt",
                 },
             },
-            {"errors": ""},
+            {
+                "annotatable": "RecordToVcfAllele",
+                "errors": "",
+            },
         ),
         (
             {
@@ -364,7 +367,10 @@ def test_annotate_vcf_disk_size(
                     "col_variant": "var",
                 },
             },
-            {"errors": ""},
+            {
+                "annotatable": "CSHLAlleleRecordToAnnotatable",
+                "errors": "",
+            },
         ),
         (
             {
@@ -374,7 +380,10 @@ def test_annotate_vcf_disk_size(
                     "col_pos": "ps",
                 },
             },
-            {"errors": ""},
+            {
+                "annotatable": "RecordToPosition",
+                "errors": "",
+            },
         ),
         (
             {
@@ -385,7 +394,10 @@ def test_annotate_vcf_disk_size(
                     "col_variant": "vr",
                 },
             },
-            {"errors": ""},
+            {
+                "annotatable": "DaeAlleleRecordToAnnotatable",
+                "errors": "",
+            },
         ),
         (
             {
@@ -396,7 +408,10 @@ def test_annotate_vcf_disk_size(
                     "col_pos_end": "end",
                 },
             },
-            {"errors": ""},
+            {
+                "annotatable": "RecordToRegion",
+                "errors": "",
+            },
         ),
         (
             {
@@ -407,7 +422,10 @@ def test_annotate_vcf_disk_size(
                     "col_cnv_type": "type",
                 },
             },
-            {"errors": ""},
+            {
+                "annotatable": "RecordToCNVAllele",
+                "errors": "",
+            },
         ),
         (
             {
@@ -416,21 +434,30 @@ def test_annotate_vcf_disk_size(
                     "col_vcf_like": "vcf",
                 },
             },
-            {"errors": ""},
+            {
+                "annotatable": "VcfLikeRecordToVcfAllele",
+                "errors": "",
+            },
         ),
         (
             {
                 "file_columns": ["chr", "pos_beg", "pos_end"],
                 "column_mapping": {},
             },
-            {"errors": "No columns selected from the file!"},
+            {
+                "annotatable": "",
+                "errors": "No columns selected from the file!",
+            },
         ),
         (
             {
                 "file_columns": ["chr", "pos_beg", "pos_end"],
                 "column_mapping": {"col_special": "chr"},
             },
-            {"errors": "Invalid column specification!"},
+            {
+                "annotatable": "",
+                "errors": "Invalid column specification!",
+            },
         ),
         (
             {
@@ -439,7 +466,10 @@ def test_annotate_vcf_disk_size(
                     "col_vcf_like": "vcf",
                 },
             },
-            {"errors": "File header must be provided for column validation!"},
+            {
+                "annotatable": "",
+                "errors": "File header must be provided for column validation!",
+            },
         ),
         (
             {
@@ -449,7 +479,10 @@ def test_annotate_vcf_disk_size(
                     "col_pos_beg": "pos_beg",
                 },
             },
-            {"errors": "Specified set of columns cannot be used together!"},
+            {
+                "annotatable": "",
+                "errors": "Specified set of columns cannot be used together!",
+            },
         ),
     ],
 )

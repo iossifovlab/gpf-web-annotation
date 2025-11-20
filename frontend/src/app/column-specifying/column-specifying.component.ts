@@ -31,6 +31,7 @@ export class ColumnSpecifyingComponent implements OnChanges {
   @Output() public emitColumns = new EventEmitter<Map<string, string>>();
   public mappedColumns = new Map<string, string>();
   public error = '';
+  public annotatable = '';
   public validationSubscription = new Subscription();
 
   public constructor(
@@ -74,8 +75,9 @@ export class ColumnSpecifyingComponent implements OnChanges {
     this.validationSubscription.unsubscribe();
     this.validationSubscription = this.jobsService.validateColumnSpecification(fileHeader, columnSpecification).pipe(
       take(1)
-    ).subscribe((errorReason: string) => {
+    ).subscribe(([annotatable, errorReason]) => {
       this.error = errorReason;
+      this.annotatable = annotatable;
       this.emitColumns.emit(this.error === '' ? this.mappedColumns : null);
     });
   }

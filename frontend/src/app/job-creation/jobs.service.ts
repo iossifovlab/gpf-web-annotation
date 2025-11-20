@@ -198,7 +198,7 @@ export class JobsService {
   public validateColumnSpecification(
     fileHeader: string[],
     columnSpecification: Map<string, string>,
-  ): Observable<string> {
+  ): Observable<[string, string]> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
     const columnsSpec = new Map<string, string>;
 
@@ -243,7 +243,7 @@ export class JobsService {
       options
     ).pipe(
       map((response: object) => {
-        return response['errors'] as string;
+        return [response['annotatable'] as string, response['errors'] as string];
       }),
     );
   }

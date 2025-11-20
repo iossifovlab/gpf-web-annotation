@@ -41,6 +41,11 @@ body {
   font-weight: normal;
 }
 
+.annotatable-message {
+  font-size: 14px;
+  font-weight: normal;
+}
+
 .no-download-icon {
   color: #cfd8df;
 }

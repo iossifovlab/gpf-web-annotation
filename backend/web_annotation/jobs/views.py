@@ -335,18 +335,22 @@ class ColumnValidation(AnnotationBaseView):
         column_mapping = data.get("column_mapping")
         if not column_mapping or column_mapping == {}:
             return Response(
-                {"errors": "No columns selected from the file!"},
+                {
+                    "annotatable": "",
+                    "errors": "No columns selected from the file!",
+                },
                 status=views.status.HTTP_200_OK)
         assert isinstance(column_mapping, dict)
 
         if not any(param in self.tool_columns for param in column_mapping):
             return Response(
-                {"errors": "Invalid column specification!"},
+                {"annotatable": "", "errors": "Invalid column specification!"},
                 status=views.status.HTTP_200_OK)
 
         all_columns = data.get("file_columns")
         if not all_columns or all_columns == []:
             return Response({
+                    "annotatable": "",
                     "errors": (
                         "File header must be provided "
                         "for column validation!"
@@ -357,14 +361,17 @@ class ColumnValidation(AnnotationBaseView):
         all_columns = [str(col) for col in all_columns]
 
         try:
-            build_record_to_annotatable(
-                column_mapping,
-                set(all_columns),
-            )
+            annotatable_name = type(
+                build_record_to_annotatable(
+                    column_mapping,
+                    set(all_columns),
+                )
+            ).__name__
         except ValueError:
             logger.exception("Annotatable error.\n")
             return Response(
                 {
+                    "annotatable": "",
                     "errors": (
                         "Specified set of columns"
                         " cannot be used together!"
@@ -372,7 +379,10 @@ class ColumnValidation(AnnotationBaseView):
                 },
                 status=views.status.HTTP_200_OK)
 
-        return Response({"errors": ""}, status=views.status.HTTP_200_OK)
+        return Response(
+            {"annotatable": annotatable_name, "errors": ""},
+            status=views.status.HTTP_200_OK
+        )
 
 
 class JobGetFile(views.APIView):
