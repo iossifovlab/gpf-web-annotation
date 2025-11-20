@@ -5,7 +5,7 @@
 }
 
 #variant {
-  width: 250px;
+  width: 100%;
 }
 
 #variant h2 {
@@ -157,4 +157,21 @@ a:hover {
 #help-icon:hover {
   cursor: pointer;
   color: steelblue;
+}
+
+#report-header {
+  display: flex;
+  justify-content: space-between;
+}
+
+#download-report-button {
+  background-color: transparent;
+  border: none;
+  color: #435869;
+  font-size: 15px;
+}
+
+#download-report-button:hover {
+  cursor: pointer;
+  color: #5b778c;
 }

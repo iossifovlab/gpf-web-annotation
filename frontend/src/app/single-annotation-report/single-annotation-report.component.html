@@ -1,6 +1,13 @@
 <div *ngIf="report" id="report">
   <div id="variant">
-    <h2>Variant</h2>
+    <div id="report-header">
+      <h2>Variant</h2>
+      <h2 id="download-report" download>
+        <button (click)="saveReport()" id="download-report-button"
+          ><span class="material-symbols-outlined download-icon">download</span>Download report</button
+        >
+      </h2>
+    </div>
     <div id="variant-data-container">
       <div id="variant-data-labels">
         <span>chromosome</span>

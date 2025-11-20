@@ -6,6 +6,7 @@ import { HelperModalComponent } from '../helper-modal/helper-modal.component';
 import { MatDialog } from '@angular/material/dialog';
 import { HistogramWrapperComponent } from '../histogram-wrapper/histogram-wrapper.component';
 import { EffectTableComponent } from '../effect-table/effect-table.component';
+import { saveAs } from 'file-saver';
 
 @Component({
   selector: 'app-single-annotation-report',
@@ -34,5 +35,29 @@ export class SingleAnnotationReportComponent {
       maxWidth: '1000px',
       minHeight: '400px'
     });
+  }
+
+  public saveReport(): void {
+    const fileName = `${this.report.variant.chromosome}_${this.report.variant.position}`
+      + `_${this.report.variant.reference}_${this.report.variant.alernative}`
+      + '_report.tsv';
+    let reportLines: string = 'Attribute name\tValue\n';
+    this.report.annotators.forEach(annotator => {
+      annotator.attributes.forEach(attribute => {
+        let value = '';
+        if (attribute.result.value instanceof Map) {
+          attribute.result.value.forEach((v, k) => {
+            value += `${k}:${v};`
+          });
+          value = value.slice(0, -1); // Remove trailing ;
+        } else {
+          value = `${attribute.result.value}`;
+        }
+        reportLines += `${attribute.name}\t${value}\n`;
+      });
+    });
+    reportLines.trim();
+    const content = new Blob([reportLines], {type: 'text/plain;charset=utf-8'});
+    saveAs(content, fileName);
   }
 }
