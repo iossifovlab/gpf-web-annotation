@@ -446,7 +446,8 @@ def test_annotate_vcf_disk_size(
             },
             {
                 "annotatable": "",
-                "errors": "No columns selected from the file!",
+                "errors": (
+                    "Cannot build annotatable from current set of columns!"),
             },
         ),
         (
@@ -481,7 +482,8 @@ def test_annotate_vcf_disk_size(
             },
             {
                 "annotatable": "",
-                "errors": "Specified set of columns cannot be used together!",
+                "errors": (
+                    "Cannot build annotatable from current set of columns!"),
             },
         ),
     ],
@@ -497,6 +499,41 @@ def test_validate_columns(
         content_type="application/json",
     )
     assert response.json() == response_body
+
+
+def test_validate_columns_with_partial_mapping(
+    admin_client: Client,
+) -> None:
+    response = admin_client.post(
+        "/api/jobs/validate_columns",
+        {
+            "file_columns": ["chrom", "pos", "ref", "alt"],
+            "column_mapping": {
+                "col_chrom": "chrom",
+                "col_pos": "pos",
+                "col_ref": "ref",
+                # "col_alt": "alt",
+            },
+        },
+        content_type="application/json",
+    )
+    assert response.json() == {
+        "annotatable": "RecordToVcfAllele",
+        "errors": "",
+    }
+    response = admin_client.post(
+        "/api/jobs/validate_columns",
+        {
+            "file_columns": ["chrom", "pos", "ref"],
+            "column_mapping": {},
+        },
+        content_type="application/json",
+    )
+    assert response.json() == {
+        "annotatable": "RecordToPosition",
+        "errors": "",
+    }
+
 
 
 @pytest.mark.django_db

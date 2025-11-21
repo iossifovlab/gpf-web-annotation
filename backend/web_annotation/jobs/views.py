@@ -376,21 +376,6 @@ class ColumnValidation(AnnotationBaseView):
         data = request.data
         assert isinstance(data, dict)
 
-        column_mapping = data.get("column_mapping")
-        if not column_mapping or column_mapping == {}:
-            return Response(
-                {
-                    "annotatable": "",
-                    "errors": "No columns selected from the file!",
-                },
-                status=views.status.HTTP_200_OK)
-        assert isinstance(column_mapping, dict)
-
-        if not any(param in self.tool_columns for param in column_mapping):
-            return Response(
-                {"annotatable": "", "errors": "Invalid column specification!"},
-                status=views.status.HTTP_200_OK)
-
         all_columns = data.get("file_columns")
         if not all_columns or all_columns == []:
             return Response({
@@ -403,6 +388,14 @@ class ColumnValidation(AnnotationBaseView):
                 status=views.status.HTTP_200_OK)
         assert isinstance(all_columns, list)
         all_columns = [str(col) for col in all_columns]
+
+        column_mapping = data.get("column_mapping", {})
+        assert isinstance(column_mapping, dict)
+
+        if any(param not in self.tool_columns for param in column_mapping):
+            return Response(
+                {"annotatable": "", "errors": "Invalid column specification!"},
+                status=views.status.HTTP_200_OK)
 
         try:
             annotatable_name = type(
@@ -417,8 +410,7 @@ class ColumnValidation(AnnotationBaseView):
                 {
                     "annotatable": "",
                     "errors": (
-                        "Specified set of columns"
-                        " cannot be used together!"
+                        "Cannot build annotatable from current set of columns!"
                     ),
                 },
                 status=views.status.HTTP_200_OK)
