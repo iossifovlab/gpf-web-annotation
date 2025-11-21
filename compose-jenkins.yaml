@@ -82,6 +82,45 @@ services:
       timeout: 5s
       retries: 5
 
+  backend-e2e:
+    build:
+      context: backend
+      dockerfile: Dockerfile
+      args:
+        COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+    depends_on:
+      gpf-image:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+      mail:
+        condition: service_started
+    volumes:
+      - ./gpfwa-data:/data
+      - ./gpfwa-logs:/logs
+    volumes_from:
+      - static-data
+    environment:
+      DJANGO_SETTINGS_MODULE: web_annotation.settings_e2e
+      GPFWA_EMAIL_HOST: mail
+      GRR_DEFINITION_FILE: /grr-definition.yaml
+      GPFWA_DB_NAME: gpfwa
+      GPFWA_DB_USER: postgres
+      GPFWA_DB_PASSWORD: secret
+      GPFWA_DB_HOST: db
+      GPFWA_DB_PORT: 5432
+      GPFWA_DATA_STORAGE: /data
+      GPFWA_LOG_DIR: /logs
+      GPFWA_SECRET_KEY: "django-insecure-3rz4n(_u+x8r+n%&xr-(vg83v8&llq7pin*x%@%y@d8af%iphk"
+      GPFWA_EMAIL_VERIFICATION_ENDPOINT: "http://frontend"
+      GPFWA_EMAIL_REDIRECT_ENDPOINT: "http://frontend"
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:9001/api/user_info"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
   backend-tests:
     build:
       context: backend
@@ -149,6 +188,23 @@ services:
       timeout: 5s
       retries: 5
 
+  frontend-e2e:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+      args:
+        COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+    depends_on:
+      backend-e2e:
+        condition: service_healthy
+    volumes_from:
+      - static-data
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   frontend-tests:
     build:
       context: frontend
@@ -177,7 +233,9 @@ services:
     depends_on:
       mail:
         condition: service_started
-      frontend:
+      backend-e2e:
+        condition: service_healthy
+      frontend-e2e:
         condition: service_healthy
     environment:
       DOCKER_COMPOSE: "1"

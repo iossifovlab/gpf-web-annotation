@@ -88,13 +88,13 @@ pipeline {
 
         stage('Build Backend image') {
             steps {
-                sh "docker compose -f compose-jenkins.yaml build backend"
+                sh "docker compose -f compose-jenkins.yaml build backend-e2e"
             }
         }
 
         stage('Build Frontend image') {
             steps {
-                sh "docker compose -f compose-jenkins.yaml build frontend"
+                sh "docker compose -f compose-jenkins.yaml build frontend-e2e"
             }
         }
 
