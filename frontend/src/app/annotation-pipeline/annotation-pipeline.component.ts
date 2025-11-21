@@ -8,10 +8,19 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { AnnotationPipelineService } from '../annotation-pipeline.service';
 import { MatDialog } from '@angular/material/dialog';
+import { HighlightJsDirective } from 'ngx-highlight-js';
 
 @Component({
   selector: 'app-annotation-pipeline',
-  imports: [CommonModule, FormsModule, MatAutocompleteModule, MatFormFieldModule, ReactiveFormsModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatAutocompleteModule,
+    MatFormFieldModule,
+    ReactiveFormsModule,
+    FormsModule,
+    HighlightJsDirective
+  ],
   templateUrl: './annotation-pipeline.component.html',
   styleUrl: './annotation-pipeline.component.css'
 })
