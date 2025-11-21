@@ -33,7 +33,7 @@ export class HistogramWrapperComponent implements OnInit {
       return [...value.values()].map(v => Number(v));
     }
     const parsed = Number(value);
-    if (isNaN(parsed)) {
+    if (!value || isNaN(parsed)) {
       return [];
     }
     return [parsed];
