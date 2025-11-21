@@ -548,7 +548,7 @@ def test_validate_columns(
             {
                 "col_location": "loc",
                 "col_variant": "var",
-                "genome": "hg38",
+                "genome": "hg38/GRCh38-hg38/genome",
             },
             [
                 ['loc', 'var', 'position_1'],
@@ -582,7 +582,7 @@ def test_validate_columns(
                 "col_chrom": "chr",
                 "col_pos": "pos",
                 "col_variant": "vr",
-                "genome": "hg38",
+                "genome": "hg38/GRCh38-hg38/genome",
             },
             [
                 ['chr', 'pos', 'vr', 'position_1'],
@@ -660,7 +660,7 @@ def test_annotate_columns(
     if separator is not None:
         params["separator"] = separator
     if "col_variant" in specification or "col_location" in specification:
-        params["genome"] = "hg38"
+        params["genome"] = "hg38/GRCh38-hg38/genome"
 
     response = admin_client.post("/api/jobs/annotate_columns", params)
 
@@ -693,7 +693,7 @@ def test_annotate_columns_t4c8(
     """).strip()
 
     params = {
-        "genome": "t4c8",
+        "genome": "t4c8/t4c8_genome",
         "pipeline": "pipeline/test_pipeline",
         "data": ContentFile(file, "test_input.tsv"),
         "col_chrom": "chrom",
@@ -734,7 +734,7 @@ def test_annotate_columns_disk_size(
     """).strip()
 
     params = {
-        "genome": "t4c8",
+        "genome": "t4c8/t4c8_genome",
         "pipeline": "pipeline/test_pipeline",
         "data": ContentFile(file, "test_input.tsv"),
         "col_chrom": "chrom",
@@ -766,7 +766,7 @@ def test_annotate_columns_t4c8_gzipped(
     """).strip().encode("utf-8"))
 
     params = {
-        "genome": "t4c8",
+        "genome": "t4c8/t4c8_genome",
         "pipeline": "pipeline/test_pipeline",
         "data": ContentFile(file, "test_input.tsv.gz"),
         "col_chrom": "chrom",

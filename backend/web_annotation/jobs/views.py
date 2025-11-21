@@ -50,7 +50,7 @@ class ListGenomePipelines(AnnotationBaseView):
     def get(self, request: Request) -> Response:
         """Return list of genome pipelines for single annotation."""
         return Response(
-            list(self.genome_pipelines.keys()),
+            self.grr_genomes,
             status=views.status.HTTP_200_OK,
         )
 

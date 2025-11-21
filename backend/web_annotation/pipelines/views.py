@@ -64,7 +64,7 @@ class UserPipeline(AnnotationBaseView):
             pipeline_name = f'pipeline-{int(time.time())}.yaml'
             anonymous = True
 
-        if not anonymous and pipeline_name in self.pipelines:
+        if not anonymous and pipeline_name in self.grr_pipelines:
             return Response(
                 {"reason": (
                     "Pipeline with such name cannot be created or updated!"
@@ -177,8 +177,8 @@ class UserPipeline(AnnotationBaseView):
 class ListPipelines(AnnotationBaseView):
     """View for listing all annotation pipelines for files."""
 
-    def _get_default_pipelines(self) -> list[dict[str, str]]:
-        pipelines = list(self.pipelines.values())
+    def _get_grr_pipelines(self) -> list[dict[str, str]]:
+        pipelines = list(self.grr_pipelines.values())
         for pipeline in pipelines:
             pipeline["type"] = "default"
         return pipelines
@@ -197,7 +197,7 @@ class ListPipelines(AnnotationBaseView):
         ]
 
     def get(self, request: Request) -> Response:
-        pipelines = self._get_default_pipelines()
+        pipelines = self._get_grr_pipelines()
         if request.user and request.user.is_authenticated:
             pipelines = pipelines + self._get_user_pipelines(request.user)
 

@@ -237,14 +237,6 @@ EMAIL_REDIRECT_ENDPOINT = os.environ.get(
 STATIC_URL = '/static/'
 STATIC_ROOT = 'static-root'
 
-GENOME_DEFINITIONS = {
-    "hg38": {
-        "pipeline_id": "pipeline/Autism_annotation",
-        "reference_genome_id": "hg38/genomes/GRCh38-hg38"
-    },
-}
-
-
 LOG_DIR = os.environ.get("GPFWA_LOG_DIR", f"{DATA_STORAGE_DIR}/logs")
 if not os.path.exists(LOG_DIR):
     os.makedirs(LOG_DIR)

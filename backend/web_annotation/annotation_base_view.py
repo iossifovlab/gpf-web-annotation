@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 GRR = build_genomic_resource_repository(file_name=settings.GRR_DEFINITION_PATH)
 
 
-def get_pipelines(grr: GenomicResourceRepo) -> dict[str, dict[str, str]]:
+def get_grr_pipelines(grr: GenomicResourceRepo) -> dict[str, dict[str, str]]:
     """Return pipelines used for file annotation."""
     pipelines: dict[str, dict[str, str]] = {}
     for resource in grr.get_all_resources():
@@ -53,34 +53,18 @@ def get_pipelines(grr: GenomicResourceRepo) -> dict[str, dict[str, str]]:
     return pipelines
 
 
-PIPELINES = get_pipelines(GRR)
+GRR_PIPELINES = get_grr_pipelines(GRR)
 
+def get_grr_genomes(grr: GenomicResourceRepo) -> list[str]:
+    """Return pipelines used for file annotation."""
+    genomes: list[str] = []
+    for resource in grr.get_all_resources():
+        if resource.get_type() == "genome":
+            genomes.append(resource.get_id())
 
-def get_genome_pipelines(
-    grr: GenomicResourceRepo,
-) -> dict[str, AnnotationPipeline]:
-    """Return genome pipelines used for single variant annotation."""
+    return genomes
 
-    if (
-        getattr(settings, "GENOME_DEFINITIONS") is None
-        or settings.GENOME_DEFINITIONS is None
-    ):
-        return {}
-
-    pipelines: dict[str, AnnotationPipeline] = {}
-    for genome, definition in settings.GENOME_DEFINITIONS.items():
-        pipeline_id = definition.get("pipeline_id")
-        assert pipeline_id is not None
-        pipeline_resource = grr.get_resource(pipeline_id)
-        pipeline = load_pipeline_from_grr(grr, pipeline_resource)
-        pipeline.open()
-        pipelines[genome] = pipeline
-    genome_pipelines = pipelines
-
-    return genome_pipelines
-
-
-GENOME_PIPELINES: dict[str, AnnotationPipeline] = get_genome_pipelines(GRR)
+GRR_GENOMES = get_grr_genomes(GRR)
 
 
 class AnnotationBaseView(views.APIView):
@@ -108,8 +92,8 @@ class AnnotationBaseView(views.APIView):
     def __init__(self) -> None:
         super().__init__()
         self._grr = GRR
-        self.pipelines = PIPELINES
-        self.genome_pipelines = GENOME_PIPELINES
+        self.grr_pipelines = GRR_PIPELINES
+        self.grr_genomes = GRR_GENOMES
         self.result_storage_dir = Path(settings.JOB_RESULT_STORAGE_DIR)
         self.max_variants: int = cast(
             int, settings.QUOTAS["variant_count"])
@@ -192,8 +176,8 @@ class AnnotationBaseView(views.APIView):
         user: User,
     ) -> str:
         """Get annotation config contents from a request."""
-        if pipeline_id in self.pipelines:
-            content = self.pipelines[pipeline_id]["content"]
+        if pipeline_id in self.grr_pipelines:
+            content = self.grr_pipelines[pipeline_id]["content"]
         else:
             user_pipeline = self._get_user_pipeline(pipeline_id, user)
             content = self._get_user_pipeline_yaml(user_pipeline)
@@ -252,12 +236,10 @@ class AnnotationBaseView(views.APIView):
         genome = data.get("genome")
         if genome is None:
             return ""
-        genome_definition = settings.GENOME_DEFINITIONS.get(genome)
-        assert genome_definition is not None
-        reference_genome = genome_definition.get("reference_genome_id")
-        if reference_genome is None:
-            raise ValueError("Internal genome definition is wrong")
-        return reference_genome
+        if genome not in GRR_GENOMES:
+            raise ValueError(
+                "Genome not matching any id of grr genome resource!")
+        return genome
 
     def generate_job_name(self, user: User) -> int:
         job_count = Job.objects.filter(owner=user).count()
@@ -348,7 +330,7 @@ class AnnotationBaseView(views.APIView):
 
         genome = request.data.get("genome")
 
-        if genome and genome not in settings.GENOME_DEFINITIONS:
+        if genome and genome not in GRR_GENOMES:
             return Response(
                 {"reason": f"Genome {genome} is not a valid option!"},
                 status=views.status.HTTP_404_NOT_FOUND,

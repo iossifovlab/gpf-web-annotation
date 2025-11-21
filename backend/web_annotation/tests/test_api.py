@@ -107,7 +107,7 @@ def test_annotate_vcf_job_details(user_client: Client) -> None:
 @pytest.mark.django_db
 def test_annotate_columns_job_details(user_client: Client) -> None:
     params = {
-        "genome": "hg38",
+        "genome": "hg38/GRCh38-hg38/genome",
         "pipeline": "pipeline/test_pipeline",
         "data": ContentFile(
             textwrap.dedent("""chr,pos_beg,pos_end,cnv\nchr1,7,20,cnv+"""),
@@ -247,7 +247,7 @@ def test_daily_user_quota(
     response = user_client.post(
         "/api/jobs/annotate_vcf",
         {
-            "genome": "hg38",
+            "genome": "hg38/GRCh38-hg38/genome",
             "pipeline": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
@@ -257,7 +257,7 @@ def test_daily_user_quota(
     response = user_client.post(
         "/api/jobs/annotate_vcf",
         {
-            "genome": "hg38",
+            "genome": "hg38/GRCh38-hg38/genome",
             "pipeline": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
@@ -298,7 +298,7 @@ def test_daily_admin_quota(
     response = admin_client.post(
         "/api/jobs/annotate_vcf",
         {
-            "genome": "hg38",
+            "genome": "hg38/GRCh38-hg38/genome",
             "pipeline": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
@@ -308,7 +308,7 @@ def test_daily_admin_quota(
     response = admin_client.post(
         "/api/jobs/annotate_vcf",
         {
-            "genome": "hg38",
+            "genome": "hg38/GRCh38-hg38/genome",
             "pipeline": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
          },
@@ -343,7 +343,7 @@ def test_filesize_limit_user(
     response = user_client.post(
         "/api/jobs/annotate_vcf",
         {
-            "genome": "hg38",
+            "genome": "hg38/GRCh38-hg38/genome",
             "pipeline": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
@@ -376,7 +376,7 @@ def test_filesize_limit_admin(
     response = admin_client.post(
         "/api/jobs/annotate_vcf",
         {
-            "genome": "hg38",
+            "genome": "hg38/GRCh38-hg38/genome",
             "pipeline": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
@@ -412,7 +412,7 @@ def test_variant_limit_user(
     response = user_client.post(
         "/api/jobs/annotate_vcf",
         {
-            "genome": "hg38",
+            "genome": "hg38/GRCh38-hg38/genome",
             "pipeline": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
@@ -445,7 +445,7 @@ def test_variant_limit_admin(
     response = admin_client.post(
         "/api/jobs/annotate_vcf",
         {
-            "genome": "hg38",
+            "genome": "hg38/GRCh38-hg38/genome",
             "pipeline": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
@@ -1154,5 +1154,5 @@ def test_genomes_view(admin_client: Client) -> None:
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 2
-    assert data[0] == "hg38"
-    assert data[1] == "t4c8"
+    assert data[0] == "hg38/GRCh38-hg38/genome"
+    assert data[1] == "t4c8/t4c8_genome"
