@@ -303,7 +303,7 @@ test.describe('Jobs table tests', () => {
     await page.locator('[id="CHROM-header"]').locator('mat-select').click();
     await page.getByRole('option', { name: 'variant', exact: true }).click();
 
-    await expect(page.getByText('Cannot build annotatable from current set of columns!!')).toBeVisible();
+    await expect(page.getByText('Cannot build annotatable from current set of columns!')).toBeVisible();
   });
 });
 
