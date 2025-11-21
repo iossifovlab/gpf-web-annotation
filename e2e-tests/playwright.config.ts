@@ -4,6 +4,7 @@ import { defineConfig, devices } from '@playwright/test';
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
+  workers: process.env.CI ? 16 : undefined,
   timeout: 300000,
   expect: {
     timeout: 5000,
@@ -13,15 +14,17 @@ export default defineConfig({
   },
   globalTimeout: 1200000,
   testDir: './tests',
-  outputDir: process.env.DOCKER_COMPOSE ? '/reports' : './test-results',
+  outputDir: process.env.CI ? '/reports' : './test-results',
   fullyParallel: false,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: process.env.DOCKER_COMPOSE ? [['junit', { outputFile: '/reports/junit-report.xml' }]] : [['html']],
+  reporter: process.env.CI ? 
+    [['junit', { outputFile: '/reports/junit-report.xml' }]] : 
+    [['html']],
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: process.env.DOCKER_COMPOSE === '1' ? 'http://frontend' : 'http://localhost:4200',
-    trace: process.env.DOCKER_COMPOSE ? 'on' : 'on-first-retry',
-    video: process.env.DOCKER_COMPOSE ? {
+    baseURL: process.env.CI === '1' ? 'http://frontend' : 'http://localhost:4200',
+    trace: process.env.CI ? 'on' : 'on-first-retry',
+    video: process.env.CI ? {
       mode: 'retain-on-failure',
       size: { width: 1920, height: 1080 }
     }: {
