@@ -240,5 +240,5 @@ services:
       frontend-e2e:
         condition: service_healthy
     environment:
-      DOCKER_COMPOSE: "1"
+      CI: "1"
     command: ["npx", "playwright", "test"]
