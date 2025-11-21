@@ -8,6 +8,7 @@ import { JobsService } from './job-creation/jobs.service';
 import { SingleAnnotationService } from './single-annotation.service';
 import { provideMarkdown } from 'ngx-markdown';
 import { AnnotationPipelineService } from './annotation-pipeline.service';
+import { provideMonacoEditor } from 'ngx-monaco-editor-v2';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -19,5 +20,6 @@ export const appConfig: ApplicationConfig = {
     SingleAnnotationService,
     AnnotationPipelineService,
     provideMarkdown(),
+    provideMonacoEditor()
   ]
 };

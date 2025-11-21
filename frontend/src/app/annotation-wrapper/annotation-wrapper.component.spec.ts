@@ -7,6 +7,7 @@ import { SingleAnnotationService } from '../single-annotation.service';
 import { Observable, of } from 'rxjs';
 import { FileContent, Job } from '../job-creation/jobs';
 import { Pipeline } from '../job-creation/pipelines';
+import { provideMonacoEditor } from 'ngx-monaco-editor-v2';
 
 class UserServiceMock {
   public userData = {
@@ -89,7 +90,8 @@ describe('AnnotationWrapperComponent', () => {
           useValue: jobsServiceMock
         },
         SingleAnnotationService,
-        provideHttpClient()
+        provideHttpClient(),
+        provideMonacoEditor()
       ]
     }).compileComponents();
 
