@@ -86,7 +86,7 @@ GENOME_PIPELINES: dict[str, AnnotationPipeline] = get_genome_pipelines(GRR)
 class AnnotationBaseView(views.APIView):
     """Base view for views which access annotation resources."""
 
-    lru_cache = LRUPipelineCache(32)
+    lru_cache = LRUPipelineCache(settings.PIPELINES_CACHE_SIZE)
 
     TASK_EXECUTOR: TaskExecutor = ThreadedTaskExecutor(
             max_workers=settings.ANNOTATION_MAX_WORKERS)
