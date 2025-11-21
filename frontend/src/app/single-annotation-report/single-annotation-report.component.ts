@@ -45,13 +45,26 @@ export class SingleAnnotationReportComponent {
     this.report.annotators.forEach(annotator => {
       annotator.attributes.forEach(attribute => {
         let value = '';
-        if (attribute.result.value instanceof Map) {
-          attribute.result.value.forEach((v, k) => {
+        const val = attribute.result.value;
+        if (val instanceof Map) {
+          val.forEach((v, k) => {
             value += `${k}:${v};`;
           });
-          value = value.slice(0, -1); // Remove trailing ;
+          if (value.length > 0) {
+            value = value.slice(0, -1); // Remove trailing ;
+          }
+        } else if (val !== null) {
+          if (typeof val === 'object') {
+            try {
+              value = JSON.stringify(val);
+            } catch {
+              value = String(val);
+            }
+          } else {
+            value = String(val);
+          }
         } else {
-          value = `${attribute.result.value}`;
+          value = 'N/A';
         }
         reportLines += `${attribute.name}\t${value}\n`;
       });
