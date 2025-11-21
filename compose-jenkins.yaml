@@ -88,6 +88,7 @@ services:
       dockerfile: Dockerfile
       args:
         COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+    hostname: backend
     depends_on:
       gpf-image:
         condition: service_completed_successfully
@@ -194,6 +195,7 @@ services:
       dockerfile: Dockerfile
       args:
         COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+    hostname: frontend
     depends_on:
       backend-e2e:
         condition: service_healthy
