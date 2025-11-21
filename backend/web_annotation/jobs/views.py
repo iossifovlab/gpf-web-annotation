@@ -214,7 +214,7 @@ class AnnotateVCF(AnnotationBaseView):
             """Callback when annotation is done."""
             job.duration = time.time() - start_time
             job.disk_size += Path(job.result_path).stat().st_size
-            update_job_success(job)
+            update_job_success(job, str(args))
 
         def on_failure(exception: BaseException) -> None:
             """Callback when annotation fails."""
@@ -239,7 +239,7 @@ class AnnotateVCF(AnnotationBaseView):
                     f"{str(exception)}"
                 )
             logger.error("VCF annotation job failed!\n%s", reason)
-            update_job_failed(job)
+            update_job_failed(job, str(args), str(exception))
 
         update_job_in_progress(job)
 
@@ -345,7 +345,7 @@ class AnnotateColumns(AnnotationBaseView):
         def on_success(result: None) -> None:
             job.duration = time.time() - start_time
             job.disk_size += Path(job.result_path).stat().st_size
-            update_job_success(job)
+            update_job_success(job, str(args))
 
         def on_failure(exception: BaseException) -> None:
             job.duration = time.time() - start_time
@@ -366,7 +366,7 @@ class AnnotateColumns(AnnotationBaseView):
                     f"{str(exception)}"
                 )
             logger.error("columns annotation job failed!\n%s", reason)
-            update_job_failed(job)
+            update_job_failed(job, str(args), str(exception))
 
         update_job_in_progress(job)
 

@@ -80,6 +80,7 @@ class Job(models.Model):
     status = models.IntegerField(choices=Status, default=Status.WAITING)
     duration = models.FloatField(null=True, default=None)
     command_line = models.TextField(default="")
+    error = models.TextField(default="")
     annotation_type = models.CharField(max_length=1024, default="")
     disk_size = models.IntegerField(default=0)
 

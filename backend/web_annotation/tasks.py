@@ -84,7 +84,7 @@ def update_job_in_progress(job: Job) -> None:
     job.save()
 
 
-def update_job_failed(job: Job) -> None:
+def update_job_failed(job: Job, args: str, exc: str) -> None:
     """Update a job's state to failed."""
     if job.status != Job.Status.IN_PROGRESS:
         raise ValueError(
@@ -92,6 +92,8 @@ def update_job_failed(job: Job) -> None:
             f"which is not in in progress! ({job.status})",
         )
     job.status = Job.Status.FAILED
+    job.command_line = args
+    job.error = exc
     job.save()
 
     # pylint: disable=import-outside-toplevel
@@ -107,7 +109,7 @@ def update_job_failed(job: Job) -> None:
     )
 
 
-def update_job_success(job: Job) -> None:
+def update_job_success(job: Job, args: str) -> None:
     """Update a job's state to success."""
     if job.status != Job.Status.IN_PROGRESS:
         raise ValueError(
@@ -115,6 +117,7 @@ def update_job_success(job: Job) -> None:
             f"({job.status})",
         )
     job.status = Job.Status.SUCCESS
+    job.command_line = args
     job.save()
     # pylint: disable=import-outside-toplevel
     from django.conf import settings
