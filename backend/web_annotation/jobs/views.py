@@ -44,6 +44,17 @@ from web_annotation.tasks import (
 logger = logging.getLogger(__name__)
 
 
+ANNOTATABLES = {
+    "RecordToCNVAllele": "RecordToCNVAllele",
+    "RecordToRegion": "RecordToRegion",
+    "RecordToVcfAllele": "RecordToVcfAllele",
+    "VcfLikeRecordToVcfAllele": "VcfLikeRecordToVcfAllele",
+    "DaeAlleleRecordToAnnotatable": "DaeAlleleRecordToAnnotatable",
+    "CSHLAlleleRecordToAnnotatable": "CSHLAlleleRecordToAnnotatable",
+    "RecordToPosition": "RecordToPosition",
+}
+
+
 class ListGenomePipelines(AnnotationBaseView):
     """View for listing available single annotation genomes."""
 
@@ -416,7 +427,10 @@ class ColumnValidation(AnnotationBaseView):
                 status=views.status.HTTP_200_OK)
 
         return Response(
-            {"annotatable": annotatable_name, "errors": ""},
+            {"annotatable": ANNOTATABLES.get(
+                annotatable_name,
+                annotatable_name,
+            ), "errors": ""},
             status=views.status.HTTP_200_OK
         )
 
