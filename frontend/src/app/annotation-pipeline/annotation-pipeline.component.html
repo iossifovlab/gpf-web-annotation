@@ -20,16 +20,11 @@
     </mat-option>
   </mat-autocomplete>
 
-  <div class="editor">
-	<pre class="lang-yaml"><code></code></pre>
-	 <textarea
+  <textarea
     id="yml-textarea"
     [(ngModel)]="currentPipelineText"
     [ngClass]="{ 'invalid-config': configError }"
     (ngModelChange)="isConfigValid()"></textarea>
-</div>
-
- 
   <div *ngIf="configError" class="error-message">{{ configError }}</div>
 
   <div id="pipeline-actions">
