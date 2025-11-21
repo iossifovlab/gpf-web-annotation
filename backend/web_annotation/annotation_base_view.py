@@ -6,10 +6,7 @@ from dae.annotation.annotation_config import (
     AnnotationConfigParser,
     AnnotationConfigurationError,
 )
-from dae.annotation.annotation_factory import (
-    load_pipeline_from_grr,
-    load_pipeline_from_yaml,
-)
+from dae.annotation.annotation_factory import load_pipeline_from_yaml
 from dae.annotation.annotation_pipeline import AnnotationPipeline
 from dae.genomic_resources.implementations.annotation_pipeline_impl import (
     AnnotationPipelineImplementation,
