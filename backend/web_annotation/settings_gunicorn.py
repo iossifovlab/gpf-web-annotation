@@ -11,5 +11,9 @@ QUOTAS = {
     "daily_jobs": 50,
     "filesize": "64M",
     "disk_space": "2048M",
-    "variant_count": 1000,
+    "variant_count": 10_000,
 }
+
+RESOURCES_BASE_URL = "http://grr.iossifovlab.com/"
+
+ANNOTATION_MAX_WORKERS = 16

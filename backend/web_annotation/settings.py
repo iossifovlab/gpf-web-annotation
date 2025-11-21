@@ -22,3 +22,10 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:4200",
     "http://127.0.0.1:4200",
 ]
+
+QUOTAS = {
+    "daily_jobs": 2000,
+    "filesize": "64M",
+    "disk_space": "2048M",
+    "variant_count": 50_000,
+}
