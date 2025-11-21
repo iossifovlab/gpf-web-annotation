@@ -174,6 +174,7 @@ class BaseJob(models.Model):
     status = models.IntegerField(choices=Status, default=Status.WAITING)
     duration = models.FloatField(null=True, default=None)
     command_line = models.TextField(default="")
+    error = models.TextField(default="")
     annotation_type = models.CharField(max_length=1024, default="")
     disk_size = models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
@@ -201,7 +202,7 @@ class BaseJob(models.Model):
         self.status = Job.Status.IN_PROGRESS
         self.save()
 
-    def update_job_failed(self) -> None:
+    def update_job_failed(self, args: str, exc: str) -> None:
         """Update a job's state to failed."""
         if self.status != Job.Status.IN_PROGRESS:
             raise ValueError(
@@ -209,9 +210,11 @@ class BaseJob(models.Model):
                 f"which is not in in progress! ({self.status})",
             )
         self.status = Job.Status.FAILED
+        self.command_line = args
+        self.error = exc
         self.save()
 
-    def update_job_success(self) -> None:
+    def update_job_success(self, args: str) -> None:
         """Update a job's state to success."""
         if self.status != Job.Status.IN_PROGRESS:
             raise ValueError(
@@ -219,6 +222,7 @@ class BaseJob(models.Model):
                 f"({self.status})",
             )
         self.status = Job.Status.SUCCESS
+        self.command_line = args
         self.save()
 
 
@@ -231,8 +235,10 @@ class Job(BaseJob):
         on_delete=models.CASCADE,
     )
 
-    def update_job_failed(self) -> None:
-        super().update_job_failed()
+    def update_job_failed(self, args: str, exc: str) -> None:
+        """Update a job's state to failed."""
+        super().update_job_failed(args, exc)
+
         send_email(
             "GPFWA: Annotation job failed",
             (
@@ -243,9 +249,9 @@ class Job(BaseJob):
             [self.owner.identifier],
         )
 
-    def update_job_success(self) -> None:
-        super().update_job_success()
-
+    def update_job_success(self, args: str) -> None:
+        """Update a job's state to success."""
+        super().update_job_success(args)
         send_email(
             "GPFWA: Annotation job finished successfully",
             (

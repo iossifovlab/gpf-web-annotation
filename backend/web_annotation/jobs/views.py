@@ -214,7 +214,7 @@ class AnnotateVCF(AnnotationBaseView):
             """Callback when annotation is done."""
             job.duration = time.time() - start_time
             job.disk_size += Path(job.result_path).stat().st_size
-            job.update_job_success()
+            job.update_job_success(str(args))
             self._notify_user_socket(request.user, f"Job {job.name} success!")
 
         def on_failure(exception: BaseException) -> None:
@@ -240,7 +240,7 @@ class AnnotateVCF(AnnotationBaseView):
                     f"{str(exception)}"
                 )
             logger.error("VCF annotation job failed!\n%s", reason)
-            job.update_job_failed()
+            job.update_job_failed(str(args), str(exception))
             self._notify_user_socket(request.user, f"Job {job.name} failed!")
 
         job.update_job_in_progress()
@@ -353,7 +353,7 @@ class AnnotateColumns(AnnotationBaseView):
         def on_success(result: None) -> None:
             job.duration = time.time() - start_time
             job.disk_size += Path(job.result_path).stat().st_size
-            job.update_job_success()
+            job.update_job_success(str(args))
             self._notify_user_socket(request.user, f"Job {job.name} success!")
 
         def on_failure(exception: BaseException) -> None:
@@ -375,7 +375,7 @@ class AnnotateColumns(AnnotationBaseView):
                     f"{str(exception)}"
                 )
             logger.error("columns annotation job failed!\n%s", reason)
-            job.update_job_failed()
+            job.update_job_failed(str(args), str(exception))
             self._notify_user_socket(request.user, f"Job {job.name} failed!")
 
         job.update_job_in_progress()
