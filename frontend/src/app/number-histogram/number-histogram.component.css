@@ -6,8 +6,8 @@ label {
 #values-description {
   margin-left: 45px;
   display: flex;
-  justify-content: space-between;
-  gap: 15px;
+  justify-content: space-around;
+  gap: 40%;
   font-style: italic;
   color: #acacac;
   font-size: 14px;
