@@ -11,6 +11,7 @@ import { UsersService } from '../users.service';
 import { MatDialog, MatDialogConfig, MatDialogRef } from '@angular/material/dialog';
 import { AnnotationPipelineService } from '../annotation-pipeline.service';
 import { ElementRef, TemplateRef } from '@angular/core';
+import { provideMonacoEditor } from 'ngx-monaco-editor-v2';
 
 const mockPipelines = [
   new Pipeline('id1', 'content1', 'default'),
@@ -128,7 +129,8 @@ describe('AnnotationPipelineComponent', () => {
           useValue: annotationPipelineServiceMock
         },
         provideHttpClient(),
-        provideHttpClientTesting()
+        provideHttpClientTesting(),
+        provideMonacoEditor()
       ]
     }).compileComponents();
 

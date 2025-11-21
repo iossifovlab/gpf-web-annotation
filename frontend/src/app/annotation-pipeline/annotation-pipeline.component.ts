@@ -8,6 +8,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { AnnotationPipelineService } from '../annotation-pipeline.service';
 import { MatDialog } from '@angular/material/dialog';
+import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 
 @Component({
   selector: 'app-annotation-pipeline',
@@ -18,6 +19,7 @@ import { MatDialog } from '@angular/material/dialog';
     MatFormFieldModule,
     ReactiveFormsModule,
     FormsModule,
+    MonacoEditorModule
   ],
   templateUrl: './annotation-pipeline.component.html',
   styleUrl: './annotation-pipeline.component.css'
