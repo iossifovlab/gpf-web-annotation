@@ -44,7 +44,7 @@ export class NumberHistogramComponent implements OnInit {
         return this.histogram.bins.slice(0, -1);
       } else {
         if (!this.histogram.logScaleX) {
-          return d3.ticks(this.histogram.bins[0], this.histogram.bins[this.histogram.bins.length - 1], 10);
+          return d3.ticks(this.histogram.bins[0], this.histogram.bins[this.histogram.bins.length - 1], 5);
         }
         const domainMin = this.histogram.bins[0] === 0.0 ? this.histogram.bins[1] : this.histogram.bins[0];
         const domainMax = this.histogram.bins[this.histogram.bins.length - 1];
