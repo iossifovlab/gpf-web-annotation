@@ -1,46 +1,12 @@
 #yml-textarea {
-  resize: vertical;
   border: 2px solid #cfd8df;
   border-radius: 15px;
-  padding: 10px;
-  font-size: 16px;
-  margin-top: 10px;
+  padding-top: 10px;
   height: 500px;
-  white-space: nowrap;
 }
-
-#yml-textarea:focus-visible {
-  border-color: #85a2b9;
-  outline: 0;
-  box-shadow: 0 0 0 0.2rem #cfd8df;
-}
-
-#yml-textarea::-webkit-scrollbar {
-  width: 12px;
-}
-
-#yml-textarea::-webkit-scrollbar-track {
-  margin: 10px;
-}
-
-#yml-textarea::-webkit-scrollbar-thumb {
-  background-color: #e1e9ef;
-  border-radius: 10px;
-  padding: 10px;
-  border: 2px solid white;
-}
-
-#yml-textarea::-webkit-scrollbar-thumb:hover {
-  background-color: #cfd8df;
-  cursor: pointer;
-}
-
-/* ::ng-deep.hljs {
-  background-color: transparent;
-} */
 
 .invalid-config {
-  border: 2px solid #d74b59;
+  border: 2px solid #d74b59 !important;
   box-shadow: 0 0 0 0.2rem #edbec3;
 }
 

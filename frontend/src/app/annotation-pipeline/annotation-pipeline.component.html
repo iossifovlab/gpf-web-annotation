@@ -20,16 +20,11 @@
     </mat-option>
   </mat-autocomplete>
 
-  <!-- <textarea
-    id="yml-textarea"
-    [(ngModel)]="currentPipelineText"
-    [ngClass]="{ 'invalid-config': configError }"
-    (ngModelChange)="isConfigValid()"></textarea> -->
-
   <ngx-monaco-editor
     id="yml-textarea"
     [ngClass]="{ 'invalid-config': configError }"
-    [options]="{ language: 'yaml' }"
+    [options]="yamlEditorOptions"
+    (onInit)="onEditorInit()"
     [(ngModel)]="currentPipelineText"
     (ngModelChange)="isConfigValid()"></ngx-monaco-editor>
   <div *ngIf="configError" class="error-message">{{ configError }}</div>
