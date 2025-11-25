@@ -1,42 +1,12 @@
-textarea {
-  resize: vertical;
+#yml-textarea {
   border: 2px solid #cfd8df;
   border-radius: 15px;
-  padding: 10px;
-  font-size: 16px;
-  margin-top: 10px;
+  padding-top: 10px;
   height: 500px;
-  white-space: nowrap;
-}
-
-textarea:focus-visible {
-  border-color: #85a2b9;
-  outline: 0;
-  box-shadow: 0 0 0 0.2rem #cfd8df;
-}
-
-textarea::-webkit-scrollbar {
-  width: 12px;
-}
-
-textarea::-webkit-scrollbar-track {
-  margin: 10px;
-}
-
-textarea::-webkit-scrollbar-thumb {
-  background-color: #e1e9ef;
-  border-radius: 10px;
-  padding: 10px;
-  border: 2px solid white;
-}
-
-textarea::-webkit-scrollbar-thumb:hover {
-  background-color: #cfd8df;
-  cursor: pointer;
 }
 
 .invalid-config {
-  border: 2px solid #d74b59;
+  border: 2px solid #d74b59 !important;
   box-shadow: 0 0 0 0.2rem #edbec3;
 }
 

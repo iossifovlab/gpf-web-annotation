@@ -8,10 +8,20 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { AnnotationPipelineService } from '../annotation-pipeline.service';
 import { MatDialog } from '@angular/material/dialog';
+import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
+import { editorConfig, initEditor } from './annotation-pipeline-editor.config';
 
 @Component({
   selector: 'app-annotation-pipeline',
-  imports: [CommonModule, FormsModule, MatAutocompleteModule, MatFormFieldModule, ReactiveFormsModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatAutocompleteModule,
+    MatFormFieldModule,
+    ReactiveFormsModule,
+    FormsModule,
+    MonacoEditorModule
+  ],
   templateUrl: './annotation-pipeline.component.html',
   styleUrl: './annotation-pipeline.component.css'
 })
@@ -26,6 +36,7 @@ export class AnnotationPipelineComponent implements OnInit {
   public filteredPipelines$: Observable<Pipeline[]> = null;
   public dropdownControl = new FormControl<string>('');
   @ViewChild('nameInput') public nameInputTemplateRef: TemplateRef<ElementRef>;
+  public yamlEditorOptions = {};
 
   public constructor(
     private jobsService: JobsService,
@@ -33,7 +44,12 @@ export class AnnotationPipelineComponent implements OnInit {
     private dialog: MatDialog,
   ) { }
 
+  public onEditorInit(): void {
+    initEditor();
+  }
+
   public ngOnInit(): void {
+    this.yamlEditorOptions = editorConfig;
     this.getPipelines();
 
     this.filteredPipelines$ = this.dropdownControl.valueChanges.pipe(

@@ -11,6 +11,8 @@ import { UsersService } from '../users.service';
 import { MatDialog, MatDialogConfig, MatDialogRef } from '@angular/material/dialog';
 import { AnnotationPipelineService } from '../annotation-pipeline.service';
 import { ElementRef, TemplateRef } from '@angular/core';
+import { provideMonacoEditor } from 'ngx-monaco-editor-v2';
+import { By } from '@angular/platform-browser';
 
 const mockPipelines = [
   new Pipeline('id1', 'content1', 'default'),
@@ -128,15 +130,27 @@ describe('AnnotationPipelineComponent', () => {
           useValue: annotationPipelineServiceMock
         },
         provideHttpClient(),
-        provideHttpClientTesting()
+        provideHttpClientTesting(),
+        provideMonacoEditor(),
       ]
     }).compileComponents();
-
     fixture = TestBed.createComponent(AnnotationPipelineComponent);
     component = fixture.componentInstance;
 
     jest.spyOn(mockMatRef, 'getDialogById').mockReturnValue(mockMatDialogRef);
     jest.spyOn(mockMatRef, 'open').mockReturnValue(mockMatDialogRef);
+
+    // Mock monaco
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+    (window as any).monaco = {
+      editor: {
+        defineTheme: jest.fn(),
+        setTheme: jest.fn(),
+        create: jest.fn(),
+        onInit: jest.fn(),
+        dispose: jest.fn(),
+      }
+    };
     fixture.detectChanges();
   });
 
@@ -345,5 +359,89 @@ describe('AnnotationPipelineComponent', () => {
     component.autoSave();
     expect(savePipelineSpy).toHaveBeenCalledWith('', 'new content');
     expect(saveSpy).not.toHaveBeenCalledWith();
+  });
+
+  it('should get pipeline editor config options on init', () => {
+    component.pipelines = mockPipelines;
+    const editorInitSpy = jest.spyOn(component, 'onEditorInit');
+
+    const monacoEditor = fixture.debugElement.query(By.css('ngx-monaco-editor'));
+
+    // Manually trigger (onInit) of editor
+    monacoEditor.triggerEventHandler('onInit', { fake: 'editorInstance' });
+
+    expect(editorInitSpy).toHaveBeenCalledWith();
+    expect(component.yamlEditorOptions).toStrictEqual(
+      {
+        language: 'yaml',
+        minimap: {
+          enabled: false
+        },
+        lineNumbers: 'off',
+        folding: false,
+        stickyScroll: {
+          enabled: false,
+        },
+        scrollBeyondLastLine: false,
+        theme: 'annotationPipelineTheme',
+      }
+    );
+  });
+
+  it('should create theme on editor init', () => {
+    component.pipelines = mockPipelines;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+    const defineThemeSpy = jest.spyOn((window as any).monaco.editor, 'defineTheme');
+
+    const monacoEditor = fixture.debugElement.query(By.css('ngx-monaco-editor'));
+
+    // Manually trigger (onInit) of editor
+    monacoEditor.triggerEventHandler('onInit', { fake: 'editorInstance' });
+
+    fixture.detectChanges();
+    expect(defineThemeSpy).toHaveBeenCalledWith('annotationPipelineTheme', {
+      base: 'vs-dark',
+      inherit: true,
+      rules: [
+        {
+          foreground: '#dd8108ff',
+          token: 'type'
+        },
+
+        {
+          foreground: '#85a2b9',
+          token: 'string'
+        },
+        {
+          foreground: '#85a2b9',
+          token: 'number'
+        },
+        {
+          foreground: '#2f404eff',
+          token: 'keyword'
+        },
+        {
+          foreground: '#75715e',
+          token: 'comment'
+        },
+      ],
+      colors: {
+        'editor.foreground': '#2f404eff',
+        'editor.background': '#FFFFFF',
+        'editor.selectionForeground': '#915b15ff',
+        'editor.selectionBackground': '#e7e6e4ff',
+        'editor.inactiveSelectionBackground': '#ebeae8ff',
+        'editor.lineHighlightBackground': '#f0efe9b0',
+        'editorCursor.foreground': '#383838ff',
+        'editorWhitespace.foreground': '#c9d2ddff',
+        'editor.wordHighlightBackground': '#e9e6dfff',
+        'scrollbar.shadow': '#c9d2ddff',
+        'scrollbarSlider.background': '#dfdfdfa2',
+        'scrollbarSlider.hoverBackground': '#b3bbc583',
+        'scrollbarSlider.activeBackground': '#b3bbc583',
+        'editorIndentGuide.background1': '#dbdbdbe0',
+        'editorIndentGuide.activeBackground1': '#a4b6c7ff',
+      }
+    });
   });
 });
