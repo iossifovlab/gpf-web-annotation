@@ -38,8 +38,8 @@ describe('JobsService', () => {
         provideHttpClientTesting()
       ]
     });
-
     service = TestBed.inject(JobsService);
+    jest.clearAllMocks();
   });
 
   it('should be created', () => {
@@ -77,9 +77,16 @@ describe('JobsService', () => {
       ['vcf_like', 'VCF'],
     ]);
 
+    formData.append('col_chrom', '-');
     formData.append('col_pos', mockColumns.get('pos'));
+    formData.append('col_ref', '-');
     formData.append('col_alt', mockColumns.get('alt'));
+    formData.append('col_pos_beg', '-');
+    formData.append('col_pos_end', '-');
+    formData.append('col_cnv_type', '-');
     formData.append('col_vcf_like', mockColumns.get('vcf_like'));
+    formData.append('col_variant', '-');
+    formData.append('col_location', '-');
 
     const options = {
       headers: {
@@ -89,12 +96,10 @@ describe('JobsService', () => {
     };
 
     service.createNonVcfJob(mockInputFile, 'autism', 'hg38', '\t', mockColumns);
-
-    expect(httpPostSpy).toHaveBeenCalledWith(
-      '//localhost:8000/api/jobs/annotate_columns',
-      formData,
-      options
-    );
+    const calls = httpPostSpy.mock.calls;
+    expect(calls[0][0]).toBe('//localhost:8000/api/jobs/annotate_columns');
+    expect(calls[0][1]).toStrictEqual(formData);
+    expect(calls[0][2]).toStrictEqual(options);
   });
 
   it('should catch error 403 for daily quota limit when creating job', async() => {

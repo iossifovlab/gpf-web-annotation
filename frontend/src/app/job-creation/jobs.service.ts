@@ -76,36 +76,16 @@ export class JobsService {
     }
     formData.append('pipeline', pipeline);
 
-    if (columns.get('chrom')) {
-      formData.append('col_chrom', columns.get('chrom'));
-    }
-    if (columns.get('pos')) {
-      formData.append('col_pos', columns.get('pos'));
-    }
-    if (columns.get('ref')) {
-      formData.append('col_ref', columns.get('ref'));
-    }
-    if (columns.get('alt')) {
-      formData.append('col_alt', columns.get('alt'));
-    }
-    if (columns.get('position_begin')) {
-      formData.append('col_pos_beg', columns.get('position_begin'));
-    }
-    if (columns.get('position_end')) {
-      formData.append('col_pos_end', columns.get('position_end'));
-    }
-    if (columns.get('cnv_type')) {
-      formData.append('col_cnv_type', columns.get('cnv_type'));
-    }
-    if (columns.get('vcf_like')) {
-      formData.append('col_vcf_like', columns.get('vcf_like'));
-    }
-    if (columns.get('variant')) {
-      formData.append('col_variant', columns.get('variant'));
-    }
-    if (columns.get('location')) {
-      formData.append('col_location', columns.get('location'));
-    }
+    formData.append('col_chrom', columns.get('chrom') || '-');
+    formData.append('col_pos', columns.get('pos') || '-');
+    formData.append('col_ref', columns.get('ref') || '-');
+    formData.append('col_alt', columns.get('alt') || '-');
+    formData.append('col_pos_beg', columns.get('position_begin') || '-');
+    formData.append('col_pos_end', columns.get('position_end') || '-');
+    formData.append('col_cnv_type', columns.get('cnv_type') || '-');
+    formData.append('col_vcf_like', columns.get('vcf_like') || '-');
+    formData.append('col_variant', columns.get('variant') || '-');
+    formData.append('col_location', columns.get('location') || '-');
     return this.http.post(
       this.annotateColumnsUrl,
       formData,
@@ -202,36 +182,16 @@ export class JobsService {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
     const columnsSpec = new Map<string, string>;
 
-    if (columnSpecification.get('chrom')) {
-      columnsSpec.set('col_chrom', columnSpecification.get('chrom'));
-    }
-    if (columnSpecification.get('pos')) {
-      columnsSpec.set('col_pos', columnSpecification.get('pos'));
-    }
-    if (columnSpecification.get('ref')) {
-      columnsSpec.set('col_ref', columnSpecification.get('ref'));
-    }
-    if (columnSpecification.get('alt')) {
-      columnsSpec.set('col_alt', columnSpecification.get('alt'));
-    }
-    if (columnSpecification.get('position_begin')) {
-      columnsSpec.set('col_pos_beg', columnSpecification.get('position_begin'));
-    }
-    if (columnSpecification.get('position_end')) {
-      columnsSpec.set('col_pos_end', columnSpecification.get('position_end'));
-    }
-    if (columnSpecification.get('cnv_type')) {
-      columnsSpec.set('col_cnv_type', columnSpecification.get('cnv_type'));
-    }
-    if (columnSpecification.get('vcf_like')) {
-      columnsSpec.set('col_vcf_like', columnSpecification.get('vcf_like'));
-    }
-    if (columnSpecification.get('variant')) {
-      columnsSpec.set('col_variant', columnSpecification.get('variant'));
-    }
-    if (columnSpecification.get('location')) {
-      columnsSpec.set('col_location', columnSpecification.get('location'));
-    }
+    columnsSpec.set('col_chrom', columnSpecification.get('chrom') || '-');
+    columnsSpec.set('col_pos', columnSpecification.get('pos') || '-');
+    columnsSpec.set('col_ref', columnSpecification.get('ref') || '-');
+    columnsSpec.set('col_alt', columnSpecification.get('alt') || '-');
+    columnsSpec.set('col_pos_beg', columnSpecification.get('position_begin') || '-');
+    columnsSpec.set('col_pos_end', columnSpecification.get('position_end') || '-');
+    columnsSpec.set('col_cnv_type', columnSpecification.get('cnv_type') || '-');
+    columnsSpec.set('col_vcf_like', columnSpecification.get('vcf_like') || '-');
+    columnsSpec.set('col_variant', columnSpecification.get('variant') || '-');
+    columnsSpec.set('col_location', columnSpecification.get('location') || '-');
     return this.http.post(
       this.validateColumnsUrl,
       {
