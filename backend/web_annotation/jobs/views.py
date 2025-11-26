@@ -421,7 +421,7 @@ class ColumnValidation(AnnotationBaseView):
                 {
                     "annotatable": "",
                     "errors": (
-                        "Cannot build annotatable from current set of columns!"
+                        "Cannot build annotatable from selected columns!"
                     ),
                 },
                 status=views.status.HTTP_200_OK)

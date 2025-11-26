@@ -303,7 +303,7 @@ test.describe('Jobs table tests', () => {
     await page.locator('[id="CHROM-header"]').locator('mat-select').click();
     await page.getByRole('option', { name: 'variant', exact: true }).click();
 
-    await expect(page.getByText('Cannot build annotatable from current set of columns!')).toBeVisible();
+    await expect(page.getByText('Cannot build annotatable from selected columns!')).toBeVisible();
   });
 });
 
@@ -381,7 +381,7 @@ test.describe('Validation tests', () => {
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/invalid-separator.csv');
     await page.locator('[id="CHROM+POS+REF+ALT-header"]').locator('mat-select').click();
     await page.getByRole('option', { name: 'chrom', exact: true }).click();
-    await expect(page.getByText('Cannot build annotatable from current set of columns!')).toBeVisible();
+    await expect(page.getByText('Cannot build annotatable from selected columns!')).toBeVisible();
     await expect(page.locator('#create-button')).toBeDisabled();
   });
 
@@ -390,7 +390,7 @@ test.describe('Validation tests', () => {
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/wrongly-separated-row.csv');
     await page.locator('[id="CHROM,POS,REF,ALT-header"]').locator('mat-select').click();
     await page.getByRole('option', { name: 'chrom', exact: true }).click();
-    await expect(page.getByText('Cannot build annotatable from current set of columns!')).toBeVisible();
+    await expect(page.getByText('Cannot build annotatable from selected columns!')).toBeVisible();
     await expect(page.locator('#create-button')).toBeDisabled();
   });
 

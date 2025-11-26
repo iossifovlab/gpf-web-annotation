@@ -447,7 +447,7 @@ def test_annotate_vcf_disk_size(
             {
                 "annotatable": "",
                 "errors": (
-                    "Cannot build annotatable from current set of columns!"),
+                    "Cannot build annotatable from selected columns!"),
             },
         ),
         (
@@ -483,7 +483,7 @@ def test_annotate_vcf_disk_size(
             {
                 "annotatable": "",
                 "errors": (
-                    "Cannot build annotatable from current set of columns!"),
+                    "Cannot build annotatable from selected columns!"),
             },
         ),
     ],
