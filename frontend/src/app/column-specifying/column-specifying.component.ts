@@ -72,22 +72,32 @@ export class ColumnSpecifyingComponent implements OnChanges {
     fileHeader: string[],
     columnSpecification: Map<string, string>
   ): void {
-    this.validationSubscription.unsubscribe();
-    this.validationSubscription = this.jobsService.validateColumnSpecification(fileHeader, columnSpecification).pipe(
-      take(1)
-    ).subscribe(([annotatable, errorReason]) => {
-      this.error = errorReason;
-      this.annotatable = annotatable;
-      this.emitColumns.emit(this.error === '' ? this.mappedColumns : null);
-    });
+    if (this.mappedColumns.size) {
+      this.validationSubscription.unsubscribe();
+      this.validationSubscription = this.jobsService.validateColumnSpecification(fileHeader, columnSpecification).pipe(
+        take(1)
+      ).subscribe(([annotatable, errorReason]) => {
+        this.error = errorReason;
+        this.annotatable = annotatable;
+        this.emitColumns.emit(this.error === '' ? this.mappedColumns : null);
+      });
+    } else {
+      this.error = 'No columns selected!';
+    }
   }
 
   private selectDefaultNames(): void {
+    let noSelected = true;
     this.fileContent.columns.forEach(fileHeader => {
       const lowerCasedHeader = fileHeader.toLocaleLowerCase();
       if (this.columnNames.includes(lowerCasedHeader)) {
         this.onSelectName(lowerCasedHeader, fileHeader);
+        noSelected = false;
       }
     });
+
+    if (noSelected) {
+      this.error = 'No columns selected!';
+    }
   }
 }
