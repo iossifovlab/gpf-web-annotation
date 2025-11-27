@@ -22,3 +22,4 @@ dependencies:
   - pytest-mock
   - pytest-cov
   - pytest-xdist
+  - pytest-asyncio

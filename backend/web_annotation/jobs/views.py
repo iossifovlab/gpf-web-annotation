@@ -4,7 +4,9 @@ import logging
 from pathlib import Path
 from subprocess import CalledProcessError
 import time
-from typing import cast
+from typing import Any, cast
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from dae.annotation.annotation_factory import build_annotation_pipeline
 from dae.annotation.record_to_annotatable import build_record_to_annotatable
 from django.core.files.uploadedfile import UploadedFile
@@ -215,6 +217,7 @@ class AnnotateVCF(AnnotationBaseView):
             job.duration = time.time() - start_time
             job.disk_size += Path(job.result_path).stat().st_size
             update_job_success(job)
+            self._notify_user_socket(request.user, f"Job {job.name} success!")
 
         def on_failure(exception: BaseException) -> None:
             """Callback when annotation fails."""
@@ -240,11 +243,19 @@ class AnnotateVCF(AnnotationBaseView):
                 )
             logger.error("VCF annotation job failed!\n%s", reason)
             update_job_failed(job)
+            self._notify_user_socket(request.user, f"Job {job.name} failed!")
 
         update_job_in_progress(job)
 
+        self._notify_user_socket(
+            request.user, f"Job {job.name} added to waiting list.")
+
+        def run_vcf_wrapper(*args: Any, **kwargs: Any) -> None:
+            """Wrapper to run VCF job."""
+            self._notify_user_socket(request.user, f"Job {job.name} started.")
+            run_vcf_job(*args, **kwargs)
         self.TASK_EXECUTOR.execute(
-            run_vcf_job,
+            run_vcf_wrapper,
             callback_success=on_success,
             callback_failure=on_failure,
             **args,
@@ -346,6 +357,7 @@ class AnnotateColumns(AnnotationBaseView):
             job.duration = time.time() - start_time
             job.disk_size += Path(job.result_path).stat().st_size
             update_job_success(job)
+            self._notify_user_socket(request.user, f"Job {job.name} success!")
 
         def on_failure(exception: BaseException) -> None:
             job.duration = time.time() - start_time
@@ -367,11 +379,19 @@ class AnnotateColumns(AnnotationBaseView):
                 )
             logger.error("columns annotation job failed!\n%s", reason)
             update_job_failed(job)
+            self._notify_user_socket(request.user, f"Job {job.name} failed!")
 
         update_job_in_progress(job)
+        self._notify_user_socket(
+            request.user, f"Job {job.name} added to waiting list.")
+
+        def run_columns_wrapper(*args: Any, **kwargs: Any) -> None:
+            """Wrapper to run VCF job."""
+            self._notify_user_socket(request.user, f"Job {job.name} started.")
+            run_columns_job(*args, **kwargs)
 
         self.TASK_EXECUTOR.execute(
-            run_columns_job,
+            run_columns_wrapper,
             callback_success=on_success,
             callback_failure=on_failure,
             **args,

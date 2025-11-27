@@ -4,6 +4,7 @@ import gzip
 import pathlib
 import textwrap
 from typing import Any
+from asgiref.sync import sync_to_async
 from pysam import tabix_compress
 
 import pytest
@@ -13,16 +14,20 @@ from django.conf import LazySettings, settings
 from django.core.files.base import ContentFile
 from django.test import Client
 from django.utils import timezone
+from channels.consumer import async_to_sync
 from pytest_mock import MockerFixture
 
+from web_annotation.consumers import AnnotationStateConsumer
 from web_annotation.executor import SequentialTaskExecutor
 from web_annotation.models import Job, User, Pipeline
+from web_annotation.pipeline_cache import LRUPipelineCache
 from web_annotation.tasks import (
     clean_old_jobs, send_email,
     update_job_in_progress,
     update_job_failed,
     update_job_success,
 )
+from web_annotation.testing import CustomWebsocketCommunicator
 from web_annotation.tests.mailhog_client import (
     MailhogClient,
 )
@@ -1409,3 +1414,252 @@ def test_annotate_columns_variant_quota(
 
     response = user_client.post("/api/jobs/annotate_columns", params)
     assert response.status_code == 413
+
+
+@pytest.mark.asyncio
+@pytest.mark.django_db(transaction=True)
+async def test_annotate_vcf_notifications(
+    user_client: Client, mocker: MockerFixture,
+) -> None:
+    cache = LRUPipelineCache(16)
+    mocker.patch(
+        "web_annotation.jobs"
+        ".views.AnnotateVCF.lru_cache",
+        new=cache,
+    )
+    user = await sync_to_async(User.objects.get)(email="user@example.com")
+    communicator = CustomWebsocketCommunicator(
+            AnnotationStateConsumer.as_asgi(), "/ws/test/", user=user)
+
+    connected, _ = await communicator.connect()
+    assert connected
+
+    vcf = textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        ##contig=<ID=chr1>
+        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+        chr1	1	.	C	A	.	.	.
+    """).strip()
+
+    response = await sync_to_async(user_client.post)(
+        "/api/jobs/annotate_vcf",
+        {
+            "pipeline": "pipeline/test_pipeline",
+            "data": ContentFile(vcf, "test_input.vcf"),
+        },
+    )
+
+    assert response.status_code == 200, response.data
+
+    output = await communicator.receive_json_from()
+    assert output == {
+        "message": "Loading pipeline pipeline/test_pipeline.",
+    }
+    output = await communicator.receive_json_from()
+    assert output == {
+        "message": "Pipeline pipeline/test_pipeline is loaded.",
+    }
+    output = await communicator.receive_json_from()
+    assert output == {
+        "message": "Job 2 added to waiting list.",
+    }
+    output = await communicator.receive_json_from()
+    assert output == {
+        "message": "Job 2 started.",
+    }
+    output = await communicator.receive_json_from()
+    assert output == {
+        "message": "Job 2 success!",
+    }
+
+@pytest.mark.asyncio
+@pytest.mark.django_db(transaction=True)
+async def test_annotate_columns_notifications(
+    user_client: Client, mocker: MockerFixture,
+) -> None:
+    cache = LRUPipelineCache(16)
+    mocker.patch(
+        "web_annotation.jobs"
+        ".views.AnnotateColumns.lru_cache",
+        new=cache,
+    )
+    user = await sync_to_async(User.objects.get)(email="user@example.com")
+    communicator = CustomWebsocketCommunicator(
+            AnnotationStateConsumer.as_asgi(), "/ws/test/", user=user)
+
+    connected, _ = await communicator.connect()
+    assert connected
+
+    input_file = textwrap.dedent("""
+        chrom	pos	ref	alt
+        chr1	1	C	A
+    """).strip()
+    specification = {
+        "col_chrom": "chrom",
+        "col_pos": "pos",
+        "col_ref": "ref",
+        "col_alt": "alt",
+    }
+    params = {
+        "pipeline": "pipeline/test_pipeline",
+        "data": ContentFile(input_file, "test_input.tsv"),
+        "separator": "\t",
+        **specification,
+    }
+
+    response = await sync_to_async(user_client.post)(
+        "/api/jobs/annotate_columns",
+        params,
+    )
+
+    assert response.status_code == 200, response.data
+
+    output = await communicator.receive_json_from()
+    assert output == {
+        "message": "Loading pipeline pipeline/test_pipeline.",
+    }
+    output = await communicator.receive_json_from()
+    assert output == {
+        "message": "Pipeline pipeline/test_pipeline is loaded.",
+    }
+    output = await communicator.receive_json_from()
+    assert output == {
+        "message": "Job 2 added to waiting list.",
+    }
+    output = await communicator.receive_json_from()
+    assert output == {
+        "message": "Job 2 started.",
+    }
+    output = await communicator.receive_json_from()
+    assert output == {
+        "message": "Job 2 success!",
+    }
+
+@pytest.mark.asyncio
+@pytest.mark.django_db(transaction=True)
+async def test_annotate_vcf_notifications_fail(
+    user_client: Client, mocker: MockerFixture,
+) -> None:
+    cache = LRUPipelineCache(16)
+    mocker.patch(
+        "web_annotation.jobs"
+        ".views.AnnotateVCF.lru_cache",
+        new=cache,
+    )
+    mocker.patch(
+        "web_annotation.jobs"
+        ".views.run_vcf_job",
+        side_effect=ValueError("some error"),
+    )
+    user = await sync_to_async(User.objects.get)(email="user@example.com")
+    communicator = CustomWebsocketCommunicator(
+            AnnotationStateConsumer.as_asgi(), "/ws/test/", user=user)
+
+    connected, _ = await communicator.connect()
+    assert connected
+
+    vcf = textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        ##contig=<ID=chr1>
+        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+        chr1	1	.	C	A	.	.	.
+    """).strip()
+
+    response = await sync_to_async(user_client.post)(
+        "/api/jobs/annotate_vcf",
+        {
+            "pipeline": "pipeline/test_pipeline",
+            "data": ContentFile(vcf, "test_input.vcf"),
+        },
+    )
+
+    assert response.status_code == 200, response.data
+
+    output = await communicator.receive_json_from()
+    assert output == {
+        "message": "Loading pipeline pipeline/test_pipeline.",
+    }
+    output = await communicator.receive_json_from()
+    assert output == {
+        "message": "Pipeline pipeline/test_pipeline is loaded.",
+    }
+    output = await communicator.receive_json_from()
+    assert output == {
+        "message": "Job 2 added to waiting list.",
+    }
+    output = await communicator.receive_json_from()
+    assert output == {
+        "message": "Job 2 started.",
+    }
+    output = await communicator.receive_json_from()
+    assert output == {
+        "message": "Job 2 failed!",
+    }
+
+@pytest.mark.asyncio
+@pytest.mark.django_db(transaction=True)
+async def test_annotate_columns_notifications_fail(
+    user_client: Client, mocker: MockerFixture,
+) -> None:
+    cache = LRUPipelineCache(16)
+    mocker.patch(
+        "web_annotation.jobs"
+        ".views.AnnotateVCF.lru_cache",
+        new=cache,
+    )
+    mocker.patch(
+        "web_annotation.jobs"
+        ".views.run_columns_job",
+        side_effect=ValueError("some error"),
+    )
+    user = await sync_to_async(User.objects.get)(email="user@example.com")
+    communicator = CustomWebsocketCommunicator(
+            AnnotationStateConsumer.as_asgi(), "/ws/notifications/", user=user)
+
+    connected, _ = await communicator.connect()
+    assert connected
+
+    input_file = textwrap.dedent("""
+        chrom	pos	ref	alt
+        chr1	1	C	A
+    """).strip()
+    specification = {
+        "col_chrom": "chrom",
+        "col_pos": "pos",
+        "col_ref": "ref",
+        "col_alt": "alt",
+    }
+    params = {
+        "pipeline": "pipeline/test_pipeline",
+        "data": ContentFile(input_file, "test_input.tsv"),
+        "separator": "\t",
+        **specification,
+    }
+
+    response = await sync_to_async(user_client.post)(
+        "/api/jobs/annotate_columns",
+        params,
+    )
+
+    assert response.status_code == 200, response.data
+
+    output = await communicator.receive_json_from()
+    assert output == {
+        "message": "Loading pipeline pipeline/test_pipeline.",
+    }
+    output = await communicator.receive_json_from()
+    assert output == {
+        "message": "Pipeline pipeline/test_pipeline is loaded.",
+    }
+    output = await communicator.receive_json_from()
+    assert output == {
+        "message": "Job 2 added to waiting list.",
+    }
+    output = await communicator.receive_json_from()
+    assert output == {
+        "message": "Job 2 started.",
+    }
+    output = await communicator.receive_json_from()
+    assert output == {
+        "message": "Job 2 failed!",
+    }

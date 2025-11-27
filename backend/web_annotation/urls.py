@@ -14,7 +14,8 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.urls import path, include
+from typing import Sequence, cast
+from django.urls import URLResolver, path, include, re_path
 
 from web_annotation import views
 
@@ -23,6 +24,7 @@ from web_annotation.pipelines.urls import urlpatterns as pipeline_urls
 from web_annotation.single_allele_annotation.urls import (
     urlpatterns as single_allele_urls,
 )
+from web_annotation.consumers import AnnotationStateConsumer
 
 
 urlpatterns = [
@@ -49,5 +51,12 @@ urlpatterns = [
         "api/reset_password",
         views.PasswordReset.as_view(),
         name="reset_password",
+    ),
+]
+
+websocket_urlpatterns = [
+    re_path(
+        r"ws/notifications/?$",
+        cast(Sequence[URLResolver], AnnotationStateConsumer.as_asgi()),
     ),
 ]
