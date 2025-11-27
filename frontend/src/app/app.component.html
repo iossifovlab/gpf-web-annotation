@@ -9,8 +9,9 @@
         <span id="user-email">{{ currentUserData.email }}</span>
         <button id="logout-button" (click)="logout()">Logout</button>
       </div>
-      <div id="user-data" *ngIf="!currentUserData">
+      <div id="login-register-buttons" *ngIf="!currentUserData">
         <button id="login-button" (click)="login()">Login</button>
+        <button id="register-button" (click)="register()">Register</button>
       </div>
     </div>
   </div>
