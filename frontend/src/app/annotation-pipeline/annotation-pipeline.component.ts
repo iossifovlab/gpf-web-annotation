@@ -10,6 +10,7 @@ import { AnnotationPipelineService } from '../annotation-pipeline.service';
 import { MatDialog } from '@angular/material/dialog';
 import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { editorConfig, initEditor } from './annotation-pipeline-editor.config';
+import { UsersService } from '../users.service';
 
 @Component({
   selector: 'app-annotation-pipeline',
@@ -37,11 +38,13 @@ export class AnnotationPipelineComponent implements OnInit {
   public dropdownControl = new FormControl<string>('');
   @ViewChild('nameInput') public nameInputTemplateRef: TemplateRef<ElementRef>;
   public yamlEditorOptions = {};
+  public isUserLoggedIn = false;
 
   public constructor(
     private jobsService: JobsService,
     private annotationPipelineService: AnnotationPipelineService,
     private dialog: MatDialog,
+    private userService: UsersService,
   ) { }
 
   public onEditorInit(): void {
@@ -49,6 +52,7 @@ export class AnnotationPipelineComponent implements OnInit {
   }
 
   public ngOnInit(): void {
+    this.isUserLoggedIn = Boolean(this.userService.userData.value);
     this.yamlEditorOptions = editorConfig;
     this.getPipelines();
 
