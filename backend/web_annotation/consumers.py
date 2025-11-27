@@ -8,6 +8,7 @@ from web_annotation.models import User
 
 
 class AnnotationStateConsumer(WebsocketConsumer):
+    """Web socket consumer made for notifying users of job progress."""
 
     def get_user(self) -> User:
         assert "user" in self.scope, "User not found in scope"
@@ -24,7 +25,7 @@ class AnnotationStateConsumer(WebsocketConsumer):
             self.user_id, self.channel_name)
         self.accept()
 
-    def disconnect(self, message: Any) -> None:
+    def disconnect(self, code: Any) -> None:
         async_to_sync(self.channel_layer.group_discard)(
             self.user_id, self.channel_name)
 

@@ -235,7 +235,6 @@ class AnnotationBaseView(views.APIView):
         """Get an annotation pipeline by name."""
         pipeline_id = self._get_pipeline_id(pipeline_name, user)
 
-        group_id = str(user.pk)
         pipeline = self.lru_cache.get_pipeline(pipeline_id)
 
         if pipeline is None:

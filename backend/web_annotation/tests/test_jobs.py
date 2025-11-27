@@ -14,7 +14,6 @@ from django.conf import LazySettings, settings
 from django.core.files.base import ContentFile
 from django.test import Client
 from django.utils import timezone
-from channels.consumer import async_to_sync
 from pytest_mock import MockerFixture
 
 from web_annotation.consumers import AnnotationStateConsumer

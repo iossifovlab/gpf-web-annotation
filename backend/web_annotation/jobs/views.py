@@ -5,8 +5,6 @@ from pathlib import Path
 from subprocess import CalledProcessError
 import time
 from typing import Any, cast
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
 from dae.annotation.annotation_factory import build_annotation_pipeline
 from dae.annotation.record_to_annotatable import build_record_to_annotatable
 from django.core.files.uploadedfile import UploadedFile
