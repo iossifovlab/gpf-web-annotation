@@ -454,4 +454,11 @@ def test_get_user_info_unauthorized(anonymous_client: Client) -> None:
     assert response.status_code == 200
     assert response.json() == {
         "loggedIn": False,
+        'limitations': {
+            'dailyJobs': 5,
+            'diskSpace': '0.1 KB / 2.0 GB',
+            'filesize': '64M',
+            'jobsLeft': 5,
+            'variantCount': 1000,
+        },
     }

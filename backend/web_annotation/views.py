@@ -27,10 +27,12 @@ from web_annotation.utils import (
     PasswordForgottenForm,
     ResetPasswordForm,
     bytes_to_readable,
+    calculate_anonymous_used_disk_space,
     calculate_used_disk_space,
     check_request_verification_path,
     convert_size,
     deauthenticate,
+    get_ip_from_request,
     reset_password,
     verify_user,
 )
@@ -38,6 +40,7 @@ from web_annotation.utils import (
 
 from .models import (
     AccountConfirmationCode,
+    AnonymousJob,
     BaseVerificationCode,
     Job,
     ResetPasswordCode,
@@ -64,21 +67,21 @@ class UserDetail(generics.RetrieveAPIView):
 class UserInfo(views.APIView):
     """View that returns the request session's user information."""
 
-    def get_user_daily_limit(self, user: User) -> int | None:
+    def get_user_daily_limit(self, user: User | None = None) -> int | None:
         """Return the daily job limit for a user."""
-        if user.is_superuser:
+        if user is not None and user.is_superuser:
             return None
         return cast(int, settings.QUOTAS["daily_jobs"])
 
-    def get_user_filesize_limit(self, user: User) -> str | None:
+    def get_user_filesize_limit(self, user: User | None = None) -> str | None:
         """Return the file size limit for a user."""
-        if user.is_superuser:
+        if user is not None and user.is_superuser:
             return None
         return cast(str, settings.QUOTAS["filesize"])
 
-    def get_user_variant_limit(self, user: User) -> int | None:
+    def get_user_variant_limit(self, user: User | None = None) -> int | None:
         """Return the variant count limit for a user."""
-        if user.is_superuser:
+        if user is not None and user.is_superuser:
             return None
         return cast(int, settings.QUOTAS["variant_count"])
 
@@ -93,26 +96,59 @@ class UserInfo(views.APIView):
         daily_limit = cast(int, settings.QUOTAS["daily_jobs"])
         return max(0, daily_limit - len(jobs_made))
 
+    def get_anonymous_user_jobs_left(self, user_ip: str) -> int | None:
+        """Return the number of jobs left for a user today."""
+        today = timezone.now().replace(
+            hour=0, minute=0, second=0, microsecond=0)
+        jobs_made = AnonymousJob.objects.filter(
+            created__gte=today, owner__exact=user_ip)
+        daily_limit = cast(int, settings.QUOTAS["daily_jobs"])
+        return max(0, daily_limit - len(jobs_made))
+
     def get(self, request: Request) -> Response:
+        """Get a user's info and limitations."""
         user = request.user
+        limitations = {
+            "dailyJobs": self.get_user_daily_limit(user),
+            "filesize": self.get_user_filesize_limit(user),
+            "variantCount": self.get_user_variant_limit(user),
+            "jobsLeft": self.get_user_jobs_left(user),
+        }
         if not user.is_authenticated:
-            return Response({"loggedIn": False}, views.status.HTTP_200_OK)
+            user_ip = get_ip_from_request(request)
+            return Response(
+                {
+                    "loggedIn": False,
+                    "limitations": {
+                        **limitations,
+                        "jobsLeft": self.get_anonymous_user_jobs_left(user_ip),
+                        "diskSpace": (
+                            f"{bytes_to_readable(
+                                calculate_anonymous_used_disk_space(user_ip)
+                            )} "
+                            f"/ {bytes_to_readable(
+                                convert_size(str(settings.QUOTAS["disk_space"])))}"
+                        ),
+                    },
+                },
+                views.status.HTTP_200_OK,
+            )
 
         return Response(
             {
                 "loggedIn": True,
                 "email": user.email,
                 "limitations": {
-                    "dailyJobs": self.get_user_daily_limit(user),
-                    "filesize": self.get_user_filesize_limit(user),
+                    **limitations,
+                    "jobsLeft": self.get_user_jobs_left(user),
                     "diskSpace": (
-                        f"{bytes_to_readable(calculate_used_disk_space(user))} "
+                        f"{bytes_to_readable(
+                            calculate_used_disk_space(user)
+                        )} "
                         f"/ {bytes_to_readable(
                             convert_size(str(settings.QUOTAS["disk_space"])))}"
                     ),
-                    "variantCount": self.get_user_variant_limit(user),
-                    "jobsLeft": self.get_user_jobs_left(user),
-                }
+                },
             },
             views.status.HTTP_200_OK,
         )

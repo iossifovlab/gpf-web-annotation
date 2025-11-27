@@ -18,8 +18,8 @@ from pytest_mock import MockerFixture
 
 from web_annotation.consumers import AnnotationStateConsumer
 from web_annotation.executor import SequentialTaskExecutor
-from web_annotation.models import Job, User, Pipeline
 from web_annotation.pipeline_cache import LRUPipelineCache
+from web_annotation.models import AnonymousJob, Job, User, Pipeline
 from web_annotation.tasks import (
     clean_old_jobs, send_email,
     update_job_in_progress,
@@ -268,6 +268,57 @@ def test_annotate_vcf(
     result_path = pathlib.Path(job.result_path)
     assert result_path.parent == \
         pathlib.Path(settings.JOB_RESULT_STORAGE_DIR) / user.email
+    assert result_path.exists()
+    assert job.result_path.endswith(".vcf") is True
+
+
+@pytest.mark.django_db
+def test_annotate_vcf_anonymous_user(
+    anonymous_client: Client, test_grr: GenomicResourceRepo,
+) -> None:
+    user = User.objects.get(email="user@example.com")
+
+    annotation_config = textwrap.dedent("""
+        - position_score:
+            resource_id: scores/pos1
+            attributes:
+            - name: position_1
+              source: pos1
+    """).lstrip()
+    vcf = textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        ##contig=<ID=chr1>
+        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+        chr1	1	.	C	A	.	.	.
+    """).strip()
+
+    response = anonymous_client.post(
+        "/api/jobs/annotate_vcf",
+        {
+            "pipeline": "pipeline/test_pipeline",
+            "data": ContentFile(vcf, "test_input.vcf"),
+        },
+    )
+    assert response.status_code == 200, response.data
+
+    assert AnonymousJob.objects.count() == 1
+
+    job = AnonymousJob.objects.last()
+
+    assert job is not None
+
+    saved_input = pathlib.Path(job.input_path)
+
+    assert job.duration is not None
+    assert job.duration < 7.0
+    assert saved_input.exists()
+    assert saved_input.read_text(encoding="utf-8") == vcf
+
+    saved_config = pathlib.Path(job.config_path)
+    assert saved_config.exists()
+    assert saved_config.read_text(encoding="utf-8") == annotation_config
+
+    result_path = pathlib.Path(job.result_path)
     assert result_path.exists()
     assert job.result_path.endswith(".vcf") is True
 

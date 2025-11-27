@@ -26,7 +26,7 @@ from web_annotation.annotation_base_view import AnnotationBaseView
 from web_annotation.models import Job, User
 from web_annotation.permissions import has_job_permission
 from web_annotation.serializers import JobSerializer
-from web_annotation.utils import bytes_to_readable
+from web_annotation.utils import bytes_to_readable, get_ip_from_request
 from web_annotation.tasks import (
     get_args_columns,
     get_args_vcf,
@@ -153,24 +153,33 @@ class AnnotateVCF(AnnotationBaseView):
     """View for creating jobs."""
 
     parser_classes = [MultiPartParser]
-    permission_classes = [permissions.IsAuthenticated]
 
-    def check_variants_limit(self, file: VariantFile, user: User) -> bool:
+    def check_variants_limit(
+        self,
+        file: VariantFile,
+        user: User | None = None,
+    ) -> bool:
         """Check if a variants file does not exceed the variants limit."""
-        if user.is_superuser:
+        if user is not None and user.is_superuser:
             return True
         for i, _ in enumerate(file.fetch()):
             if i >= self.max_variants:
                 logger.debug(
                     "User %s exceeded max variants limit: %d",
-                    user.email, self.max_variants,
+                    user.email if user is not None else "anonymous",
+                    self.max_variants,
                 )
                 return False
         return True
 
     def post(self, request: Request) -> Response:
         """Run VCF annotation job."""
-        job_or_response = self._create_job(request, "vcf")
+        if request.user.is_authenticated:
+            job_or_response = self._create_job(request, "vcf")
+            work_folder_name = request.user.email
+        else:
+            job_or_response = self._create_anonymous_job(request, "vcf")
+            work_folder_name = get_ip_from_request(request)
         if isinstance(job_or_response, Response):
             return job_or_response
         job_name, pipeline, job = job_or_response
@@ -179,14 +188,14 @@ class AnnotateVCF(AnnotationBaseView):
             vcf = VariantFile(job.input_path)
         except (ValueError, OSError):
             logger.exception("Failed to parse VCF file")
-            self._cleanup(job_name, job.owner.email)
+            self._cleanup(job_name, work_folder_name)
             return Response(
                 {"reason": "Invalid VCF file"},
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
         except NotImplementedError:
             logger.exception("GZip upload")
-            self._cleanup(job_name, job.owner.email)
+            self._cleanup(job_name, work_folder_name)
             return Response(
                 {
                     "reason": (
@@ -198,12 +207,12 @@ class AnnotateVCF(AnnotationBaseView):
             )
 
         if not self.check_variants_limit(vcf, request.user):
-            self._cleanup(job_name, job.owner.email)
+            self._cleanup(job_name, work_folder_name)
             return Response(
                 status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
 
         job.save()
-        work_dir = self.result_storage_dir / request.user.email
+        work_dir = self.result_storage_dir / work_folder_name
         pipeline = build_annotation_pipeline(pipeline.raw, pipeline.repository)
         args = get_args_vcf(
             job, pipeline, str(work_dir))
