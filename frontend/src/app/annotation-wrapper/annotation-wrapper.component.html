@@ -82,7 +82,10 @@
     </div>
   </div>
 
-  <div *ngIf="!hideHistory" id="history-table">
+  <div
+    *ngIf="!hideHistory && isUserLoggedIn"
+    id="history-table"
+    style="width: 20%; border-left: 1px solid #e1e9ef; padding-left: 30px">
     <app-jobs-table *ngIf="currentView === 'jobs'"></app-jobs-table>
     <app-alleles-table
       *ngIf="currentView === 'single allele'"
