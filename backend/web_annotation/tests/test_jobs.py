@@ -1604,7 +1604,7 @@ async def test_annotate_columns_notifications_fail(
     cache = LRUPipelineCache(16)
     mocker.patch(
         "web_annotation.jobs"
-        ".views.AnnotateVCF.lru_cache",
+        ".views.AnnotateColumns.lru_cache",
         new=cache,
     )
     mocker.patch(
