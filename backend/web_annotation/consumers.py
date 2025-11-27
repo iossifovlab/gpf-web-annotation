@@ -1,7 +1,7 @@
 # pylint: disable=W0201
 import json
 from typing import Any, cast
-from channels.consumer import async_to_sync
+from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 
 from web_annotation.models import User
