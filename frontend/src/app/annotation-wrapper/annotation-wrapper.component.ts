@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { JobsTableComponent } from '../jobs-table/jobs-table.component';
 import { Observable, repeat, switchMap, take, takeWhile } from 'rxjs';
 import { JobsService } from '../job-creation/jobs.service';
@@ -8,6 +8,7 @@ import { JobCreationComponent } from '../job-creation/job-creation.component';
 import { CommonModule } from '@angular/common';
 import { SingleAnnotationComponent } from '../single-annotation/single-annotation.component';
 import { AllelesTableComponent } from '../alleles-table/alleles-table.component';
+import { UsersService } from '../users.service';
 
 @Component({
   selector: 'app-annotation-wrapper',
@@ -23,7 +24,7 @@ import { AllelesTableComponent } from '../alleles-table/alleles-table.component'
   styleUrl: './annotation-wrapper.component.css'
 })
 
-export class AnnotationWrapperComponent {
+export class AnnotationWrapperComponent implements OnInit {
   public file: File = null;
   public fileSeparator: string = null;
   public fileHeader = new Map<string, string>();
@@ -40,10 +41,16 @@ export class AnnotationWrapperComponent {
   public downloadLink = '';
   public currentView:'jobs' | 'single allele' = 'jobs';
   public currentJob: Job = null;
+  public isUserLoggedIn = false;
 
   public constructor(
       private jobsService: JobsService,
+      private userService: UsersService
   ) { }
+
+  public ngOnInit(): void {
+    this.isUserLoggedIn = Boolean(this.userService.userData.value);
+  }
 
   public autoSavePipeline(): void {
     this.currentJob = null;
