@@ -2,6 +2,8 @@
 import logging
 from pathlib import Path
 from typing import cast
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from dae.annotation.annotation_config import (
     AnnotationConfigParser,
     AnnotationConfigurationError,
@@ -94,6 +96,9 @@ class AnnotationBaseView(views.APIView):
         self.result_storage_dir = Path(settings.JOB_RESULT_STORAGE_DIR)
         self.max_variants: int = cast(
             int, settings.QUOTAS["variant_count"])
+        channel_layer = get_channel_layer()
+        assert channel_layer is not None
+        self.channel_layer = channel_layer
 
     @property
     def grr(self) -> GenomicResourceRepo:
@@ -167,6 +172,19 @@ class AnnotationBaseView(views.APIView):
     ) -> str:
         return Path(user_pipeline.config_path).read_text(encoding="utf-8")
 
+    def _notify_user_socket(
+        self, user: User, message: str,
+    ) -> None:
+        group_id = str(user.pk)
+
+        async_to_sync(self.channel_layer.group_send)(
+            group_id,
+            {
+                "type": "annotation_notify",
+                "message": message,
+            },
+        )
+
     def _get_pipeline_yaml(
         self,
         pipeline_id: str,
@@ -220,11 +238,17 @@ class AnnotationBaseView(views.APIView):
         pipeline = self.lru_cache.get_pipeline(pipeline_id)
 
         if pipeline is None:
+            self._notify_user_socket(
+                user,
+                f"Loading pipeline {pipeline_name}.",
+            )
             pipeline_config = self._get_pipeline_yaml(pipeline_name, user)
 
             pipeline = self.lru_cache.put_pipeline(
                 pipeline_id, load_pipeline_from_yaml(pipeline_config, self.grr)
             )
+
+        self._notify_user_socket(user, f"Pipeline {pipeline_name} is loaded.")
 
         return pipeline
 
