@@ -20,7 +20,7 @@ os.environ.setdefault(
 
 django_asgi_app = get_asgi_application()
 
-from web_annotation.urls import websocket_urlpatterns
+from web_annotation.urls import websocket_urlpatterns  # noqa: E402
 
 application = ProtocolTypeRouter({
     "http": django_asgi_app,
