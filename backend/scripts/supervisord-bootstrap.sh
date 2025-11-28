@@ -20,11 +20,11 @@ supervisorctl start gpfwa
 rc=$?
 if [ $rc -ne 0 ]; then
     echo -e "\n---------------------------------------"
-    echo -e "  gunicorn not ready! Exiting..."
+    echo -e "  daphne not ready! Exiting..."
     echo -e "---------------------------------------"
     exit 1
 fi
 
 echo -e "\n\n------------------------------------------------------------------------"
-echo -e "gunicorn running..."
+echo -e "daphne running..."
 echo -e "------------------------------------------------------------------------\n\n"
