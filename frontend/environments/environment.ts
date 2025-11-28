@@ -10,5 +10,6 @@ export const environment = {
   basePath: basePath,
   apiPath: basePath + '/api',
   imgPathPrefix: '/assets',
+  socketPath: 'ws://localhost:8000/ws',
   version: versionInfo?.version
 };
