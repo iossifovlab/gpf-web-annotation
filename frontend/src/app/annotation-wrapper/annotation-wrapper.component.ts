@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, OnInit, OnDestroy} from '@angular/core';
 import { JobsTableComponent } from '../jobs-table/jobs-table.component';
 import { Observable, repeat, switchMap, take, takeWhile } from 'rxjs';
 import { JobsService } from '../job-creation/jobs.service';
@@ -23,7 +23,7 @@ import { AllelesTableComponent } from '../alleles-table/alleles-table.component'
   styleUrl: './annotation-wrapper.component.css'
 })
 
-export class AnnotationWrapperComponent {
+export class AnnotationWrapperComponent implements OnInit {
   public file: File = null;
   public fileSeparator: string = null;
   public fileHeader = new Map<string, string>();
@@ -44,6 +44,18 @@ export class AnnotationWrapperComponent {
   public constructor(
       private jobsService: JobsService,
   ) { }
+
+  public ngOnInit(): void {
+    this.jobsService.getJobsStatus().subscribe({
+      next: msg => console.log('message received: ' + msg.message), // Called whenever there is a message from the server.
+      error: err => console.log(err), // Called if at any point WebSocket API signals some kind of error.
+      complete: () => console.log('complete') // Called when connection is closed (for whatever reason).
+    });
+  }
+
+  public ngOnDestroy(): void {
+    this.jobsService.closeConnection();
+  }
 
   public autoSavePipeline(): void {
     this.currentJob = null;

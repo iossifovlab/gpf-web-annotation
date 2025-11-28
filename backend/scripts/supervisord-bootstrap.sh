@@ -9,8 +9,8 @@ set -e
 
 source /gpf/bin/activate
 
-DJANGO_SETTINGS_MODULE='web_annotation.settings_gunicorn' django-admin migrate
-DJANGO_SETTINGS_MODULE='web_annotation.settings_gunicorn' django-admin collectstatic --noinput
+DJANGO_SETTINGS_MODULE='web_annotation.settings_daphne' django-admin migrate
+DJANGO_SETTINGS_MODULE='web_annotation.settings_daphne' django-admin collectstatic --noinput
 
 
 supervisorctl start gpfwa
@@ -20,11 +20,11 @@ supervisorctl start gpfwa
 rc=$?
 if [ $rc -ne 0 ]; then
     echo -e "\n---------------------------------------"
-    echo -e "  gunicorn not ready! Exiting..."
+    echo -e "  daphne not ready! Exiting..."
     echo -e "---------------------------------------"
     exit 1
 fi
 
 echo -e "\n\n------------------------------------------------------------------------"
-echo -e "gunicorn running..."
+echo -e "daphne running..."
 echo -e "------------------------------------------------------------------------\n\n"
