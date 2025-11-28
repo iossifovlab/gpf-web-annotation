@@ -206,7 +206,4 @@ export class AnnotationWrapperComponent implements OnInit {
   public refreshAllelesTable(): void {
     this.allelesTableComponent.refreshTable();
   }
-  public testSocket(): void {
-      this.jobsService.testSocket();
-  }
 }

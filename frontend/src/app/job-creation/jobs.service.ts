@@ -246,14 +246,4 @@ export class JobsService {
       options
     );
   }
-
-  public testSocket(): void {
-    const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
-
-    this.http.post(
-      `${this.jobsUrl}/test`,
-      {},
-      options,
-    ).subscribe();
-  }
 }
