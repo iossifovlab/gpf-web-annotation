@@ -15,7 +15,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.utils import timezone
 
-from .models import Job, JobDetails
+from .models import BaseJob, Job, JobDetails
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +73,7 @@ def get_job_details(job_pk: int) -> JobDetails:
         return details
 
 
-def update_job_in_progress(job: Job) -> None:
+def update_job_in_progress(job: BaseJob) -> None:
     """Update a job's state to in progress."""
     if job.status != Job.Status.WAITING:
         raise ValueError(
@@ -84,7 +84,7 @@ def update_job_in_progress(job: Job) -> None:
     job.save()
 
 
-def update_job_failed(job: Job) -> None:
+def update_job_failed(job: BaseJob) -> None:
     """Update a job's state to failed."""
     if job.status != Job.Status.IN_PROGRESS:
         raise ValueError(
@@ -94,20 +94,21 @@ def update_job_failed(job: Job) -> None:
     job.status = Job.Status.FAILED
     job.save()
 
-    # pylint: disable=import-outside-toplevel
-    from django.conf import settings
-    send_email(
-        "GPFWA: Annotation job failed",
-        (
-            "Your job has failed. "
-            "Visit the web site to try running it again: "
-            f"{settings.EMAIL_REDIRECT_ENDPOINT}/jobs"
-        ),
-        [job.owner.email],
-    )
+    if isinstance(job, Job):
+        # pylint: disable=import-outside-toplevel
+        from django.conf import settings
+        send_email(
+            "GPFWA: Annotation job failed",
+            (
+                "Your job has failed. "
+                "Visit the web site to try running it again: "
+                f"{settings.EMAIL_REDIRECT_ENDPOINT}/jobs"
+            ),
+            [job.owner.email],
+        )
 
 
-def update_job_success(job: Job) -> None:
+def update_job_success(job: BaseJob) -> None:
     """Update a job's state to success."""
     if job.status != Job.Status.IN_PROGRESS:
         raise ValueError(
@@ -116,21 +117,23 @@ def update_job_success(job: Job) -> None:
         )
     job.status = Job.Status.SUCCESS
     job.save()
-    # pylint: disable=import-outside-toplevel
-    from django.conf import settings
-    send_email(
-        "GPFWA: Annotation job finished successfully",
-        (
-            "Your job has finished successfully. "
-            "Visit the web site to download the results: "
-            f"{settings.EMAIL_REDIRECT_ENDPOINT}/jobs"
-        ),
-        [job.owner.email],
-    )
+
+    if isinstance(job, Job):
+        # pylint: disable=import-outside-toplevel
+        from django.conf import settings
+        send_email(
+            "GPFWA: Annotation job finished successfully",
+            (
+                "Your job has finished successfully. "
+                "Visit the web site to download the results: "
+                f"{settings.EMAIL_REDIRECT_ENDPOINT}/jobs"
+            ),
+            [job.owner.email],
+        )
 
 
 def get_args_vcf(
-    job: Job, pipeline: AnnotationPipeline, storage_dir: str,
+    job: BaseJob, pipeline: AnnotationPipeline, storage_dir: str,
 ) -> dict[str, Any]:
     """Prepare command line arguments for VCF annotation."""
     return {

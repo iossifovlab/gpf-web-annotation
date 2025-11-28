@@ -27,11 +27,12 @@ from rest_framework.views import Request, Response
 from rest_framework.request import MultiValueDict
 import yaml
 
+from web_annotation.utils import get_ip_from_request
 from web_annotation.executor import (
     TaskExecutor,
     ThreadedTaskExecutor,
 )
-from web_annotation.models import Job, Pipeline, User
+from web_annotation.models import AnonymousJob, Job, Pipeline, User
 from web_annotation.pipeline_cache import LRUPipelineCache
 
 logger = logging.getLogger(__name__)
@@ -131,9 +132,13 @@ class AnnotationBaseView(views.APIView):
                 return int(filesize.rstrip(f"{unit}")) * mult
         return int(filesize)
 
-    def check_valid_upload_size(self, file: UploadedFile, user: User) -> bool:
+    def check_valid_upload_size(
+        self,
+        file: UploadedFile,
+        user: User | None = None,
+    ) -> bool:
         """Check if a file upload does not exceed the upload size limit."""
-        if user.is_superuser:
+        if user is not None and user.is_superuser:
             return True
         assert file.size is not None
         return file.size < self._convert_size(
@@ -222,7 +227,7 @@ class AnnotationBaseView(views.APIView):
         """Get an annotation pipeline ID by name."""
         try:
             user_pipeline = self._get_user_pipeline(pipeline_name, user)
-        except ValueError:
+        except (ValueError, TypeError):
             pipeline_id = pipeline_name
         else:
             pipeline_id = str(user_pipeline.pk)
@@ -264,6 +269,10 @@ class AnnotationBaseView(views.APIView):
 
     def generate_job_name(self, user: User) -> int:
         job_count = Job.objects.filter(owner=user).count()
+        return job_count + 1
+
+    def generate_anonymous_job_name(self, ip: str) -> int:
+        job_count = AnonymousJob.objects.filter(owner=ip).count()
         return job_count + 1
 
     def _save_annotation_config(
@@ -313,22 +322,22 @@ class AnnotationBaseView(views.APIView):
         input_path.parent.mkdir(parents=True, exist_ok=True)
         input_path.write_bytes(uploaded_file.read())
 
-    def _cleanup(self, job_name: int, user_email: str) -> None:
+    def _cleanup(self, job_name: int, folder_name: str) -> None:
         """Cleanup the files of a failed job."""
         data_filename = f"data-{job_name}"
         inputs = Path(settings.JOB_INPUT_STORAGE_DIR).glob(
-            f"{user_email}/{data_filename}*")
+            f"{folder_name}/{data_filename}*")
         for in_file in inputs:
             in_file.unlink(missing_ok=True)
         config_filename = f"config-{job_name}.yaml"
         config_path = Path(
             settings.ANNOTATION_CONFIG_STORAGE_DIR,
-            f"{user_email}/{config_filename}",
+            f"{folder_name}/{config_filename}",
         )
         config_path.unlink(missing_ok=True)
         results = Path(
             settings.JOB_RESULT_STORAGE_DIR).glob(
-                f"{user_email}/{data_filename}*")
+                f"{folder_name}/{data_filename}*")
         for out_file in results:
             out_file.unlink(missing_ok=True)
 
@@ -469,6 +478,95 @@ class AnnotationBaseView(views.APIView):
             result_path=result_path,
             reference_genome=reference_genome,
             owner=request.user,
+            annotation_type=annotation_type,
+            disk_size=job_size,
+        )
+        return (job_name, pipeline, job)
+
+
+    def _create_anonymous_job(
+        self,
+        request: Request,
+        annotation_type: str,
+    ) -> Response | tuple[int, AnnotationPipeline, AnonymousJob]:
+        validation_response = self._validate_request(request)
+        if validation_response is not None:
+            return validation_response
+
+        assert request.data is not None
+        assert isinstance(request.data, QueryDict)
+        assert isinstance(request.FILES, MultiValueDict)
+
+        try:
+            reference_genome = self.get_genome(request.data)
+        except ValueError as e:
+            return Response(
+                {"reason": str(e)},
+                status=views.status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        anonymous_user_ip = get_ip_from_request(request)
+
+        job_name = self.generate_anonymous_job_name(anonymous_user_ip)
+        config_filename = f"config-{job_name}.yaml"
+
+        config_path = Path(
+            settings.ANNOTATION_CONFIG_STORAGE_DIR,
+            anonymous_user_ip,
+            config_filename,
+        )
+        save_response_or_pipeline = self._save_annotation_config(
+            request, config_path)
+        if isinstance(save_response_or_pipeline, Response):
+            return save_response_or_pipeline
+        pipeline = save_response_or_pipeline
+
+        uploaded_file = request.FILES["data"]
+        assert isinstance(uploaded_file, UploadedFile)
+        if uploaded_file is None:
+            return Response(
+                {"reason": "No file uploaded!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+        if not self.check_valid_upload_size(uploaded_file):
+            return Response(
+                status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
+
+        file_ext = self._file_extension(request)
+
+        data_filename = f"data-{job_name}{file_ext}"
+        input_path = Path(
+            settings.JOB_INPUT_STORAGE_DIR, anonymous_user_ip, data_filename)
+
+        try:
+            self._save_input_file(request, input_path)
+        except OSError:
+            logger.exception("Could not write input file")
+
+            self._cleanup(job_name, anonymous_user_ip)
+            return Response(
+                {"reason": "File could not be identified"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        result_filename = f"result-{job_name}{file_ext}"
+        result_path = Path(
+            settings.JOB_RESULT_STORAGE_DIR,
+            anonymous_user_ip,
+            result_filename,
+        )
+        result_path.parent.mkdir(parents=True, exist_ok=True)
+
+        job_size = (
+            input_path.stat().st_size + config_path.stat().st_size
+        )
+
+        job = AnonymousJob(
+            name=job_name,
+            input_path=input_path,
+            config_path=config_path,
+            result_path=result_path,
+            reference_genome=reference_genome,
+            owner=anonymous_user_ip,
             annotation_type=annotation_type,
             disk_size=job_size,
         )

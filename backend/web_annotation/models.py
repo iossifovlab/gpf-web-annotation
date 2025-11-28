@@ -62,8 +62,8 @@ class AlleleQuery(models.Model):
         self.delete()
 
 
-class Job(models.Model):
-    """Model for storing base job data."""
+class BaseJob(models.Model):
+    """Base model for storing job data."""
     class Status(models.IntegerChoices):  # pylint: disable=too-many-ancestors
         """Class for job status."""
         WAITING = 1
@@ -83,6 +83,14 @@ class Job(models.Model):
     annotation_type = models.CharField(max_length=1024, default="")
     disk_size = models.IntegerField(default=0)
 
+    class Meta:  # pylint: disable=too-few-public-methods
+        """Meta class for verification model."""
+        abstract = True
+
+
+class Job(BaseJob):
+    """Model for storing job data."""
+
     owner = models.ForeignKey(
         'web_annotation.User', related_name='jobs', on_delete=models.CASCADE)
     is_active = models.BooleanField(default=True)
@@ -95,6 +103,12 @@ class Job(models.Model):
         if pathlib.Path(self.result_path).exists():
             os.remove(self.result_path)
         self.save()
+
+
+class AnonymousJob(BaseJob):
+    """Model for storing job data."""
+
+    owner = models.CharField(max_length=1024)
 
 
 class JobDetails(models.Model):
