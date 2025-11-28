@@ -16,5 +16,5 @@ dependencies:
   - django-cors-headers=4.7.0
   - python-magic
   - psycopg>=3.1.18
-  - pip:
-    - channels[daphne]
+  - channels>=4
+  - daphne>=4
