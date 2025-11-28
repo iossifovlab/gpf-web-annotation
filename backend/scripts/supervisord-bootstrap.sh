@@ -9,8 +9,8 @@ set -e
 
 source /gpf/bin/activate
 
-DJANGO_SETTINGS_MODULE='web_annotation.settings_gunicorn' django-admin migrate
-DJANGO_SETTINGS_MODULE='web_annotation.settings_gunicorn' django-admin collectstatic --noinput
+DJANGO_SETTINGS_MODULE='web_annotation.settings_daphne' django-admin migrate
+DJANGO_SETTINGS_MODULE='web_annotation.settings_daphne' django-admin collectstatic --noinput
 
 
 supervisorctl start gpfwa

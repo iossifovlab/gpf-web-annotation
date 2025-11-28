@@ -63,7 +63,7 @@ services:
     volumes_from:
       - static-data
     environment:
-      DJANGO_SETTINGS_MODULE: web_annotation.settings_gunicorn
+      DJANGO_SETTINGS_MODULE: web_annotation.settings_daphne
       GPFWA_EMAIL_HOST: mail
       GRR_DEFINITION_FILE: /grr-definition.yaml
       GPFWA_DB_NAME: gpfwa
