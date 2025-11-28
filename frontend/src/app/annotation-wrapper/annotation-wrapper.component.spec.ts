@@ -68,6 +68,14 @@ class JobsServiceMock {
   public getDownloadJobResultLink(jobId: string): string {
     return `url/${jobId}`;
   }
+
+  public getJobsStatus(): Observable<any> {
+      return of({});
+  }
+
+  public closeConnection(): void {
+      return
+  }
 }
 
 describe('AnnotationWrapperComponent', () => {
