@@ -20,6 +20,7 @@ os.environ.setdefault(
 
 django_asgi_app = get_asgi_application()
 
+# pylint: disable=wrong-import-position
 from web_annotation.urls import websocket_urlpatterns  # noqa: E402
 
 application = ProtocolTypeRouter({
