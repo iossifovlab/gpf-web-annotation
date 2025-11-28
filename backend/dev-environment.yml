@@ -2,7 +2,7 @@ name: gpf-web-annotation
 channels:
   - conda-forge
 dependencies:
-  - coverage=7.6
+  - coverage
   - ruff
   - pylint
   - nodejs>=24
