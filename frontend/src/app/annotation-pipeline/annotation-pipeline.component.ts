@@ -37,6 +37,8 @@ export class AnnotationPipelineComponent implements OnInit {
   public dropdownControl = new FormControl<string>('');
   @ViewChild('nameInput') public nameInputTemplateRef: TemplateRef<ElementRef>;
   public yamlEditorOptions = {};
+  public isFullScreen = false;
+  @Output() public tiggerHidingComponents = new EventEmitter<boolean>();
 
   public constructor(
     private jobsService: JobsService,
@@ -175,5 +177,10 @@ export class AnnotationPipelineComponent implements OnInit {
 
   public isPipelineChanged(): boolean {
     return this.selectedPipeline?.content.trim() !== this.currentPipelineText.trim();
+  }
+
+  public expandTextarea(): void {
+    this.isFullScreen = true;
+    this.tiggerHidingComponents.emit(true);
   }
 }

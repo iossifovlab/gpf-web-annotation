@@ -30,22 +30,29 @@
   <div *ngIf="configError" class="error-message">{{ configError }}</div>
 
   <div id="pipeline-actions">
-    <button (click)="clearPipeline()" id="add-button"
-      ><span class="material-symbols-outlined add-icon">add</span>New</button
-    >
-    <button (click)="saveAs()" id="save-as-button" [disabled]="configError"
-      ><span class="material-symbols-outlined save-as-icon">save_as</span>Save as</button
-    >
-    <button
-      *ngIf="selectedPipeline && selectedPipeline.type === 'user'"
-      (click)="save()"
-      id="save-button"
-      [disabled]="!isPipelineChanged() || configError"
-      ><span class="material-symbols-outlined save-icon">save</span>Save</button
-    >
-    <button *ngIf="selectedPipeline && selectedPipeline.type === 'user'" (click)="delete()" id="delete-button"
-      ><span class="material-symbols-outlined delete-icon">delete</span>Delete</button
-    >
+    <div>
+      <button (click)="clearPipeline()" id="add-button"
+        ><span class="material-symbols-outlined add-icon">add</span>New</button
+      >
+      <button (click)="saveAs()" id="save-as-button" [disabled]="configError"
+        ><span class="material-symbols-outlined save-as-icon">save_as</span>Save as</button
+      >
+      <button
+        *ngIf="selectedPipeline && selectedPipeline.type === 'user'"
+        (click)="save()"
+        id="save-button"
+        [disabled]="!isPipelineChanged() || configError"
+        ><span class="material-symbols-outlined save-icon">save</span>Save</button
+      >
+      <button *ngIf="selectedPipeline && selectedPipeline.type === 'user'" (click)="delete()" id="delete-button"
+        ><span class="material-symbols-outlined delete-icon">delete</span>Delete</button
+      >
+    </div>
+    <div>
+      <button (click)="expandTextarea()" id="expand-button"
+        ><span class="material-symbols-outlined expand-icon">open_in_full</span>Full screen</button
+      >
+    </div>
   </div>
 
   <ng-template #nameInput>

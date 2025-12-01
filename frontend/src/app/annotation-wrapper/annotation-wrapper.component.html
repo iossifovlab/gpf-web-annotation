@@ -3,8 +3,10 @@
     <app-annotation-pipeline
       style="width: 35%"
       (emitPipelineId)="setPipeline($event)"
-      (emitIsConfigValid)="setConfigValid($event)"></app-annotation-pipeline>
-    <div style="width: 60%">
+      (emitIsConfigValid)="setConfigValid($event)"
+      (tiggerHidingComponents)="updateComponentsVisibility($event)"></app-annotation-pipeline>
+
+    <div *ngIf="!hideComponents" style="width: 60%">
       <div id="annotation-mode">
         <button
           id="annotation-jobs"
@@ -65,7 +67,7 @@
     </div>
   </div>
 
-  <div style="width: 20%">
+  <div *ngIf="!hideComponents" style="width: 20%">
     <app-jobs-table *ngIf="currentView === 'jobs'"></app-jobs-table>
     <app-alleles-table
       *ngIf="currentView === 'single allele'"

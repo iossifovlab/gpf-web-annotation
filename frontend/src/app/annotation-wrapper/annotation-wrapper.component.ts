@@ -40,6 +40,7 @@ export class AnnotationWrapperComponent implements OnInit {
   public downloadLink = '';
   public currentView:'jobs' | 'single allele' = 'jobs';
   public currentJob: Job = null;
+  public hideComponents = false;
 
   public constructor(
       private jobsService: JobsService,
@@ -205,5 +206,9 @@ export class AnnotationWrapperComponent implements OnInit {
 
   public refreshAllelesTable(): void {
     this.allelesTableComponent.refreshTable();
+  }
+
+  public updateComponentsVisibility(hide: boolean): void {
+    this.hideComponents = hide;
   }
 }
