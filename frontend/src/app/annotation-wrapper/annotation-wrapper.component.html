@@ -1,7 +1,7 @@
 <div id="wrapper-container">
   <div id="annotation-container">
     <app-annotation-pipeline
-      style="width: 35%"
+      [ngStyle]="{ width: hideComponents ? '100%' : '35%' }"
       (emitPipelineId)="setPipeline($event)"
       (emitIsConfigValid)="setConfigValid($event)"
       (tiggerHidingComponents)="updateComponentsVisibility($event)"></app-annotation-pipeline>

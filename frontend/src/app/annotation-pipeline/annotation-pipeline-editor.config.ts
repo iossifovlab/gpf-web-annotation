@@ -61,4 +61,5 @@ export const editorConfig = {
   },
   scrollBeyondLastLine: false,
   theme: 'annotationPipelineTheme',
+  automaticLayout: true,
 };

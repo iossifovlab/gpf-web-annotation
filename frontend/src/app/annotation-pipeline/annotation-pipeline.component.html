@@ -21,8 +21,9 @@
   </mat-autocomplete>
 
   <ngx-monaco-editor
-    id="yml-textarea"
+    id="pipeline-textarea"
     [ngClass]="{ 'invalid-config': configError }"
+    [ngStyle]="{ height: isFullScreen ? '70vh' : '40vh' }"
     [options]="yamlEditorOptions"
     (onInit)="onEditorInit()"
     [(ngModel)]="currentPipelineText"

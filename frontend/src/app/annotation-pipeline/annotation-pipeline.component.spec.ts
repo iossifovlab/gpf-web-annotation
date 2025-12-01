@@ -384,6 +384,7 @@ describe('AnnotationPipelineComponent', () => {
         },
         scrollBeyondLastLine: false,
         theme: 'annotationPipelineTheme',
+        automaticLayout: true,
       }
     );
   });
