@@ -2,7 +2,17 @@
   border: 2px solid #cfd8df;
   border-radius: 15px;
   padding-top: 10px;
-  width: 100%;
+
+}
+
+.full-screen {
+  height: 70vh;
+  width: 80vw;
+}
+
+.small-screen {
+  height: 40vh;
+  width: 30vw;
 }
 
 .invalid-config {
@@ -35,6 +45,7 @@
   color: #252e34;
   font-weight: 600;
   font-size: 16px;
+  max-width: 30vw;
 }
 
 #pipelines-input:focus {

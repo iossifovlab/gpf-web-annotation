@@ -211,4 +211,9 @@ export class AnnotationWrapperComponent implements OnInit {
   public updateComponentsVisibility(hide: boolean): void {
     this.hideComponents = hide;
   }
+
+  public showComponents(): void {
+    this.updateComponentsVisibility(false);
+    this.pipelinesComponent.shrinkTextarea();
+  }
 }

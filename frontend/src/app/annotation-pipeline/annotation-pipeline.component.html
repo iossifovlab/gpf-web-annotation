@@ -22,51 +22,50 @@
 
   <ngx-monaco-editor
     id="pipeline-textarea"
-    [ngClass]="{ 'invalid-config': configError }"
-    [ngStyle]="{ height: isFullScreen ? '70vh' : '40vh' }"
+    [ngClass]="{ 'invalid-config': configError, 'full-screen': isFullScreen, 'small-screen': !isFullScreen }"
     [options]="yamlEditorOptions"
     (onInit)="onEditorInit()"
     [(ngModel)]="currentPipelineText"
     (ngModelChange)="isConfigValid()"></ngx-monaco-editor>
   <div *ngIf="configError" class="error-message">{{ configError }}</div>
+</div>
 
-  <div id="pipeline-actions">
-    <div>
-      <button (click)="clearPipeline()" id="add-button"
-        ><span class="material-symbols-outlined add-icon">add</span>New</button
-      >
-      <button (click)="saveAs()" id="save-as-button" [disabled]="configError"
-        ><span class="material-symbols-outlined save-as-icon">save_as</span>Save as</button
-      >
-      <button
-        *ngIf="selectedPipeline && selectedPipeline.type === 'user'"
-        (click)="save()"
-        id="save-button"
-        [disabled]="!isPipelineChanged() || configError"
-        ><span class="material-symbols-outlined save-icon">save</span>Save</button
-      >
-      <button *ngIf="selectedPipeline && selectedPipeline.type === 'user'" (click)="delete()" id="delete-button"
-        ><span class="material-symbols-outlined delete-icon">delete</span>Delete</button
-      >
-    </div>
-    <div>
-      <button *ngIf="isFullScreen" (click)="shrinkTextarea()" id="shrink-button"
-        ><span class="material-symbols-outlined shrink-icon">close_fullscreen</span>Reset</button
-      >
-      <button *ngIf="!isFullScreen" (click)="expandTextarea()" id="expand-button"
-        ><span class="material-symbols-outlined expand-icon">open_in_full</span>Full screen</button
-      >
+<div id="pipeline-actions">
+  <div>
+    <button (click)="clearPipeline()" id="add-button"
+      ><span class="material-symbols-outlined add-icon">add</span>New</button
+    >
+    <button (click)="saveAs()" id="save-as-button" [disabled]="configError"
+      ><span class="material-symbols-outlined save-as-icon">save_as</span>Save as</button
+    >
+    <button
+      *ngIf="selectedPipeline && selectedPipeline.type === 'user'"
+      (click)="save()"
+      id="save-button"
+      [disabled]="!isPipelineChanged() || configError"
+      ><span class="material-symbols-outlined save-icon">save</span>Save</button
+    >
+    <button *ngIf="selectedPipeline && selectedPipeline.type === 'user'" (click)="delete()" id="delete-button"
+      ><span class="material-symbols-outlined delete-icon">delete</span>Delete</button
+    >
+  </div>
+  <div>
+    <button *ngIf="isFullScreen" (click)="shrinkTextarea()" id="shrink-button"
+      ><span class="material-symbols-outlined shrink-icon">close_fullscreen</span>Reset</button
+    >
+    <button *ngIf="!isFullScreen" (click)="expandTextarea()" id="expand-button"
+      ><span class="material-symbols-outlined expand-icon">open_in_full</span>Full screen</button
+    >
+  </div>
+</div>
+
+<ng-template #nameInput>
+  <div id="name-modal">
+    <div>Set pipeline name</div>
+    <input #inputRef />
+    <div id="buttons-wrapper">
+      <button id="save-name-button" (click)="saveName(inputRef.value)">Save</button>
+      <button id="cancel-button" (click)="cancel()">Cancel</button>
     </div>
   </div>
-
-  <ng-template #nameInput>
-    <div id="name-modal">
-      <div>Set pipeline name</div>
-      <input #inputRef />
-      <div id="buttons-wrapper">
-        <button id="save-name-button" (click)="saveName(inputRef.value)">Save</button>
-        <button id="cancel-button" (click)="cancel()">Cancel</button>
-      </div>
-    </div>
-  </ng-template>
-</div>
+</ng-template>

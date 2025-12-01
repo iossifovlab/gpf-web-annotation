@@ -1,7 +1,6 @@
 #wrapper-container {
   display: flex;
   justify-content: center;
-  gap: 35px;
   margin: 60px 2%;
   min-width: 715px;
   max-width: 3000px;
@@ -37,7 +36,6 @@
   width: 80%;
   justify-content: center;
   gap: 50px;
-  border-right: 1px solid #e1e9ef;
   padding-right: 25px;
 }
 
@@ -103,4 +101,29 @@
 .job-name,
 #file-name {
   margin-right: 10px;
+}
+
+#show-button {
+  background-color: transparent;
+  border: none;
+  color: #435869;
+  font-size: 15px;
+  float: right;
+  margin-top: 70px;
+}
+
+.show-icon {
+  vertical-align: middle;
+  font-size: 22px;
+}
+
+#show-button:hover {
+  cursor: pointer;
+  color: #5b778c;
+}
+
+#history-table {
+  width: 20%;
+  border-left: 1px solid #e1e9ef;
+  padding-left: 35px;
 }
