@@ -183,4 +183,9 @@ export class AnnotationPipelineComponent implements OnInit {
     this.isFullScreen = true;
     this.tiggerHidingComponents.emit(true);
   }
+
+  public shrinkTextarea(): void {
+    this.isFullScreen = false;
+    this.tiggerHidingComponents.emit(false);
+  }
 }
