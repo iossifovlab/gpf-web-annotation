@@ -3,11 +3,11 @@ import { JobCreationComponent } from './job-creation.component';
 import { JobsService } from './jobs.service';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 import { Pipeline } from './pipelines';
 import { FileContent } from './jobs';
 import { SingleAnnotationService } from '../single-annotation.service';
-import { UsersService } from '../users.service';
+import { UserData, UsersService } from '../users.service';
 
 class SingleAnnotationServiceMock {
   public getGenomes(): Observable<string[]> {
@@ -47,17 +47,18 @@ class JobsServiceMock {
 }
 
 class UserServiceMock {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public userData = {
-    value: {
-      limitations: {
-        dailyJobs: 5,
-        filesize: '64M',
-        jobsLeft: 4,
-        variantCount: 1000,
-      }
+  public userData = new BehaviorSubject<UserData>({
+    email: 'email',
+    loggedIn: true,
+    isAdmin: false,
+    limitations: {
+      dailyJobs: 5,
+      filesize: '64M',
+      jobsLeft: 4,
+      variantCount: 1000,
+      diskSpace: '1000'
     }
-  };
+  });
 }
 
 describe('JobCreationComponent', () => {

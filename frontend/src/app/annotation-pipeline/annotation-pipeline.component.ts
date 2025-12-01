@@ -66,7 +66,11 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   }
 
   public ngOnInit(): void {
-    this.isUserLoggedIn = Boolean(this.userService.userData.value);
+    this.userService.userData.pipe(
+    ).subscribe((userData) => {
+      this.isUserLoggedIn = Boolean(userData);
+    });
+
     this.yamlEditorOptions = editorConfig;
     this.getPipelines();
     this.dropdownControl.valueChanges.pipe(

@@ -87,7 +87,14 @@ export class SingleAnnotationComponent {
       pipelineId
     ).subscribe(report => {
       this.report = report;
-      if (this.userService.userData.value) {
+      this.triggerAllelesTableUpdate();
+    });
+  }
+
+  private triggerAllelesTableUpdate(): void {
+    this.userService.userData.pipe(
+    ).subscribe((userData) => {
+      if (userData) {
         this.alleleUpdateEmit.emit();
       }
     });

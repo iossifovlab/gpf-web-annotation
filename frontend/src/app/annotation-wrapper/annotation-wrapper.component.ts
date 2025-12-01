@@ -69,6 +69,10 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
 
   public ngOnDestroy(): void {
     this.jobsService.closeConnection();
+    this.userService.userData.pipe(
+    ).subscribe((userData) => {
+      this.isUserLoggedIn = Boolean(userData);
+    });
   }
 
   public autoSavePipeline(): void {
