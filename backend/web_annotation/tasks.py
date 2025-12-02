@@ -10,12 +10,12 @@ from dae.genomic_resources.reference_genome import (
     ReferenceGenome,
     build_reference_genome_from_resource,
 )
+from django.conf import settings
 
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.mail import send_mail
 from django.utils import timezone
 
-from .models import Job, JobDetails
+from .models import BaseJob, Job, JobDetails
 
 logger = logging.getLogger(__name__)
 
@@ -73,64 +73,8 @@ def get_job_details(job_pk: int) -> JobDetails:
         return details
 
 
-def update_job_in_progress(job: Job) -> None:
-    """Update a job's state to in progress."""
-    if job.status != Job.Status.WAITING:
-        raise ValueError(
-            f"Attempted to start job {job.pk}, which is not in waiting! "
-            f"({job.status})",
-        )
-    job.status = Job.Status.IN_PROGRESS
-    job.save()
-
-
-def update_job_failed(job: Job) -> None:
-    """Update a job's state to failed."""
-    if job.status != Job.Status.IN_PROGRESS:
-        raise ValueError(
-            f"Attempted to mark job {job.pk} as failed, "
-            f"which is not in in progress! ({job.status})",
-        )
-    job.status = Job.Status.FAILED
-    job.save()
-
-    # pylint: disable=import-outside-toplevel
-    from django.conf import settings
-    send_email(
-        "GPFWA: Annotation job failed",
-        (
-            "Your job has failed. "
-            "Visit the web site to try running it again: "
-            f"{settings.EMAIL_REDIRECT_ENDPOINT}/jobs"
-        ),
-        [job.owner.email],
-    )
-
-
-def update_job_success(job: Job) -> None:
-    """Update a job's state to success."""
-    if job.status != Job.Status.IN_PROGRESS:
-        raise ValueError(
-            f"Attempted to start job {job.pk}, which is not in waiting! "
-            f"({job.status})",
-        )
-    job.status = Job.Status.SUCCESS
-    job.save()
-    # pylint: disable=import-outside-toplevel
-    from django.conf import settings
-    send_email(
-        "GPFWA: Annotation job finished successfully",
-        (
-            "Your job has finished successfully. "
-            "Visit the web site to download the results: "
-            f"{settings.EMAIL_REDIRECT_ENDPOINT}/jobs"
-        ),
-        [job.owner.email],
-    )
-
-
 def get_args_vcf(
-    job: Job, pipeline: AnnotationPipeline, storage_dir: str,
+    job: BaseJob, pipeline: AnnotationPipeline, storage_dir: str,
 ) -> dict[str, Any]:
     """Prepare command line arguments for VCF annotation."""
     return {
@@ -245,39 +189,6 @@ def run_columns_job(  # pylint: disable=too-many-branches
     annotate_columns(
         input_path, pipeline, output_path,
         args, reference_genome=reference_genome)
-
-
-def send_email(
-    subject: str,
-    message: str,
-    recipient_list: list,
-    from_email: str | None = None,
-    fail_silently: bool = False,
-) -> int:
-    """Task to send emails asynchronously."""
-    # pylint: disable=import-outside-toplevel
-    from django.conf import settings
-
-    if from_email is None:
-        from_email = settings.DEFAULT_FROM_EMAIL
-    mail = send_mail(
-        subject,
-        message,
-        from_email,
-        recipient_list,
-        fail_silently=fail_silently,
-    )
-
-    logger.info("email sent: to:      <%s>", str(recipient_list))
-    logger.info("email sent: from:    <%s>", str(from_email))
-    logger.info("email sent: subject:  %s", str(subject))
-    logger.info("email sent: message:  %s", str(message))
-
-    return mail
-
-
 def clean_old_jobs() -> None:
     """Task for running annotation."""
-    # pylint: disable=import-outside-toplevel
-    from django.conf import settings
     delete_old_jobs(settings.JOB_CLEANUP_INTERVAL_DAYS)

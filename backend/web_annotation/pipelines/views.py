@@ -138,7 +138,7 @@ class UserPipeline(AnnotationBaseView):
 
         response = {
             "name": pipeline.name,
-            "owner": pipeline.owner.email,
+            "owner": pipeline.owner.identifier,
             "pipeline": Path(pipeline.config_path).read_text("utf-8"),
         }
 

@@ -1,6 +1,6 @@
 
-from typing import Any
 from functools import reduce
+from typing import Any
 
 from django import forms
 from django.conf import settings
@@ -8,17 +8,20 @@ from django.contrib.auth import password_validation
 from django.contrib.sessions.models import Session
 from django.core.exceptions import ValidationError
 from django.db.models import ObjectDoesNotExist
+from django.http import HttpRequest
 from django.utils.translation import gettext_lazy
 from django.views.decorators.debug import sensitive_variables
-from rest_framework.views import Request
+from rest_framework.request import Request
+
 from web_annotation.models import (
     AccountConfirmationCode,
+    AnonymousJob,
     BaseVerificationCode,
     Job,
     ResetPasswordCode,
     User,
 )
-from web_annotation.tasks import send_email
+from web_annotation.mail import send_email
 
 
 EMAIL_ACCOUNT_CONFIRMATION_PATH = "/api/confirm_account?code={}"
@@ -300,6 +303,19 @@ def calculate_used_disk_space(user: User) -> int:
     return used_disk_space
 
 
+def calculate_anonymous_used_disk_space(user_ip: str) -> int:
+    """Calculate used job disk space for a user."""
+    anonymous_user_jobs = AnonymousJob.objects.filter(
+        owner=user_ip,
+    )
+    used_disk_space = reduce(
+        lambda x, y: x + y,
+        [int(job.disk_size) for job in anonymous_user_jobs],
+        0,
+    )
+    return used_disk_space
+
+
 def bytes_to_readable(raw_bytes: int) -> str:
     """Convert a human readable filesize string to bytes."""
     if isinstance(raw_bytes, str):
@@ -317,3 +333,11 @@ def bytes_to_readable(raw_bytes: int) -> str:
         else:
             break
     return result
+
+def get_ip_from_request(request: HttpRequest) -> str:
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return str(ip)

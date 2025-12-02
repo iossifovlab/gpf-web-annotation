@@ -5,20 +5,53 @@ from __future__ import annotations
 import uuid
 import os
 import pathlib
+import logging
 from datetime import timedelta
 from typing import cast
 
 from django.conf import settings
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, AnonymousUser
 from django.db import models
 from django.utils import timezone
 
+from web_annotation.mail import send_email
 
-class User(AbstractUser):
+logger = logging.getLogger(__name__)
+
+
+class BaseUser():
+    """Base user class for helper functions."""
+
+    @property
+    def job_class(self) -> type[BaseJob]:
+        """Get job class used."""
+        raise NotImplementedError
+
+    @property
+    def identifier(self) -> str:
+        """Get identifier for user."""
+        raise NotImplementedError
+
+
+class User(BaseUser, AbstractUser):
     """Model for user accounts."""
     email = models.EmailField(("email address"), unique=True)
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
+
+    @property
+    def job_class(self) -> type[Job]:
+        """Get job class used."""
+        return Job
+
+    @property
+    def identifier(self) -> str:
+        """Get identifier for user."""
+        return self.email
+
+    @property
+    def as_owner(self) -> User:
+        return self
 
     def change_password(self, new_password: str) -> None:
         """Update user with new password."""
@@ -30,6 +63,67 @@ class User(AbstractUser):
         self.is_active = True
         self.save()
 
+    def generate_job_name(self) -> int:
+        job_count = self.job_class.objects.filter(owner=self).count()
+        return job_count + 1
+
+    def can_create(self) -> bool:
+        """Check if a user is not limited by the daily quota."""
+        if self.is_superuser:
+            return True
+        today = timezone.now().replace(
+            hour=0, minute=0, second=0, microsecond=0)
+        jobs_made = self.job_class.objects.filter(
+            created__gte=today, owner__exact=self.pk)
+        if len(jobs_made) > cast(int, settings.QUOTAS["daily_jobs"]):
+            return False
+        return True
+
+
+class WebAnnotationAnonymousUser(BaseUser, AnonymousUser):
+    """Model for anonymous user accounts."""
+
+    def __init__(self, ip: str = ""):
+        super().__init__()
+        self.ip = ip
+
+    @property
+    def job_class(self) -> type[AnonymousJob]:
+        """Get job class used."""
+        return AnonymousJob
+
+    @property
+    def identifier(self) -> str:
+        """Get identifier for anonymous user."""
+        return f"anon_{self.ip}"
+
+    @property
+    def as_owner(self) -> str:
+        return self.ip
+
+    def generate_job_name(self) -> int:
+        job_count = self.job_class.objects.filter(owner=self).count()
+        return job_count + 1
+
+    def can_create(self) -> bool:
+        """Check if a user is not limited by the daily quota."""
+        if self.is_superuser:
+            return True
+        today = timezone.now().replace(
+            hour=0, minute=0, second=0, microsecond=0)
+        jobs_made = self.job_class.objects.filter(
+            created__gte=today, owner__exact=self.pk)
+        if len(jobs_made) > cast(int, settings.QUOTAS["daily_jobs"]):
+            return False
+        return True
+
+    def save(self) -> None:
+        """Anonymous user cannot be saved."""
+        raise NotImplementedError
+
+    class Meta:  # pylint: disable=too-few-public-methods
+        """Meta class for verification model."""
+        abstract = True
 
 class Pipeline(models.Model):
     """Model for saving user created pipeline configs"""
@@ -62,8 +156,8 @@ class AlleleQuery(models.Model):
         self.delete()
 
 
-class Job(models.Model):
-    """Model for storing base job data."""
+class BaseJob(models.Model):
+    """Base model for storing job data."""
     class Status(models.IntegerChoices):  # pylint: disable=too-many-ancestors
         """Class for job status."""
         WAITING = 1
@@ -82,9 +176,6 @@ class Job(models.Model):
     command_line = models.TextField(default="")
     annotation_type = models.CharField(max_length=1024, default="")
     disk_size = models.IntegerField(default=0)
-
-    owner = models.ForeignKey(
-        'web_annotation.User', related_name='jobs', on_delete=models.CASCADE)
     is_active = models.BooleanField(default=True)
 
     def deactivate(self) -> None:
@@ -95,6 +186,82 @@ class Job(models.Model):
         if pathlib.Path(self.result_path).exists():
             os.remove(self.result_path)
         self.save()
+
+    class Meta:  # pylint: disable=too-few-public-methods
+        """Meta class for verification model."""
+        abstract = True
+
+    def update_job_in_progress(self) -> None:
+        """Update a job's state to in progress."""
+        if self.status != Job.Status.WAITING:
+            raise ValueError(
+                f"Attempted to start job {self.pk}, which is not in waiting! "
+                f"({self.status})",
+            )
+        self.status = Job.Status.IN_PROGRESS
+        self.save()
+
+    def update_job_failed(self) -> None:
+        """Update a job's state to failed."""
+        if self.status != Job.Status.IN_PROGRESS:
+            raise ValueError(
+                f"Attempted to mark job {self.pk} as failed, "
+                f"which is not in in progress! ({self.status})",
+            )
+        self.status = Job.Status.FAILED
+        self.save()
+
+    def update_job_success(self) -> None:
+        """Update a job's state to success."""
+        if self.status != Job.Status.IN_PROGRESS:
+            raise ValueError(
+                f"Attempted to start job {self.pk}, which is not in waiting! "
+                f"({self.status})",
+            )
+        self.status = Job.Status.SUCCESS
+        self.save()
+
+
+class Job(BaseJob):
+    """Model for storing job data."""
+
+    owner = models.ForeignKey(
+        'web_annotation.User',
+        related_name='jobs',
+        on_delete=models.CASCADE,
+    )
+
+    def update_job_failed(self) -> None:
+        super().update_job_failed()
+        send_email(
+            "GPFWA: Annotation job failed",
+            (
+                "Your job has failed. "
+                "Visit the web site to try running it again: "
+                f"{settings.EMAIL_REDIRECT_ENDPOINT}/jobs"
+            ),
+            [self.owner.identifier],
+        )
+
+    def update_job_success(self) -> None:
+        super().update_job_success()
+
+        send_email(
+            "GPFWA: Annotation job finished successfully",
+            (
+                "Your job has finished successfully. "
+                "Visit the web site to download the results: "
+                f"{settings.EMAIL_REDIRECT_ENDPOINT}/jobs"
+            ),
+            [self.owner.identifier],
+        )
+
+
+class AnonymousJob(BaseJob):
+    """Model for storing job data."""
+
+    owner = models.CharField(max_length=1024)
+    is_active = models.BooleanField(default=False)
 
 
 class JobDetails(models.Model):

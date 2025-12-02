@@ -4,6 +4,8 @@ import gzip
 import pathlib
 import textwrap
 from typing import Any
+from unittest.mock import MagicMock
+from _pytest.monkeypatch import monkeypatch
 from asgiref.sync import sync_to_async
 from pysam import tabix_compress
 
@@ -18,14 +20,10 @@ from pytest_mock import MockerFixture
 
 from web_annotation.consumers import AnnotationStateConsumer
 from web_annotation.executor import SequentialTaskExecutor
-from web_annotation.models import Job, User, Pipeline
 from web_annotation.pipeline_cache import LRUPipelineCache
-from web_annotation.tasks import (
-    clean_old_jobs, send_email,
-    update_job_in_progress,
-    update_job_failed,
-    update_job_success,
-)
+from web_annotation.models import AnonymousJob, Job, User, Pipeline
+from web_annotation.mail import send_email
+from web_annotation.tasks import clean_old_jobs
 from web_annotation.testing import CustomWebsocketCommunicator
 from web_annotation.tests.mailhog_client import (
     MailhogClient,
@@ -51,12 +49,12 @@ def test_job_update_new() -> None:
 
     assert test_job.status == Job.Status.WAITING
     with pytest.raises(ValueError):
-        update_job_failed(test_job)
+        test_job.update_job_failed()
     with pytest.raises(ValueError):
-        update_job_success(test_job)
+        test_job.update_job_success()
 
     assert test_job.status == Job.Status.WAITING
-    update_job_in_progress(test_job)
+    test_job.update_job_in_progress()
     assert test_job.status == Job.Status.IN_PROGRESS
 
 
@@ -69,16 +67,16 @@ def test_job_update_in_progress() -> None:
     )
 
     with pytest.raises(ValueError):
-        update_job_in_progress(test_job)
+        test_job.update_job_in_progress()
 
     assert test_job.status == Job.Status.IN_PROGRESS
 
-    update_job_success(test_job)
+    test_job.update_job_success()
     assert test_job.status == Job.Status.SUCCESS
 
     test_job.status = Job.Status.IN_PROGRESS
 
-    update_job_failed(test_job)
+    test_job.update_job_failed()
     assert test_job.status == Job.Status.FAILED
 
 
@@ -90,11 +88,11 @@ def test_job_update_failed() -> None:
         status=Job.Status.FAILED,
     )
     with pytest.raises(ValueError):
-        update_job_in_progress(test_job)
+        test_job.update_job_in_progress()
     with pytest.raises(ValueError):
-        update_job_failed(test_job)
+        test_job.update_job_failed()
     with pytest.raises(ValueError):
-        update_job_success(test_job)
+        test_job.update_job_success()
 
     assert test_job.status == Job.Status.FAILED
 
@@ -107,11 +105,11 @@ def test_job_update_success() -> None:
         status=Job.Status.SUCCESS,
     )
     with pytest.raises(ValueError):
-        update_job_in_progress(test_job)
+        test_job.update_job_in_progress()
     with pytest.raises(ValueError):
-        update_job_failed(test_job)
+        test_job.update_job_failed()
     with pytest.raises(ValueError):
-        update_job_success(test_job)
+        test_job.update_job_success()
 
     assert test_job.status == Job.Status.SUCCESS
 
@@ -130,10 +128,10 @@ def test_send_email(mail_client: MailhogClient) -> None:
 
 @pytest.mark.django_db
 def test_job_failure_starts_email_task(
-    mocker: MockerFixture,
+    monkeypatch: pytest.MonkeyPatch,  # noqa: F811
 ) -> None:
-    mocked = mocker.patch(
-        "web_annotation.tasks.send_email")
+    mocked = MagicMock()
+    monkeypatch.setattr("web_annotation.models.send_email", mocked)
 
     assert mocked.call_count == 0
 
@@ -142,9 +140,7 @@ def test_job_failure_starts_email_task(
         input_path="input", config_path="config", result_path="result",
         status=Job.Status.IN_PROGRESS,
     )
-
-    update_job_failed(test_job)
-
+    test_job.update_job_failed()
     subject, message, recipient = mocked.call_args_list[0].args
     assert "GPFWA" in subject
     assert "try running it again: http://testserver//jobs" in message
@@ -153,10 +149,10 @@ def test_job_failure_starts_email_task(
 
 @pytest.mark.django_db
 def test_job_success_starts_email_task(
-    mocker: MockerFixture,
+    monkeypatch: pytest.MonkeyPatch,  # noqa: F811
 ) -> None:
-    mocked = mocker.patch(
-        "web_annotation.tasks.send_email")
+    mocked = MagicMock()
+    monkeypatch.setattr("web_annotation.models.send_email", mocked)
 
     assert mocked.call_count == 0
 
@@ -166,7 +162,7 @@ def test_job_success_starts_email_task(
         status=Job.Status.IN_PROGRESS,
     )
 
-    update_job_success(test_job)
+    test_job.update_job_success()
 
     subject, message, recipient = mocked.call_args_list[0].args
     assert "GPFWA" in subject
@@ -268,6 +264,55 @@ def test_annotate_vcf(
     result_path = pathlib.Path(job.result_path)
     assert result_path.parent == \
         pathlib.Path(settings.JOB_RESULT_STORAGE_DIR) / user.email
+    assert result_path.exists()
+    assert job.result_path.endswith(".vcf") is True
+
+
+@pytest.mark.django_db
+def test_annotate_vcf_anonymous_user(
+    anonymous_client: Client, test_grr: GenomicResourceRepo,
+) -> None:
+    annotation_config = textwrap.dedent("""
+        - position_score:
+            resource_id: scores/pos1
+            attributes:
+            - name: position_1
+              source: pos1
+    """).lstrip()
+    vcf = textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        ##contig=<ID=chr1>
+        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+        chr1	1	.	C	A	.	.	.
+    """).strip()
+
+    response = anonymous_client.post(
+        "/api/jobs/annotate_vcf",
+        {
+            "pipeline": "pipeline/test_pipeline",
+            "data": ContentFile(vcf, "test_input.vcf"),
+        },
+    )
+    assert response.status_code == 200, response.data
+
+    assert AnonymousJob.objects.count() == 1
+
+    job = AnonymousJob.objects.last()
+
+    assert job is not None
+
+    saved_input = pathlib.Path(job.input_path)
+
+    assert job.duration is not None
+    assert job.duration < 7.0
+    assert saved_input.exists()
+    assert saved_input.read_text(encoding="utf-8") == vcf
+
+    saved_config = pathlib.Path(job.config_path)
+    assert saved_config.exists()
+    assert saved_config.read_text(encoding="utf-8") == annotation_config
+
+    result_path = pathlib.Path(job.result_path)
     assert result_path.exists()
     assert job.result_path.endswith(".vcf") is True
 
