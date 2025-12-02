@@ -1,5 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, EventEmitter, OnInit, Output, TemplateRef, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  EventEmitter,
+  OnDestroy,
+  OnInit,
+  Output,
+  TemplateRef,
+  ViewChild
+} from '@angular/core';
 import { map, Observable, of, startWith, switchMap, take } from 'rxjs';
 import { JobsService } from '../job-creation/jobs.service';
 import { Pipeline } from '../job-creation/pipelines';
@@ -8,7 +18,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { AnnotationPipelineService } from '../annotation-pipeline.service';
 import { MatDialog } from '@angular/material/dialog';
-import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
+import { EditorComponent, MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { editorConfig, initEditor } from './annotation-pipeline-editor.config';
 
 @Component({
@@ -26,7 +36,7 @@ import { editorConfig, initEditor } from './annotation-pipeline-editor.config';
   styleUrl: './annotation-pipeline.component.css'
 })
 
-export class AnnotationPipelineComponent implements OnInit {
+export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterViewInit {
   public pipelines : Pipeline[] = [];
   public currentPipelineText = '';
   public selectedPipeline: Pipeline = null;
@@ -36,6 +46,8 @@ export class AnnotationPipelineComponent implements OnInit {
   public filteredPipelines$: Observable<Pipeline[]> = null;
   public dropdownControl = new FormControl<string>('');
   @ViewChild('nameInput') public nameInputTemplateRef: TemplateRef<ElementRef>;
+  @ViewChild('pipelineEditor') public pipelineEditorRef: EditorComponent;
+  public resizeObserver: ResizeObserver = null;
   public yamlEditorOptions = {};
   public isFullScreen = false;
   @Output() public tiggerHidingComponents = new EventEmitter<boolean>();
@@ -58,6 +70,20 @@ export class AnnotationPipelineComponent implements OnInit {
       startWith(''),
       map(value => this.filter(value || '')),
     );
+  }
+
+  public ngAfterViewInit(): void {
+    const editorElement = this.pipelineEditorRef._editorContainer.nativeElement as HTMLElement;
+
+    this.resizeObserver = new ResizeObserver(() => {
+      if (editorElement.clientWidth > 1200 && !this.isFullScreen) {
+        this.expandTextarea();
+      } else if (editorElement.clientWidth < 1200 && this.isFullScreen) {
+        this.shrinkTextarea();
+      }
+    });
+
+    this.resizeObserver.observe(editorElement);
   }
 
   private getPipelines(defaultPipelineId: string = ''): void {
@@ -187,5 +213,11 @@ export class AnnotationPipelineComponent implements OnInit {
   public shrinkTextarea(): void {
     this.isFullScreen = false;
     this.tiggerHidingComponents.emit(false);
+  }
+
+  public ngOnDestroy(): void {
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    }
   }
 }

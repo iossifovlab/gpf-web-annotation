@@ -1,8 +1,13 @@
-#pipeline-textarea {
+#pipeline-editor {
   border: 2px solid #cfd8df;
   border-radius: 15px;
   padding-top: 10px;
-
+  resize: both;
+  overflow: auto;
+  min-height: 300px;
+  min-width: 400px;
+  max-height: 70vh;
+  max-width: 80vw;
 }
 
 .full-screen {

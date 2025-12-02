@@ -96,6 +96,14 @@ class AnnotationPipelineServiceMock {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+(global as any).ResizeObserver = class {
+  public observe(): void {}
+  public unobserve(): void {}
+  public disconnect(): void {}
+};
+
+
 describe('AnnotationPipelineComponent', () => {
   let component: AnnotationPipelineComponent;
   let fixture: ComponentFixture<AnnotationPipelineComponent>;
@@ -151,6 +159,7 @@ describe('AnnotationPipelineComponent', () => {
         dispose: jest.fn(),
       }
     };
+
     fixture.detectChanges();
   });
 

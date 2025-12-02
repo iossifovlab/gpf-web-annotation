@@ -78,6 +78,13 @@ class JobsServiceMock {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+(global as any).ResizeObserver = class {
+  public observe(): void {}
+  public unobserve(): void {}
+  public disconnect(): void {}
+};
+
 describe('AnnotationWrapperComponent', () => {
   let component: AnnotationWrapperComponent;
   let fixture: ComponentFixture<AnnotationWrapperComponent>;

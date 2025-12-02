@@ -1,4 +1,4 @@
-import { Component, ViewChild, OnInit, OnDestroy} from '@angular/core';
+import { Component, ViewChild, OnInit, OnDestroy, NgZone} from '@angular/core';
 import { JobsTableComponent } from '../jobs-table/jobs-table.component';
 import { Observable, repeat, switchMap, take, takeWhile } from 'rxjs';
 import { JobsService } from '../job-creation/jobs.service';
@@ -44,6 +44,7 @@ export class AnnotationWrapperComponent implements OnInit {
 
   public constructor(
       private jobsService: JobsService,
+      private ngZone: NgZone,
   ) { }
 
   public ngOnInit(): void {
@@ -208,8 +209,10 @@ export class AnnotationWrapperComponent implements OnInit {
     this.allelesTableComponent.refreshTable();
   }
 
-  public updateComponentsVisibility(hide: boolean): void {
-    this.hideComponents = hide;
+  public updateComponentsVisibility(toHide: boolean): void {
+    this.ngZone.run(() => {
+      this.hideComponents = toHide;
+    });
   }
 
   public showComponents(): void {

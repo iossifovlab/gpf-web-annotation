@@ -1,4 +1,4 @@
-<div *ngIf="pipelines.length" id="pipelines-container">
+<div id="pipelines-container">
   <div id="pipelines-header">Annotation pipelines</div>
   <input
     placeholder="Select pipeline"
@@ -21,8 +21,10 @@
   </mat-autocomplete>
 
   <ngx-monaco-editor
-    id="pipeline-textarea"
-    [ngClass]="{ 'invalid-config': configError, 'full-screen': isFullScreen, 'small-screen': !isFullScreen }"
+    #pipelineEditor
+    id="pipeline-editor"
+    [ngClass]="{ 'invalid-config': configError }"
+    [ngStyle]="{ width: isFullScreen ? '80vw' : '30vw', height: isFullScreen ? '70vh' : '40vh' }"
     [options]="yamlEditorOptions"
     (onInit)="onEditorInit()"
     [(ngModel)]="currentPipelineText"
