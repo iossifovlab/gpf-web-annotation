@@ -20,7 +20,6 @@ from dae.genomic_resources.repository_factory import (
 from django.conf import settings
 from django.core.files.uploadedfile import UploadedFile
 from django.http import QueryDict
-from django.utils import timezone
 import magic
 from rest_framework import views
 from rest_framework.views import Request, Response
@@ -31,7 +30,7 @@ from web_annotation.executor import (
     TaskExecutor,
     ThreadedTaskExecutor,
 )
-from web_annotation.models import Job, Pipeline, User
+from web_annotation.models import AnonymousJob, Job, Pipeline, User
 from web_annotation.pipeline_cache import LRUPipelineCache
 
 logger = logging.getLogger(__name__)
@@ -131,7 +130,11 @@ class AnnotationBaseView(views.APIView):
                 return int(filesize.rstrip(f"{unit}")) * mult
         return int(filesize)
 
-    def check_valid_upload_size(self, file: UploadedFile, user: User) -> bool:
+    def check_valid_upload_size(
+        self,
+        file: UploadedFile,
+        user: User,
+    ) -> bool:
         """Check if a file upload does not exceed the upload size limit."""
         if user.is_superuser:
             return True
@@ -139,18 +142,6 @@ class AnnotationBaseView(views.APIView):
         return file.size < self._convert_size(
             cast(str, settings.QUOTAS["filesize"]),
         )
-
-    def check_if_user_can_create(self, user: User) -> bool:
-        """Check if a user is not limited by the daily quota."""
-        if user.is_superuser:
-            return True
-        today = timezone.now().replace(
-            hour=0, minute=0, second=0, microsecond=0)
-        jobs_made = Job.objects.filter(
-            created__gte=today, owner__exact=user.pk)
-        if len(jobs_made) > cast(int, settings.QUOTAS["daily_jobs"]):
-            return False
-        return True
 
     def _get_user_pipeline(
         self,
@@ -222,7 +213,7 @@ class AnnotationBaseView(views.APIView):
         """Get an annotation pipeline ID by name."""
         try:
             user_pipeline = self._get_user_pipeline(pipeline_name, user)
-        except ValueError:
+        except (ValueError, TypeError):
             pipeline_id = pipeline_name
         else:
             pipeline_id = str(user_pipeline.pk)
@@ -261,10 +252,6 @@ class AnnotationBaseView(views.APIView):
             raise ValueError(
                 "Genome not matching any id of grr genome resource!")
         return genome
-
-    def generate_job_name(self, user: User) -> int:
-        job_count = Job.objects.filter(owner=user).count()
-        return job_count + 1
 
     def _save_annotation_config(
         self,
@@ -313,28 +300,28 @@ class AnnotationBaseView(views.APIView):
         input_path.parent.mkdir(parents=True, exist_ok=True)
         input_path.write_bytes(uploaded_file.read())
 
-    def _cleanup(self, job_name: int, user_email: str) -> None:
+    def _cleanup(self, job_name: int, folder_name: str) -> None:
         """Cleanup the files of a failed job."""
         data_filename = f"data-{job_name}"
         inputs = Path(settings.JOB_INPUT_STORAGE_DIR).glob(
-            f"{user_email}/{data_filename}*")
+            f"{folder_name}/{data_filename}*")
         for in_file in inputs:
             in_file.unlink(missing_ok=True)
         config_filename = f"config-{job_name}.yaml"
         config_path = Path(
             settings.ANNOTATION_CONFIG_STORAGE_DIR,
-            f"{user_email}/{config_filename}",
+            f"{folder_name}/{config_filename}",
         )
         config_path.unlink(missing_ok=True)
         results = Path(
             settings.JOB_RESULT_STORAGE_DIR).glob(
-                f"{user_email}/{data_filename}*")
+                f"{folder_name}/{data_filename}*")
         for out_file in results:
             out_file.unlink(missing_ok=True)
 
     def _validate_request(self, request: Request) -> Response | None:
         """Validate the request for creating a job."""
-        if not self.check_if_user_can_create(request.user):
+        if not request.user.can_create():
             return Response(
                 {"reason": "Daily job limit reached!"},
                 status=views.status.HTTP_403_FORBIDDEN,
@@ -391,7 +378,7 @@ class AnnotationBaseView(views.APIView):
         self,
         request: Request,
         annotation_type: str,
-    ) -> Response | tuple[int, AnnotationPipeline, Job]:
+    ) -> Response | tuple[int, AnnotationPipeline, Job | AnonymousJob]:
         validation_response = self._validate_request(request)
         if validation_response is not None:
             return validation_response
@@ -408,12 +395,12 @@ class AnnotationBaseView(views.APIView):
                 status=views.status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-        job_name = self.generate_job_name(request.user)
+        job_name = request.user.generate_job_name()
         config_filename = f"config-{job_name}.yaml"
 
         config_path = Path(
             settings.ANNOTATION_CONFIG_STORAGE_DIR,
-            request.user.email,
+            request.user.identifier,
             config_filename,
         )
         save_response_or_pipeline = self._save_annotation_config(
@@ -437,14 +424,17 @@ class AnnotationBaseView(views.APIView):
 
         data_filename = f"data-{job_name}{file_ext}"
         input_path = Path(
-            settings.JOB_INPUT_STORAGE_DIR, request.user.email, data_filename)
+            settings.JOB_INPUT_STORAGE_DIR,
+            request.user.identifier,
+            data_filename,
+        )
 
         try:
             self._save_input_file(request, input_path)
         except OSError:
             logger.exception("Could not write input file")
 
-            self._cleanup(job_name, request.user.email)
+            self._cleanup(job_name, request.user.identifier)
             return Response(
                 {"reason": "File could not be identified"},
                 status=views.status.HTTP_400_BAD_REQUEST,
@@ -453,7 +443,7 @@ class AnnotationBaseView(views.APIView):
         result_filename = f"result-{job_name}{file_ext}"
         result_path = Path(
             settings.JOB_RESULT_STORAGE_DIR,
-            request.user.email,
+            request.user.identifier,
             result_filename,
         )
         result_path.parent.mkdir(parents=True, exist_ok=True)
@@ -462,13 +452,13 @@ class AnnotationBaseView(views.APIView):
             input_path.stat().st_size + config_path.stat().st_size
         )
 
-        job = Job(
+        job = request.user.job_class(
             name=job_name,
             input_path=input_path,
             config_path=config_path,
             result_path=result_path,
             reference_genome=reference_genome,
-            owner=request.user,
+            owner=request.user.as_owner,
             annotation_type=annotation_type,
             disk_size=job_size,
         )

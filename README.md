@@ -6,8 +6,8 @@ mamba env create --name gpf-web-annotation --file ./backend/gpf/environment.yml
 mamba env update --file ./backend/environment.yml
 conda run -n gpf-web-annotation pip install -e ./backend/gpf/dae
 conda activate gpf-web-annotation
-pip install -e ./backend
 mamba env update -n gpf-web-annotation --file ./backend/dev-environment.yml
+pip install -e ./backend
 ```
 
 ### Frontend Dependency Installation

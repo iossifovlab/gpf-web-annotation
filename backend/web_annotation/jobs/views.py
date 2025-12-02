@@ -35,9 +35,6 @@ from web_annotation.tasks import (
     run_columns_job,
     run_vcf_job,
     specify_job,
-    update_job_failed,
-    update_job_in_progress,
-    update_job_success,
 )
 
 
@@ -105,7 +102,7 @@ class JobDetail(AnnotationBaseView):
         response = {
             "id": job.pk,
             "name": job.name,
-            "owner": job.owner.email,
+            "owner": job.owner.identifier,
             "created": str(job.created),
             "duration": job.duration,
             "command_line": job.command_line,
@@ -153,7 +150,6 @@ class AnnotateVCF(AnnotationBaseView):
     """View for creating jobs."""
 
     parser_classes = [MultiPartParser]
-    permission_classes = [permissions.IsAuthenticated]
 
     def check_variants_limit(self, file: VariantFile, user: User) -> bool:
         """Check if a variants file does not exceed the variants limit."""
@@ -163,7 +159,7 @@ class AnnotateVCF(AnnotationBaseView):
             if i >= self.max_variants:
                 logger.debug(
                     "User %s exceeded max variants limit: %d",
-                    user.email, self.max_variants,
+                    user.identifier, self.max_variants,
                 )
                 return False
         return True
@@ -175,18 +171,20 @@ class AnnotateVCF(AnnotationBaseView):
             return job_or_response
         job_name, pipeline, job = job_or_response
 
+        work_folder_name = request.user.identifier
+
         try:
             vcf = VariantFile(job.input_path)
         except (ValueError, OSError):
             logger.exception("Failed to parse VCF file")
-            self._cleanup(job_name, job.owner.email)
+            self._cleanup(job_name, work_folder_name)
             return Response(
                 {"reason": "Invalid VCF file"},
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
         except NotImplementedError:
             logger.exception("GZip upload")
-            self._cleanup(job_name, job.owner.email)
+            self._cleanup(job_name, work_folder_name)
             return Response(
                 {
                     "reason": (
@@ -198,12 +196,12 @@ class AnnotateVCF(AnnotationBaseView):
             )
 
         if not self.check_variants_limit(vcf, request.user):
-            self._cleanup(job_name, job.owner.email)
+            self._cleanup(job_name, work_folder_name)
             return Response(
                 status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
 
         job.save()
-        work_dir = self.result_storage_dir / request.user.email
+        work_dir = self.result_storage_dir / work_folder_name
         pipeline = build_annotation_pipeline(pipeline.raw, pipeline.repository)
         args = get_args_vcf(
             job, pipeline, str(work_dir))
@@ -214,7 +212,7 @@ class AnnotateVCF(AnnotationBaseView):
             """Callback when annotation is done."""
             job.duration = time.time() - start_time
             job.disk_size += Path(job.result_path).stat().st_size
-            update_job_success(job)
+            job.update_job_success()
             self._notify_user_socket(request.user, f"Job {job.name} success!")
 
         def on_failure(exception: BaseException) -> None:
@@ -240,10 +238,10 @@ class AnnotateVCF(AnnotationBaseView):
                     f"{str(exception)}"
                 )
             logger.error("VCF annotation job failed!\n%s", reason)
-            update_job_failed(job)
+            job.update_job_failed()
             self._notify_user_socket(request.user, f"Job {job.name} failed!")
 
-        update_job_in_progress(job)
+        job.update_job_in_progress()
 
         self._notify_user_socket(
             request.user, f"Job {job.name} added to waiting list.")
@@ -313,6 +311,7 @@ class AnnotateColumns(AnnotationBaseView):
             return job_or_response
         _, pipeline, job = job_or_response
 
+        assert isinstance(job, Job)  # WIP
         job.save()
 
         assert isinstance(request.data, QueryDict)
@@ -324,7 +323,7 @@ class AnnotateColumns(AnnotationBaseView):
 
         if self.check_variants_limit(
                 Path(job.input_path), request.user) is False:
-            self._cleanup(job.name, job.owner.email)
+            self._cleanup(job.name, job.owner.identifier)
             return Response(
                 status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
 
@@ -354,7 +353,7 @@ class AnnotateColumns(AnnotationBaseView):
         def on_success(result: None) -> None:
             job.duration = time.time() - start_time
             job.disk_size += Path(job.result_path).stat().st_size
-            update_job_success(job)
+            job.update_job_success()
             self._notify_user_socket(request.user, f"Job {job.name} success!")
 
         def on_failure(exception: BaseException) -> None:
@@ -376,10 +375,10 @@ class AnnotateColumns(AnnotationBaseView):
                     f"{str(exception)}"
                 )
             logger.error("columns annotation job failed!\n%s", reason)
-            update_job_failed(job)
+            job.update_job_failed()
             self._notify_user_socket(request.user, f"Job {job.name} failed!")
 
-        update_job_in_progress(job)
+        job.update_job_in_progress()
         self._notify_user_socket(
             request.user, f"Job {job.name} added to waiting list.")
 

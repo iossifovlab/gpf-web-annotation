@@ -205,12 +205,12 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': None,
     'PAGE_SIZE': None,
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.SessionAuthentication',
+        'web_annotation.authentication.WebAnnotationAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ),
     'DEFAULT_THROTTLE_RATES': {
         'user': '10/minute'
-    }
+    },
 }
 
 # Project-specific stuff
