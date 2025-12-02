@@ -1,4 +1,4 @@
-<div *ngIf="pipelines.length" id="pipelines-container">
+<div id="pipelines-container">
   <div id="pipelines-header">Annotation pipelines</div>
   <input
     placeholder="Select pipeline"
@@ -21,15 +21,19 @@
   </mat-autocomplete>
 
   <ngx-monaco-editor
-    id="yml-textarea"
+    #pipelineEditor
+    id="pipeline-editor"
     [ngClass]="{ 'invalid-config': configError }"
+    [ngStyle]="{ width: isFullScreen ? '80vw' : '30vw', height: isFullScreen ? '70vh' : '40vh' }"
     [options]="yamlEditorOptions"
     (onInit)="onEditorInit()"
     [(ngModel)]="currentPipelineText"
     (ngModelChange)="isConfigValid()"></ngx-monaco-editor>
   <div *ngIf="configError" class="error-message">{{ configError }}</div>
+</div>
 
-  <div id="pipeline-actions">
+<div id="pipeline-actions">
+  <div>
     <button (click)="clearPipeline()" id="add-button"
       ><span class="material-symbols-outlined add-icon">add</span>New</button
     >
@@ -47,15 +51,23 @@
       ><span class="material-symbols-outlined delete-icon">delete</span>Delete</button
     >
   </div>
-
-  <ng-template #nameInput>
-    <div id="name-modal">
-      <div>Set pipeline name</div>
-      <input #inputRef />
-      <div id="buttons-wrapper">
-        <button id="save-name-button" (click)="saveName(inputRef.value)">Save</button>
-        <button id="cancel-button" (click)="cancel()">Cancel</button>
-      </div>
-    </div>
-  </ng-template>
+  <div>
+    <button *ngIf="isFullScreen" (click)="shrinkTextarea()" id="shrink-button"
+      ><span class="material-symbols-outlined shrink-icon">close_fullscreen</span>Reset</button
+    >
+    <button *ngIf="!isFullScreen" (click)="expandTextarea()" id="expand-button"
+      ><span class="material-symbols-outlined expand-icon">open_in_full</span>Full screen</button
+    >
+  </div>
 </div>
+
+<ng-template #nameInput>
+  <div id="name-modal">
+    <div>Set pipeline name</div>
+    <input #inputRef />
+    <div id="buttons-wrapper">
+      <button id="save-name-button" (click)="saveName(inputRef.value)">Save</button>
+      <button id="cancel-button" (click)="cancel()">Cancel</button>
+    </div>
+  </div>
+</ng-template>

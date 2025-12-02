@@ -1,8 +1,23 @@
-#yml-textarea {
+#pipeline-editor {
   border: 2px solid #cfd8df;
   border-radius: 15px;
   padding-top: 10px;
-  height: 500px;
+  resize: both;
+  overflow: auto;
+  min-height: 300px;
+  min-width: 400px;
+  max-height: 70vh;
+  max-width: 80vw;
+}
+
+.full-screen {
+  height: 70vh;
+  width: 80vw;
+}
+
+.small-screen {
+  height: 40vh;
+  width: 30vw;
 }
 
 .invalid-config {
@@ -35,6 +50,7 @@
   color: #252e34;
   font-weight: 600;
   font-size: 16px;
+  max-width: 30vw;
 }
 
 #pipelines-input:focus {
@@ -59,13 +75,15 @@
 
 #pipeline-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
 }
 
 #add-button,
 #save-as-button,
 #save-button,
-#delete-button {
+#delete-button,
+#expand-button,
+#shrink-button {
   background-color: transparent;
   border: none;
   color: #435869;
@@ -75,9 +93,16 @@
 .add-icon,
 .save-as-icon,
 .save-icon,
-.delete-icon {
+.delete-icon,
+.expand-icon,
+.shrink-icon {
   vertical-align: middle;
   font-size: 22px;
+}
+
+.expand-icon,
+.shrink-icon {
+  transform: rotate(90deg);
 }
 
 .delete-icon,
@@ -88,7 +113,9 @@
 #add-button:hover,
 #save-as-button:hover,
 #save-button:hover,
-#delete-button:hover {
+#delete-button:hover,
+#expand-button:hover,
+#shrink-button:hover {
   cursor: pointer;
   color: #5b778c;
 }
