@@ -69,13 +69,11 @@ class JobsServiceMock {
     return `url/${jobId}`;
   }
 
-  public getJobsStatus(): Observable<any> {
-      return of({});
+  public getJobsStatus(): Observable<object> {
+    return of({});
   }
 
-  public closeConnection(): void {
-      return
-  }
+  public closeConnection(): void { }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any

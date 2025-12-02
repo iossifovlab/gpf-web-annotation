@@ -23,7 +23,7 @@ import { AllelesTableComponent } from '../alleles-table/alleles-table.component'
   styleUrl: './annotation-wrapper.component.css'
 })
 
-export class AnnotationWrapperComponent implements OnInit {
+export class AnnotationWrapperComponent implements OnInit, OnDestroy {
   public file: File = null;
   public fileSeparator: string = null;
   public fileHeader = new Map<string, string>();
