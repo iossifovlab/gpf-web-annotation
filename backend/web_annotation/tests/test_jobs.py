@@ -237,7 +237,7 @@ def test_annotate_vcf(
     response = user_client.post(
         "/api/jobs/annotate_vcf",
         {
-            "pipeline": "pipeline/test_pipeline",
+            "pipeline_id": "pipeline/test_pipeline",
             "data": ContentFile(vcf, "test_input.vcf"),
         },
     )
@@ -288,7 +288,7 @@ def test_annotate_vcf_anonymous_user(
     response = anonymous_client.post(
         "/api/jobs/annotate_vcf",
         {
-            "pipeline": "pipeline/test_pipeline",
+            "pipeline_id": "pipeline/test_pipeline",
             "data": ContentFile(vcf, "test_input.vcf"),
         },
     )
@@ -331,7 +331,7 @@ def test_annotate_vcf_bad_input_data(user_client: Client) -> None:
     response = user_client.post(
         "/api/jobs/annotate_vcf",
         {
-            "pipeline": "pipeline/test_pipeline",
+            "pipeline_id": "pipeline/test_pipeline",
             "data": ContentFile(raw_img)
          },
     )
@@ -349,7 +349,7 @@ def test_annotate_vcf_non_vcf_input_data(user_client: Client) -> None:
     response = user_client.post(
         "/api/jobs/annotate_vcf",
         {
-            "pipeline": "pipeline/test_pipeline",
+            "pipeline_id": "pipeline/test_pipeline",
             "data": ContentFile("blabla random text")
          },
     )
@@ -372,7 +372,7 @@ def test_annotate_vcf_disk_size(
     response = user_client.post(
         "/api/jobs/annotate_vcf",
         {
-            "pipeline": "pipeline/test_pipeline",
+            "pipeline_id": "pipeline/test_pipeline",
             "data": ContentFile(vcf, "test_input.vcf"),
         },
     )
@@ -738,7 +738,7 @@ def test_annotate_columns(
     file = input_file.strip()
 
     params = {
-        "pipeline": "pipeline/test_pipeline",
+        "pipeline_id": "pipeline/test_pipeline",
         "data": ContentFile(file, "test_input.tsv"),
         **specification,
     }
@@ -779,7 +779,7 @@ def test_annotate_columns_t4c8(
 
     params = {
         "genome": "t4c8/t4c8_genome",
-        "pipeline": "pipeline/test_pipeline",
+        "pipeline_id": "pipeline/test_pipeline",
         "data": ContentFile(file, "test_input.tsv"),
         "col_chrom": "chrom",
         "col_pos": "pos",
@@ -820,7 +820,7 @@ def test_annotate_columns_disk_size(
 
     params = {
         "genome": "t4c8/t4c8_genome",
-        "pipeline": "pipeline/test_pipeline",
+        "pipeline_id": "pipeline/test_pipeline",
         "data": ContentFile(file, "test_input.tsv"),
         "col_chrom": "chrom",
         "col_pos": "pos",
@@ -852,7 +852,7 @@ def test_annotate_columns_t4c8_gzipped(
 
     params = {
         "genome": "t4c8/t4c8_genome",
-        "pipeline": "pipeline/test_pipeline",
+        "pipeline_id": "pipeline/test_pipeline",
         "data": ContentFile(file, "test_input.tsv.gz"),
         "col_chrom": "chrom",
         "col_pos": "pos",
@@ -904,7 +904,7 @@ def test_annotate_vcf_gzip_fails(
     response = user_client.post(
         "/api/jobs/annotate_vcf",
         {
-        "pipeline": "pipeline/test_pipeline",
+        "pipeline_id": "pipeline/test_pipeline",
             "data": ContentFile(vcf, "test_input.vcf.gz")
         },
     )
@@ -946,7 +946,7 @@ def test_annotate_vcf_bgzip(
     response = user_client.post(
         "/api/jobs/annotate_vcf",
         {
-            "pipeline": "pipeline/test_pipeline",
+            "pipeline_id": "pipeline/test_pipeline",
             "data": ContentFile(vcf, "test_input.vcf.gz")
         },
     )
@@ -995,7 +995,7 @@ def test_annotate_columns_bad_request(admin_client: Client) -> None:
     response = admin_client.post(
         "/api/jobs/annotate_columns",
         {
-            "pipeline": "pipeline/test_pipeline",
+            "pipeline_id": "pipeline/test_pipeline",
             "data": ContentFile(input_file)
         },
     )
@@ -1012,7 +1012,7 @@ def test_annotate_columns_bad_genome(admin_client: Client) -> None:
 
     params = {
         "genome": "goshonome",
-        "pipeline": "pipeline/test_pipeline",
+        "pipeline_id": "pipeline/test_pipeline",
         "data": ContentFile(file, "test_input.tsv.gz"),
         "col_chrom": "chrom",
         "col_pos": "pos",
@@ -1043,7 +1043,7 @@ def test_user_create_pipeline(
 
     assert response is not None
     assert response.status_code == 200
-    assert response.json() == {"name": "test_pipeline"}
+    assert response.json() == {"id": "1"}
     assert Pipeline.objects.filter(owner=user).count() == 1
     pipeline = Pipeline.objects.last()
     assert pipeline is not None
@@ -1077,7 +1077,7 @@ def test_create_job_for_pipeline_with_preamble(
 
     assert response is not None
     assert response.status_code == 200
-    assert response.json() == {"name": "test_pipeline"}
+    assert response.json() == {"id": "1"}
     assert Pipeline.objects.filter(owner=user).count() == 1
     pipeline = Pipeline.objects.last()
     assert pipeline is not None
@@ -1096,7 +1096,7 @@ def test_create_job_for_pipeline_with_preamble(
     response = user_client.post(
         "/api/jobs/annotate_vcf",
         {
-            "pipeline": "test_pipeline",
+            "pipeline_id": str(pipeline.pk),
             "data": ContentFile(vcf, "test_input.vcf")
         },
     )
@@ -1128,11 +1128,11 @@ def test_user_create_anonymous_pipeline(
 
     assert response is not None
     assert response.status_code == 200
-    anon_pipeline_name = response.json()["name"]
+    anon_pipeline_id = response.json()["id"]
     assert Pipeline.objects.filter(owner=user).count() == 1
     pipeline = Pipeline.objects.last()
     assert pipeline is not None
-    assert pipeline.name == anon_pipeline_name
+    assert str(pipeline.pk) == anon_pipeline_id
     assert pipeline.name.startswith("pipeline-")
     assert pipeline.name.endswith(".yaml")
     output = pathlib.Path(pipeline.config_path).read_text(encoding="utf-8")
@@ -1152,21 +1152,22 @@ def test_user_update_pipeline(
 
     assert response is not None
     assert response.status_code == 200
-    assert response.json() == {"name": "test_pipeline"}
+    pipeline_id = response.json()["id"]
     assert Pipeline.objects.filter(owner=user).count() == 1
     pipeline = Pipeline.objects.last()
+    assert str(pipeline.pk) == pipeline_id
     assert pipeline is not None
     assert pipeline.name == "test_pipeline"
     output = pathlib.Path(pipeline.config_path).read_text(encoding="utf-8")
     assert output == "- position_score: scores/pos1"
 
     pipeline_config = "- position_score: scores/pos2"
-    params = {"config": ContentFile(pipeline_config), "name": "test_pipeline"}
+    params = {"config": ContentFile(pipeline_config), "id": pipeline_id}
     response = user_client.post("/api/pipelines/user", params)
 
     assert response is not None
     assert response.status_code == 200
-    assert response.json() == {"name": "test_pipeline"}
+    assert response.json()["id"] == pipeline_id
     assert Pipeline.objects.filter(owner=user).count() == 1
     pipeline = Pipeline.objects.last()
     assert pipeline is not None
@@ -1190,10 +1191,10 @@ def test_user_delete_pipeline(
 
     assert response is not None
     assert response.status_code == 200
-    assert response.json() == {"name": "test-pipeline"}
     assert Pipeline.objects.filter(owner=user).count() == 1
+    pipeline_id = response.json()["id"]
 
-    response = user_client.delete("/api/pipelines/user?name=test-pipeline")
+    response = user_client.delete(f"/api/pipelines/user?id={pipeline_id}")
 
     assert response is not None
     assert response.status_code == 204
@@ -1216,14 +1217,15 @@ def test_user_get_pipeline(
 
     assert response is not None
     assert response.status_code == 200
-    assert response.json() == {"name": "test-pipeline"}
+    pipeline_id = response.json()["id"]
     assert Pipeline.objects.filter(owner=user).count() == 1
 
-    response = user_client.get("/api/pipelines/user?name=test-pipeline")
+    response = user_client.get(f"/api/pipelines/user?id={pipeline_id}")
 
     assert response is not None
     assert response.status_code == 200
     assert response.json() == {
+        "id": pipeline_id,
         "name": "test-pipeline",
         "owner": "user@example.com",
         "pipeline": "- position_score: scores/pos1",
@@ -1276,7 +1278,7 @@ def test_get_pipelines(
 
     assert response is not None
     assert response.status_code == 200
-    assert response.json() == {"name": "test-user-pipeline"}
+    assert response.json() == {"id": "1"}
     assert Pipeline.objects.filter(owner=user).count() == 1
 
     # Anonymous pipeline
@@ -1288,15 +1290,15 @@ def test_get_pipelines(
 
     assert response is not None
     assert response.status_code == 200
-    assert isinstance(response.json()["name"], str)
+    assert isinstance(response.json()["id"], str)
     assert Pipeline.objects.filter(owner=user).count() == 2
 
     response = user_client.get("/api/pipelines")
     pipelines = response.json()
     assert len(pipelines) == 3
-    assert pipelines[0]["id"] == "pipeline/test_pipeline"
-    assert pipelines[1]["id"] == "t4c8/t4c8_pipeline"
-    assert pipelines[2]["id"] == "test-user-pipeline"
+    assert pipelines[0]["name"] == "pipeline/test_pipeline"
+    assert pipelines[1]["name"] == "t4c8/t4c8_pipeline"
+    assert pipelines[2]["name"] == "test-user-pipeline"
     assert pipelines[2]["content"] == "- position_score: scores/pos1"
 
 
@@ -1315,7 +1317,7 @@ def test_get_pipelines_annonymous_user(
 
     assert response is not None
     assert response.status_code == 200
-    assert response.json() == {"name": "test-user-pipeline"}
+    assert response.json() == {"id": "1"}
     assert Pipeline.objects.filter(owner=user).count() == 1
 
     response = anonymous_client.get("/api/pipelines")
@@ -1339,7 +1341,7 @@ def test_annotate_vcf_user_pipeline(
 
     assert response is not None
     assert response.status_code == 200
-    assert response.json() == {"name": "test-user-pipeline"}
+    pipeline_id = response.json()["id"]
     assert Pipeline.objects.filter(owner=user).count() == 1
 
     user = User.objects.get(email="user@example.com")
@@ -1356,7 +1358,7 @@ def test_annotate_vcf_user_pipeline(
     response = user_client.post(
         "/api/jobs/annotate_vcf",
         {
-            "pipeline": "test-user-pipeline",
+            "pipeline_id": pipeline_id,
             "data": ContentFile(vcf, "test_input.vcf")
         },
     )
@@ -1393,7 +1395,7 @@ def test_annotate_vcf_variant_quota(
     response = user_client.post(
         "/api/jobs/annotate_vcf",
         {
-            "pipeline": "pipeline/test_pipeline",
+            "pipeline_id": "pipeline/test_pipeline",
             "data": ContentFile(vcf, "test_input.vcf")
         },
     )
@@ -1411,7 +1413,7 @@ def test_annotate_vcf_variant_quota(
     response = user_client.post(
         "/api/jobs/annotate_vcf",
         {
-            "pipeline": "pipeline/test_pipeline",
+            "pipeline_id": "pipeline/test_pipeline",
             "data": ContentFile(vcf, "test_input.vcf")
         },
     )
@@ -1429,7 +1431,7 @@ def test_annotate_columns_variant_quota(
     )
 
     params = {
-        "pipeline": "pipeline/test_pipeline",
+        "pipeline_id": "pipeline/test_pipeline",
         "data": ContentFile(file, "test_input.tsv"),
         "col_chrom": "chrom",
         "col_pos": "pos",
@@ -1447,7 +1449,7 @@ def test_annotate_columns_variant_quota(
     )
 
     params = {
-        "pipeline": "pipeline/test_pipeline",
+        "pipeline_id": "pipeline/test_pipeline",
         "data": ContentFile(file, "test_input.tsv"),
         "col_chrom": "chrom",
         "col_pos": "pos",
@@ -1487,7 +1489,7 @@ async def test_annotate_vcf_notifications(
     response = await sync_to_async(user_client.post)(
         "/api/jobs/annotate_vcf",
         {
-            "pipeline": "pipeline/test_pipeline",
+            "pipeline_id": "pipeline/test_pipeline",
             "data": ContentFile(vcf, "test_input.vcf"),
         },
     )
@@ -1544,7 +1546,7 @@ async def test_annotate_columns_notifications(
         "col_alt": "alt",
     }
     params = {
-        "pipeline": "pipeline/test_pipeline",
+        "pipeline_id": "pipeline/test_pipeline",
         "data": ContentFile(input_file, "test_input.tsv"),
         "separator": "\t",
         **specification,
@@ -1611,7 +1613,7 @@ async def test_annotate_vcf_notifications_fail(
     response = await sync_to_async(user_client.post)(
         "/api/jobs/annotate_vcf",
         {
-            "pipeline": "pipeline/test_pipeline",
+            "pipeline_id": "pipeline/test_pipeline",
             "data": ContentFile(vcf, "test_input.vcf"),
         },
     )
@@ -1673,7 +1675,7 @@ async def test_annotate_columns_notifications_fail(
         "col_alt": "alt",
     }
     params = {
-        "pipeline": "pipeline/test_pipeline",
+        "pipeline_id": "pipeline/test_pipeline",
         "data": ContentFile(input_file, "test_input.tsv"),
         "separator": "\t",
         **specification,

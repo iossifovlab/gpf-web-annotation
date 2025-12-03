@@ -108,7 +108,7 @@ def test_annotate_vcf_job_details(user_client: Client) -> None:
 def test_annotate_columns_job_details(user_client: Client) -> None:
     params = {
         "genome": "hg38/GRCh38-hg38/genome",
-        "pipeline": "pipeline/test_pipeline",
+        "pipeline_id": "pipeline/test_pipeline",
         "data": ContentFile(
             textwrap.dedent("""chr,pos_beg,pos_end,cnv\nchr1,7,20,cnv+"""),
             "test_input.csv"
@@ -248,7 +248,7 @@ def test_daily_user_quota(
         "/api/jobs/annotate_vcf",
         {
             "genome": "hg38/GRCh38-hg38/genome",
-            "pipeline": "pipeline/test_pipeline",
+            "pipeline_id": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
     )
@@ -258,7 +258,7 @@ def test_daily_user_quota(
         "/api/jobs/annotate_vcf",
         {
             "genome": "hg38/GRCh38-hg38/genome",
-            "pipeline": "pipeline/test_pipeline",
+            "pipeline_id": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
     )
@@ -299,7 +299,7 @@ def test_daily_admin_quota(
         "/api/jobs/annotate_vcf",
         {
             "genome": "hg38/GRCh38-hg38/genome",
-            "pipeline": "pipeline/test_pipeline",
+            "pipeline_id": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
     )
@@ -309,7 +309,7 @@ def test_daily_admin_quota(
         "/api/jobs/annotate_vcf",
         {
             "genome": "hg38/GRCh38-hg38/genome",
-            "pipeline": "pipeline/test_pipeline",
+            "pipeline_id": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
          },
     )
@@ -344,7 +344,7 @@ def test_filesize_limit_user(
         "/api/jobs/annotate_vcf",
         {
             "genome": "hg38/GRCh38-hg38/genome",
-            "pipeline": "pipeline/test_pipeline",
+            "pipeline_id": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
     )
@@ -377,7 +377,7 @@ def test_filesize_limit_admin(
         "/api/jobs/annotate_vcf",
         {
             "genome": "hg38/GRCh38-hg38/genome",
-            "pipeline": "pipeline/test_pipeline",
+            "pipeline_id": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
     )
@@ -413,7 +413,7 @@ def test_variant_limit_user(
         "/api/jobs/annotate_vcf",
         {
             "genome": "hg38/GRCh38-hg38/genome",
-            "pipeline": "pipeline/test_pipeline",
+            "pipeline_id": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
     )
@@ -446,7 +446,7 @@ def test_variant_limit_admin(
         "/api/jobs/annotate_vcf",
         {
             "genome": "hg38/GRCh38-hg38/genome",
-            "pipeline": "pipeline/test_pipeline",
+            "pipeline_id": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
     )
@@ -497,7 +497,7 @@ def test_single_annotation(admin_client: Client) -> None:
     response = admin_client.post(
         "/api/single_allele/annotate",
         {
-            "pipeline": "pipeline/test_pipeline",
+            "pipeline_id": "pipeline/test_pipeline",
             "variant": {
                 "chrom": "chr1", "pos": 1, "ref": "C", "alt": "A",
             }
@@ -560,7 +560,7 @@ def test_single_annotation_unauthorized(anonymous_client: Client) -> None:
     response = anonymous_client.post(
         "/api/single_allele/annotate",
         {
-            "pipeline": "pipeline/test_pipeline",
+            "pipeline_id": "pipeline/test_pipeline",
             "variant": {
                 "chrom": "chr1", "pos": 1, "ref": "C", "alt": "A",
             }
@@ -623,7 +623,7 @@ def test_single_annotation_no_variant(admin_client: Client) -> None:
     response = admin_client.post(
         "/api/single_allele/annotate",
         {
-            "pipeline": "pipeline/test_pipeline",
+            "pipeline_id": "pipeline/test_pipeline",
         },
         content_type="application/json",
     )
@@ -696,7 +696,7 @@ def test_single_annotation_throttled(user_client: Client) -> None:
         response = user_client.post(
             "/api/single_allele/annotate",
             {
-                "pipeline": "pipeline/test_pipeline",
+                "pipeline_id": "pipeline/test_pipeline",
                 "variant": {
                     "chrom": "chr1", "pos": 1, "ref": "C", "alt": "A",
                 }
@@ -708,7 +708,7 @@ def test_single_annotation_throttled(user_client: Client) -> None:
     response = user_client.post(
         "/api/single_allele/annotate",
         {
-            "pipeline": "pipeline/test_pipeline",
+            "pipeline_id": "pipeline/test_pipeline",
             "variant": {
                 "chrom": "chr1", "pos": 1, "ref": "C", "alt": "A",
             }
@@ -928,7 +928,7 @@ def test_single_annotation_t4c8(admin_client: Client) -> None:
     response = admin_client.post(
         "/api/single_allele/annotate",
         {
-            "pipeline": "t4c8/t4c8_pipeline",
+            "pipeline_id": "t4c8/t4c8_pipeline",
             "variant": {
                 "chrom": "chr1", "pos": 53, "ref": "C", "alt": "A",
             }
@@ -984,7 +984,7 @@ def test_single_annotation_t4c8(admin_client: Client) -> None:
     response = admin_client.post(
         "/api/single_allele/annotate",
         {
-            "pipeline": "t4c8/t4c8_pipeline",
+            "pipeline_id": "t4c8/t4c8_pipeline",
             "variant": {
                 "chrom": "chr1", "pos": 102, "ref": "C", "alt": "A",
             }
@@ -1042,7 +1042,7 @@ def test_single_annotation_save_query_in_history(admin_client: Client) -> None:
     response = admin_client.post(
         "/api/single_allele/annotate",
         {
-            "pipeline": "t4c8/t4c8_pipeline",
+            "pipeline_id": "t4c8/t4c8_pipeline",
             "variant": {
                 "chrom": "chr1", "pos": 53, "ref": "C", "alt": "A",
             }
@@ -1054,7 +1054,7 @@ def test_single_annotation_save_query_in_history(admin_client: Client) -> None:
     response = admin_client.post(
         "/api/single_allele/annotate",
         {
-            "pipeline": "t4c8/t4c8_pipeline",
+            "pipeline_id": "t4c8/t4c8_pipeline",
             "variant": {
                 "chrom": "chr2", "pos": 62, "ref": "T", "alt": "G",
             }
@@ -1085,7 +1085,7 @@ def test_single_annotation_save_duplicate_query_in_history(
     response = admin_client.post(
         "/api/single_allele/annotate",
         {
-            "pipeline": "t4c8/t4c8_pipeline",
+            "pipeline_id": "t4c8/t4c8_pipeline",
             "variant": {
                 "chrom": "chr1", "pos": 53, "ref": "C", "alt": "A",
             }
@@ -1097,7 +1097,7 @@ def test_single_annotation_save_duplicate_query_in_history(
     response = admin_client.post(
         "/api/single_allele/annotate",
         {
-            "pipeline": "t4c8/t4c8_pipeline",
+            "pipeline_id": "t4c8/t4c8_pipeline",
             "variant": {
                 "chrom": "chr1", "pos": 53, "ref": "C", "alt": "A",
             }
@@ -1121,7 +1121,7 @@ def test_user_delete_allele_query_from_history(admin_client: Client) -> None:
     response = admin_client.post(
         "/api/single_allele/annotate",
         {
-            "pipeline": "t4c8/t4c8_pipeline",
+            "pipeline_id": "t4c8/t4c8_pipeline",
             "variant": {
                 "chrom": "chr1", "pos": 53, "ref": "C", "alt": "A",
             }

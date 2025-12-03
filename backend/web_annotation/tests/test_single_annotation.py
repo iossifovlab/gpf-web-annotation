@@ -143,7 +143,7 @@ def test_use_of_thread_safe_pipelines(
     thread_safe_dummy.lock = MagicMock()
     request_data = MagicMock()
     request_data.data = {
-        "pipeline": "dummy",
+        "pipeline_id": "dummy",
         "variant": {
             "chrom": "1",
             "pos": 12345,
@@ -151,6 +151,14 @@ def test_use_of_thread_safe_pipelines(
             "alt": "T",
         },
     }
+    request_data.user = MagicMock()
+    pipeline_mock = MagicMock()
+    pipeline_mock.owner = request_data.user
+    mocker.patch(
+        "web_annotation.single_allele_annotation"
+        ".views.SingleAnnotation._get_user_pipeline",
+        return_value=pipeline_mock,
+    )
     mocker.patch(
         "web_annotation.single_allele_annotation"
         ".views.SingleAnnotation.lru_cache",
