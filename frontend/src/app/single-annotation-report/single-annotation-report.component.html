@@ -9,19 +9,29 @@
       </h2>
     </div>
     <div id="variant-data-container">
-      <div id="variant-data-labels">
-        <span>chromosome</span>
-        <span>position</span>
-        <span>reference</span>
-        <span>alternative</span>
-        <span>variant type</span>
+      <div>
+        <div class="variant-data-label">chromosome</div>
+        <div class="variant-data" id="variant-chromosome">{{ report.variant.chromosome }}</div>
       </div>
-      <div id="variant-data">
-        <span id="variant-chromosome">{{ report.variant.chromosome }}</span>
-        <span id="variant-position">{{ report.variant.position }}</span>
-        <span id="variant-reference">{{ report.variant.reference }}</span>
-        <span id="variant-alternate">{{ report.variant.alernative }}</span>
-        <span id="variant-type">{{ report.variant.variantType }}</span>
+      <hr />
+      <div>
+        <div class="variant-data-label">position</div>
+        <div class="variant-data" id="variant-position">{{ report.variant.position }}</div>
+      </div>
+      <hr />
+      <div>
+        <div class="variant-data-label">reference</div>
+        <div class="variant-data" id="variant-reference">{{ report.variant.reference }}</div>
+      </div>
+      <hr />
+      <div>
+        <div class="variant-data-label">alternative</div>
+        <div class="variant-data" id="variant-alternate">{{ report.variant.alernative }}</div>
+      </div>
+      <hr />
+      <div>
+        <div class="variant-data-label">variant type</div>
+        <div class="variant-data" id="variant-type">{{ report.variant.variantType }}</div>
       </div>
     </div>
   </div>
