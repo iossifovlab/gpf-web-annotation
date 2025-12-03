@@ -1,9 +1,9 @@
-<div style="flex-shrink: 3; align-self: stretch; flex-grow: 2; display: flex; flex-direction: column">
+<div style="display: flex; flex-direction: column">
   <div id="quota">
     <span>Quota: {{ userLimitations.jobsLeft }} / {{ userLimitations.dailyJobs }} per day</span>
     <span>Disk space quota: {{ userLimitations.diskSpace }}</span>
   </div>
-  <div style="flex-shrink: 3">
+  <div>
     <div *ngIf="!file" id="file-upload-field" (dragover)="onDragOver($event)" (drop)="onDropSuccess($event)">
       <div id="upload-instructions">
         Drag & drop here or

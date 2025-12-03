@@ -41,6 +41,7 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
   public currentView:'jobs' | 'single allele' = 'jobs';
   public currentJob: Job = null;
   public hideComponents = false;
+  public hideHistory = false;
 
   public constructor(
       private jobsService: JobsService,
@@ -218,6 +219,7 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
   public updateComponentsVisibility(toHide: boolean): void {
     this.ngZone.run(() => {
       this.hideComponents = toHide;
+      this.hideHistory = toHide;
     });
   }
 
