@@ -76,9 +76,9 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     const editorElement = this.pipelineEditorRef._editorContainer.nativeElement as HTMLElement;
 
     this.resizeObserver = new ResizeObserver(() => {
-      if (editorElement.clientWidth > 1200 && !this.isFullScreen) {
+      if (editorElement.clientWidth > 1500 && !this.isFullScreen) {
         this.expandTextarea();
-      } else if (editorElement.clientWidth < 1200 && this.isFullScreen) {
+      } else if (editorElement.clientWidth < 1500 && this.isFullScreen) {
         this.shrinkTextarea();
       }
     });

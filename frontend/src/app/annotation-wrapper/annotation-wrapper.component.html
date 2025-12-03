@@ -8,13 +8,12 @@
       </div>
 
       <app-annotation-pipeline
-        [ngStyle]="{ width: hideComponents ? '100%' : '35%' }"
         (emitPipelineId)="setPipeline($event)"
         (emitIsConfigValid)="setConfigValid($event)"
         (tiggerHidingComponents)="updateComponentsVisibility($event)"></app-annotation-pipeline>
     </div>
 
-    <div *ngIf="!hideComponents" style="width: 60%">
+    <div *ngIf="!hideComponents" style="display: flex; flex-direction: column; width: 50%">
       <div id="annotation-mode">
         <button
           id="annotation-jobs"
