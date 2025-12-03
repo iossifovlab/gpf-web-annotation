@@ -154,17 +154,6 @@ a:hover {
   cursor: pointer;
 }
 
-#help-icon {
-  color: #b4b4b4;
-  font-size: 26px;
-  vertical-align: bottom;
-}
-
-#help-icon:hover {
-  cursor: pointer;
-  color: steelblue;
-}
-
 #report-header {
   display: flex;
   justify-content: space-between;

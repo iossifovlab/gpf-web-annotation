@@ -119,7 +119,6 @@ const mockResponse = {
             value: undefined,
             histogram: 'histograms/score?test=1',
           },
-          help: '',
           type: ''
         },
       ],
@@ -170,7 +169,6 @@ describe('SingleAnnotationService', () => {
               'cadd_raw - CADD raw score for functional prediction of a SNP. The larger the score \nthe more likely the SNP has damaging effect\n',
               'AF',
               new Result(null, 'histograms/score?test=1'),
-              '',
             ),
           ]
         ),
@@ -280,7 +278,6 @@ describe('SingleAnnotationService', () => {
               'cadd_raw - CADD raw score for functional prediction of a SNP. The larger the score \nthe more likely the SNP has damaging effect\n',
               'AF',
               new Result(null, 'histograms/score?test=1'),
-              '',
             ),
           ]
         ),
