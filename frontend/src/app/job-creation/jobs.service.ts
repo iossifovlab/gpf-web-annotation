@@ -17,10 +17,10 @@ export class JobsService {
   private readonly annotateVcfUrl = `${environment.apiPath}/jobs/annotate_vcf`;
 
   private readonly jobSocketUrl = `${environment.socketPath}/notifications`;
-  private jobsWebSocket: WebSocketSubject<any> = webSocket(this.jobSocketUrl);
+  private jobsWebSocket: WebSocketSubject<object> = webSocket(this.jobSocketUrl);
 
-  public getJobsStatus(): Observable<any> {
-    return this.jobsWebSocket.asObservable();
+  public getJobsStatus(): Observable<{message: string}> {
+    return this.jobsWebSocket.asObservable() as Observable<{message: string}>;
   }
 
   public closeConnection(): void {

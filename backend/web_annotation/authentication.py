@@ -1,8 +1,8 @@
-from django.contrib.auth.models import User
 from django.http.request import HttpRequest
+from rest_framework import exceptions
 from rest_framework.authentication import SessionAuthentication
 
-from web_annotation.models import WebAnnotationAnonymousUser
+from web_annotation.models import User, WebAnnotationAnonymousUser
 
 class WebAnnotationAuthentication(SessionAuthentication):
     """Custom authentication class"""
@@ -15,14 +15,18 @@ class WebAnnotationAuthentication(SessionAuthentication):
         Otherwise returns `WebAnnotationAnonymousUser`.
         """
 
-        user = super().authenticate(request)
+        successful_auth = super().authenticate(request)
 
-        if user is None:
+        if successful_auth is None:
             ip = self.get_ip_from_request(request)
             anonymous_user = WebAnnotationAnonymousUser(ip=ip)
             return (anonymous_user, None)
 
-        return user
+        (user, _) = successful_auth
+        if not isinstance(user, User):
+            raise exceptions.AuthenticationFailed('User type not recognized')
+
+        return (user, None)
 
     def get_ip_from_request(self, request: HttpRequest) -> str:
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')

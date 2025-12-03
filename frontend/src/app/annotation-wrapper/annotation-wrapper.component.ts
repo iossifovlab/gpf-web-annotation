@@ -49,9 +49,15 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
 
   public ngOnInit(): void {
     this.jobsService.getJobsStatus().subscribe({
-      next: msg => console.log('message received: ' + msg.message), // Called whenever there is a message from the server.
-      error: err => console.log(err), // Called if at any point WebSocket API signals some kind of error.
-      complete: () => console.log('complete') // Called when connection is closed (for whatever reason).
+      // Called whenever there is a message from the server.
+      // eslint-disable-next-line no-console
+      next: (msg: {message: string}) => console.log('message received: ' + msg.message),
+      // Called if at any point WebSocket API signals some kind of error.
+      // eslint-disable-next-line no-console
+      error: err => console.log(err),
+      // Called when connection is closed (for whatever reason).
+      // eslint-disable-next-line no-console
+      complete: () => console.log('complete')
     });
   }
 

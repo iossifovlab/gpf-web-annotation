@@ -5,7 +5,6 @@ import pathlib
 import textwrap
 from typing import Any
 from unittest.mock import MagicMock
-from _pytest.monkeypatch import monkeypatch
 from asgiref.sync import sync_to_async
 from pysam import tabix_compress
 
