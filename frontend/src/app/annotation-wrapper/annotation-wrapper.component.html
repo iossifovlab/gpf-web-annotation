@@ -30,6 +30,14 @@
         >
       </div>
 
+      <button id="toggle-history" (click)="this.hideHistory = !this.hideHistory"
+        >History<span
+          class="material-symbols-outlined"
+          [ngStyle]="{ transform: this.hideHistory ? 'rotate(180deg)' : 'rotate(0deg)' }"
+          >chevron_forward</span
+        ></button
+      >
+
       <div *ngIf="currentView === 'jobs'">
         <div *ngIf="isCreationFormVisible">
           <app-job-creation
@@ -75,7 +83,7 @@
     </div>
   </div>
 
-  <div *ngIf="!hideComponents" id="history-table">
+  <div *ngIf="!hideHistory" id="history-table">
     <app-jobs-table *ngIf="currentView === 'jobs'"></app-jobs-table>
     <app-alleles-table
       *ngIf="currentView === 'single allele'"
