@@ -38,31 +38,31 @@
   <div id="annotators">
     <div *ngFor="let annotator of report.annotators" class="annotator">
       <div class="attributes">
-        <div *ngFor="let attribute of annotator.attributes" class="attribute-container">
-          <div class="attribute" style="width: 100%">
+        <div *ngFor="let attribute of annotator.attributes" class="attribute-container" style="width: 100%">
+          <div class="attribute">
             <div class="attribute-header">{{ attribute.name }}</div>
             <div class="attribute-description">{{ attribute.description }}</div>
             <div class="attribute-source">source: {{ attribute.source }}</div>
-            <div class="attribute-result">
-              <app-histogram-wrapper
-                *ngIf="attribute.result.histogramLink"
-                [histogramUrl]="attribute.result.histogramLink"
-                [value]="attribute.result.value"></app-histogram-wrapper>
-              <div
-                class="value-result"
-                *ngIf="!attribute.result.histogramLink && !tableViewSources.includes(attribute.source)"
-                >{{ attribute.result.value }}</div
-              >
-              <div
-                *ngIf="
-                  tableViewSources.includes(attribute.source) &&
-                  annotator.details.name === 'effect_annotator' &&
-                  attribute.result.value
-                ">
-                <app-effect-table
-                  [rawEffectDetails]="attribute.result.value.toString()"
-                  [source]="attribute.source"></app-effect-table>
-              </div>
+          </div>
+          <div class="attribute-result">
+            <app-histogram-wrapper
+              *ngIf="attribute.result.histogramLink"
+              [histogramUrl]="attribute.result.histogramLink"
+              [value]="attribute.result.value"></app-histogram-wrapper>
+            <div
+              class="value-result"
+              *ngIf="!attribute.result.histogramLink && !tableViewSources.includes(attribute.source)"
+              >{{ attribute.result.value }}</div
+            >
+            <div
+              *ngIf="
+                tableViewSources.includes(attribute.source) &&
+                annotator.details.name === 'effect_annotator' &&
+                attribute.result.value
+              ">
+              <app-effect-table
+                [rawEffectDetails]="attribute.result.value.toString()"
+                [source]="attribute.source"></app-effect-table>
             </div>
           </div>
         </div>
