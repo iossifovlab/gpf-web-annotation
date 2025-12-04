@@ -1198,6 +1198,7 @@ def test_user_update_pipeline(
     pipeline_id = response.json()["id"]
     assert Pipeline.objects.filter(owner=user).count() == 1
     pipeline = Pipeline.objects.last()
+    assert pipeline is not None
     assert str(pipeline.pk) == pipeline_id
     assert pipeline is not None
     assert pipeline.name == "test_pipeline"

@@ -4,7 +4,6 @@ from typing import Any
 
 from dae.annotation.annotatable import VCFAllele
 from dae.annotation.annotation_config import AttributeInfo
-from dae.annotation.annotation_factory import load_pipeline_from_yaml
 from dae.annotation.annotation_pipeline import Annotator
 from dae.annotation.gene_score_annotator import GeneScoreAnnotator
 from dae.annotation.score_annotator import GenomicScoreAnnotatorBase
