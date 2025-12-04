@@ -12,16 +12,15 @@ from dae.genomic_resources.reference_genome import (
 )
 from django.conf import settings
 
-from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 
-from .models import BaseJob, Job, JobDetails
+from .models import AnonymousJob, AnonymousJobDetails, BaseJob, Job, JobDetails
 
 logger = logging.getLogger(__name__)
 
 
 def specify_job(  # pylint: disable=too-many-arguments
-    job: Job,
+    job: Job | AnonymousJob,
     *,
     separator: str | None = None,
     col_chrom: str = "",
@@ -34,9 +33,9 @@ def specify_job(  # pylint: disable=too-many-arguments
     col_vcf_like: str = "",
     col_variant: str = "",
     col_location: str = "",
-) -> Job:
+) -> Job| AnonymousJob:
     """Specify and update a job's annotation columns."""
-    details = get_job_details(job.pk)
+    details = job.get_job_details()
     if job.status != Job.Status.WAITING:
         raise ValueError("Cannot specify details for jobs in execution!")
     details.separator = separator
@@ -55,22 +54,6 @@ def specify_job(  # pylint: disable=too-many-arguments
     details.save()
 
     return job
-
-
-def get_job(job_pk: int) -> Job:
-    """Return a job by primary key."""
-    return Job.objects.get(pk=job_pk)
-
-
-def get_job_details(job_pk: int) -> JobDetails:
-    """Return a job's details by job primary key."""
-    try:
-        return JobDetails.objects.get(job__pk=job_pk)
-    except ObjectDoesNotExist:
-        job = get_job(job_pk)
-        details = JobDetails(job=job)
-        details.save()
-        return details
 
 
 def get_args_vcf(
@@ -112,7 +95,8 @@ def delete_old_jobs(days_old: int = 0) -> None:
 
 
 def get_args_columns(
-    job: Job, details: JobDetails,
+    job: Job | AnonymousJob,
+    details: JobDetails | AnonymousJobDetails,
     pipeline: AnnotationPipeline, storage_dir: str,
 ) -> dict[str, Any]:
     """Prepare command line arguments for columnar annotation."""

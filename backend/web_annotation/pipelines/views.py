@@ -88,7 +88,7 @@ class UserPipeline(AnnotationBaseView):
         if user_pipelines_count == 0:
             config_path = Path(
                 settings.ANNOTATION_CONFIG_STORAGE_DIR,
-                request.user.email,
+                request.user.identifier,
                 config_filename,
             )
             pipeline = Pipeline(

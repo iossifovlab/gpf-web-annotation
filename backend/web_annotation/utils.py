@@ -334,7 +334,7 @@ def bytes_to_readable(raw_bytes: int) -> str:
             break
     return result
 
-def get_ip_from_request(request: HttpRequest) -> str:
+def get_ip_from_request(request: Request) -> str:
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
         ip = x_forwarded_for.split(',')[0]

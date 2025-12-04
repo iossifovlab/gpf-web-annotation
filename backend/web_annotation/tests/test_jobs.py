@@ -810,6 +810,45 @@ def test_annotate_columns_t4c8(
 
 
 @pytest.mark.django_db
+def test_annotate_columns_anonymous_t4c8(
+    anonymous_client: Client,
+) -> None:
+    file = textwrap.dedent("""
+        chrom,pos,var
+        chr1,9,del(3)
+    """).strip()
+
+    params = {
+        "genome": "t4c8/t4c8_genome",
+        "pipeline": "pipeline/test_pipeline",
+        "data": ContentFile(file, "test_input.tsv"),
+        "col_chrom": "chrom",
+        "col_pos": "pos",
+        "col_variant": "var",
+    }
+    params["separator"] = ","
+
+    response = anonymous_client.post("/api/jobs/annotate_columns", params)
+
+    assert response is not None
+    assert response.status_code == 200
+    assert AnonymousJob.objects.count() == 1
+
+    job = AnonymousJob.objects.last()
+    assert job is not None
+    assert job.status == Job.Status.SUCCESS
+    assert job.duration is not None
+    assert job.duration < 7.0
+
+    output = pathlib.Path(job.result_path).read_text(encoding="utf-8")
+    lines = [line.split(",") for line in output.strip().split("\n")]
+    assert lines == [
+        ['chrom', 'pos', 'var', 'position_1'],
+        ['chr1', '9', 'del(3)', '0.425']
+    ]
+
+
+@pytest.mark.django_db
 def test_annotate_columns_disk_size(
     user_client: Client, test_grr: GenomicResourceRepo,
 ) -> None:

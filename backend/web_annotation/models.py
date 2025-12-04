@@ -256,6 +256,15 @@ class Job(BaseJob):
             [self.owner.identifier],
         )
 
+    def get_job_details(self) -> JobDetails:
+        """Get or initiate job details."""
+        try:
+            return JobDetails.objects.get(job__pk=self.pk)
+        except models.ObjectDoesNotExist:
+            details = JobDetails(job=self)
+            details.save()
+            return details
+
 
 class AnonymousJob(BaseJob):
     """Model for storing job data."""
@@ -263,14 +272,20 @@ class AnonymousJob(BaseJob):
     owner = models.CharField(max_length=1024)
     is_active = models.BooleanField(default=False)
 
+    def get_job_details(self) -> AnonymousJobDetails:
+        """Get or initiate job details."""
+        try:
+            return AnonymousJobDetails.objects.get(job__pk=self.pk)
+        except models.ObjectDoesNotExist:
+            details = AnonymousJobDetails(job=self)
+            details.save()
+            return details
 
-class JobDetails(models.Model):
+class BaseJobDetails(models.Model):
     """Model for storing job details for tsv files."""
     class Meta:  # pylint: disable=too-few-public-methods
-        """Meta class for details model."""
-        constraints = [
-            models.UniqueConstraint(fields=["job"], name="unique_job_details")
-        ]
+        """Meta class for verification model."""
+        abstract = True
     col_chr = models.CharField(max_length=1024, default="")
     col_pos = models.CharField(max_length=1024, default="")
     col_ref = models.CharField(max_length=1024, default="")
@@ -283,8 +298,33 @@ class JobDetails(models.Model):
     col_location = models.CharField(max_length=1024, default="")
     separator = models.CharField(max_length=1, null=True)
     columns = models.TextField()
+
+
+class JobDetails(BaseJobDetails):
+    """Model for storing job details for tsv files."""
+    class Meta(BaseJobDetails.Meta):  # pylint: disable=too-few-public-methods
+        """Meta class for details model."""
+        constraints = [
+            models.UniqueConstraint(fields=["job"], name="unique_job_details")
+        ]
     job = models.ForeignKey(
         'web_annotation.Job', related_name='details', on_delete=models.CASCADE)
+
+
+class AnonymousJobDetails(BaseJobDetails):
+    """Model for storing job details for tsv files."""
+    class Meta(BaseJobDetails.Meta):  # pylint: disable=too-few-public-methods
+        """Meta class for details model."""
+        constraints = [
+            models.UniqueConstraint(
+                fields=["job"],
+                name="unique_anonymous_job_details",
+            )
+        ]
+    job = models.ForeignKey(
+        'web_annotation.AnonymousJob',
+        related_name='details',
+        on_delete=models.CASCADE)
 
 
 class BaseVerificationCode(models.Model):

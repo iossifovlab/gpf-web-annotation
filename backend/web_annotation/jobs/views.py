@@ -30,8 +30,6 @@ from web_annotation.utils import bytes_to_readable
 from web_annotation.tasks import (
     get_args_columns,
     get_args_vcf,
-    get_job,
-    get_job_details,
     run_columns_job,
     run_vcf_job,
     specify_job,
@@ -84,6 +82,10 @@ class JobDetail(AnnotationBaseView):
 
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_job(self, job_pk: int) -> Job:
+        """Return a job by primary key."""
+        return Job.objects.get(pk=job_pk)
+
     def get(self, request: Request, pk: int) -> Response:
         """
         Get job details.
@@ -92,7 +94,7 @@ class JobDetail(AnnotationBaseView):
         """
 
         try:
-            job = get_job(pk)
+            job = self.get_job(pk)
         except ObjectDoesNotExist:
             return Response(status=views.status.HTTP_404_NOT_FOUND)
 
@@ -111,7 +113,7 @@ class JobDetail(AnnotationBaseView):
             "size": bytes_to_readable(int(job.disk_size)),
         }
         try:
-            details = get_job_details(pk)
+            details = job.get_job_details()
         except ObjectDoesNotExist:
             return Response(response, status=views.status.HTTP_200_OK)
 
@@ -134,7 +136,7 @@ class JobDetail(AnnotationBaseView):
         """
 
         try:
-            job = get_job(pk)
+            job = self.get_job(pk)
         except ObjectDoesNotExist:
             return Response(status=views.status.HTTP_404_NOT_FOUND)
 
@@ -264,7 +266,6 @@ class AnnotateColumns(AnnotationBaseView):
     """View for creating jobs."""
 
     parser_classes = [MultiPartParser]
-    permission_classes = [permissions.IsAuthenticated]
 
     def is_vcf_file(self, file: UploadedFile, input_path: Path) -> bool:
         """Check if a file is a VCF file."""
@@ -298,7 +299,7 @@ class AnnotateColumns(AnnotationBaseView):
                 if i >= self.max_variants:
                     logger.debug(
                         "User %s exceeded max variants limit: %d",
-                        user.email, self.max_variants,
+                        user.identifier, self.max_variants,
                     )
                     return False
             return True
@@ -311,7 +312,6 @@ class AnnotateColumns(AnnotationBaseView):
             return job_or_response
         _, pipeline, job = job_or_response
 
-        assert isinstance(job, Job)  # WIP
         job.save()
 
         assert isinstance(request.data, QueryDict)
@@ -323,7 +323,7 @@ class AnnotateColumns(AnnotationBaseView):
 
         if self.check_variants_limit(
                 Path(job.input_path), request.user) is False:
-            self._cleanup(job.name, job.owner.identifier)
+            self._cleanup(job.name, request.user.identifier)
             return Response(
                 status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
 
@@ -336,11 +336,11 @@ class AnnotateColumns(AnnotationBaseView):
 
         grr_definition = self.get_grr_definition()
         assert grr_definition is not None
-        work_dir = self.result_storage_dir / request.user.email
+        work_dir = self.result_storage_dir / request.user.identifier
 
         try:
             specify_job(job, **cast(dict[str, str], params))
-            details = get_job_details(job.pk)
+            details = job.get_job_details()
         except ObjectDoesNotExist:
             logger.exception("Job not found!")
             return Response(status=views.status.HTTP_404_NOT_FOUND)
