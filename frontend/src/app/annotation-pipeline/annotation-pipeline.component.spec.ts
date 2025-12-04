@@ -15,9 +15,9 @@ import { provideMonacoEditor } from 'ngx-monaco-editor-v2';
 import { By } from '@angular/platform-browser';
 
 const mockPipelines = [
-  new Pipeline('id1', 'content1', 'default'),
-  new Pipeline('id2', 'content2', 'default'),
-  new Pipeline('id3', 'content3', 'user'),
+  new Pipeline('1', 'id1', 'content1', 'default'),
+  new Pipeline('2', 'id2', 'content2', 'default'),
+  new Pipeline('3', 'id3', 'content3', 'user'),
 ];
 class JobsServiceMock {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -88,12 +88,12 @@ class MatDialogMock {
 
 class AnnotationPipelineServiceMock {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public savePipeline(name: string, content: string): Observable<string> {
-    return of(name);
+  public savePipeline(id: string, name: string, content: string): Observable<string> {
+    return of(id);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public deletePipeline(name: string): Observable<object> {
+  public deletePipeline(id: string): Observable<object> {
     return of({});
   }
 }
@@ -179,10 +179,11 @@ describe('AnnotationPipelineComponent', () => {
   it('should select new pipeline and emit to parent', () => {
     const emitPipelineIdSpy = jest.spyOn(component.emitPipelineId, 'emit');
     const setDropdownValueSpy = jest.spyOn(component.dropdownControl, 'setValue');
-    component.onPipelineClick(new Pipeline('other pipeline', 'config', 'default'));
-    expect(component.selectedPipeline.id).toBe('other pipeline');
+    component.onPipelineClick(new Pipeline('1', 'other pipeline', 'config', 'default'));
+    expect(component.selectedPipeline.id).toBe('1');
+    expect(component.selectedPipeline.name).toBe('other pipeline');
     expect(component.selectedPipeline.content).toBe('config');
-    expect(emitPipelineIdSpy).toHaveBeenCalledWith('other pipeline');
+    expect(emitPipelineIdSpy).toHaveBeenCalledWith('1');
     expect(setDropdownValueSpy).toHaveBeenCalledWith('other pipeline');
   });
 
@@ -191,7 +192,7 @@ describe('AnnotationPipelineComponent', () => {
     const setDropdownValueSpy = jest.spyOn(component.dropdownControl, 'setValue');
 
     component.onPipelineClick(null);
-    expect(component.selectedPipeline.id).toBe('id1');
+    expect(component.selectedPipeline.id).toBe('1');
     expect(component.selectedPipeline.content).toBe('content1');
     expect(emitPipelineIdSpy).not.toHaveBeenCalledWith();
     expect(setDropdownValueSpy).not.toHaveBeenCalledWith();
@@ -200,7 +201,7 @@ describe('AnnotationPipelineComponent', () => {
   it('should reset component state', () => {
     component.selectedPipeline = mockPipelines[2];
     component.resetState();
-    expect(component.selectedPipeline.id).toBe('id1');
+    expect(component.selectedPipeline.id).toBe('1');
     expect(component.selectedPipeline.content).toBe('content1');
   });
 
@@ -248,13 +249,13 @@ describe('AnnotationPipelineComponent', () => {
 
   it('should save pipeline and trigger pipelines query if new name is set', () => {
     const updatedMockPipelines = [
-      new Pipeline('id1', 'content1', 'default'),
-      new Pipeline('id2', 'content2', 'default'),
-      new Pipeline('id3', 'content3', 'default'),
-      new Pipeline('pipeline-name', 'content', 'default'),
+      new Pipeline('1', 'id1', 'content1', 'default'),
+      new Pipeline('2', 'id2', 'content2', 'default'),
+      new Pipeline('3', 'id3', 'content3', 'default'),
+      new Pipeline('4', 'pipeline-name', 'content', 'default'),
     ];
 
-    const savePipelineSpy = jest.spyOn(annotationPipelineServiceMock, 'savePipeline');
+    const savePipelineSpy = jest.spyOn(annotationPipelineServiceMock, 'savePipeline').mockReturnValueOnce(of('4'));
     const getAnnotationPipelinesSpy = jest.spyOn(jobsServiceMock, 'getAnnotationPipelines')
       .mockReturnValueOnce(of(updatedMockPipelines));
     const onPipelineClickSpy = jest.spyOn(component, 'onPipelineClick');
@@ -262,10 +263,10 @@ describe('AnnotationPipelineComponent', () => {
     component.currentPipelineText = 'mock config';
 
     component.saveAs();
-    expect(savePipelineSpy).toHaveBeenCalledWith('pipeline-name', 'mock config');
+    expect(savePipelineSpy).toHaveBeenCalledWith('', 'pipeline-name', 'mock config');
     expect(getAnnotationPipelinesSpy).toHaveBeenCalledWith();
-    expect(onPipelineClickSpy).toHaveBeenCalledWith(new Pipeline('pipeline-name', 'content', 'default'));
-    expect(component.selectedPipeline.id).toBe('pipeline-name');
+    expect(onPipelineClickSpy).toHaveBeenCalledWith(new Pipeline('4', 'pipeline-name', 'content', 'default'));
+    expect(component.selectedPipeline.id).toBe('4');
   });
 
   it('should not save pipeline and trigger pipelines query if new pipeline has no name', () => {
@@ -280,25 +281,25 @@ describe('AnnotationPipelineComponent', () => {
     expect(savePipelineSpy).not.toHaveBeenCalledWith();
     expect(getAnnotationPipelinesSpy).not.toHaveBeenCalledTimes(2);
     expect(onPipelineClickSpy).not.toHaveBeenCalledWith();
-    expect(component.selectedPipeline.id).toBe('id1');
+    expect(component.selectedPipeline.id).toBe('1');
   });
 
   it('should delete pipeline', () => {
     const deletePipelineSpy = jest.spyOn(annotationPipelineServiceMock, 'deletePipeline');
     const selectNewPipelineSpy = jest.spyOn(component, 'onPipelineClick');
 
-    component.selectedPipeline = new Pipeline('name', 'content', 'type');
+    component.selectedPipeline = new Pipeline('1', 'name', 'content', 'type');
 
     component.delete();
-    expect(deletePipelineSpy).toHaveBeenCalledWith('name');
+    expect(deletePipelineSpy).toHaveBeenCalledWith('1');
     expect(selectNewPipelineSpy).toHaveBeenCalledWith(mockPipelines[0]);
   });
 
   it('should save pipeline and update list with pipelines', () => {
     const updatedMockPipelines: Pipeline[] = [
-      new Pipeline('id1', 'content1', 'default'),
-      new Pipeline('id2', 'content2', 'default'),
-      new Pipeline('id3', 'new content', 'user'),
+      new Pipeline('1', 'id1', 'content1', 'default'),
+      new Pipeline('2', 'id2', 'content2', 'default'),
+      new Pipeline('3', 'id3', 'new content', 'user'),
     ];
 
     const savePipelineSpy = jest.spyOn(annotationPipelineServiceMock, 'savePipeline');
@@ -310,8 +311,8 @@ describe('AnnotationPipelineComponent', () => {
     component.currentPipelineText = 'new content';
 
     component.save();
-    expect(savePipelineSpy).toHaveBeenCalledWith('id3', 'new content');
-    expect(selectNewPipelineSpy).toHaveBeenCalledWith(new Pipeline('id3', 'new content', 'user'));
+    expect(savePipelineSpy).toHaveBeenCalledWith('3', 'id3', 'new content');
+    expect(selectNewPipelineSpy).toHaveBeenCalledWith(new Pipeline('3', 'id3', 'new content', 'user'));
   });
 
   it('should save pipeline and not update pipeline list when response is invalid', () => {
@@ -322,7 +323,7 @@ describe('AnnotationPipelineComponent', () => {
     component.currentPipelineText = 'new content';
 
     component.save();
-    expect(savePipelineSpy).toHaveBeenCalledWith('id3', 'new content');
+    expect(savePipelineSpy).toHaveBeenCalledWith('3', 'id3', 'new content');
     expect(getAnnotationPipelinesSpy).not.toHaveBeenCalledTimes(2);
   });
 
@@ -344,7 +345,7 @@ describe('AnnotationPipelineComponent', () => {
     component.currentPipelineText = 'new content';
 
     component.autoSave();
-    expect(savePipelineSpy).toHaveBeenCalledWith('id3', 'new content');
+    expect(savePipelineSpy).toHaveBeenCalledWith('3', 'id3', 'new content');
     expect(saveSpy).toHaveBeenCalledWith();
   });
 
@@ -356,7 +357,7 @@ describe('AnnotationPipelineComponent', () => {
     component.currentPipelineText = 'new content';
 
     component.autoSave();
-    expect(savePipelineSpy).toHaveBeenCalledWith('', 'new content');
+    expect(savePipelineSpy).toHaveBeenCalledWith('', '', 'new content');
     expect(saveSpy).not.toHaveBeenCalledWith();
   });
 
@@ -368,7 +369,7 @@ describe('AnnotationPipelineComponent', () => {
     component.currentPipelineText = 'new content';
 
     component.autoSave();
-    expect(savePipelineSpy).toHaveBeenCalledWith('', 'new content');
+    expect(savePipelineSpy).toHaveBeenCalledWith('', '', 'new content');
     expect(saveSpy).not.toHaveBeenCalledWith();
   });
 

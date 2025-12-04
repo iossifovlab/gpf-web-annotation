@@ -111,7 +111,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
 
   private filter(value: string): Pipeline[] {
     const filterValue = this.normalizeValue(value);
-    return this.pipelines.filter(p => this.normalizeValue(p.id).includes(filterValue));
+    return this.pipelines.filter(p => this.normalizeValue(p.name).includes(filterValue));
   }
 
   private normalizeValue(value: string): string {
@@ -144,7 +144,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     this.selectedPipeline = pipeline;
     this.currentPipelineText = pipeline.content;
     this.emitPipelineId.emit(this.selectedPipeline.id);
-    this.dropdownControl.setValue(this.selectedPipeline.id);
+    this.dropdownControl.setValue(this.selectedPipeline.name);
   }
 
   public clearPipeline(): void {
@@ -165,7 +165,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     newNameModalRef.afterClosed().pipe(
       switchMap((name: string) => {
         if (name) {
-          return this.annotationPipelineService.savePipeline(name, this.currentPipelineText);
+          return this.annotationPipelineService.savePipeline('', name, this.currentPipelineText);
         }
         return of(null);
       }),
@@ -179,7 +179,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
 
   public autoSave(): Observable<string> {
     if (!this.selectedPipeline || (this.isPipelineChanged() && this.selectedPipeline.type === 'default')) {
-      return this.annotationPipelineService.savePipeline('', this.currentPipelineText);
+      return this.annotationPipelineService.savePipeline('', '', this.currentPipelineText);
     } else {
       this.save();
       return of(null);
@@ -191,13 +191,16 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
       return;
     }
 
-    this.annotationPipelineService.savePipeline(this.selectedPipeline.id, this.currentPipelineText)
-      .subscribe((pipelineId: string) => {
-        if (!pipelineId) {
-          return;
-        }
-        this.getPipelines(pipelineId);
-      });
+    this.annotationPipelineService.savePipeline(
+      this.selectedPipeline.id,
+      this.selectedPipeline.name,
+      this.currentPipelineText,
+    ).subscribe((pipelineId: string) => {
+      if (!pipelineId) {
+        return;
+      }
+      this.getPipelines(pipelineId);
+    });
   }
 
   public delete(): void {
