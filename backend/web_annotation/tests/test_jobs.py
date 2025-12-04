@@ -1782,3 +1782,46 @@ def test_job_failure_stores_exception(
     assert job.status == Job.Status.FAILED
     assert job.error is not None
     assert "Simulated job failure." in job.error
+
+
+def test_job_failure_read_stored_exception(
+    user_client: Client,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    vcf = textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        ##contig=<ID=chr1>
+        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+        chr1	1	.	C	A	.	.	.
+    """).strip()
+
+    def raise_exception(*args: Any, **kwargs: Any) -> None:
+        raise RuntimeError("Simulated job failure.")
+
+    monkeypatch.setattr(
+        "web_annotation.tasks.annotate_vcf",
+        raise_exception,
+    )
+
+    response = user_client.post(
+        "/api/jobs/annotate_vcf",
+        {
+            "pipeline": "pipeline/test_pipeline",
+            "data": ContentFile(vcf, "test_input.vcf")
+        },
+    )
+    assert response.status_code == 200
+    job_id = response.json()["job_id"]
+
+    response = user_client.get(
+        f"/api/jobs/{job_id}"
+    )
+
+    assert response.status_code == 200
+    assert "Simulated job failure." in response.json()["error"]
+
+    response = user_client.get(
+        "/api/jobs",
+    )
+
+    assert "Simulated job failure." in response.json()[-1]["error"]

@@ -110,6 +110,7 @@ class JobDetail(AnnotationBaseView):
             "command_line": job.command_line,
             "status": job.status,
             "result_filename": Path(job.result_path).name,
+            "error": job.error,
             "size": bytes_to_readable(int(job.disk_size)),
         }
         try:
