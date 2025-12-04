@@ -16,7 +16,6 @@ from rest_framework.request import MultiValueDict
 from rest_framework.views import Request, Response
 from web_annotation.annotation_base_view import AnnotationBaseView
 from web_annotation.models import Pipeline, User
-from django.contrib.auth.models import AnonymousUser
 
 
 logger = logging.getLogger(__name__)
@@ -194,7 +193,7 @@ class ListPipelines(AnnotationBaseView):
         pipelines = Pipeline.objects.filter(owner=user, is_anonymous=False)
         return [
             {
-                "id": pipeline.pk,
+                "id": str(pipeline.pk),
                 "name": pipeline.name,
                 "type": "user",
                 "content": Path(
