@@ -8,7 +8,6 @@ from django.contrib.auth import password_validation
 from django.contrib.sessions.models import Session
 from django.core.exceptions import ValidationError
 from django.db.models import ObjectDoesNotExist
-from django.http import HttpRequest
 from django.utils.translation import gettext_lazy
 from django.views.decorators.debug import sensitive_variables
 from rest_framework.request import Request
