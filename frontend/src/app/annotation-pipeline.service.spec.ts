@@ -23,7 +23,7 @@ describe('AnnotationPipelineService', () => {
 
   it('should check query params when saving pipeline', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
-    httpPostSpy.mockReturnValue(of({name: 'pipeline-name'}));
+    httpPostSpy.mockReturnValue(of({id: '1'}));
 
     const config = `
       preamble:
@@ -38,6 +38,7 @@ describe('AnnotationPipelineService', () => {
 
     const formData = new FormData();
     const configFile = new File([config], 'config.yml');
+    formData.append('id', '1');
     formData.append('name', 'pipeline-name');
     formData.append('config', configFile);
 
@@ -48,7 +49,7 @@ describe('AnnotationPipelineService', () => {
       withCredentials: true
     };
 
-    service.savePipeline('pipeline-name', config);
+    service.savePipeline('1', 'pipeline-name', config);
 
     expect(httpPostSpy).toHaveBeenCalledWith(
       '//localhost:8000/api/pipelines/user',
@@ -59,7 +60,7 @@ describe('AnnotationPipelineService', () => {
 
   it('should save pipeline and get pipeline name as response', async() => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
-    httpPostSpy.mockReturnValue(of({name: 'pipeline-name'}));
+    httpPostSpy.mockReturnValue(of({id: '1'}));
 
     const config = `
       preamble:
@@ -72,10 +73,10 @@ describe('AnnotationPipelineService', () => {
         - normalize_allele_annotator: genome: hg38/genomes/GRCh38-hg38'
     `;
 
-    const postResponse = service.savePipeline('pipeline-name', config);
+    const postResponse = service.savePipeline('1', 'pipeline-name', config);
 
     const res = await lastValueFrom(postResponse.pipe(take(1)));
-    expect(res).toBe('pipeline-name');
+    expect(res).toBe('1');
   });
 
 
@@ -88,10 +89,10 @@ describe('AnnotationPipelineService', () => {
       withCredentials: true
     };
 
-    service.deletePipeline('pipeline-name');
+    service.deletePipeline('1');
 
     expect(httpDelteSpy).toHaveBeenCalledWith(
-      '//localhost:8000/api/pipelines/user?name=pipeline-name',
+      '//localhost:8000/api/pipelines/user?id=1',
       options
     );
   });
