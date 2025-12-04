@@ -48,9 +48,9 @@ def test_job_update_new() -> None:
 
     assert test_job.status == Job.Status.WAITING
     with pytest.raises(ValueError):
-        test_job.update_job_failed()
+        test_job.update_job_failed("", "")
     with pytest.raises(ValueError):
-        test_job.update_job_success()
+        test_job.update_job_success("")
 
     assert test_job.status == Job.Status.WAITING
     test_job.update_job_in_progress()
@@ -70,12 +70,13 @@ def test_job_update_in_progress() -> None:
 
     assert test_job.status == Job.Status.IN_PROGRESS
 
-    test_job.update_job_success()
+    test_job.update_job_success("")
     assert test_job.status == Job.Status.SUCCESS
 
     test_job.status = Job.Status.IN_PROGRESS
 
-    test_job.update_job_failed()
+    test_job.update_job_failed("", "")
+
     assert test_job.status == Job.Status.FAILED
 
 
@@ -89,9 +90,9 @@ def test_job_update_failed() -> None:
     with pytest.raises(ValueError):
         test_job.update_job_in_progress()
     with pytest.raises(ValueError):
-        test_job.update_job_failed()
+        test_job.update_job_failed("", "")
     with pytest.raises(ValueError):
-        test_job.update_job_success()
+        test_job.update_job_success("")
 
     assert test_job.status == Job.Status.FAILED
 
@@ -106,9 +107,9 @@ def test_job_update_success() -> None:
     with pytest.raises(ValueError):
         test_job.update_job_in_progress()
     with pytest.raises(ValueError):
-        test_job.update_job_failed()
+        test_job.update_job_failed("", "")
     with pytest.raises(ValueError):
-        test_job.update_job_success()
+        test_job.update_job_success("")
 
     assert test_job.status == Job.Status.SUCCESS
 
@@ -139,7 +140,8 @@ def test_job_failure_starts_email_task(
         input_path="input", config_path="config", result_path="result",
         status=Job.Status.IN_PROGRESS,
     )
-    test_job.update_job_failed()
+    test_job.update_job_failed("", "")
+
     subject, message, recipient = mocked.call_args_list[0].args
     assert "GPFWA" in subject
     assert "try running it again: http://testserver//jobs" in message
@@ -161,7 +163,7 @@ def test_job_success_starts_email_task(
         status=Job.Status.IN_PROGRESS,
     )
 
-    test_job.update_job_success()
+    test_job.update_job_success("")
 
     subject, message, recipient = mocked.call_args_list[0].args
     assert "GPFWA" in subject
@@ -1745,3 +1747,81 @@ async def test_annotate_columns_notifications_fail(
     assert output == {
         "message": "Job 2 failed!",
     }
+
+
+def test_job_failure_stores_exception(
+    user_client: Client,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    vcf = textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        ##contig=<ID=chr1>
+        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+        chr1	1	.	C	A	.	.	.
+    """).strip()
+
+    def raise_exception(*args: Any, **kwargs: Any) -> None:
+        raise RuntimeError("Simulated job failure.")
+
+    monkeypatch.setattr(
+        "web_annotation.tasks.annotate_vcf",
+        raise_exception,
+    )
+
+    response = user_client.post(
+        "/api/jobs/annotate_vcf",
+        {
+            "pipeline": "pipeline/test_pipeline",
+            "data": ContentFile(vcf, "test_input.vcf")
+        },
+    )
+    assert response.status_code == 200
+
+    job = Job.objects.last()
+    assert job is not None
+    assert job.status == Job.Status.FAILED
+    assert job.error is not None
+    assert "Simulated job failure." in job.error
+
+
+def test_job_failure_read_stored_exception(
+    user_client: Client,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    vcf = textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        ##contig=<ID=chr1>
+        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+        chr1	1	.	C	A	.	.	.
+    """).strip()
+
+    def raise_exception(*args: Any, **kwargs: Any) -> None:
+        raise RuntimeError("Simulated job failure.")
+
+    monkeypatch.setattr(
+        "web_annotation.tasks.annotate_vcf",
+        raise_exception,
+    )
+
+    response = user_client.post(
+        "/api/jobs/annotate_vcf",
+        {
+            "pipeline": "pipeline/test_pipeline",
+            "data": ContentFile(vcf, "test_input.vcf")
+        },
+    )
+    assert response.status_code == 200
+    job_id = response.json()["job_id"]
+
+    response = user_client.get(
+        f"/api/jobs/{job_id}"
+    )
+
+    assert response.status_code == 200
+    assert "Simulated job failure." in response.json()["error"]
+
+    response = user_client.get(
+        "/api/jobs",
+    )
+
+    assert "Simulated job failure." in response.json()[-1]["error"]
