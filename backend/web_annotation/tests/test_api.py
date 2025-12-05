@@ -11,7 +11,7 @@ from django.conf import LazySettings
 from django.test import Client
 from django.utils import timezone
 
-from web_annotation.models import Job, User
+from web_annotation.models import AnonymousJob, Job, User
 
 
 def test_get_jobs(

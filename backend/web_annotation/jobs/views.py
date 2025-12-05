@@ -142,7 +142,7 @@ class JobDetail(AnnotationBaseView):
         """
 
         try:
-            job = self.get_job(pk)
+            job = self.get_job(request.user, pk)
         except ObjectDoesNotExist:
             return Response(status=views.status.HTTP_404_NOT_FOUND)
 
