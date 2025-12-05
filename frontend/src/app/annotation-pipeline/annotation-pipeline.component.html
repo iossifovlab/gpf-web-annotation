@@ -38,17 +38,20 @@
     <button (click)="clearPipeline()" id="add-button"
       ><span class="material-symbols-outlined add-icon">add</span>New</button
     >
-    <button (click)="saveAs()" id="save-as-button" [disabled]="configError"
+    <button *ngIf="isUserLoggedIn" (click)="saveAs()" id="save-as-button" [disabled]="configError"
       ><span class="material-symbols-outlined save-as-icon">save_as</span>Save as</button
     >
     <button
-      *ngIf="selectedPipeline && selectedPipeline.type === 'user'"
+      *ngIf="isUserLoggedIn && selectedPipeline && selectedPipeline.type === 'user'"
       (click)="save()"
       id="save-button"
       [disabled]="!isPipelineChanged() || configError"
       ><span class="material-symbols-outlined save-icon">save</span>Save</button
     >
-    <button *ngIf="selectedPipeline && selectedPipeline.type === 'user'" (click)="delete()" id="delete-button"
+    <button
+      *ngIf="isUserLoggedIn && selectedPipeline && selectedPipeline.type === 'user'"
+      (click)="delete()"
+      id="delete-button"
       ><span class="material-symbols-outlined delete-icon">delete</span>Delete</button
     >
   </div>

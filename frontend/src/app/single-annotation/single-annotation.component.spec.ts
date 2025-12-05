@@ -5,13 +5,14 @@ import { JobsService } from '../job-creation/jobs.service';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { SingleAnnotationService } from '../single-annotation.service';
-import { Observable, of } from 'rxjs';
-import { Annotator, AnnotatorDetails, SingleAnnotationReport, Variant } from '../single-annotation';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { Annotator, AnnotatorDetails, Resource, SingleAnnotationReport, Variant } from '../single-annotation';
+import { UserData, UsersService } from '../users.service';
 
 const mockReport = new SingleAnnotationReport(
   new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
   [
-    new Annotator(new AnnotatorDetails('allele_score', 'desc', 'resourceId', 'resourceUrl'), [])
+    new Annotator(new AnnotatorDetails('allele_score', 'desc', [new Resource('resourceId', 'resourceUrl')]), [])
   ],
 );
 class MockSingleAnnotationService {
@@ -21,10 +22,27 @@ class MockSingleAnnotationService {
   }
 }
 
+const mockUser: UserData = {
+  email: 'mockEmail',
+  loggedIn: true,
+  isAdmin: false,
+  limitations: {
+    dailyJobs: 10,
+    filesize: '10MB',
+    jobsLeft: 10,
+    variantCount: 20,
+    diskSpace: '100'
+  }
+};
+class MockUsersService {
+  public userData = new BehaviorSubject<UserData>(mockUser);
+}
+
 describe('SingleAnnotationComponent', () => {
   let component: SingleAnnotationComponent;
   let fixture: ComponentFixture<SingleAnnotationComponent>;
   const mockSingleAnnotationService = new MockSingleAnnotationService();
+  const mockUsersService = new MockUsersService();
 
 
   beforeEach(async() => {
@@ -34,6 +52,10 @@ describe('SingleAnnotationComponent', () => {
         {
           provide: SingleAnnotationService,
           useValue: mockSingleAnnotationService
+        },
+        {
+          provide: UsersService,
+          useValue: mockUsersService
         },
         provideRouter([]),
         JobsService,
@@ -156,5 +178,15 @@ describe('SingleAnnotationComponent', () => {
 
     component.annotateAllele('pipelineId');
     expect(emitSpy).toHaveBeenCalledWith();
+  });
+
+  it('should not trigger update table in parent after getting the report when user is anonymous', () => {
+    component.currentAlleleInput = 'chr1 11796321 G GT';
+    const emitSpy = jest.spyOn(component.alleleUpdateEmit, 'emit');
+
+    mockUsersService.userData = null;
+
+    component.annotateAllele('pipelineId');
+    expect(emitSpy).not.toHaveBeenCalledWith();
   });
 });

@@ -40,11 +40,16 @@ export class AppComponent implements DoCheck, OnInit {
   public logout(): void {
     this.usersService.logout().subscribe(() => {
       this.currentUserData = null;
+      window.location.reload();
     });
   }
 
   public login(): void {
     this.router.navigate(['/login']);
+  }
+
+  public register(): void {
+    this.router.navigate(['/register']);
   }
 
   public isAppHeaderVisible(): boolean {

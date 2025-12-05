@@ -20,6 +20,7 @@ import { AnnotationPipelineService } from '../annotation-pipeline.service';
 import { MatDialog } from '@angular/material/dialog';
 import { EditorComponent, MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { editorConfig, initEditor } from './annotation-pipeline-editor.config';
+import { UsersService } from '../users.service';
 
 @Component({
   selector: 'app-annotation-pipeline',
@@ -51,11 +52,13 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   public yamlEditorOptions = {};
   public isFullScreen = false;
   @Output() public tiggerHidingComponents = new EventEmitter<boolean>();
+  public isUserLoggedIn = false;
 
   public constructor(
     private jobsService: JobsService,
     private annotationPipelineService: AnnotationPipelineService,
     private dialog: MatDialog,
+    private userService: UsersService,
   ) { }
 
   public onEditorInit(): void {
@@ -63,6 +66,11 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   }
 
   public ngOnInit(): void {
+    this.userService.userData.pipe(
+    ).subscribe((userData) => {
+      this.isUserLoggedIn = Boolean(userData);
+    });
+
     this.yamlEditorOptions = editorConfig;
     this.getPipelines();
     this.dropdownControl.valueChanges.pipe(

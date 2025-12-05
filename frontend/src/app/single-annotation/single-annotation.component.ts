@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { SingleAnnotationReportComponent } from '../single-annotation-report/single-annotation-report.component';
 import { SingleAnnotationService } from '../single-annotation.service';
 import { SingleAnnotationReport, Variant } from '../single-annotation';
+import { UsersService } from '../users.service';
 
 @Component({
   selector: 'app-single-annotation',
@@ -21,7 +22,7 @@ export class SingleAnnotationComponent {
   @Output() public alleleUpdateEmit = new EventEmitter<void>();
   @Output() public autoSaveTrigger = new EventEmitter<void>();
 
-  public constructor(private singleAnnotationService: SingleAnnotationService,) { }
+  public constructor(private singleAnnotationService: SingleAnnotationService, private userService: UsersService) { }
 
   public triggerPipelineAutoSave(): void {
     this.autoSaveTrigger.emit();
@@ -86,7 +87,16 @@ export class SingleAnnotationComponent {
       pipelineId
     ).subscribe(report => {
       this.report = report;
-      this.alleleUpdateEmit.emit();
+      this.triggerAllelesTableUpdate();
+    });
+  }
+
+  private triggerAllelesTableUpdate(): void {
+    this.userService.userData.pipe(
+    ).subscribe((userData) => {
+      if (userData) {
+        this.alleleUpdateEmit.emit();
+      }
     });
   }
 

@@ -8,6 +8,7 @@ import { JobCreationComponent } from '../job-creation/job-creation.component';
 import { CommonModule } from '@angular/common';
 import { SingleAnnotationComponent } from '../single-annotation/single-annotation.component';
 import { AllelesTableComponent } from '../alleles-table/alleles-table.component';
+import { UsersService } from '../users.service';
 
 @Component({
   selector: 'app-annotation-wrapper',
@@ -42,13 +43,20 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
   public currentJob: Job = null;
   public hideComponents = false;
   public hideHistory = false;
+  public isUserLoggedIn = false;
 
   public constructor(
       private jobsService: JobsService,
+      private userService: UsersService,
       private ngZone: NgZone,
   ) { }
 
   public ngOnInit(): void {
+    this.userService.userData.pipe(
+    ).subscribe((userData) => {
+      this.isUserLoggedIn = Boolean(userData);
+    });
+
     this.jobsService.getJobsStatus().subscribe({
       // Called whenever there is a message from the server.
       // eslint-disable-next-line no-console
@@ -64,6 +72,10 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
 
   public ngOnDestroy(): void {
     this.jobsService.closeConnection();
+    this.userService.userData.pipe(
+    ).subscribe((userData) => {
+      this.isUserLoggedIn = Boolean(userData);
+    });
   }
 
   public autoSavePipeline(): void {

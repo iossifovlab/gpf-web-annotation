@@ -2,24 +2,26 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AnnotationWrapperComponent } from './annotation-wrapper.component';
 import { JobsService } from '../job-creation/jobs.service';
 import { provideHttpClient } from '@angular/common/http';
-import { UsersService } from '../users.service';
+import { UserData, UsersService } from '../users.service';
 import { SingleAnnotationService } from '../single-annotation.service';
-import { Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 import { FileContent, Job } from '../job-creation/jobs';
 import { Pipeline } from '../job-creation/pipelines';
 import { provideMonacoEditor } from 'ngx-monaco-editor-v2';
 
 class UserServiceMock {
-  public userData = {
-    value: {
-      limitations: {
-        dailyJobs: 5,
-        filesize: '64M',
-        jobsLeft: 4,
-        variantCount: 1000,
-      }
+  public userData = new BehaviorSubject<UserData>({
+    email: 'email',
+    loggedIn: true,
+    isAdmin: false,
+    limitations: {
+      dailyJobs: 5,
+      filesize: '64M',
+      jobsLeft: 4,
+      variantCount: 1000,
+      diskSpace: '1000'
     }
-  };
+  });
 }
 
 const mockPipelines = [

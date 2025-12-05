@@ -21,8 +21,32 @@
   margin-right: 10px;
 }
 
-#logout-button,
+#login-register-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+#register-button {
+  text-decoration: underline;
+  text-decoration-color: #435869;
+  color: #435869;
+  font-size: 16px;
+  border: none;
+  background-color: transparent;
+}
+
 #login-button {
+  padding: 8px 15px;
+  font-size: 16px;
+  white-space: nowrap;
+  border: none;
+  background: #435869;
+  border-radius: 10px;
+  color: white;
+  float: right;
+}
+
+#logout-button {
   padding: 8px 10px;
   font-size: 16px;
   white-space: nowrap;
@@ -31,9 +55,18 @@
   border-radius: 10px;
 }
 
-#login-button:hover,
 #logout-button:hover {
   background: #f4f7fb;
+  cursor: pointer;
+}
+
+#login-button:hover {
+  background: #5b778c;
+  cursor: pointer;
+}
+
+#register-button:hover {
+  color: #5b778c;
   cursor: pointer;
 }
 
