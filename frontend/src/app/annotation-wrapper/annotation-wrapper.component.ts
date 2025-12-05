@@ -52,7 +52,10 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
   ) { }
 
   public ngOnInit(): void {
-    this.isUserLoggedIn = Boolean(this.userService.userData.value);
+    this.userService.userData.pipe(
+    ).subscribe((userData) => {
+      this.isUserLoggedIn = Boolean(userData);
+    });
 
     this.jobsService.getJobsStatus().subscribe({
       // Called whenever there is a message from the server.
