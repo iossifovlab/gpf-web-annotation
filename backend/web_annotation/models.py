@@ -53,6 +53,9 @@ class User(BaseUser, AbstractUser):
     def as_owner(self) -> User:
         return self
 
+    def is_owner(self, job: Job) -> bool:
+        return job.owner == self
+
     def change_password(self, new_password: str) -> None:
         """Update user with new password."""
         self.set_password(new_password)
@@ -99,20 +102,21 @@ class WebAnnotationAnonymousUser(BaseUser, AnonymousUser):
 
     @property
     def as_owner(self) -> str:
-        return self.ip
+        return self.identifier
+
+    def is_owner(self, job: Job) -> bool:
+        return job.owner == self.identifier
 
     def generate_job_name(self) -> int:
-        job_count = self.job_class.objects.filter(owner=self).count()
+        job_count = self.job_class.objects.filter(owner=self.identifier).count()
         return job_count + 1
 
     def can_create(self) -> bool:
-        """Check if a user is not limited by the daily quota."""
-        if self.is_superuser:
-            return True
+        """Check if a anonymous user is not limited by the daily quota."""
         today = timezone.now().replace(
             hour=0, minute=0, second=0, microsecond=0)
         jobs_made = self.job_class.objects.filter(
-            created__gte=today, owner__exact=self.pk)
+            created__gte=today, owner__exact=self.identifier)
         if len(jobs_made) > cast(int, settings.QUOTAS["daily_jobs"]):
             return False
         return True
@@ -276,7 +280,6 @@ class AnonymousJob(BaseJob):
     """Model for storing job data."""
 
     owner = models.CharField(max_length=1024)
-    is_active = models.BooleanField(default=False)
 
     def get_job_details(self) -> AnonymousJobDetails:
         """Get or initiate job details."""

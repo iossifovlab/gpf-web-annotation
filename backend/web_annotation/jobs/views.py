@@ -23,7 +23,7 @@ from web_annotation.annotate_helpers import (
     is_compressed_filename,
 )
 from web_annotation.annotation_base_view import AnnotationBaseView
-from web_annotation.models import Job, User
+from web_annotation.models import AnonymousJob, Job, User, WebAnnotationAnonymousUser
 from web_annotation.permissions import has_job_permission
 from web_annotation.serializers import JobSerializer
 from web_annotation.utils import bytes_to_readable
@@ -80,11 +80,16 @@ class JobList(generics.ListAPIView):
 class JobDetail(AnnotationBaseView):
     """View for listing job details."""
 
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_job(self, job_pk: int) -> Job:
+    def get_job(
+        self,
+        user: User | WebAnnotationAnonymousUser,
+        job_pk: int,
+    ) -> Job | AnonymousJob:
         """Return a job by primary key."""
-        return Job.objects.get(pk=job_pk)
+        return user.job_class.objects.get(
+            pk=job_pk,
+            is_active=True,
+        )
 
     def get(self, request: Request, pk: int) -> Response:
         """
@@ -94,17 +99,17 @@ class JobDetail(AnnotationBaseView):
         """
 
         try:
-            job = self.get_job(pk)
+            job = self.get_job(request.user, pk)
         except ObjectDoesNotExist:
             return Response(status=views.status.HTTP_404_NOT_FOUND)
 
-        if job.owner != request.user:
+        if not request.user.is_owner(job):
             return Response(status=views.status.HTTP_403_FORBIDDEN)
 
         response = {
             "id": job.pk,
             "name": job.name,
-            "owner": job.owner.identifier,
+            "owner": request.user.identifier,
             "created": str(job.created),
             "duration": job.duration,
             "command_line": job.command_line,

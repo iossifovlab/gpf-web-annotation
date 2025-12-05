@@ -161,6 +161,21 @@ def test_job_details_not_exist(user_client: Client) -> None:
     response = user_client.get("/api/jobs/99")
     assert response.status_code == 404
 
+@pytest.mark.django_db
+def test_job_details_anonymous_owner(anonymous_client: Client) -> None:
+    AnonymousJob(
+        input_path="test",
+        config_path="test",
+        result_path="test",
+        owner='anon_127.0.0.1',
+    ).save()
+
+    response = anonymous_client.get("/api/jobs/1")
+    assert response.status_code == 200
+    result = response.json()
+    assert result["id"] == 1
+    assert result["owner"] == "anon_127.0.0.1"
+
 
 @pytest.mark.django_db
 def test_job_file_input(user_client: Client) -> None:
