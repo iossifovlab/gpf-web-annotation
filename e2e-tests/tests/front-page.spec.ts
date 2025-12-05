@@ -210,8 +210,11 @@ test.describe('Logout tests', () => {
   test('should stay logged out after refreshing the page', async({ page }) => {
     await page.locator('#logout-button').click();
     await page.waitForSelector('app-annotation-wrapper');
+    await expect(page.locator('#login-button')).toBeVisible();
+    await expect(page.locator('#register-button')).toBeVisible();
     await page.reload();
-    await expect(page.locator('app-annotation-wrapper')).not.toBeVisible();
+    await expect(page.locator('#login-button')).toBeVisible();
+    await expect(page.locator('#register-button')).toBeVisible();
   });
 
   test.skip('should stay logged out after clicking back button', async({ page }) => {
