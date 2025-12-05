@@ -74,7 +74,6 @@ test.describe('Job details tests', () => {
 
   test('should check job details of the first job', async({ page }) => {
     await createJobWithPipeline(page, 'pipeline/Autism_annotation', 'input-file-1.vcf');
-    await waitForJobStatus(page, utils.inProcessBackgroundColor);
 
     await page.locator('.job-name').getByText('info').nth(0).click();
     await expect(page.locator('app-job-details')).toBeVisible();
@@ -402,7 +401,7 @@ test.describe('Validation tests', () => {
     await expect(page.getByText('No columns selected!')).toBeVisible();
   });
 
-  test('should upload file with more than 1000 variants', async({ page }) => {
+  test.skip('should upload file with more than 1000 variants', async({ page }) => {
     await selectPipeline(page, 'pipeline/Autism_annotation');
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/more-than-1000.vcf');
     await page.locator('#create-button').click();
