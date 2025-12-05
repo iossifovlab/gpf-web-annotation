@@ -1,10 +1,11 @@
-import { Component, Input } from '@angular/core';
-import { SingleAnnotationReport } from '../single-annotation';
+import { Component, ElementRef, Input, TemplateRef, ViewChild } from '@angular/core';
+import { Annotator, SingleAnnotationReport } from '../single-annotation';
 import { CommonModule } from '@angular/common';
 import { MarkdownModule } from 'ngx-markdown';
 import { HistogramWrapperComponent } from '../histogram-wrapper/histogram-wrapper.component';
 import { EffectTableComponent } from '../effect-table/effect-table.component';
 import { saveAs } from 'file-saver';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-single-annotation-report',
@@ -20,8 +21,23 @@ import { saveAs } from 'file-saver';
 export class SingleAnnotationReportComponent {
   @Input() public report: SingleAnnotationReport = null;
   public tableViewSources = ['effect_details', 'gene_effects'];
+  public showFullReport = false;
+  @ViewChild('infoModal') public infoModalRef: TemplateRef<ElementRef>;
 
-  public constructor() { }
+
+  public constructor(
+    private dialog: MatDialog,
+  ) { }
+
+  public showInfo(annotator: Annotator): void {
+    this.dialog.open(this.infoModalRef, {
+      data: annotator,
+      width: '50vw',
+      maxWidth: '1000px',
+      minWidth: '500px',
+      maxHeight: '700px',
+    });
+  }
 
   public saveReport(): void {
     const fileName = `${this.report.variant.chromosome}_${this.report.variant.position}`
