@@ -6,11 +6,12 @@
     id="pipelines-input"
     matInput
     [matAutocomplete]="pipelinesDropdown"
-    [formControl]="dropdownControl" />
+    [formControl]="dropdownControl"
+    (click)="clearPipeline()" />
 
   <mat-autocomplete #pipelinesDropdown="matAutocomplete">
     <mat-option
-      *ngFor="let pipeline of filteredPipelines$ | async"
+      *ngFor="let pipeline of filteredPipelines"
       class="pipeline-option"
       (click)="onPipelineClick(pipeline)"
       (onSelectionChange)="onPipelineClick(pipeline)"

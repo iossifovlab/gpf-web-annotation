@@ -43,7 +43,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   public configError = '';
   @Output() public emitPipelineId = new EventEmitter<string>();
   @Output() public emitIsConfigValid = new EventEmitter<boolean>();
-  public filteredPipelines$: Observable<Pipeline[]> = null;
+  public filteredPipelines: Pipeline[] = null;
   public dropdownControl = new FormControl<string>('');
   @ViewChild('nameInput') public nameInputTemplateRef: TemplateRef<ElementRef>;
   @ViewChild('pipelineEditor') public pipelineEditorRef: EditorComponent;
@@ -65,11 +65,12 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   public ngOnInit(): void {
     this.yamlEditorOptions = editorConfig;
     this.getPipelines();
-
-    this.filteredPipelines$ = this.dropdownControl.valueChanges.pipe(
+    this.dropdownControl.valueChanges.pipe(
       startWith(''),
       map(value => this.filter(value || '')),
-    );
+    ).subscribe(filtered => {
+      this.filteredPipelines = filtered;
+    });
   }
 
   public ngAfterViewInit(): void {
@@ -89,7 +90,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   private getPipelines(defaultPipelineId: string = ''): void {
     this.jobsService.getAnnotationPipelines().pipe(take(1)).subscribe(pipelines => {
       this.pipelines = pipelines;
-      this.filteredPipelines$ = of(this.pipelines);
+      this.filteredPipelines = this.pipelines;
       if (defaultPipelineId) {
         this.onPipelineClick(this.pipelines.find(p => p.id === defaultPipelineId));
       } else {
