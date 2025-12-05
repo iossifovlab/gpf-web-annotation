@@ -490,8 +490,6 @@ class JobGetFile(views.APIView):
 class PreviewFileUpload(AnnotationBaseView):
     """Try to determine the separator of a file split into columns"""
 
-    permission_classes = [permissions.IsAuthenticated]
-
     def post(self, request: Request) -> Response:
         """Determine the separator of a file split into columns."""
         assert isinstance(request.FILES, MultiValueDict)
