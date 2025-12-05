@@ -78,7 +78,7 @@ class User(BaseUser, AbstractUser):
             hour=0, minute=0, second=0, microsecond=0)
         jobs_made = self.job_class.objects.filter(
             created__gte=today, owner__exact=self.pk)
-        if len(jobs_made) > cast(int, settings.QUOTAS["daily_jobs"]):
+        if len(jobs_made) >= cast(int, settings.QUOTAS["daily_jobs"]):
             return False
         return True
 
@@ -104,7 +104,7 @@ class WebAnnotationAnonymousUser(BaseUser, AnonymousUser):
     def as_owner(self) -> str:
         return self.identifier
 
-    def is_owner(self, job: Job) -> bool:
+    def is_owner(self, job: AnonymousJob) -> bool:
         return job.owner == self.identifier
 
     def generate_job_name(self) -> int:
@@ -117,7 +117,7 @@ class WebAnnotationAnonymousUser(BaseUser, AnonymousUser):
             hour=0, minute=0, second=0, microsecond=0)
         jobs_made = self.job_class.objects.filter(
             created__gte=today, owner__exact=self.identifier)
-        if len(jobs_made) > cast(int, settings.QUOTAS["daily_jobs"]):
+        if len(jobs_made) >= cast(int, settings.QUOTAS["daily_jobs"]):
             return False
         return True
 

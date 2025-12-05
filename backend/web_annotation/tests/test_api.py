@@ -251,6 +251,8 @@ def test_daily_user_quota(
     job_created_at = timezone.now() - \
         timezone.timedelta(seconds=1)  # type: ignore
     user = User.objects.get(email="user@example.com")
+
+    Job.objects.all().delete()
     for _ in range(4):
         Job(
             input_path="test",
@@ -330,6 +332,56 @@ def test_daily_admin_quota(
     )
 
     assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_daily_anonymous_quota(
+    anonymous_client: Client,
+    mocker: MockerFixture,
+) -> None:
+    mocker.patch(
+        "web_annotation.tasks.run_vcf_job",
+    )
+
+    vcf = textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        ##contig=<ID=chr1>
+        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+        chr1	1	.	C	A	.	.	.
+    """).strip("\n")
+
+    job_created_at = timezone.now() - \
+        timezone.timedelta(seconds=1)  # type: ignore
+    for _ in range(4):
+        AnonymousJob(
+            input_path="test",
+            config_path="test",
+            result_path="test",
+            created=job_created_at,
+            owner='anon_127.0.0.1',
+        ).save()
+    response = anonymous_client.post(
+        "/api/jobs/annotate_vcf",
+        {
+            "genome": "hg38/GRCh38-hg38/genome",
+            "pipeline": "pipeline/test_pipeline",
+            "data": ContentFile(vcf)
+        },
+    )
+    assert response.status_code == 200
+
+    response = anonymous_client.post(
+        "/api/jobs/annotate_vcf",
+        {
+            "genome": "hg38/GRCh38-hg38/genome",
+            "pipeline": "pipeline/test_pipeline",
+            "data": ContentFile(vcf)
+        },
+    )
+
+    assert response.status_code == 403
+    data = response.json()
+    assert data["reason"] == "Daily job limit reached!"
 
 
 @pytest.mark.django_db
