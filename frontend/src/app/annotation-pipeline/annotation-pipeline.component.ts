@@ -77,10 +77,12 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     const editorElement = this.pipelineEditorRef._editorContainer.nativeElement as HTMLElement;
 
     this.resizeObserver = new ResizeObserver(() => {
-      if (editorElement.clientWidth > 1500 && !this.isFullScreen) {
-        this.expandTextarea();
-      } else if (editorElement.clientWidth < 1500 && this.isFullScreen) {
-        this.shrinkTextarea();
+      const parentWidth = document.getElementById('annotation-container').clientWidth;
+
+      if (editorElement.clientWidth > parentWidth/1.5 && !this.isFullScreen) {
+        this.expandTextarea(false);
+      } else if (editorElement.clientWidth < parentWidth/1.5 && this.isFullScreen) {
+        this.shrinkTextarea(false);
       }
     });
 
@@ -206,13 +208,17 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     return this.selectedPipeline?.content.trim() !== this.currentPipelineText.trim();
   }
 
-  public expandTextarea(): void {
-    this.isFullScreen = true;
+  public expandTextarea(isExpandButtonClicked = true): void {
+    if (isExpandButtonClicked) {
+      this.isFullScreen = true;
+    }
     this.tiggerHidingComponents.emit(true);
   }
 
-  public shrinkTextarea(): void {
-    this.isFullScreen = false;
+  public shrinkTextarea(isResetButtonClicked = true): void {
+    if (isResetButtonClicked) {
+      this.isFullScreen = false;
+    }
     this.tiggerHidingComponents.emit(false);
   }
 

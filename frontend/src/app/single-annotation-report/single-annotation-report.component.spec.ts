@@ -13,33 +13,20 @@ import {
 } from '../single-annotation';
 import { ActivatedRoute, provideRouter } from '@angular/router';
 import { provideMarkdown } from 'ngx-markdown';
-import { HelperModalComponent } from '../helper-modal/helper-modal.component';
-import { MatDialog, MatDialogConfig, MatDialogRef } from '@angular/material/dialog';
 import { JobsService } from '../job-creation/jobs.service';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import FileSaver from 'file-saver';
 
-class MatDialogMock {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public open(component: HelperModalComponent, config: MatDialogConfig<string>): MatDialogRef<HelperModalComponent> {
-    return null;
-  }
-}
 
 describe('SingleAnnotationReportComponent', () => {
   let component: SingleAnnotationReportComponent;
   let fixture: ComponentFixture<SingleAnnotationReportComponent>;
-  const mockMatDialog = new MatDialogMock();
 
   beforeEach(async() => {
     await TestBed.configureTestingModule({
       imports: [SingleAnnotationReportComponent],
       providers: [
-        {
-          provide: MatDialog,
-          useValue: mockMatDialog
-        },
         JobsService,
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -62,20 +49,6 @@ describe('SingleAnnotationReportComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
-  });
-
-  it('should open modal on icon click', () => {
-    const openModalSpy = jest.spyOn(mockMatDialog, 'open').mockImplementation(() => null);
-    component.showHelp('mock markdown content');
-    expect(openModalSpy).toHaveBeenCalledWith(
-      HelperModalComponent, {
-        data: 'mock markdown content',
-        height: '60vh',
-        width: '30vw',
-        maxWidth: '1000px',
-        minHeight: '400px',
-      }
-    );
   });
 
   it('should display true, false and 0 when there is no histogram', () => {

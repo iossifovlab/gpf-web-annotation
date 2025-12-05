@@ -136,7 +136,6 @@ export class Attribute {
     public description: string,
     public source: string,
     public result: Result,
-    public help: string,
   ) {}
 
   public static fromJsonArray(jsonArray: object[]): Attribute[] {
@@ -159,7 +158,6 @@ export class Attribute {
         json['result'] as { histogram: string; value: string | number | boolean; },
         json['type'] as string
       ),
-      json['help'] as string,
     );
   }
 }
