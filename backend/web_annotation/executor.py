@@ -65,7 +65,7 @@ class SequentialTaskExecutor(TaskExecutor):
 class ThreadedTaskExecutor(TaskExecutor):
     """Thread pool based job executor."""
     def __init__(
-        self, max_workers: int = 4, job_timeout: float = 2*24*60,
+        self, max_workers: int = 4, job_timeout: float = 2*60*60,
     ) -> None:
         self._executor = ThreadPoolExecutor(max_workers=max_workers)
         self._futures: list[tuple[float, Future]] = []
