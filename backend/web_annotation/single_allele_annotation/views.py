@@ -4,7 +4,6 @@ from typing import Any
 
 from dae.annotation.annotatable import VCFAllele
 from dae.annotation.annotation_config import AttributeInfo
-from dae.annotation.annotation_factory import load_pipeline_from_yaml
 from dae.annotation.annotation_pipeline import Annotator
 from dae.annotation.gene_score_annotator import GeneScoreAnnotator
 from dae.annotation.score_annotator import GenomicScoreAnnotatorBase
@@ -148,34 +147,20 @@ class SingleAnnotation(AnnotationBaseView):
         variant = request.data["variant"]
         assert isinstance(variant, dict)
 
-        if "pipeline" not in request.data:
+        if "pipeline_id" not in request.data:
             return Response(
                 {"reason": "Pipeline not provided!"},
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
 
-        pipeline_id = request.data["pipeline"]
+        pipeline_id = request.data["pipeline_id"]
         if not isinstance(pipeline_id, str):
             return Response(
                 {"reason": "Invalid pipeline provided!"},
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
 
-        pipeline = self.lru_cache.get_pipeline(pipeline_id)
-
-        if pipeline is None:
-            try:
-                pipeline_config = self._get_pipeline_yaml(
-                    pipeline_id, request.user)
-            except ValueError as e:
-                return Response(
-                    {"reason": str(e)},
-                    status=views.status.HTTP_400_BAD_REQUEST,
-                )
-
-            pipeline = self.lru_cache.put_pipeline(
-                pipeline_id, load_pipeline_from_yaml(pipeline_config, self.grr)
-            )
+        pipeline = self.get_pipeline(pipeline_id, request.user)
 
         vcf_annotatable = VCFAllele(
             variant["chrom"], variant["pos"],

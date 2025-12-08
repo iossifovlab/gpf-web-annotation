@@ -146,11 +146,9 @@ class AnnotationBaseView(views.APIView):
     def _get_user_pipeline(
         self,
         pipeline_id: str,
-        user: User,
     ) -> Pipeline:
         pipeline = Pipeline.objects.filter(
-            owner=user,
-            name=pipeline_id,
+            pk=int(pipeline_id),
         ).first()
         if pipeline is None:
             raise ValueError(f"Pipeline {pipeline_id} not found!")
@@ -185,7 +183,7 @@ class AnnotationBaseView(views.APIView):
         if pipeline_id in self.grr_pipelines:
             content = self.grr_pipelines[pipeline_id]["content"]
         else:
-            user_pipeline = self._get_user_pipeline(pipeline_id, user)
+            user_pipeline = self._get_user_pipeline(pipeline_id)
             content = self._get_user_pipeline_yaml(user_pipeline)
 
         if "ASCII text" not in magic.from_buffer(content):
@@ -199,49 +197,45 @@ class AnnotationBaseView(views.APIView):
         return content
 
     def load_pipeline(
-        self, pipeline_name: str, user: User,
+        self, pipeline_id: str, user: User,
     ) -> AnnotationPipeline:
-        pipeline = self._get_user_pipeline(pipeline_name, user)
-        pipeline_config = self._get_user_pipeline_yaml(pipeline)
+        """Load an annotation pipeline by ID and notify the user channel."""
+        if pipeline_id in self.grr_pipelines:
+            pipeline_name = pipeline_id
+            pipeline_config = self.grr_pipelines[pipeline_id]["content"]
+        else:
+            user_pipeline = self._get_user_pipeline(pipeline_id)
+            pipeline_name = user_pipeline.name
+            pipeline_config = self._get_user_pipeline_yaml(user_pipeline)
 
-        return self.lru_cache.put_pipeline(
-            str(pipeline.pk),
-            load_pipeline_from_yaml(pipeline_config, self.grr),
+        self._notify_user_socket(
+            user,
+            f"Loading pipeline {pipeline_name}.",
         )
 
-    def _get_pipeline_id(self, pipeline_name: str, user: User) -> str:
-        """Get an annotation pipeline ID by name."""
-        try:
-            user_pipeline = self._get_user_pipeline(pipeline_name, user)
-        except (ValueError, TypeError):
-            pipeline_id = pipeline_name
-        else:
-            pipeline_id = str(user_pipeline.pk)
-
-        return pipeline_id
-
-    def get_pipeline(
-        self, pipeline_name: str, user: User,
-    ) -> AnnotationPipeline:
-        """Get an annotation pipeline by name."""
-        pipeline_id = self._get_pipeline_id(pipeline_name, user)
-
-        pipeline = self.lru_cache.get_pipeline(pipeline_id)
-
-        if pipeline is None:
-            self._notify_user_socket(
-                user,
-                f"Loading pipeline {pipeline_name}.",
-            )
-            pipeline_config = self._get_pipeline_yaml(pipeline_name, user)
-
-            pipeline = self.lru_cache.put_pipeline(
-                pipeline_id, load_pipeline_from_yaml(pipeline_config, self.grr)
-            )
+        pipeline = self.lru_cache.put_pipeline(
+            pipeline_id, load_pipeline_from_yaml(pipeline_config, self.grr)
+        )
 
         self._notify_user_socket(user, f"Pipeline {pipeline_name} is loaded.")
 
         return pipeline
+
+    def get_pipeline(
+        self, pipeline_id: str, user: User,
+    ) -> AnnotationPipeline:
+        """Get an annotation pipeline by name."""
+
+        if pipeline_id not in self.grr_pipelines:
+            if self._get_user_pipeline(pipeline_id).owner != user:
+                raise ValueError("User not authorized to access pipeline!")
+
+        pipeline = self.lru_cache.get_pipeline(pipeline_id)
+
+        if pipeline is not None:
+            return pipeline
+
+        return self.load_pipeline(pipeline_id, user)
 
     def get_genome(self, data: QueryDict) -> str:
         """Get genome from a request."""
@@ -260,10 +254,10 @@ class AnnotationBaseView(views.APIView):
     ) -> Response | AnnotationPipeline:
         assert isinstance(request.data, QueryDict)
         assert isinstance(request.FILES, MultiValueDict)
-        if "pipeline" not in request.data:
+        if "pipeline_id" not in request.data:
             raise ValueError("Pipeline id not provided!")
         try:
-            pipeline_id = request.data["pipeline"]
+            pipeline_id = request.data["pipeline_id"]
             if not isinstance(pipeline_id, str):
                 raise ValueError("Pipeline id is not a string!")
             pipeline = self.get_pipeline(pipeline_id, request.user)

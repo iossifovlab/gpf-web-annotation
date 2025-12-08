@@ -21,10 +21,11 @@ export class AnnotationPipelineService {
     return res;
   }
 
-  public savePipeline(name: string, config: string): Observable<string> {
+  public savePipeline(id: string, name: string, config: string): Observable<string> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
     const formData = new FormData();
     const configFile = new File([config], 'config.yml');
+    formData.append('id', id);
     formData.append('name', name);
     formData.append('config', configFile);
 
@@ -33,14 +34,14 @@ export class AnnotationPipelineService {
       formData,
       options
     ).pipe(
-      map((response: object) => response['name'] as string)
+      map((response: object) => response['id'] as string)
     );
   }
 
-  public deletePipeline(name: string): Observable<object> {
+  public deletePipeline(id: string): Observable<object> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
     return this.http.delete(
-      `${this.pipelineUrl}?name=${name}`,
+      `${this.pipelineUrl}?id=${id}`,
       options
     );
   }

@@ -1,6 +1,7 @@
 export class Pipeline {
   public constructor(
     public id: string,
+    public name: string,
     public content: string,
     public type: string
   ) {}
@@ -18,7 +19,8 @@ export class Pipeline {
     }
 
     return new Pipeline(
-      json['id'] as string,
+      (json['id'] as number).toString(),
+      json['name'] as string,
       json['content'] as string,
       json['type'] as string
     );

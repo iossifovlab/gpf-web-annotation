@@ -15,9 +15,9 @@
       class="pipeline-option"
       (click)="onPipelineClick(pipeline)"
       (onSelectionChange)="onPipelineClick(pipeline)"
-      [title]="pipeline.id"
-      [value]="pipeline.id">
-      {{ pipeline.id }}
+      [title]="pipeline.name"
+      [value]="pipeline.name">
+      {{ pipeline.name }}
     </mat-option>
   </mat-autocomplete>
 

@@ -50,7 +50,7 @@ export class JobsService {
     if (genome) {
       formData.append('genome', genome);
     }
-    formData.append('pipeline', pipeline);
+    formData.append('pipeline_id', pipeline);
 
     return this.http.post(
       this.annotateVcfUrl,
@@ -86,7 +86,7 @@ export class JobsService {
     if (fileSeparator) {
       formData.append('separator', fileSeparator);
     }
-    formData.append('pipeline', pipeline);
+    formData.append('pipeline_id', pipeline);
 
     formData.append('col_chrom', columns.get('chrom') || '-');
     formData.append('col_pos', columns.get('pos') || '-');

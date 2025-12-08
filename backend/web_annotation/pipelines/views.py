@@ -58,9 +58,9 @@ class UserPipeline(AnnotationBaseView):
         assert isinstance(request.FILES, MultiValueDict)
 
         anonymous = False
-
+        pipeline_id = request.data.get("id")
         pipeline_name = request.data.get("name")
-        if not pipeline_name:
+        if not pipeline_id and not pipeline_name:
             pipeline_name = f'pipeline-{int(time.time())}.yaml'
             anonymous = True
 
@@ -74,18 +74,21 @@ class UserPipeline(AnnotationBaseView):
 
         config_filename = f'{pipeline_name}.yaml'
 
-        user_pipelines = Pipeline.objects.filter(
-            owner=request.user,
-            name=pipeline_name,
-        )
-        user_pipelines_count = user_pipelines.count()
-        if user_pipelines_count > 1:
-            return Response(
-                {"reason": "More than one pipeline shares the same name!"},
-                status=views.status.HTTP_500_INTERNAL_SERVER_ERROR,
+        if pipeline_id:  # Update
+            user_pipelines = Pipeline.objects.filter(
+                owner=request.user,
+                pk=int(pipeline_id),
             )
-
-        if user_pipelines_count == 0:
+            pipeline = user_pipelines[0]
+            config_path = Path(str(pipeline.config_path))
+            user_pipelines_count = user_pipelines.count()
+            if user_pipelines_count > 1:
+                return Response(
+                    {"reason": "More than one pipeline share the same ID!"},
+                    status=views.status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+        else:  # Create
+            assert pipeline_name is not None
             config_path = Path(
                 settings.ANNOTATION_CONFIG_STORAGE_DIR,
                 request.user.identifier,
@@ -97,9 +100,6 @@ class UserPipeline(AnnotationBaseView):
                 owner=request.user,
                 is_anonymous=anonymous,
             )
-        else:
-            pipeline = user_pipelines[0]
-            config_path = Path(str(pipeline.config_path))
 
         pipeline_or_response = self._save_user_pipeline(
             request, config_path,
@@ -109,25 +109,25 @@ class UserPipeline(AnnotationBaseView):
 
         pipeline.save()
 
-        assert self.load_pipeline(pipeline.name, request.user) is not None
+        assert self.load_pipeline(str(pipeline.pk), request.user) is not None
 
         return Response(
-            {"name": pipeline_name},
+            {"id": str(pipeline.pk)},
             status=views.status.HTTP_200_OK,
         )
 
     def get(self, request: Request) -> Response:
         """Get user annotation pipeline"""
-        name = request.query_params.get("name")
-        if not name:
+        pipeline_id = request.query_params.get("id")
+        if not pipeline_id:
             return Response(
-                {"reason": "Pipeline name not provided!"},
+                {"reason": "Pipeline ID not provided!"},
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
 
         pipeline = Pipeline.objects.get(
             owner=request.user,
-            name=name,
+            pk=pipeline_id,
         )
 
         if not pipeline:
@@ -137,6 +137,7 @@ class UserPipeline(AnnotationBaseView):
             )
 
         response = {
+            "id": pipeline_id,
             "name": pipeline.name,
             "owner": pipeline.owner.identifier,
             "pipeline": Path(pipeline.config_path).read_text("utf-8"),
@@ -146,8 +147,8 @@ class UserPipeline(AnnotationBaseView):
 
     def delete(self, request: Request) -> Response:
         """Delete user annotation pipeline"""
-        name = request.query_params.get("name")
-        if not name:
+        pipeline_id = request.query_params.get("id")
+        if not pipeline_id:
             return Response(
                 {"reason": "Pipeline name not provided!"},
                 status=views.status.HTTP_400_BAD_REQUEST,
@@ -155,7 +156,7 @@ class UserPipeline(AnnotationBaseView):
 
         pipeline = Pipeline.objects.filter(
             owner=request.user,
-            name=name,
+            pk=pipeline_id,
         )
 
         if pipeline.count() == 0:
@@ -178,16 +179,22 @@ class ListPipelines(AnnotationBaseView):
     """View for listing all annotation pipelines for files."""
 
     def _get_grr_pipelines(self) -> list[dict[str, str]]:
-        pipelines = list(self.grr_pipelines.values())
-        for pipeline in pipelines:
-            pipeline["type"] = "default"
-        return pipelines
+        return [
+            {
+                "id": pipeline["id"],
+                "type": "default",
+                "name": pipeline["id"],
+                "content": pipeline["content"],
+            }
+            for pipeline in self.grr_pipelines.values()
+        ]
 
     def _get_user_pipelines(self, user: User) -> list[dict[str, str]]:
         pipelines = Pipeline.objects.filter(owner=user, is_anonymous=False)
         return [
             {
-                "id": pipeline.name,
+                "id": str(pipeline.pk),
+                "name": pipeline.name,
                 "type": "user",
                 "content": Path(
                     pipeline.config_path

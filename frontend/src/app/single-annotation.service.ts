@@ -36,7 +36,11 @@ export class SingleAnnotationService {
 
     return this.http.post<object>(
       this.getReportUrl,
-      { variant: variantJson, pipeline: pipeline },
+      {
+        variant: variantJson,
+        // eslint-disable-next-line camelcase
+        pipeline_id: pipeline,
+      },
       options
     ).pipe(map((response: object) => SingleAnnotationReport.fromJson(response)));
   }
