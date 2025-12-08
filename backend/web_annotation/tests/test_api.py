@@ -249,7 +249,7 @@ def test_daily_user_quota(
     mocker: MockerFixture,
 ) -> None:
     mocker.patch(
-        "web_annotation.tasks.run_vcf_job",
+        "web_annotation.jobs.views.run_vcf_job",
     )
 
     vcf = textwrap.dedent("""
@@ -302,7 +302,7 @@ def test_daily_admin_quota(
     mocker: MockerFixture,
 ) -> None:
     mocker.patch(
-        "web_annotation.tasks.run_vcf_job",
+        "web_annotation.jobs.views.run_vcf_job",
     )
 
     vcf = textwrap.dedent("""
@@ -345,13 +345,13 @@ def test_daily_admin_quota(
     assert response.status_code == 200
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_daily_anonymous_quota(
     anonymous_client: Client,
     mocker: MockerFixture,
 ) -> None:
     mocker.patch(
-        "web_annotation.tasks.run_vcf_job",
+        "web_annotation.jobs.views.run_vcf_job",
     )
 
     vcf = textwrap.dedent("""
@@ -408,7 +408,7 @@ def test_filesize_limit_user(
     }
 
     mocker.patch(
-        "web_annotation.tasks.run_vcf_job",
+        "web_annotation.jobs.views.run_vcf_job",
     )
 
     vcf = textwrap.dedent("""
@@ -441,7 +441,7 @@ def test_filesize_limit_admin(
     }
 
     mocker.patch(
-        "web_annotation.tasks.run_vcf_job",
+        "web_annotation.jobs.views.run_vcf_job",
     )
 
     vcf = textwrap.dedent("""
@@ -476,7 +476,7 @@ def test_variant_limit_user(
     }
 
     mocker.patch(
-        "web_annotation.tasks.run_vcf_job",
+        "web_annotation.jobs.views.run_vcf_job",
     )
 
     vcf = textwrap.dedent("""
@@ -509,7 +509,7 @@ def test_variant_limit_admin(
     }
 
     mocker.patch(
-        "web_annotation.tasks.run_vcf_job",
+        "web_annotation.jobs.views.run_vcf_job",
     )
 
     vcf = textwrap.dedent("""
