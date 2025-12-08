@@ -39,7 +39,7 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
   @ViewChild(AllelesTableComponent) public allelesTableComponent: AllelesTableComponent;
   @ViewChild(SingleAnnotationComponent) public singleAnnotationComponent: SingleAnnotationComponent;
   public downloadLink = '';
-  public currentView:'jobs' | 'single allele' = 'jobs';
+  public currentView:'jobs' | 'single allele' = 'single allele';
   public currentJob: Job = null;
   public hideComponents = false;
   public hideHistory = false;

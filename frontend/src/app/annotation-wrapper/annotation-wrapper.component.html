@@ -16,16 +16,16 @@
     <div *ngIf="!hideComponents" style="display: flex; flex-direction: column; width: 50%">
       <div id="annotation-mode">
         <button
+          id="single-allele-annotations"
+          (click)="switchView('single allele')"
+          [ngClass]="currentView === 'single allele' ? 'active-view' : 'inactive-view'"
+          >Single allele annotation</button
+        >
+        <button
           id="annotation-jobs"
           (click)="switchView('jobs')"
           [ngClass]="currentView === 'jobs' ? 'active-view' : 'inactive-view'"
           >Annotation jobs</button
-        >
-        <button
-          id="annotation-jobs"
-          (click)="switchView('single allele')"
-          [ngClass]="currentView === 'single allele' ? 'active-view' : 'inactive-view'"
-          >Single allele annotation</button
         >
       </div>
 

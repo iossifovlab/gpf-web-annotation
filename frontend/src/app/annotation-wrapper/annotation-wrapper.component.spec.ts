@@ -112,6 +112,8 @@ describe('AnnotationWrapperComponent', () => {
 
     fixture = TestBed.createComponent(AnnotationWrapperComponent);
     component = fixture.componentInstance;
+    component.currentView = 'jobs';
+
     fixture.detectChanges();
   });
 
@@ -161,6 +163,7 @@ describe('AnnotationWrapperComponent', () => {
   it('should auto save pipeline', () => {
     const pipelinesComponentSpy = jest.spyOn(component.pipelinesComponent, 'autoSave')
       .mockReturnValue(of(null));
+
     component.autoSavePipeline();
     expect(pipelinesComponentSpy).toHaveBeenCalledWith();
     expect(component.pipelineId).toBe('id1');
@@ -197,7 +200,6 @@ describe('AnnotationWrapperComponent', () => {
     component.fileSeparator = ',';
     component.fileHeader = new Map<string, string>([['a', '1']]);
     const createJobSpy = jest.spyOn(jobsServiceMock, 'createNonVcfJob');
-
     const jobDetailsSpy = jest.spyOn(jobsServiceMock, 'getJobDetails');
 
     component.autoSavePipeline();

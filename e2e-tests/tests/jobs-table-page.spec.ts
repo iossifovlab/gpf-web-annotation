@@ -12,6 +12,7 @@ test.describe('Create job tests', () => {
     await utils.registerUser(page, email, password);
 
     await utils.loginUser(page, email, password);
+    await page.locator('#annotation-jobs').click();
   });
 
   test('should be able to create job with pipeline and input file', async({ page }) => {
@@ -70,6 +71,7 @@ test.describe('Job details tests', () => {
     await utils.registerUser(page, email, password);
 
     await utils.loginUser(page, email, password);
+    await page.locator('#annotation-jobs').click();
   });
 
   test('should check job details of the first job', async({ page }) => {
@@ -203,6 +205,7 @@ test.describe('Jobs table tests', () => {
     await utils.registerUser(page, email, password);
 
     await utils.loginUser(page, email, password);
+    await page.locator('#annotation-jobs').click();
   });
 
   test('should create job and check first row', async({ page }) => {
@@ -315,6 +318,7 @@ test.describe('Validation tests', () => {
     await utils.registerUser(page, email, password);
 
     await utils.loginUser(page, email, password);
+    await page.locator('#annotation-jobs').click();
   });
 
   test.skip('should type config without annotators and show error message', async({ page }) => {
@@ -419,6 +423,7 @@ async function waitForJobStatus(page: Page, color: string): Promise<void> {
     await expect(page.locator('.grid-cell').nth(0)).toHaveCSS('background-color', color);
     await page.reload();
     await page.goto('/', {waitUntil: 'load'});
+    await page.locator('#annotation-jobs').click();
   }).toPass({intervals: [1000, 2000, 3000]});
 }
 
