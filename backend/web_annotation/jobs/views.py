@@ -405,6 +405,17 @@ class AnnotateColumns(AnnotationBaseView):
 
 class ColumnValidation(AnnotationBaseView):
     """Validate if column selection returns annotatable."""
+
+    ANNOTATABLES = {
+        "RecordToCNVAllele": "CNV Allele",
+        "RecordToRegion": "Region",
+        "RecordToVcfAllele": "VCF Allele",
+        "VcfLikeRecordToVcfAllele": "VCF Like Allele",
+        "DaeAlleleRecordToAnnotatable": "DAE Allele",
+        "CSHLAlleleRecordToAnnotatable": "CSHL Allele",
+        "RecordToPosition": "Position",
+    }
+
     def post(self, request: Request) -> Response:
         """Validate columns selection."""
         data = request.data
@@ -438,6 +449,10 @@ class ColumnValidation(AnnotationBaseView):
                     set(all_columns),
                 )
             ).__name__
+            annotatable_name = self.ANNOTATABLES.get(
+                annotatable_name,
+                annotatable_name,
+            )
         except ValueError:
             logger.exception("Annotatable error.\n")
             return Response(

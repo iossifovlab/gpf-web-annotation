@@ -243,7 +243,7 @@ def test_annotate_vcf(
             "data": ContentFile(vcf, "test_input.vcf"),
         },
     )
-    assert response.status_code == 200, response.data
+    assert response.status_code == 200
 
     assert Job.objects.filter(owner=user).count() == 2
 
@@ -296,7 +296,7 @@ def test_annotate_vcf_anonymous_user(
             "data": ContentFile(vcf, "test_input.vcf"),
         },
     )
-    assert response.status_code == 200, response.data
+    assert response.status_code == 200
 
     assert AnonymousJob.objects.count() == 1
 
@@ -407,7 +407,7 @@ def test_annotate_vcf_disk_size(
                 },
             },
             {
-                "annotatable": "RecordToVcfAllele",
+                "annotatable": "VCF Allele",
                 "errors": "",
             },
         ),
@@ -420,7 +420,7 @@ def test_annotate_vcf_disk_size(
                 },
             },
             {
-                "annotatable": "CSHLAlleleRecordToAnnotatable",
+                "annotatable": "CSHL Allele",
                 "errors": "",
             },
         ),
@@ -433,7 +433,7 @@ def test_annotate_vcf_disk_size(
                 },
             },
             {
-                "annotatable": "RecordToPosition",
+                "annotatable": "Position",
                 "errors": "",
             },
         ),
@@ -447,7 +447,7 @@ def test_annotate_vcf_disk_size(
                 },
             },
             {
-                "annotatable": "DaeAlleleRecordToAnnotatable",
+                "annotatable": "DAE Allele",
                 "errors": "",
             },
         ),
@@ -461,7 +461,7 @@ def test_annotate_vcf_disk_size(
                 },
             },
             {
-                "annotatable": "RecordToRegion",
+                "annotatable": "Region",
                 "errors": "",
             },
         ),
@@ -475,7 +475,7 @@ def test_annotate_vcf_disk_size(
                 },
             },
             {
-                "annotatable": "RecordToCNVAllele",
+                "annotatable": "CNV Allele",
                 "errors": "",
             },
         ),
@@ -487,7 +487,7 @@ def test_annotate_vcf_disk_size(
                 },
             },
             {
-                "annotatable": "VcfLikeRecordToVcfAllele",
+                "annotatable": "VCF Like Allele",
                 "errors": "",
             },
         ),
@@ -570,7 +570,7 @@ def test_validate_columns_with_partial_mapping(
         content_type="application/json",
     )
     assert response.json() == {
-        "annotatable": "RecordToVcfAllele",
+        "annotatable": "VCF Allele",
         "errors": "",
     }
     response = admin_client.post(
@@ -582,7 +582,7 @@ def test_validate_columns_with_partial_mapping(
         content_type="application/json",
     )
     assert response.json() == {
-        "annotatable": "RecordToPosition",
+        "annotatable": "Position",
         "errors": "",
     }
 
@@ -1535,7 +1535,7 @@ async def test_annotate_vcf_notifications(
         },
     )
 
-    assert response.status_code == 200, response.data
+    assert response.status_code == 200
 
     output = await communicator.receive_json_from()
     assert output == {
@@ -1598,7 +1598,7 @@ async def test_annotate_columns_notifications(
         params,
     )
 
-    assert response.status_code == 200, response.data
+    assert response.status_code == 200
 
     output = await communicator.receive_json_from()
     assert output == {
@@ -1659,7 +1659,7 @@ async def test_annotate_vcf_notifications_fail(
         },
     )
 
-    assert response.status_code == 200, response.data
+    assert response.status_code == 200
 
     output = await communicator.receive_json_from()
     assert output == {
@@ -1727,7 +1727,7 @@ async def test_annotate_columns_notifications_fail(
         params,
     )
 
-    assert response.status_code == 200, response.data
+    assert response.status_code == 200
 
     output = await communicator.receive_json_from()
     assert output == {
