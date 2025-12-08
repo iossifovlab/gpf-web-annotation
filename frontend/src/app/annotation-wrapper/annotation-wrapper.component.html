@@ -2,7 +2,7 @@
   <div id="annotation-container">
     <div>
       <div *ngIf="hideComponents">
-        <button id="show-components" (click)="showComponents()" id="show-button"
+        <button id="show-components" (click)="showComponents()"
           ><span class="material-symbols-outlined show-components-icon">right_panel_open</span></button
         >
       </div>
@@ -28,14 +28,6 @@
           >Annotation jobs</button
         >
       </div>
-
-      <button *ngIf="isUserLoggedIn" id="toggle-history" (click)="this.hideHistory = !this.hideHistory"
-        >History<span
-          class="material-symbols-outlined"
-          [ngStyle]="{ transform: this.hideHistory ? 'rotate(180deg)' : 'rotate(0deg)' }"
-          >chevron_forward</span
-        ></button
-      >
 
       <div *ngIf="currentView === 'jobs'">
         <div *ngIf="isCreationFormVisible">
@@ -86,13 +78,19 @@
     </div>
   </div>
 
-  <div
-    *ngIf="!hideHistory && isUserLoggedIn"
-    id="history-table"
-    style="width: 20%; border-left: 1px solid #e1e9ef; padding-left: 30px">
-    <app-jobs-table *ngIf="currentView === 'jobs'"></app-jobs-table>
-    <app-alleles-table
-      *ngIf="currentView === 'single allele'"
-      (emitAllele)="triggerSingleAlleleAnnotation($event)"></app-alleles-table>
+  <div *ngIf="isUserLoggedIn && !hideComponents" id="history-table">
+    <button id="toggle-history" (click)="this.hideHistory = !this.hideHistory"
+      ><span
+        class="material-symbols-outlined"
+        [ngStyle]="{ transform: this.hideHistory ? 'rotate(0deg)' : 'rotate(180deg)' }"
+        >right_panel_open</span
+      ></button
+    >
+    <div *ngIf="!hideHistory">
+      <app-jobs-table *ngIf="currentView === 'jobs'"></app-jobs-table>
+      <app-alleles-table
+        *ngIf="currentView === 'single allele'"
+        (emitAllele)="triggerSingleAlleleAnnotation($event)"></app-alleles-table>
+    </div>
   </div>
 </div>

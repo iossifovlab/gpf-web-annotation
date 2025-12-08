@@ -103,7 +103,8 @@
   margin-right: 10px;
 }
 
-#show-button {
+#show-components,
+#toggle-history {
   background-color: transparent;
   border: none;
   color: #435869;
@@ -112,38 +113,27 @@
   margin-top: 70px;
 }
 
+#toggle-history {
+  float: left;
+  margin-top: 0;
+  padding: 0;
+}
+
 .show-icon {
   vertical-align: middle;
   font-size: 22px;
 }
 
-#show-button:hover {
+#show-components:hover,
+#toggle-history:hover {
   cursor: pointer;
   color: #5b778c;
 }
 
 #history-table {
+  width: fit-content;
   border-left: 1px solid #e1e9ef;
-  padding-left: 35px;
-}
-
-#toggle-history {
-  align-self: flex-end;
-  padding: 5px 10px;
-  font-size: 16px;
-  white-space: nowrap;
-  border: 1px solid #cfd8df;
-  background: #fff;
-  border-radius: 10px;
-  color: #435869;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-#toggle-history:hover {
-  background: #f4f7fb;
-  cursor: pointer;
+  padding-left: 25px;
 }
 
 .socket-messages {
