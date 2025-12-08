@@ -287,6 +287,8 @@ def test_annotate_vcf_anonymous_user(
         chr1	1	.	C	A	.	.	.
     """).strip()
 
+    assert AnonymousJob.objects.count() == 0
+
     response = anonymous_client.post(
         "/api/jobs/annotate_vcf",
         {

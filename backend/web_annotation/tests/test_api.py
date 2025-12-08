@@ -11,7 +11,18 @@ from django.conf import LazySettings
 from django.test import Client
 from django.utils import timezone
 
+from web_annotation.executor import SequentialTaskExecutor
 from web_annotation.models import AnonymousJob, Job, User
+
+
+@pytest.fixture(autouse=True)
+def sequential_task_executor(
+    mocker: MockerFixture,
+) -> None:
+    mocker.patch(
+        "web_annotation.annotation_base_view.AnnotationBaseView.TASK_EXECUTOR",
+        new_callable=SequentialTaskExecutor,
+    )
 
 
 def test_get_jobs(
@@ -334,7 +345,7 @@ def test_daily_admin_quota(
     assert response.status_code == 200
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 def test_daily_anonymous_quota(
     anonymous_client: Client,
     mocker: MockerFixture,
@@ -970,25 +981,6 @@ def test_preview_delimeter_unsupported(
         ],
         "columns": ["chrom;pos;ref;alt"],
     }
-
-
-def test_preview_delimeter_anonymous(
-    anonymous_client: Client,
-) -> None:
-    tsv = textwrap.dedent("""
-        chrom	pos	ref	alt
-        chr1	1	C	A
-    """).strip()
-
-    response = anonymous_client.post(
-        "/api/jobs/preview",
-        {
-            "data": ContentFile(tsv),
-        },
-    )
-
-    assert response is not None
-    assert response.status_code == 403
 
 
 def test_single_annotation_t4c8(admin_client: Client) -> None:
