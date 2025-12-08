@@ -1,7 +1,0 @@
-FROM registry.seqpipe.org/iossifovlab-node-base:latest
-
-ADD e2e-tests/package.json /root
-RUN bash -c 'cd /root; cat package.json | jq ".dependencies * .devDependencies"  | sed -n -e "s/^\s\+\"//" -e "s|\": \"|@|" -e "s|\",\?$||p" | xargs -d "\n" npm install --global'
-RUN bash -c "cd /; npx playwright install --with-deps"
-RUN bash -c "cd /; npx playwright test"
-ENV NODE_PATH=/usr/lib/node_modules
