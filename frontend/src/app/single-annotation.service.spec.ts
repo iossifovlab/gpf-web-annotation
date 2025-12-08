@@ -151,7 +151,8 @@ describe('SingleAnnotationService', () => {
     service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'pipeline');
     expect(httpGetSpy).toHaveBeenCalledWith(
       '//localhost:8000/api/single_allele/annotate',
-      { variant: { chrom: 'chr14', pos: 204000100, ref: 'A', alt: 'AA'}, pipeline: 'pipeline' },
+      // eslint-disable-next-line camelcase
+      { variant: { chrom: 'chr14', pos: 204000100, ref: 'A', alt: 'AA'}, pipeline_id: 'pipeline' },
       {}
     );
   });
@@ -177,7 +178,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponse));
 
-    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'pipeline');
+    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'pipeline_id');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toStrictEqual(mockObject);
