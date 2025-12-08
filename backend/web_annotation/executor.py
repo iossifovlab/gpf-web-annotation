@@ -64,10 +64,13 @@ class SequentialTaskExecutor(TaskExecutor):
 
 class ThreadedTaskExecutor(TaskExecutor):
     """Thread pool based job executor."""
-    def __init__(self, max_workers: int = 4) -> None:
+    def __init__(
+        self, max_workers: int = 4, job_timeout: float = 2*60*60,
+    ) -> None:
         self._executor = ThreadPoolExecutor(max_workers=max_workers)
-        self._futures: list[Future] = []
+        self._futures: list[tuple[float, Future]] = []
         self._lock = threading.Lock()
+        self.job_timeout = job_timeout
 
     def size(self) -> int:
         with self._lock:
@@ -75,10 +78,13 @@ class ThreadedTaskExecutor(TaskExecutor):
 
     def _callback_wrapper(
         self,
+        start_time: float,
         future: Future[Any],
         callback_success: Callable[[list[Any]], None] | None = None,
         callback_failure: Callable[[BaseException], None] | None = None,
     ) -> None:
+        if future.cancelled():
+            return
         exception = future.exception()
         if exception is not None:
             logger.error("Task failed with exception: %s", exception)
@@ -90,7 +96,7 @@ class ThreadedTaskExecutor(TaskExecutor):
             if callback_success is not None:
                 callback_success(result)
         with self._lock:
-            self._futures.remove(future)
+            self._futures.remove((start_time, future))
             logger.debug("Remaining tasks: %d", len(self._futures))
 
     def execute(
@@ -99,11 +105,26 @@ class ThreadedTaskExecutor(TaskExecutor):
         callback_failure: Callable[[BaseException], None] | None = None,
         **kwargs: Any,
     ) -> None:
+        now = time.time()
+        to_remove = []
+        with self._lock:
+            for time_started, future in self._futures:
+                if now - time_started > self.job_timeout:
+                    logger.warning(
+                        "Cancelling long-running task started at %s",
+                        time_started,
+                    )
+                    future.cancel()
+                    to_remove.append((time_started, future))
+            for time_started, future in to_remove:
+                self._futures.remove((time_started, future))
         future = self._executor.submit(fn, **kwargs)
         with self._lock:
-            self._futures.append(future)
+            self._futures.append((now, future))
+
         def wrapper(fut: Future) -> None:
             self._callback_wrapper(
+                now,
                 fut,
                 callback_success=callback_success,
                 callback_failure=callback_failure,
@@ -117,7 +138,7 @@ class ThreadedTaskExecutor(TaskExecutor):
             with self._lock:
                 if not self._futures:
                     return
-                future = self._futures[0]
+                _, future = self._futures[0]
             try:
                 future.result(timeout=timeout - elapsed)
             except TimeoutError as ex:

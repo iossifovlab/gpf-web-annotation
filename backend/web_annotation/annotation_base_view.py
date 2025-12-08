@@ -71,7 +71,8 @@ class AnnotationBaseView(views.APIView):
     lru_cache = LRUPipelineCache(settings.PIPELINES_CACHE_SIZE)
 
     TASK_EXECUTOR: TaskExecutor = ThreadedTaskExecutor(
-            max_workers=settings.ANNOTATION_MAX_WORKERS)
+            max_workers=settings.ANNOTATION_MAX_WORKERS,
+            job_timeout=settings.ANNOTATION_TASK_TIMEOUT)
 
     """Base view for views which access annotation resources."""
     tool_columns = [
