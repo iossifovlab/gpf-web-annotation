@@ -71,7 +71,7 @@ class JobsServiceMock {
     return `url/${jobId}`;
   }
 
-  public getJobsStatus(): Observable<object> {
+  public getSocketNotifications(): Observable<object> {
     return of({});
   }
 

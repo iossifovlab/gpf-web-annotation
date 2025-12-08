@@ -16,15 +16,15 @@ export class JobsService {
   private readonly annotateColumnsUrl = `${environment.apiPath}/jobs/annotate_columns`;
   private readonly annotateVcfUrl = `${environment.apiPath}/jobs/annotate_vcf`;
 
-  private readonly jobSocketUrl = `${environment.socketPath}/notifications`;
-  private jobsWebSocket: WebSocketSubject<object> = webSocket(this.jobSocketUrl);
+  private readonly socketNotificationsUrl = `${environment.socketPath}/notifications`;
+  private socketNotifications: WebSocketSubject<object> = webSocket(this.socketNotificationsUrl);
 
-  public getJobsStatus(): Observable<{message: string}> {
-    return this.jobsWebSocket.asObservable() as Observable<{message: string}>;
+  public getSocketNotifications(): Observable<{message: string}> {
+    return this.socketNotifications.asObservable() as Observable<{message: string}>;
   }
 
   public closeConnection(): void {
-    this.jobsWebSocket.complete();
+    this.socketNotifications.complete();
   }
 
   public constructor(private http: HttpClient) { }

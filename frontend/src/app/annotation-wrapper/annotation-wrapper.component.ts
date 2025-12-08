@@ -1,6 +1,6 @@
 import { Component, ViewChild, OnInit, OnDestroy, NgZone} from '@angular/core';
 import { JobsTableComponent } from '../jobs-table/jobs-table.component';
-import { Observable, repeat, switchMap, take, takeWhile } from 'rxjs';
+import { concatMap, delay, Observable, of, repeat, switchMap, take, takeWhile } from 'rxjs';
 import { JobsService } from '../job-creation/jobs.service';
 import { AnnotationPipelineComponent } from '../annotation-pipeline/annotation-pipeline.component';
 import { getStatusClassName, Job, Status } from '../job-creation/jobs';
@@ -44,6 +44,7 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
   public hideComponents = false;
   public hideHistory = false;
   public isUserLoggedIn = false;
+  public socketMessages: string[] = [];
 
   public constructor(
       private jobsService: JobsService,
@@ -57,16 +58,25 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
       this.isUserLoggedIn = Boolean(userData);
     });
 
-    this.jobsService.getJobsStatus().subscribe({
+    this.setupWebSocketConnection();
+  }
+
+  private setupWebSocketConnection(): void {
+    this.jobsService.getSocketNotifications().pipe(
+      concatMap(x => of(x).pipe(delay(1000))) // added delay to better visualize messages
+    ).subscribe({
       // Called whenever there is a message from the server.
-      // eslint-disable-next-line no-console
-      next: (msg: {message: string}) => console.log('message received: ' + msg.message),
+      next: (msg: {message: string}) => {
+        this.socketMessages.push(msg.message);
+      },
       // Called if at any point WebSocket API signals some kind of error.
-      // eslint-disable-next-line no-console
-      error: err => console.log(err),
+      error: err => {
+        console.error(err);
+      },
       // Called when connection is closed (for whatever reason).
-      // eslint-disable-next-line no-console
-      complete: () => console.log('complete')
+      complete: () => {
+        this.socketMessages.push('connection closed');
+      }
     });
   }
 
@@ -125,7 +135,9 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
         next: (job: Job) => {
           if (!this.currentJob || this.currentJob.status !== job.status) {
             this.currentJob = job;
-            this.jobsTableComponent.refreshTable();
+            if (this.isUserLoggedIn) {
+              this.jobsTableComponent.refreshTable();
+            }
             this.downloadLink = this.jobsService.getDownloadJobResultLink(job.id);
           }
         },
@@ -148,6 +160,7 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
     this.currentJob = null;
     this.downloadLink = '';
     this.file = null;
+    this.socketMessages = [];
   }
 
   public setPipeline(newPipeline: string): void {
