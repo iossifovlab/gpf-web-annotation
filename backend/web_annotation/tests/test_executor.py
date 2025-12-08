@@ -612,3 +612,24 @@ def test_threaded_task_executor_rapid_submission() -> None:
 
     assert counter == 50
     executor.shutdown()
+
+
+def test_threaded_task_executor_cancels_long_running_tasks() -> None:
+    executor = ThreadedTaskExecutor(max_workers=4, job_timeout=0.5)
+
+    def long_running_task() -> None:
+        time.sleep(2)
+
+    assert executor.size() == 0
+
+    executor.execute(long_running_task)
+    time.sleep(0.6)
+
+    assert executor.size() == 1
+
+    executor.execute(long_running_task)
+
+    assert executor.size() == 1
+
+    executor.wait_all(timeout=10)
+    executor.shutdown()
