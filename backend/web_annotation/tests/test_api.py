@@ -376,7 +376,7 @@ def test_daily_anonymous_quota(
         "/api/jobs/annotate_vcf",
         {
             "genome": "hg38/GRCh38-hg38/genome",
-            "pipeline": "pipeline/test_pipeline",
+            "pipeline_id": "pipeline/test_pipeline",
             "data": ContentFile(vcf)
         },
     )

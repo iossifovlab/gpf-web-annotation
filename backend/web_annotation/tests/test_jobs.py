@@ -824,7 +824,7 @@ def test_annotate_columns_anonymous_t4c8(
 
     params = {
         "genome": "t4c8/t4c8_genome",
-        "pipeline": "pipeline/test_pipeline",
+        "pipeline_id": "pipeline/test_pipeline",
         "data": ContentFile(file, "test_input.tsv"),
         "col_chrom": "chrom",
         "col_pos": "pos",
@@ -1776,7 +1776,7 @@ def test_job_failure_stores_exception(
     response = user_client.post(
         "/api/jobs/annotate_vcf",
         {
-            "pipeline": "pipeline/test_pipeline",
+            "pipeline_id": "pipeline/test_pipeline",
             "data": ContentFile(vcf, "test_input.vcf")
         },
     )
@@ -1811,7 +1811,7 @@ def test_job_failure_read_stored_exception(
     response = user_client.post(
         "/api/jobs/annotate_vcf",
         {
-            "pipeline": "pipeline/test_pipeline",
+            "pipeline_id": "pipeline/test_pipeline",
             "data": ContentFile(vcf, "test_input.vcf")
         },
     )
