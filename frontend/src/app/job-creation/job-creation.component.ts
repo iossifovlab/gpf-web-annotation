@@ -107,7 +107,7 @@ export class JobCreationComponent implements OnInit {
     return true;
   }
 
-  public removeFile(): void {
+  public resetState(): void {
     this.updateFile(null);
     this.uploadError = '';
     this.requireGenome = false;

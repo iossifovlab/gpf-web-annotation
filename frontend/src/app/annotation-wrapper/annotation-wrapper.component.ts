@@ -157,10 +157,14 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
 
   public showCreateMode(): void {
     this.isCreationFormVisible = true;
+    this.resetJobState();
+    this.socketMessages = [];
+  }
+
+  private resetJobState(): void {
     this.currentJob = null;
     this.downloadLink = '';
     this.file = null;
-    this.socketMessages = [];
   }
 
   public setPipeline(newPipeline: string): void {
@@ -234,6 +238,17 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
   }
 
   public switchView(view: 'jobs' | 'single allele'): void {
+    if (this.currentView === view) {
+      return;
+    }
+    if (this.currentView === 'single allele') {
+      this.resetSingleAlleleReport();
+    } else if (this.currentView === 'jobs') {
+      if (this.isCreationFormVisible) {
+        this.createJobComponent.resetState();
+      }
+      this.showCreateMode();
+    }
     this.currentView = view;
   }
 

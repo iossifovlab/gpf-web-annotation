@@ -106,7 +106,7 @@ describe('JobCreationComponent', () => {
     const fileBlock = templateRef.querySelector('#uploaded-file-container');
     component.file = new File([], 'mockFile');
 
-    component.removeFile();
+    component.resetState();
 
     expect(component.file).toBeNull();
     expect(fileBlock).toBeNull();
