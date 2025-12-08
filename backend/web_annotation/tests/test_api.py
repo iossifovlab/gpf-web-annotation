@@ -370,6 +370,7 @@ def test_daily_anonymous_quota(
             result_path="test",
             created=job_created_at,
             owner='anon_127.0.0.1',
+            ip='127.0.0.1',
         ).save()
     response = anonymous_client.post(
         "/api/jobs/annotate_vcf",

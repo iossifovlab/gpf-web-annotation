@@ -452,13 +452,12 @@ class AnnotationBaseView(views.APIView):
             input_path.stat().st_size + config_path.stat().st_size
         )
 
-        job = request.user.job_class(
+        job = request.user.create_job(
             name=job_name,
             input_path=input_path,
             config_path=config_path,
             result_path=result_path,
             reference_genome=reference_genome,
-            owner=request.user.as_owner,
             annotation_type=annotation_type,
             disk_size=job_size,
         )

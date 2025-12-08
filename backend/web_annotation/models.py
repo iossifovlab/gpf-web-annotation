@@ -7,7 +7,7 @@ import os
 import pathlib
 import logging
 from datetime import timedelta
-from typing import cast
+from typing import Any, cast
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, AnonymousUser
@@ -32,6 +32,9 @@ class BaseUser():
         """Get identifier for user."""
         raise NotImplementedError
 
+    def create_job(self, **kwargs: Any) -> BaseJob:
+        """Create a new job for the user."""
+        raise NotImplementedError
 
 class User(BaseUser, AbstractUser):
     """Model for user accounts."""
@@ -69,6 +72,14 @@ class User(BaseUser, AbstractUser):
     def generate_job_name(self) -> int:
         job_count = self.job_class.objects.filter(owner=self).count()
         return job_count + 1
+
+    def create_job(self, **kwargs: Any) -> Job:
+        """Create a new job for the anonymous user."""
+        job = self.job_class(
+            owner=self,
+            **kwargs,
+        )
+        return job
 
     def can_create(self) -> bool:
         """Check if a user is not limited by the daily quota."""
@@ -111,12 +122,21 @@ class WebAnnotationAnonymousUser(BaseUser, AnonymousUser):
         job_count = self.job_class.objects.filter(owner=self.identifier).count()
         return job_count + 1
 
+    def create_job(self, **kwargs: Any) -> AnonymousJob:
+        """Create a new job for the anonymous user."""
+        job = self.job_class(
+            owner=self.identifier,
+            ip=self.ip,
+            **kwargs,
+        )
+        return job
+
     def can_create(self) -> bool:
         """Check if a anonymous user is not limited by the daily quota."""
         today = timezone.now().replace(
             hour=0, minute=0, second=0, microsecond=0)
         jobs_made = self.job_class.objects.filter(
-            created__gte=today, owner__exact=self.identifier)
+            created__gte=today, ip=self.ip)
         if len(jobs_made) >= cast(int, settings.QUOTAS["daily_jobs"]):
             return False
         return True
@@ -280,6 +300,7 @@ class AnonymousJob(BaseJob):
     """Model for storing job data."""
 
     owner = models.CharField(max_length=1024)
+    ip = models.CharField(max_length=256, default="")
 
     def get_job_details(self) -> AnonymousJobDetails:
         """Get or initiate job details."""
