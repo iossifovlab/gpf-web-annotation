@@ -190,7 +190,7 @@ class ListPipelines(AnnotationBaseView):
         ]
 
     def _get_user_pipelines(self, user: User) -> list[dict[str, str]]:
-        pipelines = user.pipeline_class.objects.filter(
+        pipelines = user.pipeline_class.objects.filter(  # type: ignore
             owner=user, is_temporary=False,
         )
         return [

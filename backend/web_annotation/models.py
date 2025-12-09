@@ -51,7 +51,7 @@ class BaseUser():
 
     def get_pipeline(self, pipeline_id: str) -> BasePipeline:
         """Get pipeline from respective table, checking ownership."""
-        pipeline = self.pipeline_class.objects.filter(
+        pipeline = self.pipeline_class.objects.filter(  # type: ignore
             pk=int(pipeline_id),
         ).first()
         if pipeline is None:
