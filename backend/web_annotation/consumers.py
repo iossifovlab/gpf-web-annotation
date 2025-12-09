@@ -18,9 +18,7 @@ class AnnotationStateConsumer(WebsocketConsumer):
 
     def connect(self) -> None:
         user = self.get_user()
-        if user.is_anonymous:
-            self.close()
-        self.user_id = str(user.pk)
+        self.user_id = user.get_socket_group()
         async_to_sync(self.channel_layer.group_add)(
             self.user_id, self.channel_name)
         async_to_sync(self.channel_layer.group_add)(

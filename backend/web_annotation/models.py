@@ -137,9 +137,10 @@ class User(BaseUser, AbstractUser):
 class WebAnnotationAnonymousUser(BaseUser, AnonymousUser):
     """Model for anonymous user accounts."""
 
-    def __init__(self, ip: str = ""):
+    def __init__(self, session_id: str, ip: str = "") -> None:
         super().__init__()
         self.ip = ip
+        self.session_id = session_id
 
     @property
     def job_class(self) -> type[AnonymousJob]:
@@ -154,7 +155,7 @@ class WebAnnotationAnonymousUser(BaseUser, AnonymousUser):
     @property
     def identifier(self) -> str:
         """Get identifier for anonymous user."""
-        return f"anon_{self.ip}"
+        return f"anon_{self.session_id}"
 
     @property
     def as_owner(self) -> str:

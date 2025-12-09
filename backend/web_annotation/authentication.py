@@ -4,6 +4,7 @@ from rest_framework.authentication import SessionAuthentication
 
 from web_annotation.models import User, WebAnnotationAnonymousUser
 
+
 class WebAnnotationAuthentication(SessionAuthentication):
     """Custom authentication class"""
     def authenticate(
@@ -19,7 +20,12 @@ class WebAnnotationAuthentication(SessionAuthentication):
 
         if successful_auth is None:
             ip = self.get_ip_from_request(request)
-            anonymous_user = WebAnnotationAnonymousUser(ip=ip)
+            session_id = request.session.session_key
+            if session_id is None:
+                request.session.save()
+            session_id = request.session.session_key
+            assert session_id is not None
+            anonymous_user = WebAnnotationAnonymousUser(session_id, ip=ip)
             return (anonymous_user, None)
 
         (user, _) = successful_auth

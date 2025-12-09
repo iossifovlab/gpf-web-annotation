@@ -178,14 +178,14 @@ def test_job_details_anonymous_owner(anonymous_client: Client) -> None:
         input_path="test",
         config_path="test",
         result_path="test",
-        owner='anon_127.0.0.1',
+        owner=f"anon_{anonymous_client.session.session_key}",
     ).save()
 
     response = anonymous_client.get("/api/jobs/1")
     assert response.status_code == 200
     result = response.json()
     assert result["id"] == 1
-    assert result["owner"] == "anon_127.0.0.1"
+    assert result["owner"] == f"anon_{anonymous_client.session.session_key}"
 
 
 @pytest.mark.django_db

@@ -182,7 +182,7 @@ class AnnotationBaseView(views.APIView):
     def _notify_user_job(
         self, user: User, job_id: str, status: int,
     ) -> None:
-        group_id = str(user.pk)
+        group_id = str(user.get_socket_group())
 
         async_to_sync(self.channel_layer.group_send)(
             group_id,
