@@ -10,12 +10,11 @@ from dae.annotation.annotation_factory import load_pipeline_from_yaml
 from django.conf import settings
 from django.core.files.uploadedfile import UploadedFile
 from django.http import QueryDict
-from rest_framework import permissions
 from rest_framework import views
 from rest_framework.request import MultiValueDict
 from rest_framework.views import Request, Response
 from web_annotation.annotation_base_view import AnnotationBaseView
-from web_annotation.models import Pipeline, User
+from web_annotation.models import User
 
 
 logger = logging.getLogger(__name__)
@@ -23,7 +22,6 @@ logger = logging.getLogger(__name__)
 
 class UserPipeline(AnnotationBaseView):
     """View for saving user annotation pipelines."""
-    permission_classes = [permissions.IsAuthenticated]
 
     def _save_user_pipeline(
         self,
@@ -57,14 +55,15 @@ class UserPipeline(AnnotationBaseView):
         assert isinstance(request.data, QueryDict)
         assert isinstance(request.FILES, MultiValueDict)
 
-        anonymous = False
         pipeline_id = request.data.get("id")
+        temporary = False
+
         pipeline_name = request.data.get("name")
         if not pipeline_id and not pipeline_name:
             pipeline_name = f'pipeline-{int(time.time())}.yaml'
-            anonymous = True
+            temporary = True
 
-        if not anonymous and pipeline_name in self.grr_pipelines:
+        if not temporary and pipeline_name in self.grr_pipelines:
             return Response(
                 {"reason": (
                     "Pipeline with such name cannot be created or updated!"
@@ -75,7 +74,7 @@ class UserPipeline(AnnotationBaseView):
         config_filename = f'{pipeline_name}.yaml'
 
         if pipeline_id:  # Update
-            user_pipelines = Pipeline.objects.filter(
+            user_pipelines = request.user.pipeline_class.objects.filter(
                 owner=request.user,
                 pk=int(pipeline_id),
             )
@@ -94,11 +93,11 @@ class UserPipeline(AnnotationBaseView):
                 request.user.identifier,
                 config_filename,
             )
-            pipeline = Pipeline(
+            pipeline = request.user.pipeline_class(
                 name=pipeline_name,
                 config_path=config_path,
-                owner=request.user,
-                is_anonymous=anonymous,
+                owner=request.user.as_owner,
+                is_temporary=temporary,
             )
 
         pipeline_or_response = self._save_user_pipeline(
@@ -125,7 +124,7 @@ class UserPipeline(AnnotationBaseView):
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
 
-        pipeline = Pipeline.objects.get(
+        pipeline = request.user.pipeline_class.objects.get(
             owner=request.user,
             pk=pipeline_id,
         )
@@ -154,7 +153,7 @@ class UserPipeline(AnnotationBaseView):
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
 
-        pipeline = Pipeline.objects.filter(
+        pipeline = request.user.pipeline_class.objects.filter(
             owner=request.user,
             pk=pipeline_id,
         )
@@ -190,7 +189,9 @@ class ListPipelines(AnnotationBaseView):
         ]
 
     def _get_user_pipelines(self, user: User) -> list[dict[str, str]]:
-        pipelines = Pipeline.objects.filter(owner=user, is_anonymous=False)
+        pipelines = user.pipeline_class.objects.filter(
+            owner=user, is_temporary=False,
+        )
         return [
             {
                 "id": str(pipeline.pk),

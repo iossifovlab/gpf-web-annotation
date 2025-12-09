@@ -30,7 +30,7 @@ from web_annotation.executor import (
     TaskExecutor,
     ThreadedTaskExecutor,
 )
-from web_annotation.models import AnonymousJob, Job, Pipeline, User
+from web_annotation.models import AnonymousJob, AnonymousPipeline, Job, Pipeline, User, WebAnnotationAnonymousUser
 from web_annotation.pipeline_cache import LRUPipelineCache
 
 logger = logging.getLogger(__name__)
@@ -146,9 +146,10 @@ class AnnotationBaseView(views.APIView):
 
     def _get_user_pipeline(
         self,
+        user: WebAnnotationAnonymousUser | User,
         pipeline_id: str,
-    ) -> Pipeline:
-        pipeline = Pipeline.objects.filter(
+    ) -> Pipeline | AnonymousPipeline:
+        pipeline = user.pipeline_class.objects.filter(
             pk=int(pipeline_id),
         ).first()
         if pipeline is None:
@@ -158,7 +159,7 @@ class AnnotationBaseView(views.APIView):
 
     def _get_user_pipeline_yaml(
         self,
-        user_pipeline: Pipeline
+        user_pipeline: Pipeline | AnonymousPipeline,
     ) -> str:
         return Path(user_pipeline.config_path).read_text(encoding="utf-8")
 
@@ -184,7 +185,7 @@ class AnnotationBaseView(views.APIView):
         if pipeline_id in self.grr_pipelines:
             content = self.grr_pipelines[pipeline_id]["content"]
         else:
-            user_pipeline = self._get_user_pipeline(pipeline_id)
+            user_pipeline = self._get_user_pipeline(user, pipeline_id)
             content = self._get_user_pipeline_yaml(user_pipeline)
 
         if "ASCII text" not in magic.from_buffer(content):
@@ -205,7 +206,7 @@ class AnnotationBaseView(views.APIView):
             pipeline_name = pipeline_id
             pipeline_config = self.grr_pipelines[pipeline_id]["content"]
         else:
-            user_pipeline = self._get_user_pipeline(pipeline_id)
+            user_pipeline = self._get_user_pipeline(user, pipeline_id)
             pipeline_name = user_pipeline.name
             pipeline_config = self._get_user_pipeline_yaml(user_pipeline)
 
@@ -228,7 +229,7 @@ class AnnotationBaseView(views.APIView):
         """Get an annotation pipeline by name."""
 
         if pipeline_id not in self.grr_pipelines:
-            if self._get_user_pipeline(pipeline_id).owner != user:
+            if self._get_user_pipeline(user, pipeline_id).owner != user:
                 raise ValueError("User not authorized to access pipeline!")
 
         pipeline = self.lru_cache.get_pipeline(pipeline_id)

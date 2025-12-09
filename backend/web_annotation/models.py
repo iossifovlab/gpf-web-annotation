@@ -48,6 +48,11 @@ class User(BaseUser, AbstractUser):
         return Job
 
     @property
+    def pipeline_class(self) -> type[Pipeline]:
+        """Get job class used."""
+        return Pipeline
+
+    @property
     def identifier(self) -> str:
         """Get identifier for user."""
         return self.email
@@ -107,6 +112,11 @@ class WebAnnotationAnonymousUser(BaseUser, AnonymousUser):
         return AnonymousJob
 
     @property
+    def pipeline_class(self) -> type[AnonymousPipeline]:
+        """Get job class used."""
+        return AnonymousPipeline
+
+    @property
     def identifier(self) -> str:
         """Get identifier for anonymous user."""
         return f"anon_{self.ip}"
@@ -149,21 +159,36 @@ class WebAnnotationAnonymousUser(BaseUser, AnonymousUser):
         """Meta class for verification model."""
         abstract = True
 
-class Pipeline(models.Model):
-    """Model for saving user created pipeline configs"""
+
+class BasePipeline(models.Model):
+    """Base Model for saving pipeline configs"""
     name = models.CharField(max_length=1024, default="")
     config_path = models.FilePathField()
-    owner = models.ForeignKey(
-        'web_annotation.User',
-        related_name='pipelines',
-        on_delete=models.CASCADE,
-    )
-    is_anonymous = models.BooleanField(default=False)
+    is_temporary = models.BooleanField(default=False)
 
     def remove(self) -> None:
         """Clean a user pipeline's resources."""
         os.remove(self.config_path)
         self.delete()
+
+    class Meta:  # pylint: disable=too-few-public-methods
+        """Meta class for verification model."""
+        abstract = True
+
+
+class Pipeline(BasePipeline):
+    """Model for saving user created pipeline configs"""
+    owner = models.ForeignKey(
+        'web_annotation.User',
+        related_name='pipelines',
+        on_delete=models.CASCADE,
+
+    )
+
+
+class AnonymousPipeline(BasePipeline):
+    """Model for saving anonymous created pipeline configs"""
+    owner = models.CharField(max_length=1024)
 
 
 class AlleleQuery(models.Model):

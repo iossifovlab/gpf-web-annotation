@@ -20,7 +20,13 @@ from pytest_mock import MockerFixture
 from web_annotation.consumers import AnnotationStateConsumer
 from web_annotation.executor import SequentialTaskExecutor
 from web_annotation.pipeline_cache import LRUPipelineCache
-from web_annotation.models import AnonymousJob, Job, User, Pipeline
+from web_annotation.models import (
+    AnonymousJob,
+    AnonymousPipeline,
+    Job,
+    User,
+    Pipeline,
+)
 from web_annotation.mail import send_email
 from web_annotation.tasks import clean_old_jobs
 from web_annotation.testing import CustomWebsocketCommunicator
@@ -1152,6 +1158,30 @@ def test_create_job_for_pipeline_with_preamble(
     assert config_path.exists()
 
     assert config_path.read_text().strip() == saved_pipeline.strip()
+
+
+@pytest.mark.django_db
+def test_anonymous_user_create_anonymous_pipeline(
+    anonymous_client: Client,
+) -> None:
+    pipeline_config = "- position_score: scores/pos1"
+
+    params = {
+        "config": ContentFile(pipeline_config),
+    }
+
+    response = anonymous_client.post("/api/pipelines/user", params)
+
+    assert response is not None
+    assert response.status_code == 200
+    anon_pipeline_id = response.json()["id"]
+    pipeline = AnonymousPipeline.objects.last()
+    assert pipeline is not None
+    assert str(pipeline.pk) == anon_pipeline_id
+    assert pipeline.name.startswith("pipeline-")
+    assert pipeline.name.endswith(".yaml")
+    output = pathlib.Path(pipeline.config_path).read_text(encoding="utf-8")
+    assert output == "- position_score: scores/pos1"
 
 
 @pytest.mark.django_db
