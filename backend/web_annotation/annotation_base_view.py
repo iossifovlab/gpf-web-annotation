@@ -35,6 +35,7 @@ from web_annotation.models import (
     AnonymousJob,
     AnonymousPipeline,
     BasePipeline,
+    BaseUser,
     Job,
     Pipeline,
     User,
@@ -153,19 +154,6 @@ class AnnotationBaseView(views.APIView):
             cast(str, settings.QUOTAS["filesize"]),
         )
 
-    def _get_user_pipeline(
-        self,
-        user: WebAnnotationAnonymousUser | User,
-        pipeline_id: str,
-    ) -> Pipeline | AnonymousPipeline:
-        pipeline = user.pipeline_class.objects.filter(
-            pk=int(pipeline_id),
-        ).first()
-        if pipeline is None:
-            raise ValueError(f"Pipeline {pipeline_id} not found!")
-
-        return pipeline
-
     def _get_user_pipeline_yaml(
         self,
         user_pipeline: BasePipeline,
@@ -185,9 +173,9 @@ class AnnotationBaseView(views.APIView):
         )
 
     def _notify_user_pipeline(
-        self, user: User, pipeline_id: str, status: str,
+        self, user: BaseUser, pipeline_id: str, status: str,
     ) -> None:
-        group_id = str(user.pk)
+        group_id = user.get_socket_group()
 
         async_to_sync(self.channel_layer.group_send)(
             group_id,
@@ -213,7 +201,8 @@ class AnnotationBaseView(views.APIView):
         )
 
     def load_pipeline(
-        self, full_pipeline_id: tuple[str, str], user: User,
+        self, full_pipeline_id: tuple[str, str],
+        user: BaseUser | WebAnnotationAnonymousUser,
     ) -> AnnotationPipeline:
         """Load an annotation pipeline by ID and notify the user channel."""
         _, pipeline_id = full_pipeline_id

@@ -40,6 +40,10 @@ class BaseUser():
         """Check if user is owner of the pipeline."""
         raise NotImplementedError
 
+    def get_socket_group(self) -> str:
+        """Get socket group for user."""
+        raise NotImplementedError
+
     @property
     def pipeline_class(self) -> type[BasePipeline]:
         """Get job class used."""
@@ -95,6 +99,10 @@ class User(BaseUser, AbstractUser):
         self.set_password(new_password)
         self.save()
 
+    def get_socket_group(self) -> str:
+        """Get socket group for user."""
+        return str(self.pk)
+
     def activate(self) -> None:
         """Enable a user's account."""
         self.is_active = True
@@ -149,6 +157,10 @@ class WebAnnotationAnonymousUser(BaseUser, AnonymousUser):
 
     @property
     def as_owner(self) -> str:
+        return self.identifier
+
+    def get_socket_group(self) -> str:
+        """Get socket group for user."""
         return self.identifier
 
     def is_owner(self, job: AnonymousJob) -> bool:

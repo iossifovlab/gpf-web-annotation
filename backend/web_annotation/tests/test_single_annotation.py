@@ -160,11 +160,6 @@ def test_use_of_thread_safe_pipelines(
     pipeline_mock.owner = request_data.user
     mocker.patch(
         "web_annotation.single_allele_annotation"
-        ".views.SingleAnnotation._get_user_pipeline",
-        return_value=pipeline_mock,
-    )
-    mocker.patch(
-        "web_annotation.single_allele_annotation"
         ".views.SingleAnnotation.lru_cache",
         new=custom_cache,
     )
