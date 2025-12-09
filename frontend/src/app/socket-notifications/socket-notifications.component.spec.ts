@@ -6,7 +6,7 @@ describe('SocketNotificationsComponent', () => {
   let component: SocketNotificationsComponent;
   let fixture: ComponentFixture<SocketNotificationsComponent>;
 
-  beforeEach(async () => {
+  beforeEach(async() => {
     await TestBed.configureTestingModule({
       imports: [SocketNotificationsComponent]
     }).compileComponents();
