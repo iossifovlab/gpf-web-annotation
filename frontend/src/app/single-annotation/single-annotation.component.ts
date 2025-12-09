@@ -6,11 +6,10 @@ import { SingleAnnotationReportComponent } from '../single-annotation-report/sin
 import { SingleAnnotationService } from '../single-annotation.service';
 import { SingleAnnotationReport, Variant } from '../single-annotation';
 import { UsersService } from '../users.service';
-import { SocketNotificationsComponent } from '../socket-notifications/socket-notifications.component';
 
 @Component({
   selector: 'app-single-annotation',
-  imports: [CommonModule, FormsModule, SingleAnnotationReportComponent, SocketNotificationsComponent],
+  imports: [CommonModule, FormsModule, SingleAnnotationReportComponent],
   templateUrl: './single-annotation.component.html',
   styleUrl: './single-annotation.component.css'
 })
