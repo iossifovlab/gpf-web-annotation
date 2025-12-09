@@ -21,6 +21,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { EditorComponent, MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { editorConfig, initEditor } from './annotation-pipeline-editor.config';
 import { UsersService } from '../users.service';
+import { SocketNotificationsComponent } from '../socket-notifications/socket-notifications.component';
 
 @Component({
   selector: 'app-annotation-pipeline',
@@ -31,7 +32,8 @@ import { UsersService } from '../users.service';
     MatFormFieldModule,
     ReactiveFormsModule,
     FormsModule,
-    MonacoEditorModule
+    MonacoEditorModule,
+    SocketNotificationsComponent
   ],
   templateUrl: './annotation-pipeline.component.html',
   styleUrl: './annotation-pipeline.component.css'

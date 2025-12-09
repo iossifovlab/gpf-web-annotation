@@ -58,9 +58,7 @@
             </div>
           </div>
 
-          <ng-container *ngIf="socketMessages.length">
-            <div class="socket-messages" *ngFor="let message of socketMessages">> {{ message }}</div>
-          </ng-container>
+          <app-socket-notifications [type]="'job'"></app-socket-notifications>
 
           <div id="new-job-section">
             <button id="new-job-button" (click)="showCreateMode()"

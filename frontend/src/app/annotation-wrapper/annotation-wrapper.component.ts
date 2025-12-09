@@ -1,6 +1,6 @@
 import { Component, ViewChild, OnInit, OnDestroy, NgZone} from '@angular/core';
 import { JobsTableComponent } from '../jobs-table/jobs-table.component';
-import { concatMap, delay, Observable, of, repeat, switchMap, take, takeWhile } from 'rxjs';
+import { Observable, repeat, switchMap, take, takeWhile } from 'rxjs';
 import { JobsService } from '../job-creation/jobs.service';
 import { AnnotationPipelineComponent } from '../annotation-pipeline/annotation-pipeline.component';
 import { getStatusClassName, Job, Status } from '../job-creation/jobs';
@@ -9,6 +9,7 @@ import { CommonModule } from '@angular/common';
 import { SingleAnnotationComponent } from '../single-annotation/single-annotation.component';
 import { AllelesTableComponent } from '../alleles-table/alleles-table.component';
 import { UsersService } from '../users.service';
+import { SocketNotificationsComponent } from '../socket-notifications/socket-notifications.component';
 
 @Component({
   selector: 'app-annotation-wrapper',
@@ -18,7 +19,8 @@ import { UsersService } from '../users.service';
     AnnotationPipelineComponent,
     JobCreationComponent,
     SingleAnnotationComponent,
-    AllelesTableComponent
+    AllelesTableComponent,
+    SocketNotificationsComponent
   ],
   templateUrl: './annotation-wrapper.component.html',
   styleUrl: './annotation-wrapper.component.css'
@@ -57,31 +59,10 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
     ).subscribe((userData) => {
       this.isUserLoggedIn = Boolean(userData);
     });
-
-    this.setupWebSocketConnection();
   }
 
-  private setupWebSocketConnection(): void {
-    this.jobsService.getSocketNotifications().pipe(
-      concatMap(x => of(x).pipe(delay(1000))) // added delay to better visualize messages
-    ).subscribe({
-      // Called whenever there is a message from the server.
-      next: (msg: {message: string}) => {
-        this.socketMessages.push(msg.message);
-      },
-      // Called if at any point WebSocket API signals some kind of error.
-      error: err => {
-        console.error(err);
-      },
-      // Called when connection is closed (for whatever reason).
-      complete: () => {
-        this.socketMessages.push('connection closed');
-      }
-    });
-  }
 
   public ngOnDestroy(): void {
-    this.jobsService.closeConnection();
     this.userService.userData.pipe(
     ).subscribe((userData) => {
       this.isUserLoggedIn = Boolean(userData);
@@ -268,3 +249,4 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
     this.pipelinesComponent.shrinkTextarea();
   }
 }
+

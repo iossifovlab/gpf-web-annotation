@@ -4,7 +4,6 @@ import { catchError, map, Observable, throwError } from 'rxjs';
 import { FileContent, Job } from './jobs';
 import { Pipeline } from './pipelines';
 import { environment } from '../../../environments/environment';
-import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 
 @Injectable()
 export class JobsService {
@@ -15,17 +14,6 @@ export class JobsService {
   private readonly getPipelinesUrl = `${environment.apiPath}/pipelines`;
   private readonly annotateColumnsUrl = `${environment.apiPath}/jobs/annotate_columns`;
   private readonly annotateVcfUrl = `${environment.apiPath}/jobs/annotate_vcf`;
-
-  private readonly socketNotificationsUrl = `${environment.socketPath}/notifications`;
-  private socketNotifications: WebSocketSubject<object> = webSocket(this.socketNotificationsUrl);
-
-  public getSocketNotifications(): Observable<{message: string}> {
-    return this.socketNotifications.asObservable() as Observable<{message: string}>;
-  }
-
-  public closeConnection(): void {
-    this.socketNotifications.complete();
-  }
 
   public constructor(private http: HttpClient) { }
 
