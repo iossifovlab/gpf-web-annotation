@@ -1,7 +1,8 @@
 """Module containing base view for annotation work."""
+from functools import partial
 import logging
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from dae.annotation.annotation_config import (
@@ -30,7 +31,14 @@ from web_annotation.executor import (
     TaskExecutor,
     ThreadedTaskExecutor,
 )
-from web_annotation.models import AnonymousJob, AnonymousPipeline, Job, Pipeline, User, WebAnnotationAnonymousUser
+from web_annotation.models import (
+    AnonymousJob,
+    AnonymousPipeline,
+    Job,
+    Pipeline,
+    User,
+    WebAnnotationAnonymousUser,
+)
 from web_annotation.pipeline_cache import LRUPipelineCache
 
 logger = logging.getLogger(__name__)
@@ -163,16 +171,43 @@ class AnnotationBaseView(views.APIView):
     ) -> str:
         return Path(user_pipeline.config_path).read_text(encoding="utf-8")
 
-    def _notify_user_socket(
-        self, user: User, message: str,
+    def _notify_global_pipeline(
+        self, pipeline_id: str, status: str,
+    ) -> None:
+        async_to_sync(self.channel_layer.group_send)(
+            "global",
+            {
+                "type": "pipeline_status",
+                "pipeline_id": pipeline_id,
+                "status": status,
+            },
+        )
+
+    def _notify_user_pipeline(
+        self, user: User, pipeline_id: str, status: str,
     ) -> None:
         group_id = str(user.pk)
 
         async_to_sync(self.channel_layer.group_send)(
             group_id,
             {
-                "type": "annotation_notify",
-                "message": message,
+                "type": "pipeline_status",
+                "pipeline_id": pipeline_id,
+                "status": status,
+            },
+        )
+
+    def _notify_user_job(
+        self, user: User, job_id: str, status: int,
+    ) -> None:
+        group_id = str(user.pk)
+
+        async_to_sync(self.channel_layer.group_send)(
+            group_id,
+            {
+                "type": "job_status",
+                "job_id": job_id,
+                "status": status,
             },
         )
 
@@ -203,23 +238,24 @@ class AnnotationBaseView(views.APIView):
     ) -> AnnotationPipeline:
         """Load an annotation pipeline by ID and notify the user channel."""
         if pipeline_id in self.grr_pipelines:
-            pipeline_name = pipeline_id
             pipeline_config = self.grr_pipelines[pipeline_id]["content"]
+            notify_function = self._notify_global_pipeline
         else:
             user_pipeline = self._get_user_pipeline(user, pipeline_id)
-            pipeline_name = user_pipeline.name
             pipeline_config = self._get_user_pipeline_yaml(user_pipeline)
+            notify_function = partial(self._notify_user_pipeline, user)
 
-        self._notify_user_socket(
-            user,
-            f"Loading pipeline {pipeline_name}.",
-        )
+        notify_function(pipeline_id, "loading")
+
+        def callback(*args: Any) -> None:  # pylint: disable=unused-argument
+            notify_function(pipeline_id, "unloaded")
 
         pipeline = self.lru_cache.put_pipeline(
-            pipeline_id, load_pipeline_from_yaml(pipeline_config, self.grr)
+            pipeline_id, load_pipeline_from_yaml(pipeline_config, self.grr),
+            callback=callback,
         )
 
-        self._notify_user_socket(user, f"Pipeline {pipeline_name} is loaded.")
+        notify_function(pipeline_id, "loaded")
 
         return pipeline
 

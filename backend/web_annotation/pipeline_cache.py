@@ -2,7 +2,7 @@
 import logging
 from threading import Lock
 from types import TracebackType
-from typing import Sequence
+from typing import Callable, Sequence
 from dae.annotation.annotatable import Annotatable
 from dae.annotation.annotation_config import (
     AnnotationPreamble,
@@ -125,22 +125,33 @@ class LRUPipelineCache:
     ):
         self.capacity = capacity
         self._cache: dict[str, ThreadSafePipeline] = {}
+        self._pipeline_callbacks: dict[str, Callable | None] = {}
         self._cache_lock: Lock = Lock()
         self._order: list[str] = []
 
     def put_pipeline(
-        self, pipeline_id: str, pipeline: AnnotationPipeline
+        self, pipeline_id: str, pipeline: AnnotationPipeline,
+        callback: Callable[[ThreadSafePipeline], None] | None = None,
     ) -> ThreadSafePipeline:
         """Put a pipeline into the cache."""
         with self._cache_lock:
             if len(self._cache) >= self.capacity:
                 last_pipeline_id = self._order.pop(0)
+                delete_cb = self._pipeline_callbacks.get(last_pipeline_id)
+                if delete_cb:
+                    try:
+                        delete_cb(self._cache[last_pipeline_id])
+                    except Exception as e:  # pylint: disable=broad-except
+                        logger.error(
+                            "Error during pipeline deletion callback: %s", e)
                 del self._cache[last_pipeline_id]
+                del self._pipeline_callbacks[last_pipeline_id]
 
             self._order.append(pipeline_id)
             wrapped = ThreadSafePipeline(pipeline)
             wrapped.open()
             self._cache[pipeline_id] = wrapped
+            self._pipeline_callbacks[pipeline_id] = callback
             return wrapped
 
     def get_pipeline(self, pipeline_id: str) -> ThreadSafePipeline | None:

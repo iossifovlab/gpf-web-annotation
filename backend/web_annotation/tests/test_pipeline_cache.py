@@ -112,3 +112,26 @@ def test_lru_pipeline_cache_basic_sources(
     pipeline_ids = set(
         lru_cache._cache.keys())  # pylint: disable=protected-access
     assert pipeline_ids == {"pipeline2", "pipeline4"}
+
+
+def test_lru_pipeline_cache_callbacks(
+    sample_pipeline_factory: Callable[[], AnnotationPipeline],
+) -> None:
+    lru_cache = LRUPipelineCache(1)
+    deleted_pipelines = []
+
+    def delete_callback(pipeline: ThreadSafePipeline) -> None:
+        deleted_pipelines.append(pipeline)
+
+    pipeline1 = sample_pipeline_factory()
+    lru_cache.put_pipeline(
+        "pipeline1", pipeline1, callback=delete_callback)
+    assert len(lru_cache._cache) == 1  # pylint: disable=protected-access
+
+    pipeline2 = sample_pipeline_factory()
+    lru_cache.put_pipeline(
+        "pipeline2", pipeline2, callback=delete_callback)
+    assert len(lru_cache._cache) == 1  # pylint: disable=protected-access
+
+    assert len(deleted_pipelines) == 1
+    assert deleted_pipelines[0].pipeline is pipeline1

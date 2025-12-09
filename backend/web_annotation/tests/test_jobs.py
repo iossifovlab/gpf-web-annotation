@@ -1570,26 +1570,39 @@ async def test_annotate_vcf_notifications(
 
     assert response.status_code == 200
 
+    job_id = response.json()["job_id"]
+
     output = await communicator.receive_json_from()
     assert output == {
-        "message": "Loading pipeline pipeline/test_pipeline.",
+        "type": "pipeline_status",
+        "pipeline_id": "pipeline/test_pipeline",
+        "status": "loading",
     }
     output = await communicator.receive_json_from()
     assert output == {
-        "message": "Pipeline pipeline/test_pipeline is loaded.",
+        "type": "pipeline_status",
+        "pipeline_id": "pipeline/test_pipeline",
+        "status": "loaded",
     }
     output = await communicator.receive_json_from()
     assert output == {
-        "message": "Job 2 added to waiting list.",
+        "type": "job_status",
+        "job_id": job_id,
+        "status": Job.Status.WAITING.value,
     }
     output = await communicator.receive_json_from()
     assert output == {
-        "message": "Job 2 started.",
+        "type": "job_status",
+        "job_id": job_id,
+        "status": Job.Status.IN_PROGRESS.value,
     }
     output = await communicator.receive_json_from()
     assert output == {
-        "message": "Job 2 success!",
+        "type": "job_status",
+        "job_id": job_id,
+        "status": Job.Status.SUCCESS.value,
     }
+
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
@@ -1633,26 +1646,39 @@ async def test_annotate_columns_notifications(
 
     assert response.status_code == 200
 
+    job_id = response.json()["job_id"]
+
     output = await communicator.receive_json_from()
     assert output == {
-        "message": "Loading pipeline pipeline/test_pipeline.",
+        "type": "pipeline_status",
+        "pipeline_id": "pipeline/test_pipeline",
+        "status": "loading",
     }
     output = await communicator.receive_json_from()
     assert output == {
-        "message": "Pipeline pipeline/test_pipeline is loaded.",
+        "type": "pipeline_status",
+        "pipeline_id": "pipeline/test_pipeline",
+        "status": "loaded",
     }
     output = await communicator.receive_json_from()
     assert output == {
-        "message": "Job 2 added to waiting list.",
+        "type": "job_status",
+        "job_id": job_id,
+        "status": Job.Status.WAITING.value,
     }
     output = await communicator.receive_json_from()
     assert output == {
-        "message": "Job 2 started.",
+        "type": "job_status",
+        "job_id": job_id,
+        "status": Job.Status.IN_PROGRESS.value,
     }
     output = await communicator.receive_json_from()
     assert output == {
-        "message": "Job 2 success!",
+        "type": "job_status",
+        "job_id": job_id,
+        "status": Job.Status.SUCCESS.value,
     }
+
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
@@ -1694,26 +1720,39 @@ async def test_annotate_vcf_notifications_fail(
 
     assert response.status_code == 200
 
+    job_id = response.json()["job_id"]
+
     output = await communicator.receive_json_from()
     assert output == {
-        "message": "Loading pipeline pipeline/test_pipeline.",
+        "type": "pipeline_status",
+        "pipeline_id": "pipeline/test_pipeline",
+        "status": "loading",
     }
     output = await communicator.receive_json_from()
     assert output == {
-        "message": "Pipeline pipeline/test_pipeline is loaded.",
+        "type": "pipeline_status",
+        "pipeline_id": "pipeline/test_pipeline",
+        "status": "loaded",
     }
     output = await communicator.receive_json_from()
     assert output == {
-        "message": "Job 2 added to waiting list.",
+        "type": "job_status",
+        "job_id": job_id,
+        "status": Job.Status.WAITING.value,
     }
     output = await communicator.receive_json_from()
     assert output == {
-        "message": "Job 2 started.",
+        "type": "job_status",
+        "job_id": job_id,
+        "status": Job.Status.IN_PROGRESS.value,
     }
     output = await communicator.receive_json_from()
     assert output == {
-        "message": "Job 2 failed!",
+        "type": "job_status",
+        "job_id": job_id,
+        "status": Job.Status.FAILED.value,
     }
+
 
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
@@ -1762,25 +1801,155 @@ async def test_annotate_columns_notifications_fail(
 
     assert response.status_code == 200
 
+    job_id = response.json()["job_id"]
+
     output = await communicator.receive_json_from()
     assert output == {
-        "message": "Loading pipeline pipeline/test_pipeline.",
+        "type": "pipeline_status",
+        "pipeline_id": "pipeline/test_pipeline",
+        "status": "loading",
     }
     output = await communicator.receive_json_from()
     assert output == {
-        "message": "Pipeline pipeline/test_pipeline is loaded.",
+        "type": "pipeline_status",
+        "pipeline_id": "pipeline/test_pipeline",
+        "status": "loaded",
     }
     output = await communicator.receive_json_from()
     assert output == {
-        "message": "Job 2 added to waiting list.",
+        "type": "job_status",
+        "job_id": job_id,
+        "status": Job.Status.WAITING.value,
     }
     output = await communicator.receive_json_from()
     assert output == {
-        "message": "Job 2 started.",
+        "type": "job_status",
+        "job_id": job_id,
+        "status": Job.Status.IN_PROGRESS.value,
     }
     output = await communicator.receive_json_from()
     assert output == {
-        "message": "Job 2 failed!",
+        "type": "job_status",
+        "job_id": job_id,
+        "status": Job.Status.FAILED.value,
+    }
+
+
+@pytest.mark.asyncio
+@pytest.mark.django_db(transaction=True)
+async def test_annotate_notifications_unloading_pipeline(
+    user_client: Client, mocker: MockerFixture,
+) -> None:
+    cache = LRUPipelineCache(1)
+    mocker.patch(
+        "web_annotation.jobs"
+        ".views.AnnotateVCF.lru_cache",
+        new=cache,
+    )
+    user = await sync_to_async(User.objects.get)(email="user@example.com")
+    communicator = CustomWebsocketCommunicator(
+            AnnotationStateConsumer.as_asgi(), "/ws/test/", user=user)
+
+    connected, _ = await communicator.connect()
+    assert connected
+
+    vcf = textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        ##contig=<ID=chr1>
+        #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+        chr1	1	.	C	A	.	.	.
+    """).strip()
+
+    response = await sync_to_async(user_client.post)(
+        "/api/jobs/annotate_vcf",
+        {
+            "pipeline_id": "pipeline/test_pipeline",
+            "data": ContentFile(vcf, "test_input.vcf"),
+        },
+    )
+
+    job_id = response.json()["job_id"]
+
+    assert response.status_code == 200
+
+    output = await communicator.receive_json_from()
+    assert output == {
+        "type": "pipeline_status",
+        "pipeline_id": "pipeline/test_pipeline",
+        "status": "loading",
+    }
+    output = await communicator.receive_json_from()
+    assert output == {
+        "type": "pipeline_status",
+        "pipeline_id": "pipeline/test_pipeline",
+        "status": "loaded",
+    }
+    output = await communicator.receive_json_from()
+    assert output == {
+        "type": "job_status",
+        "job_id": job_id,
+        "status": Job.Status.WAITING.value,
+    }
+    output = await communicator.receive_json_from()
+    assert output == {
+        "type": "job_status",
+        "job_id": job_id,
+        "status": Job.Status.IN_PROGRESS.value,
+    }
+    output = await communicator.receive_json_from()
+    assert output == {
+        "type": "job_status",
+        "job_id": job_id,
+        "status": Job.Status.SUCCESS.value,
+    }
+
+    response = await sync_to_async(user_client.post)(
+        "/api/jobs/annotate_vcf",
+        {
+            "pipeline_id": "t4c8/t4c8_pipeline",
+            "data": ContentFile(vcf, "test_input.vcf"),
+        },
+    )
+
+    job_id = response.json()["job_id"]
+
+    assert response.status_code == 200
+
+    output = await communicator.receive_json_from()
+    assert output == {
+        "type": "pipeline_status",
+        "pipeline_id": "t4c8/t4c8_pipeline",
+        "status": "loading",
+    }
+    output = await communicator.receive_json_from()
+    assert output == {
+        "type": "pipeline_status",
+        "pipeline_id": "pipeline/test_pipeline",
+        "status": "unloaded",
+    }
+    output = await communicator.receive_json_from()
+    assert output == {
+        "type": "pipeline_status",
+        "pipeline_id": "t4c8/t4c8_pipeline",
+        "status": "loaded",
+    }
+    output = await communicator.receive_json_from()
+    assert output == {
+        "type": "job_status",
+        "job_id": job_id,
+        "status": Job.Status.WAITING.value,
+    }
+    output = await communicator.receive_json_from()
+    assert output == {
+        "type": "job_status",
+        "job_id": job_id,
+        "status": Job.Status.IN_PROGRESS.value,
+    }
+    output = await communicator.receive_json_from()
+    assert output == {
+        "type": "job_status",
+        "job_id": job_id,
+        "status": Job.Status.SUCCESS.value,
     }
 
 

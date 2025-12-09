@@ -152,6 +152,7 @@ def test_use_of_thread_safe_pipelines(
         },
     }
     request_data.user = MagicMock()
+    request_data.user.as_owner = request_data.user
     pipeline_mock = MagicMock()
     pipeline_mock.owner = request_data.user
     mocker.patch(

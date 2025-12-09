@@ -23,7 +23,12 @@ from web_annotation.annotate_helpers import (
     is_compressed_filename,
 )
 from web_annotation.annotation_base_view import AnnotationBaseView
-from web_annotation.models import AnonymousJob, Job, User, WebAnnotationAnonymousUser
+from web_annotation.models import (
+    AnonymousJob,
+    Job,
+    User,
+    WebAnnotationAnonymousUser,
+)
 from web_annotation.permissions import has_job_permission
 from web_annotation.serializers import JobSerializer
 from web_annotation.utils import bytes_to_readable
@@ -221,7 +226,7 @@ class AnnotateVCF(AnnotationBaseView):
             job.duration = time.time() - start_time
             job.disk_size += Path(job.result_path).stat().st_size
             job.update_job_success(str(args))
-            self._notify_user_socket(request.user, f"Job {job.name} success!")
+            self._notify_user_job(request.user, str(job.pk), job.status)
 
         def on_failure(exception: BaseException) -> None:
             """Callback when annotation fails."""
@@ -247,17 +252,16 @@ class AnnotateVCF(AnnotationBaseView):
                 )
             logger.error("VCF annotation job failed!\n%s", reason)
             job.update_job_failed(str(args), str(exception))
-            self._notify_user_socket(request.user, f"Job {job.name} failed!")
-
-        job.update_job_in_progress()
-
-        self._notify_user_socket(
-            request.user, f"Job {job.name} added to waiting list.")
+            self._notify_user_job(request.user, str(job.pk), job.status)
 
         def run_vcf_wrapper(*args: Any, **kwargs: Any) -> None:
             """Wrapper to run VCF job."""
-            self._notify_user_socket(request.user, f"Job {job.name} started.")
+            job.update_job_in_progress()
+            self._notify_user_job(request.user, str(job.pk), job.status)
             run_vcf_job(*args, **kwargs)
+
+        self._notify_user_job(request.user, str(job.pk), job.status)
+
         self.TASK_EXECUTOR.execute(
             run_vcf_wrapper,
             callback_success=on_success,
@@ -265,7 +269,9 @@ class AnnotateVCF(AnnotationBaseView):
             **args,
         )
 
-        return Response({"job_id": job.pk}, status=views.status.HTTP_200_OK)
+        return Response(
+            {"job_id": str(job.pk)}, status=views.status.HTTP_200_OK,
+        )
 
 
 class AnnotateColumns(AnnotationBaseView):
@@ -360,7 +366,7 @@ class AnnotateColumns(AnnotationBaseView):
             job.duration = time.time() - start_time
             job.disk_size += Path(job.result_path).stat().st_size
             job.update_job_success(str(args))
-            self._notify_user_socket(request.user, f"Job {job.name} success!")
+            self._notify_user_job(request.user, str(job.pk), job.status)
 
         def on_failure(exception: BaseException) -> None:
             job.duration = time.time() - start_time
@@ -382,16 +388,15 @@ class AnnotateColumns(AnnotationBaseView):
                 )
             logger.error("columns annotation job failed!\n%s", reason)
             job.update_job_failed(str(args), str(exception))
-            self._notify_user_socket(request.user, f"Job {job.name} failed!")
-
-        job.update_job_in_progress()
-        self._notify_user_socket(
-            request.user, f"Job {job.name} added to waiting list.")
+            self._notify_user_job(request.user, str(job.pk), job.status)
 
         def run_columns_wrapper(*args: Any, **kwargs: Any) -> None:
             """Wrapper to run VCF job."""
-            self._notify_user_socket(request.user, f"Job {job.name} started.")
+            job.update_job_in_progress()
+            self._notify_user_job(request.user, str(job.pk), job.status)
             run_columns_job(*args, **kwargs)
+
+        self._notify_user_job(request.user, str(job.pk), job.status)
 
         self.TASK_EXECUTOR.execute(
             run_columns_wrapper,
@@ -400,7 +405,8 @@ class AnnotateColumns(AnnotationBaseView):
             **args,
         )
 
-        return Response({"job_id": job.pk}, status=views.status.HTTP_200_OK)
+        return Response(
+            {"job_id": str(job.pk)}, status=views.status.HTTP_200_OK)
 
 
 class ColumnValidation(AnnotationBaseView):

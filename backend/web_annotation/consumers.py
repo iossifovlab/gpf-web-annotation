@@ -23,6 +23,8 @@ class AnnotationStateConsumer(WebsocketConsumer):
         self.user_id = str(user.pk)
         async_to_sync(self.channel_layer.group_add)(
             self.user_id, self.channel_name)
+        async_to_sync(self.channel_layer.group_add)(
+            "global", self.channel_name)
         self.accept()
 
     def disconnect(self, code: Any) -> None:
@@ -32,4 +34,22 @@ class AnnotationStateConsumer(WebsocketConsumer):
     def annotation_notify(self, event: Any) -> None:
         self.send(
             text_data=json.dumps({"message": event["message"]})
+        )
+
+    def pipeline_status(self, event: Any) -> None:
+        self.send(
+            text_data=json.dumps({
+                "type": "pipeline_status",
+                "pipeline_id": event["pipeline_id"],
+                "status": event["status"],
+            })
+        )
+
+    def job_status(self, event: Any) -> None:
+        self.send(
+            text_data=json.dumps({
+                "type": "job_status",
+                "job_id": event["job_id"],
+                "status": event["status"],
+            })
         )
