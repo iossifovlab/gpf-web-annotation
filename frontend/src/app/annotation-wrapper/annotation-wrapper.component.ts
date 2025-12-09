@@ -3,7 +3,7 @@ import { JobsTableComponent } from '../jobs-table/jobs-table.component';
 import { Observable, repeat, switchMap, take, takeWhile } from 'rxjs';
 import { JobsService } from '../job-creation/jobs.service';
 import { AnnotationPipelineComponent } from '../annotation-pipeline/annotation-pipeline.component';
-import { getStatusClassName, Job, Status } from '../job-creation/jobs';
+import { getStatusClassName, Job, JobStatus } from '../job-creation/jobs';
 import { JobCreationComponent } from '../job-creation/job-creation.component';
 import { CommonModule } from '@angular/common';
 import { SingleAnnotationComponent } from '../single-annotation/single-annotation.component';
@@ -46,7 +46,6 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
   public hideComponents = false;
   public hideHistory = false;
   public isUserLoggedIn = false;
-  public socketMessages: string[] = [];
 
   public constructor(
       private jobsService: JobsService,
@@ -139,7 +138,6 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
   public showCreateMode(): void {
     this.isCreationFormVisible = true;
     this.resetJobState();
-    this.socketMessages = [];
   }
 
   private resetJobState(): void {
@@ -214,7 +212,7 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
       || (this.file.type !== 'text/vcard' && !this.isGenomeValid());
   }
 
-  public isJobFinished(status: Status): boolean {
+  public isJobFinished(status: JobStatus): boolean {
     return status === 'success' || status === 'failed';
   }
 
