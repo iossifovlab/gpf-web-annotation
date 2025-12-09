@@ -134,7 +134,7 @@ def test_annotate_columns_job_details(user_client: Client) -> None:
     annotate_response = user_client.post("/api/jobs/annotate_columns", params)
 
     create_job_result = annotate_response.json()
-    assert create_job_result["job_id"] == 3
+    assert create_job_result["job_id"] == "3"
     assert annotate_response.status_code == 200
     job_id = create_job_result["job_id"]
 
