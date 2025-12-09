@@ -34,6 +34,7 @@ from web_annotation.executor import (
 from web_annotation.models import (
     AnonymousJob,
     AnonymousPipeline,
+    BasePipeline,
     Job,
     Pipeline,
     User,
@@ -167,7 +168,7 @@ class AnnotationBaseView(views.APIView):
 
     def _get_user_pipeline_yaml(
         self,
-        user_pipeline: Pipeline | AnonymousPipeline,
+        user_pipeline: BasePipeline,
     ) -> str:
         return Path(user_pipeline.config_path).read_text(encoding="utf-8")
 
@@ -211,37 +212,16 @@ class AnnotationBaseView(views.APIView):
             },
         )
 
-    def _get_pipeline_yaml(
-        self,
-        pipeline_id: str,
-        user: User,
-    ) -> str:
-        """Get annotation config contents from a request."""
-        if pipeline_id in self.grr_pipelines:
-            content = self.grr_pipelines[pipeline_id]["content"]
-        else:
-            user_pipeline = self._get_user_pipeline(user, pipeline_id)
-            content = self._get_user_pipeline_yaml(user_pipeline)
-
-        if "ASCII text" not in magic.from_buffer(content):
-            raise ValueError("Invalid pipeline configuration file!")
-
-        try:
-            AnnotationConfigParser.parse_str(content, grr=self.grr)
-        except (AnnotationConfigurationError, KeyError) as e:
-            raise ValueError(str(e)) from e
-
-        return content
-
     def load_pipeline(
-        self, pipeline_id: str, user: User,
+        self, full_pipeline_id: tuple[str, str], user: User,
     ) -> AnnotationPipeline:
         """Load an annotation pipeline by ID and notify the user channel."""
+        _, pipeline_id = full_pipeline_id
         if pipeline_id in self.grr_pipelines:
             pipeline_config = self.grr_pipelines[pipeline_id]["content"]
             notify_function = self._notify_global_pipeline
         else:
-            user_pipeline = self._get_user_pipeline(user, pipeline_id)
+            user_pipeline = user.get_pipeline(pipeline_id)
             pipeline_config = self._get_user_pipeline_yaml(user_pipeline)
             notify_function = partial(self._notify_user_pipeline, user)
 
@@ -251,7 +231,8 @@ class AnnotationBaseView(views.APIView):
             notify_function(pipeline_id, "unloaded")
 
         pipeline = self.lru_cache.put_pipeline(
-            pipeline_id, load_pipeline_from_yaml(pipeline_config, self.grr),
+            full_pipeline_id,
+            load_pipeline_from_yaml(pipeline_config, self.grr),
             callback=callback,
         )
 
@@ -265,17 +246,17 @@ class AnnotationBaseView(views.APIView):
         """Get an annotation pipeline by name."""
 
         if pipeline_id not in self.grr_pipelines:
-            if self._get_user_pipeline(
-                user, pipeline_id,
-            ).owner != user.as_owner:
-                raise ValueError("User not authorized to access pipeline!")
+            pipeline_model = user.get_pipeline(pipeline_id)
+            full_pipeline_id = pipeline_model.table_id()
+        else:
+            full_pipeline_id = ("grr", pipeline_id)
 
-        pipeline = self.lru_cache.get_pipeline(pipeline_id)
+        pipeline = self.lru_cache.get_pipeline(full_pipeline_id)
 
         if pipeline is not None:
             return pipeline
 
-        return self.load_pipeline(pipeline_id, user)
+        return self.load_pipeline(full_pipeline_id, user)
 
     def get_genome(self, data: QueryDict) -> str:
         """Get genome from a request."""

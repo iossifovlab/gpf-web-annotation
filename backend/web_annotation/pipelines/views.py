@@ -108,7 +108,8 @@ class UserPipeline(AnnotationBaseView):
 
         pipeline.save()
 
-        assert self.load_pipeline(str(pipeline.pk), request.user) is not None
+        assert self.load_pipeline(
+            pipeline.table_id(), request.user) is not None
 
         return Response(
             {"id": str(pipeline.pk)},

@@ -85,33 +85,33 @@ def test_lru_pipeline_cache_basic_sources(
     assert len(lru_cache._cache) == 0  # pylint: disable=protected-access
 
     pipeline1 = sample_pipeline_factory()
-    lru_cache.put_pipeline("pipeline1", pipeline1)
+    lru_cache.put_pipeline(("sample", "pipeline1"), pipeline1)
     assert len(lru_cache._cache) == 1  # pylint: disable=protected-access
     pipeline_ids = set(
         lru_cache._cache.keys())  # pylint: disable=protected-access
-    assert pipeline_ids == {"pipeline1"}
+    assert pipeline_ids == {("sample", "pipeline1")}
 
     pipeline2 = sample_pipeline_factory()
-    lru_cache.put_pipeline("pipeline2", pipeline2)
+    lru_cache.put_pipeline(("sample", "pipeline2"), pipeline2)
     assert len(lru_cache._cache) == 2  # pylint: disable=protected-access
     pipeline_ids = set(
         lru_cache._cache.keys())  # pylint: disable=protected-access
-    assert pipeline_ids == {"pipeline1", "pipeline2"}
+    assert pipeline_ids == {("sample", "pipeline1"), ("sample", "pipeline2")}
 
     pipeline3 = sample_pipeline_factory()
-    lru_cache.put_pipeline("pipeline3", pipeline3)
+    lru_cache.put_pipeline(("sample", "pipeline3"), pipeline3)
     assert len(lru_cache._cache) == 2  # pylint: disable=protected-access
     pipeline_ids = set(
         lru_cache._cache.keys())  # pylint: disable=protected-access
-    assert pipeline_ids == {"pipeline2", "pipeline3"}
+    assert pipeline_ids == {("sample", "pipeline2"), ("sample", "pipeline3")}
 
     pipeline4 = sample_pipeline_factory()
-    lru_cache.get_pipeline("pipeline2")
-    lru_cache.put_pipeline("pipeline4", pipeline4)
+    lru_cache.get_pipeline(("sample", "pipeline2"))
+    lru_cache.put_pipeline(("sample", "pipeline4"), pipeline4)
     assert len(lru_cache._cache) == 2  # pylint: disable=protected-access
     pipeline_ids = set(
         lru_cache._cache.keys())  # pylint: disable=protected-access
-    assert pipeline_ids == {"pipeline2", "pipeline4"}
+    assert pipeline_ids == {("sample", "pipeline2"), ("sample", "pipeline4")}
 
 
 def test_lru_pipeline_cache_callbacks(
@@ -125,12 +125,12 @@ def test_lru_pipeline_cache_callbacks(
 
     pipeline1 = sample_pipeline_factory()
     lru_cache.put_pipeline(
-        "pipeline1", pipeline1, callback=delete_callback)
+        ("sample", "pipeline1"), pipeline1, callback=delete_callback)
     assert len(lru_cache._cache) == 1  # pylint: disable=protected-access
 
     pipeline2 = sample_pipeline_factory()
     lru_cache.put_pipeline(
-        "pipeline2", pipeline2, callback=delete_callback)
+        ("sample", "pipeline2"), pipeline2, callback=delete_callback)
     assert len(lru_cache._cache) == 1  # pylint: disable=protected-access
 
     assert len(deleted_pipelines) == 1
