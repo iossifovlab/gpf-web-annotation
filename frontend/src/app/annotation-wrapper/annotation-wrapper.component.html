@@ -44,6 +44,8 @@
           </div>
         </div>
 
+        <app-socket-notifications #jobNotifications [componentType]="'job'"></app-socket-notifications>
+
         <div *ngIf="!isCreationFormVisible && currentJob" id="result">
           <div id="current-job-info">
             <div>
@@ -57,8 +59,6 @@
               >
             </div>
           </div>
-
-          <app-socket-notifications [type]="'job'"></app-socket-notifications>
 
           <div id="new-job-section">
             <button id="new-job-button" (click)="showCreateMode()"
