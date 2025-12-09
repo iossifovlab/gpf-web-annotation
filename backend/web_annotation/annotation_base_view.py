@@ -229,7 +229,9 @@ class AnnotationBaseView(views.APIView):
         """Get an annotation pipeline by name."""
 
         if pipeline_id not in self.grr_pipelines:
-            if self._get_user_pipeline(user, pipeline_id).owner != user:
+            if self._get_user_pipeline(
+                user, pipeline_id,
+            ).owner != user.as_owner:
                 raise ValueError("User not authorized to access pipeline!")
 
         pipeline = self.lru_cache.get_pipeline(pipeline_id)

@@ -475,13 +475,12 @@ class ColumnValidation(AnnotationBaseView):
 
 class JobGetFile(views.APIView):
     """View for downloading job files."""
-    permission_classes = [permissions.IsAuthenticated]
 
     def get(
         self, request: Request, pk: int, file: str,
     ) -> Response | FileResponse:
         """Download a file from a job."""
-        job = get_object_or_404(Job, id=pk, is_active=True)
+        job = get_object_or_404(request.user.job_class, id=pk, is_active=True)
         if not has_job_permission(job, request.user):
             return Response(status=views.status.HTTP_403_FORBIDDEN)
 

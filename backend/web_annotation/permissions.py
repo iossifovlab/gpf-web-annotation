@@ -8,7 +8,7 @@ from web_annotation.models import Job, User
 
 def has_job_permission(job: Job, user: User) -> bool:
     """Check if the user has permission to access the job."""
-    return job.owner == user
+    return job.owner == user.as_owner
 
 
 class IsOwner(permissions.BasePermission):
