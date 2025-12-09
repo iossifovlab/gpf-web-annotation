@@ -124,13 +124,13 @@ class LRUPipelineCache:
         self, capacity: int,
     ):
         self.capacity = capacity
-        self._cache: dict[str, ThreadSafePipeline] = {}
-        self._pipeline_callbacks: dict[str, Callable | None] = {}
+        self._cache: dict[tuple[str, str], ThreadSafePipeline] = {}
+        self._pipeline_callbacks: dict[tuple[str, str], Callable | None] = {}
         self._cache_lock: Lock = Lock()
-        self._order: list[str] = []
+        self._order: list[tuple[str, str]] = []
 
     def put_pipeline(
-        self, pipeline_id: str, pipeline: AnnotationPipeline,
+        self, pipeline_id: tuple[str, str], pipeline: AnnotationPipeline,
         callback: Callable[[ThreadSafePipeline], None] | None = None,
     ) -> ThreadSafePipeline:
         """Put a pipeline into the cache."""
@@ -154,7 +154,9 @@ class LRUPipelineCache:
             self._pipeline_callbacks[pipeline_id] = callback
             return wrapped
 
-    def get_pipeline(self, pipeline_id: str) -> ThreadSafePipeline | None:
+    def get_pipeline(
+        self, pipeline_id: tuple[str, str],
+    ) -> ThreadSafePipeline | None:
         """Get a pipeline by its ID, loading it if necessary."""
         with self._cache_lock:
             if pipeline_id in self._cache:

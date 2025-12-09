@@ -137,8 +137,9 @@ def test_use_of_thread_safe_pipelines(
     view = SingleAnnotation()
     custom_cache = LRUPipelineCache(16)
     dummy_pipeline = DummyPipeline()
-    custom_cache.put_pipeline("dummy", dummy_pipeline)  # type: ignore
-    thread_safe_dummy = custom_cache.get_pipeline("dummy")
+    custom_cache.put_pipeline(
+        ("dummy", "dummy"), dummy_pipeline)  # type: ignore
+    thread_safe_dummy = custom_cache.get_pipeline(("dummy", "dummy"))
     assert thread_safe_dummy is not None
     thread_safe_dummy.lock = MagicMock()
     request_data = MagicMock()
@@ -154,12 +155,9 @@ def test_use_of_thread_safe_pipelines(
     request_data.user = MagicMock()
     request_data.user.as_owner = request_data.user
     pipeline_mock = MagicMock()
+    pipeline_mock.table_id.return_value = ("dummy", "dummy")
+    request_data.user.get_pipeline.return_value = pipeline_mock
     pipeline_mock.owner = request_data.user
-    mocker.patch(
-        "web_annotation.single_allele_annotation"
-        ".views.SingleAnnotation._get_user_pipeline",
-        return_value=pipeline_mock,
-    )
     mocker.patch(
         "web_annotation.single_allele_annotation"
         ".views.SingleAnnotation.lru_cache",

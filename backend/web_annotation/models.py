@@ -36,6 +36,32 @@ class BaseUser():
         """Create a new job for the user."""
         raise NotImplementedError
 
+    def check_pipeline_owner(self, pipeline: BasePipeline) -> bool:
+        """Check if user is owner of the pipeline."""
+        raise NotImplementedError
+
+    def get_socket_group(self) -> str:
+        """Get socket group for user."""
+        raise NotImplementedError
+
+    @property
+    def pipeline_class(self) -> type[BasePipeline]:
+        """Get job class used."""
+        raise NotImplementedError
+
+    def get_pipeline(self, pipeline_id: str) -> BasePipeline:
+        """Get pipeline from respective table, checking ownership."""
+        pipeline = self.pipeline_class.objects.filter(  # type: ignore
+            pk=int(pipeline_id),
+        ).first()
+        if pipeline is None:
+            raise ValueError(f"Pipeline {pipeline_id} not found!")
+        if not self.check_pipeline_owner(pipeline):
+            raise ValueError("User not authorized to access pipeline!")
+
+        return cast(BasePipeline, pipeline)
+
+
 class User(BaseUser, AbstractUser):
     """Model for user accounts."""
     email = models.EmailField(("email address"), unique=True)
@@ -48,7 +74,7 @@ class User(BaseUser, AbstractUser):
         return Job
 
     @property
-    def pipeline_class(self) -> type[Pipeline]:
+    def pipeline_class(self) -> type[BasePipeline]:
         """Get job class used."""
         return Pipeline
 
@@ -64,10 +90,19 @@ class User(BaseUser, AbstractUser):
     def is_owner(self, job: Job) -> bool:
         return job.owner == self
 
+    def check_pipeline_owner(self, pipeline: BasePipeline) -> bool:
+        """Check if user is owner of the pipeline."""
+        assert isinstance(pipeline, Pipeline)
+        return pipeline.owner == self.as_owner
+
     def change_password(self, new_password: str) -> None:
         """Update user with new password."""
         self.set_password(new_password)
         self.save()
+
+    def get_socket_group(self) -> str:
+        """Get socket group for user."""
+        return str(self.pk)
 
     def activate(self) -> None:
         """Enable a user's account."""
@@ -79,7 +114,7 @@ class User(BaseUser, AbstractUser):
         return job_count + 1
 
     def create_job(self, **kwargs: Any) -> Job:
-        """Create a new job for the anonymous user."""
+        """Create a new job for the user."""
         job = self.job_class(
             owner=self,
             **kwargs,
@@ -112,7 +147,7 @@ class WebAnnotationAnonymousUser(BaseUser, AnonymousUser):
         return AnonymousJob
 
     @property
-    def pipeline_class(self) -> type[AnonymousPipeline]:
+    def pipeline_class(self) -> type[BasePipeline]:
         """Get job class used."""
         return AnonymousPipeline
 
@@ -125,12 +160,22 @@ class WebAnnotationAnonymousUser(BaseUser, AnonymousUser):
     def as_owner(self) -> str:
         return self.identifier
 
+    def get_socket_group(self) -> str:
+        """Get socket group for user."""
+        return self.identifier
+
     def is_owner(self, job: AnonymousJob) -> bool:
         return job.owner == self.identifier
 
     def generate_job_name(self) -> int:
-        job_count = self.job_class.objects.filter(owner=self.identifier).count()
+        job_count = \
+            self.job_class.objects.filter(owner=self.identifier).count()
         return job_count + 1
+
+    def check_pipeline_owner(self, pipeline: BasePipeline) -> bool:
+        """Check if user is owner of the pipeline."""
+        assert isinstance(pipeline, AnonymousPipeline)
+        return pipeline.owner == self.as_owner
 
     def create_job(self, **kwargs: Any) -> AnonymousJob:
         """Create a new job for the anonymous user."""
@@ -171,6 +216,10 @@ class BasePipeline(models.Model):
         os.remove(self.config_path)
         self.delete()
 
+    def table_id(self) -> tuple[str, str]:
+        """Get a unique table ID for the pipeline."""
+        return ("unspecified", str(self.pk))
+
     class Meta:  # pylint: disable=too-few-public-methods
         """Meta class for verification model."""
         abstract = True
@@ -185,10 +234,18 @@ class Pipeline(BasePipeline):
 
     )
 
+    def table_id(self) -> tuple[str, str]:
+        """Get a unique table ID for the pipeline."""
+        return ("user", str(self.pk))
+
 
 class AnonymousPipeline(BasePipeline):
     """Model for saving anonymous created pipeline configs"""
     owner = models.CharField(max_length=1024)
+
+    def table_id(self) -> tuple[str, str]:
+        """Get a unique table ID for the pipeline."""
+        return ("anonymous", str(self.pk))
 
 
 class AlleleQuery(models.Model):
@@ -335,6 +392,7 @@ class AnonymousJob(BaseJob):
             details = AnonymousJobDetails(job=self)
             details.save()
             return details
+
 
 class BaseJobDetails(models.Model):
     """Model for storing job details for tsv files."""
