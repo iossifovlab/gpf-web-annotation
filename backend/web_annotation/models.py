@@ -50,6 +50,7 @@ class BaseUser():
         raise NotImplementedError
 
     def get_pipeline(self, pipeline_id: str) -> BasePipeline:
+        """Get pipeline from respective table, checking ownership."""
         pipeline = self.pipeline_class.objects.filter(
             pk=int(pipeline_id),
         ).first()

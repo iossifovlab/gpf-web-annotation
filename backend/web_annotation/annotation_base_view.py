@@ -5,10 +5,6 @@ from pathlib import Path
 from typing import Any, cast
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
-from dae.annotation.annotation_config import (
-    AnnotationConfigParser,
-    AnnotationConfigurationError,
-)
 from dae.annotation.annotation_factory import load_pipeline_from_yaml
 from dae.annotation.annotation_pipeline import AnnotationPipeline
 from dae.genomic_resources.implementations.annotation_pipeline_impl import (
@@ -21,7 +17,6 @@ from dae.genomic_resources.repository_factory import (
 from django.conf import settings
 from django.core.files.uploadedfile import UploadedFile
 from django.http import QueryDict
-import magic
 from rest_framework import views
 from rest_framework.views import Request, Response
 from rest_framework.request import MultiValueDict
@@ -33,11 +28,9 @@ from web_annotation.executor import (
 )
 from web_annotation.models import (
     AnonymousJob,
-    AnonymousPipeline,
     BasePipeline,
     BaseUser,
     Job,
-    Pipeline,
     User,
     WebAnnotationAnonymousUser,
 )
