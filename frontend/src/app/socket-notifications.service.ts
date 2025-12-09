@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { filter, map, Observable } from 'rxjs';
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import { environment } from '../../environments/environment';
+import { JobNotification, PipelineNotification } from './socket-notifications/socket-notifications';
 
 @Injectable({
   providedIn: 'root'
@@ -12,8 +13,18 @@ export class SocketNotificationsService {
   private readonly socketNotificationsUrl = `${environment.socketPath}/notifications`;
   private socketNotifications: WebSocketSubject<object> = webSocket(this.socketNotificationsUrl);
 
-  public getSocketNotifications(): Observable<{message: string, type: string}> {
-    return this.socketNotifications.asObservable() as Observable<{message: string, type: string}>;
+  public getJobNotifications(): Observable<JobNotification> {
+    return this.socketNotifications.pipe(
+      filter(n => n['type'] === 'job_status'),
+      map((n: object) => JobNotification.fromJson(n))
+    );
+  }
+
+  public getPipelineNotifications(): Observable<PipelineNotification> {
+    return this.socketNotifications.pipe(
+      filter(n => n['type'] === 'pipeline_status'),
+      map((n: object) => PipelineNotification.fromJson(n))
+    );
   }
 
   public closeConnection(): void {
