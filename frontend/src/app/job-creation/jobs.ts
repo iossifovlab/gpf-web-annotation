@@ -4,7 +4,7 @@ export class Job {
     public name: number,
     public created: Date,
     public owner: string,
-    public status: Status,
+    public status: JobStatus,
     public duration: number,
     public annotatedFileName: string,
     public size: string,
@@ -22,7 +22,7 @@ export class Job {
       return undefined;
     }
 
-    let status: Status = null;
+    let status: JobStatus = null;
     switch (json['status']) {
       case 1: status = 'waiting'; break;
       case 2: status = 'in process'; break;
@@ -43,7 +43,7 @@ export class Job {
   }
 }
 
-export type Status = 'waiting' | 'in process' | 'success' | 'failed';
+export type JobStatus = 'waiting' | 'in process' | 'success' | 'failed';
 
 export function getStatusClassName(status: string): string {
   switch (status) {

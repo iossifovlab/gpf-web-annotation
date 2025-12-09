@@ -25,9 +25,9 @@ class UserServiceMock {
 }
 
 const mockPipelines = [
-  new Pipeline('id1', 'content1', 'default'),
-  new Pipeline('id2', 'content2', 'default'),
-  new Pipeline('id3', 'content3', 'default'),
+  new Pipeline('id1', 'name1', 'content1', 'default'),
+  new Pipeline('id2', 'name2', 'content2', 'default'),
+  new Pipeline('id3', 'name3', 'content3', 'default'),
 ];
 
 const jobs = [
