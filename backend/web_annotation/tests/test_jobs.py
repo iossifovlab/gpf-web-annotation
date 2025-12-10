@@ -2044,6 +2044,7 @@ async def test_annotate_anonymous_notifications(
         new=cache,
     )
     session = await anonymous_client.asession()
+    assert session.session_key is not None
     user = WebAnnotationAnonymousUser(session.session_key, ip="test")
     communicator = CustomWebsocketCommunicator(
         AnnotationStateConsumer.as_asgi(),

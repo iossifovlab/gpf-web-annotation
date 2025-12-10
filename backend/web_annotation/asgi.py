@@ -12,7 +12,8 @@ from typing import Any, cast
 
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import (
-    AuthMiddleware, get_user, SessionMiddleware, CookieMiddleware,
+    UserLazyObject, get_user,
+    AuthMiddlewareStack,
 )
 from channels.middleware import BaseMiddleware
 from channels.security.websocket import AllowedHostsOriginValidator
@@ -25,7 +26,7 @@ django_asgi_app = get_asgi_application()
 
 # pylint: disable=wrong-import-position
 from web_annotation.urls import websocket_urlpatterns  # noqa: E402
-from web_annotation.models import WebAnnotationAnonymousUser
+from web_annotation.models import WebAnnotationAnonymousUser  # noqa: E402
 
 
 class AnonymousAuthMiddleware(BaseMiddleware):
@@ -35,6 +36,7 @@ class AnonymousAuthMiddleware(BaseMiddleware):
     """
 
     def populate_scope(self, scope: Any) -> None:
+        """Populate the scope with a user lazy object if not initiated."""
         # Make sure we have a session
         if "session" not in scope:
             raise ValueError(
@@ -46,12 +48,13 @@ class AnonymousAuthMiddleware(BaseMiddleware):
             scope["user"] = UserLazyObject()
 
     async def resolve_scope(self, scope: Any) -> None:
+        """Turn anonymous users into the custom anonymous user."""
         user = await get_user(scope)
         if user.is_anonymous:
             user = WebAnnotationAnonymousUser(scope["session"].session_key)
-        scope["user"]._wrapped = user
+        scope["user"]._wrapped = user  # pylint: disable=protected-access
 
-    async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
+    async def __call__(self, scope: Any, receive: Any, send: Any) -> Any:
         scope = dict(scope)
         # Scope injection/mutation per this middleware's needs.
         self.populate_scope(scope)
@@ -61,13 +64,14 @@ class AnonymousAuthMiddleware(BaseMiddleware):
         return await super().__call__(scope, receive, send)
 
 
-def AuthMiddlewareStack(inner):
-    return CookieMiddleware(SessionMiddleware(AuthMiddleware(AnonymousAuthMiddleware(inner))))
+def AnonymousAuthMiddlewareStack(inner: Any) -> Any:
+    return AuthMiddlewareStack(AnonymousAuthMiddleware(inner))
+
 
 application = ProtocolTypeRouter({
     "http": django_asgi_app,
     "websocket": AllowedHostsOriginValidator(
-        AuthMiddlewareStack(
+        AnonymousAuthMiddlewareStack(
             URLRouter(cast(Any, websocket_urlpatterns)))
     ),
 })
