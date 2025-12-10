@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
 import { SingleAnnotationComponent } from '../single-annotation/single-annotation.component';
 import { AllelesTableComponent } from '../alleles-table/alleles-table.component';
 import { UsersService } from '../users.service';
-import { SocketNotificationsService } from '../socket-notifications.service';
+import { SocketNotificationsService } from '../socket-notifications/socket-notifications.service';
 import { JobNotification } from '../socket-notifications/socket-notifications';
 
 @Component({

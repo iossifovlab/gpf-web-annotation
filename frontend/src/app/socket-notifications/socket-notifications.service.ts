@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { filter, map, Observable } from 'rxjs';
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
-import { environment } from '../../environments/environment';
-import { JobNotification, PipelineNotification } from './socket-notifications/socket-notifications';
+import { environment } from '../../../environments/environment';
+import { JobNotification, PipelineNotification } from './socket-notifications';
 
 @Injectable({
   providedIn: 'root'

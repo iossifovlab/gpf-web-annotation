@@ -21,7 +21,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { EditorComponent, MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { editorConfig, initEditor } from './annotation-pipeline-editor.config';
 import { UsersService } from '../users.service';
-import { SocketNotificationsService } from '../socket-notifications.service';
+import { SocketNotificationsService } from '../socket-notifications/socket-notifications.service';
 import { PipelineNotification } from '../socket-notifications/socket-notifications';
 
 @Component({
