@@ -1,13 +1,21 @@
 <div id="pipelines-container">
   <div id="pipelines-header">Annotation pipelines</div>
-  <input
-    placeholder="Select pipeline"
-    [title]="selectedPipeline ? selectedPipeline.id : ''"
-    id="pipelines-input"
-    matInput
-    [matAutocomplete]="pipelinesDropdown"
-    [formControl]="dropdownControl"
-    (click)="clearPipeline()" />
+  <div>
+    <input
+      placeholder="Select pipeline"
+      [title]="selectedPipeline ? selectedPipeline.id : ''"
+      id="pipelines-input"
+      matInput
+      [matAutocomplete]="pipelinesDropdown"
+      [formControl]="dropdownControl"
+      (click)="clearPipeline()" />
+
+    <span *ngIf="lastNotification" id="socket-notification">
+      <span [ngClass]="lastNotification.status" class="material-symbols-outlined pipeline-status-icon"
+        >circle</span
+      ></span
+    >
+  </div>
 
   <mat-autocomplete #pipelinesDropdown="matAutocomplete">
     <mat-option
@@ -18,6 +26,11 @@
       [title]="pipeline.name"
       [value]="pipeline.name">
       {{ pipeline.name }}
+      <span *ngIf="lastNotification && pipeline.id === lastNotification.pipelineId" id="socket-notification">
+        <span [ngClass]="lastNotification.status" class="material-symbols-outlined pipeline-status-icon"
+          >circle</span
+        ></span
+      >
     </mat-option>
   </mat-autocomplete>
 
@@ -75,5 +88,3 @@
     </div>
   </div>
 </ng-template>
-
-<app-socket-notifications [componentType]="'pipeline'"></app-socket-notifications>

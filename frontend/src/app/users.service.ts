@@ -60,6 +60,12 @@ export class UsersService {
     );
   }
 
+  public refreshUserData(): void {
+    this.getUserData().pipe(take(1)).subscribe(userData => {
+      this.userData.next(userData);
+    });
+  }
+
   public getUserData(): Observable<UserData> {
     const options = { withCredentials: true };
     return this.http.get<UserData>(this.userDataUrl, options);
