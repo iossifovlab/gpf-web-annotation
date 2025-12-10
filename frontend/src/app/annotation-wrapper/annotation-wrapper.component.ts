@@ -9,7 +9,6 @@ import { CommonModule } from '@angular/common';
 import { SingleAnnotationComponent } from '../single-annotation/single-annotation.component';
 import { AllelesTableComponent } from '../alleles-table/alleles-table.component';
 import { UsersService } from '../users.service';
-import { SocketNotificationsComponent } from '../socket-notifications/socket-notifications.component';
 
 @Component({
   selector: 'app-annotation-wrapper',
@@ -20,7 +19,6 @@ import { SocketNotificationsComponent } from '../socket-notifications/socket-not
     JobCreationComponent,
     SingleAnnotationComponent,
     AllelesTableComponent,
-    SocketNotificationsComponent
   ],
   templateUrl: './annotation-wrapper.component.html',
   styleUrl: './annotation-wrapper.component.css'
