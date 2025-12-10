@@ -78,6 +78,7 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
     this.socketNotificationsService.getJobNotifications().pipe(
     ).subscribe({
       next: (notification: JobNotification) => {
+        this.userService.refreshUserData();
         if (notification.jobId === this.currentJobId) {
           this.getCurrentJobDetails(notification.jobId);
         }
@@ -266,9 +267,7 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
   }
 
   public refreshUserQuota(): void {
-    this.userService.getUserData().pipe(take(1)).subscribe(userData => {
-      this.userService.userData.next(userData);
-    });
+    this.userService.refreshUserData();
   }
 }
 
