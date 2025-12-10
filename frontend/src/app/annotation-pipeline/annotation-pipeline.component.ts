@@ -168,6 +168,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   }
 
   public clearPipeline(): void {
+    this.lastNotification = null;
     this.selectedPipeline = null;
     this.emitPipelineId.emit(null);
     this.currentPipelineText = '';
