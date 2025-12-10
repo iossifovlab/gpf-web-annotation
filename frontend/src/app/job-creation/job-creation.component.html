@@ -1,6 +1,9 @@
 <div style="display: flex; flex-direction: column">
   <div id="quota">
-    <span>Quota: {{ userLimitations.jobsLeft }} / {{ userLimitations.dailyJobs }} per day</span>
+    <span
+      >Quota: {{ userLimitations.dailyJobs - userLimitations.jobsLeft }} / {{ userLimitations.dailyJobs }} jobs per
+      day</span
+    >
     <span>Disk space quota: {{ userLimitations.diskSpace }}</span>
   </div>
   <div>
