@@ -1589,19 +1589,19 @@ async def test_annotate_vcf_notifications(
     assert output == {
         "type": "job_status",
         "job_id": job_id,
-        "status": Job.Status.WAITING.value,
+        "status": "waiting",
     }
     output = await communicator.receive_json_from()
     assert output == {
         "type": "job_status",
         "job_id": job_id,
-        "status": Job.Status.IN_PROGRESS.value,
+        "status": "in_progress",
     }
     output = await communicator.receive_json_from()
     assert output == {
         "type": "job_status",
         "job_id": job_id,
-        "status": Job.Status.SUCCESS.value,
+        "status": "success",
     }
 
 
@@ -1665,19 +1665,19 @@ async def test_annotate_columns_notifications(
     assert output == {
         "type": "job_status",
         "job_id": job_id,
-        "status": Job.Status.WAITING.value,
+        "status": "waiting",
     }
     output = await communicator.receive_json_from()
     assert output == {
         "type": "job_status",
         "job_id": job_id,
-        "status": Job.Status.IN_PROGRESS.value,
+        "status": "in_progress",
     }
     output = await communicator.receive_json_from()
     assert output == {
         "type": "job_status",
         "job_id": job_id,
-        "status": Job.Status.SUCCESS.value,
+        "status": "success",
     }
 
 
@@ -1739,19 +1739,19 @@ async def test_annotate_vcf_notifications_fail(
     assert output == {
         "type": "job_status",
         "job_id": job_id,
-        "status": Job.Status.WAITING.value,
+        "status": "waiting",
     }
     output = await communicator.receive_json_from()
     assert output == {
         "type": "job_status",
         "job_id": job_id,
-        "status": Job.Status.IN_PROGRESS.value,
+        "status": "in_progress",
     }
     output = await communicator.receive_json_from()
     assert output == {
         "type": "job_status",
         "job_id": job_id,
-        "status": Job.Status.FAILED.value,
+        "status": "failed",
     }
 
 
@@ -1820,19 +1820,19 @@ async def test_annotate_columns_notifications_fail(
     assert output == {
         "type": "job_status",
         "job_id": job_id,
-        "status": Job.Status.WAITING.value,
+        "status": "waiting",
     }
     output = await communicator.receive_json_from()
     assert output == {
         "type": "job_status",
         "job_id": job_id,
-        "status": Job.Status.IN_PROGRESS.value,
+        "status": "in_progress",
     }
     output = await communicator.receive_json_from()
     assert output == {
         "type": "job_status",
         "job_id": job_id,
-        "status": Job.Status.FAILED.value,
+        "status": "failed",
     }
 
 
@@ -1889,19 +1889,19 @@ async def test_annotate_notifications_unloading_pipeline(
     assert output == {
         "type": "job_status",
         "job_id": job_id,
-        "status": Job.Status.WAITING.value,
+        "status": "waiting",
     }
     output = await communicator.receive_json_from()
     assert output == {
         "type": "job_status",
         "job_id": job_id,
-        "status": Job.Status.IN_PROGRESS.value,
+        "status": "in_progress",
     }
     output = await communicator.receive_json_from()
     assert output == {
         "type": "job_status",
         "job_id": job_id,
-        "status": Job.Status.SUCCESS.value,
+        "status": "success",
     }
 
     response = await sync_to_async(user_client.post)(
@@ -1938,19 +1938,19 @@ async def test_annotate_notifications_unloading_pipeline(
     assert output == {
         "type": "job_status",
         "job_id": job_id,
-        "status": Job.Status.WAITING.value,
+        "status": "waiting",
     }
     output = await communicator.receive_json_from()
     assert output == {
         "type": "job_status",
         "job_id": job_id,
-        "status": Job.Status.IN_PROGRESS.value,
+        "status": "in_progress",
     }
     output = await communicator.receive_json_from()
     assert output == {
         "type": "job_status",
         "job_id": job_id,
-        "status": Job.Status.SUCCESS.value,
+        "status": "success",
     }
 
 
@@ -2090,19 +2090,19 @@ async def test_annotate_anonymous_notifications(
     assert output == {
         "type": "job_status",
         "job_id": job_id,
-        "status": Job.Status.WAITING.value,
+        "status": "waiting",
     }
     output = await communicator.receive_json_from()
     assert output == {
         "type": "job_status",
         "job_id": job_id,
-        "status": Job.Status.IN_PROGRESS.value,
+        "status": "in_progress",
     }
     output = await communicator.receive_json_from()
     assert output == {
         "type": "job_status",
         "job_id": job_id,
-        "status": Job.Status.SUCCESS.value,
+        "status": "success",
     }
 
 
