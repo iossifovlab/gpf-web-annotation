@@ -292,6 +292,7 @@ class BaseJob(models.Model):
         os.remove(self.config_path)
         if pathlib.Path(self.result_path).exists():
             os.remove(self.result_path)
+        self.disk_size = 0
         self.save()
 
     class Meta:  # pylint: disable=too-few-public-methods
