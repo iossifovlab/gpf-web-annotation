@@ -28,7 +28,7 @@ export class SingleAnnotationService {
       chrom: variant.chromosome,
       pos: variant.position,
       ref: variant.reference,
-      alt: variant.alernative
+      alt: variant.alternative
     };
 
     const userToken = this.getCSRFToken();

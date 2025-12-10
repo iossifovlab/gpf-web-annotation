@@ -4,7 +4,7 @@ export class Variant {
     public chromosome: string,
     public position: number,
     public reference: string,
-    public alernative: string,
+    public alternative: string,
     public variantType: string
   ) {}
 
