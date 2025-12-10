@@ -134,4 +134,6 @@
   width: fit-content;
   border-left: 1px solid #e1e9ef;
   padding-left: 25px;
+  display: flex;
+  flex-direction: column;
 }

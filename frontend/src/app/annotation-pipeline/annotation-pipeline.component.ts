@@ -53,6 +53,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   public resizeObserver: ResizeObserver = null;
   public yamlEditorOptions = {};
   public isFullScreen = false;
+  public setEditorMaxSize = false;
   @Output() public tiggerHidingComponents = new EventEmitter<boolean>();
   public isUserLoggedIn = false;
   public lastNotification: PipelineNotification = null;
@@ -91,12 +92,8 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     const editorElement = this.pipelineEditorRef._editorContainer.nativeElement as HTMLElement;
 
     this.resizeObserver = new ResizeObserver(() => {
-      const parentWidth = document.getElementById('annotation-container').clientWidth;
-
-      if (editorElement.clientWidth > parentWidth/1.5 && !this.isFullScreen) {
-        this.expandTextarea(false);
-      } else if (editorElement.clientWidth < parentWidth/1.5 && this.isFullScreen) {
-        this.shrinkTextarea(false);
+      if (!this.isEditorMaximized(editorElement)) {
+        this.resolveComponentsVisibility(editorElement);
       }
     });
 
@@ -115,6 +112,28 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
         this.lastNotification = null;
       }
     });
+  }
+
+  private isEditorMaximized(editorElement: HTMLElement): boolean {
+    // editor's max-width is 95% of window width
+    if (editorElement.clientWidth === Math.ceil(window.innerWidth * 0.95)) {
+      this.expandTextarea();
+      return true;
+    } else {
+      this.isFullScreen = false;
+      return false;
+    }
+  }
+
+  private resolveComponentsVisibility(editorElement: HTMLElement): void {
+    const parentWidth = document.getElementById('annotation-container').clientWidth;
+    if (!this.isEditorMaximized(editorElement)) {
+      if (editorElement.clientWidth > parentWidth/1.5) {
+        this.hideParentComponents();
+      } else if (editorElement.clientWidth < parentWidth/1.5) {
+        this.showParentComponents();
+      }
+    }
   }
 
   private getPipelines(defaultPipelineId: string = ''): void {
@@ -240,18 +259,24 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     return this.selectedPipeline?.content.trim() !== this.currentPipelineText.trim();
   }
 
-  public expandTextarea(isExpandButtonClicked = true): void {
-    if (isExpandButtonClicked) {
-      this.isFullScreen = true;
-    }
-    this.tiggerHidingComponents.emit(true);
+  public expandTextarea(): void {
+    this.isFullScreen = true;
+    this.setEditorMaxSize = true;
+    this.hideParentComponents();
   }
 
-  public shrinkTextarea(isResetButtonClicked = true): void {
-    if (isResetButtonClicked) {
-      this.isFullScreen = false;
-    }
+  public shrinkTextarea(): void {
+    this.isFullScreen = false;
+    this.setEditorMaxSize = false;
+    this.showParentComponents();
+  }
+
+  private showParentComponents(): void {
     this.tiggerHidingComponents.emit(false);
+  }
+
+  private hideParentComponents(): void {
+    this.tiggerHidingComponents.emit(true);
   }
 
   public ngOnDestroy(): void {

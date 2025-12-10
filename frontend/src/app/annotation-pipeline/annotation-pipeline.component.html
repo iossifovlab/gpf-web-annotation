@@ -38,7 +38,7 @@
     #pipelineEditor
     id="pipeline-editor"
     [ngClass]="{ 'invalid-config': configError }"
-    [ngStyle]="{ width: isFullScreen ? '95vw' : '40vw', height: isFullScreen ? '70vh' : '40vh' }"
+    [ngStyle]="{ width: setEditorMaxSize ? '95vw' : '40vw', height: setEditorMaxSize ? '70vh' : '40vh' }"
     [options]="yamlEditorOptions"
     (onInit)="onEditorInit()"
     [(ngModel)]="currentPipelineText"

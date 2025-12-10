@@ -75,13 +75,15 @@
   </div>
 
   <div *ngIf="isUserLoggedIn && !hideComponents" id="history-table">
-    <button id="toggle-history" (click)="this.hideHistory = !this.hideHistory"
-      ><span
-        class="material-symbols-outlined"
-        [ngStyle]="{ transform: this.hideHistory ? 'rotate(0deg)' : 'rotate(180deg)' }"
-        >right_panel_open</span
-      ></button
-    >
+    <div>
+      <button id="toggle-history" (click)="this.hideHistory = !this.hideHistory"
+        ><span
+          class="material-symbols-outlined"
+          [ngStyle]="{ transform: this.hideHistory ? 'rotate(0deg)' : 'rotate(180deg)' }"
+          >right_panel_open</span
+        ></button
+      >
+    </div>
     <div *ngIf="!hideHistory">
       <app-jobs-table *ngIf="currentView === 'jobs'" (jobDelete)="refreshUserQuota()"></app-jobs-table>
       <app-alleles-table
