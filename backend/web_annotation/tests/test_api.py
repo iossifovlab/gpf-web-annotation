@@ -42,7 +42,7 @@ def test_get_jobs(
     now = datetime.datetime.now(datetime.timezone.utc)
     assert abs(now - created) < datetime.timedelta(minutes=1)
     assert job["id"] == 1
-    assert job["status"] == Job.Status.WAITING
+    assert job["status"] == "waiting"
     assert job["owner"] == "user@example.com"
 
     # Try with different user, expect different jobs
@@ -58,7 +58,7 @@ def test_get_jobs(
     now = datetime.datetime.now(datetime.timezone.utc)
     assert abs(now - created) < datetime.timedelta(minutes=1)
     assert job["id"] == 2
-    assert job["status"] == Job.Status.WAITING
+    assert job["status"] == "waiting"
     assert job["owner"] == "admin@example.com"
 
 
@@ -81,7 +81,7 @@ def test_get_all_jobs_admin_user(admin_client: Client) -> None:
     assert abs(now - created) < datetime.timedelta(minutes=1)
     assert job["id"] == 1
     assert job["name"] == 1
-    assert job["status"] == Job.Status.WAITING
+    assert job["status"] == "waiting"
     assert job["owner"] == "user@example.com"
 
     job = result[1]
@@ -91,7 +91,7 @@ def test_get_all_jobs_admin_user(admin_client: Client) -> None:
     assert abs(now - created) < datetime.timedelta(minutes=1)
     assert job["id"] == 2
     assert job["name"] == 2
-    assert job["status"] == Job.Status.WAITING
+    assert job["status"] == "waiting"
     assert job["owner"] == "admin@example.com"
 
 
