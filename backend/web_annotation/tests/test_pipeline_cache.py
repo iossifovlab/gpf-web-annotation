@@ -9,7 +9,12 @@ from dae.annotation.annotation_factory import load_pipeline_from_yaml
 from dae.annotation.annotation_pipeline import AnnotationPipeline
 from dae.genomic_resources.repository import GenomicResourceRepo
 from web_annotation.annotation_base_view import AnnotationBaseView
-from web_annotation.models import AnonymousPipeline, Pipeline, User, WebAnnotationAnonymousUser
+from web_annotation.models import (
+    AnonymousPipeline,
+    Pipeline,
+    User,
+    WebAnnotationAnonymousUser,
+)
 from web_annotation.pipeline_cache import (
     LRUPipelineCache,
     ThreadSafePipeline,
@@ -152,7 +157,7 @@ def test_writing_same_id_pipelines_to_cache(
         base_view, "_get_user_pipeline_yaml", return_value=pipeline_config)
     mocker.patch.object(
         base_view, "lru_cache", new=lru_cache)
-    anonymous_user = WebAnnotationAnonymousUser(ip="test")
+    anonymous_user = WebAnnotationAnonymousUser(ip="test", session_id="sess1")
     anonymous_pipeline = AnonymousPipeline(
         owner=anonymous_user.as_owner, config_path="", is_temporary=True,
         pk=100,
