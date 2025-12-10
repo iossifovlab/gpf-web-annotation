@@ -21,7 +21,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { EditorComponent, MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { editorConfig, initEditor } from './annotation-pipeline-editor.config';
 import { UsersService } from '../users.service';
-import { SocketNotificationsComponent } from '../socket-notifications/socket-notifications.component';
+import { SocketNotificationsService } from '../socket-notifications.service';
+import { PipelineNotification } from '../socket-notifications/socket-notifications';
 
 @Component({
   selector: 'app-annotation-pipeline',
@@ -33,7 +34,6 @@ import { SocketNotificationsComponent } from '../socket-notifications/socket-not
     ReactiveFormsModule,
     FormsModule,
     MonacoEditorModule,
-    SocketNotificationsComponent
   ],
   templateUrl: './annotation-pipeline.component.html',
   styleUrl: './annotation-pipeline.component.css'
@@ -55,12 +55,14 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   public isFullScreen = false;
   @Output() public tiggerHidingComponents = new EventEmitter<boolean>();
   public isUserLoggedIn = false;
+  public lastNotification: PipelineNotification = null;
 
   public constructor(
     private jobsService: JobsService,
     private annotationPipelineService: AnnotationPipelineService,
     private dialog: MatDialog,
     private userService: UsersService,
+    private socketNotificationsService: SocketNotificationsService,
   ) { }
 
   public onEditorInit(): void {
@@ -81,6 +83,8 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     ).subscribe(filtered => {
       this.filteredPipelines = filtered;
     });
+
+    this.setupPipelineWebSocketConnection();
   }
 
   public ngAfterViewInit(): void {
@@ -97,6 +101,20 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     });
 
     this.resizeObserver.observe(editorElement);
+  }
+
+  private setupPipelineWebSocketConnection(): void {
+    this.socketNotificationsService.getPipelineNotifications().subscribe({
+      next: (notification: PipelineNotification) => {
+        this.lastNotification = notification;
+      },
+      error: err => {
+        console.error(err);
+      },
+      complete: () => {
+        this.lastNotification = null;
+      }
+    });
   }
 
   private getPipelines(defaultPipelineId: string = ''): void {
@@ -236,6 +254,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   }
 
   public ngOnDestroy(): void {
+    this.socketNotificationsService.closeConnection();
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
     }

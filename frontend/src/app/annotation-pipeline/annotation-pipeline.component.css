@@ -51,6 +51,7 @@
   font-weight: 600;
   font-size: 16px;
   max-width: 30vw;
+  width: 100%;
 }
 
 #pipelines-input:focus {
@@ -191,4 +192,29 @@
 
 #buttons-wrapper {
   align-self: flex-end;
+}
+
+#socket-notification {
+  vertical-align: middle;
+  margin-left: 10px;
+}
+
+.pipeline-status-icon {
+  font-variation-settings:
+    "FILL" 1,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
+}
+
+.loaded {
+  color: green;
+}
+
+.loading {
+  color: orange;
+}
+
+.unloaded {
+  color: red;
 }
