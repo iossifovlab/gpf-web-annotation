@@ -85,7 +85,7 @@
       ></button
     >
     <div *ngIf="!hideHistory">
-      <app-jobs-table *ngIf="currentView === 'jobs'"></app-jobs-table>
+      <app-jobs-table *ngIf="currentView === 'jobs'" (jobDelete)="refreshUserQuota()"></app-jobs-table>
       <app-alleles-table
         *ngIf="currentView === 'single allele'"
         (emitAllele)="triggerSingleAlleleAnnotation($event)"></app-alleles-table>

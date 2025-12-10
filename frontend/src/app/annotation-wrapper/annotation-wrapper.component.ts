@@ -246,5 +246,11 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
     this.updateComponentsVisibility(false);
     this.pipelinesComponent.shrinkTextarea();
   }
+
+  public refreshUserQuota(): void {
+    this.userService.getUserData().pipe(take(1)).subscribe(userData => {
+      this.userService.userData.next(userData);
+    });
+  }
 }
 

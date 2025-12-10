@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { JobsService } from '../job-creation/jobs.service';
 import { repeat, Subscription, take, takeWhile } from 'rxjs';
@@ -14,6 +14,7 @@ import { JobDetailsComponent } from '../job-details/job-details.component';
 })
 export class JobsTableComponent implements OnInit, OnDestroy {
   public jobs: Job[] = [];
+  @Output() public jobDelete = new EventEmitter<void>();
   private refreshJobsSubscription = new Subscription();
 
   public constructor(private dialog: MatDialog, private jobsService: JobsService) {}
@@ -69,6 +70,7 @@ export class JobsTableComponent implements OnInit, OnDestroy {
 
   public onDelete(jobId: number): void {
     this.jobsService.deleteJob(jobId).subscribe(() => this.getJobs());
+    this.jobDelete.emit();
   }
 
   public ngOnDestroy(): void {
