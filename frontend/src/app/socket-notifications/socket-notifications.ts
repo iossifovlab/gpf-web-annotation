@@ -30,7 +30,7 @@ export type PipelineStatus = 'loaded' | 'loading' | 'unloaded';
 
 export class PipelineNotification {
   public constructor(
-    public pipelineId: number,
+    public pipelineId: string,
     public status: PipelineStatus,
   ) {}
 
@@ -40,7 +40,7 @@ export class PipelineNotification {
     }
 
     return new PipelineNotification(
-      json['pipeline_id'] as number,
+      (json['pipeline_id'] as number).toString(),
       json['status'] as PipelineStatus,
     );
   }
