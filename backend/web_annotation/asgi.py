@@ -64,14 +64,15 @@ class AnonymousAuthMiddleware(BaseMiddleware):
         return await super().__call__(scope, receive, send)
 
 
-def AnonymousAuthMiddlewareStack(inner: Any) -> Any:
+def custom_middleware_stack(inner: Any) -> Any:
+    """Custom middleware stack that uses AnonymousAuthMiddleware."""
     return AuthMiddlewareStack(AnonymousAuthMiddleware(inner))
 
 
 application = ProtocolTypeRouter({
     "http": django_asgi_app,
     "websocket": AllowedHostsOriginValidator(
-        AnonymousAuthMiddlewareStack(
+        custom_middleware_stack(
             URLRouter(cast(Any, websocket_urlpatterns)))
     ),
 })
