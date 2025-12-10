@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { JobsService } from '../job-creation/jobs.service';
-import { repeat, Subscription, take, takeWhile } from 'rxjs';
+import { Subscription, take } from 'rxjs';
 import { getStatusClassName, Job } from '../job-creation/jobs';
 import { JobDetailsComponent } from '../job-details/job-details.component';
 
@@ -17,32 +17,24 @@ export class JobsTableComponent implements OnInit, OnDestroy {
   @Output() public jobDelete = new EventEmitter<void>();
   private refreshJobsSubscription = new Subscription();
 
-  public constructor(private dialog: MatDialog, private jobsService: JobsService) {}
+  public constructor(
+    private dialog: MatDialog,
+    private jobsService: JobsService,
+  ) {}
 
   public ngOnInit(): void {
-    this.getJobs();
     this.refreshTable();
-  }
-
-  private areJobsFinished(): boolean {
-    return !this.jobs.find(j => j.status !== 'success' && j.status !== 'failed');
   }
 
   public refreshTable(): void {
     this.refreshJobsSubscription.unsubscribe();
     this.refreshJobsSubscription = this.jobsService.getJobs().pipe(
-      repeat({ delay: 30000 }),
-      takeWhile(jobs => !this.areJobsFinished() || jobs.length !== this.jobs.length),
+      take(1),
     ).subscribe(jobs => {
       this.jobs = jobs.reverse();
     });
   }
 
-  private getJobs(): void {
-    this.jobsService.getJobs().pipe(take(1)).subscribe(jobs => {
-      this.jobs = jobs.reverse();
-    });
-  }
 
   public openDetailsModal(jobId: number): void {
     const detailsModalRef = this.dialog.open(JobDetailsComponent, {
@@ -69,8 +61,8 @@ export class JobsTableComponent implements OnInit, OnDestroy {
   }
 
   public onDelete(jobId: number): void {
-    this.jobsService.deleteJob(jobId).subscribe(() => this.getJobs());
     this.jobDelete.emit();
+    this.jobsService.deleteJob(jobId).subscribe(() => this.refreshTable());
   }
 
   public ngOnDestroy(): void {

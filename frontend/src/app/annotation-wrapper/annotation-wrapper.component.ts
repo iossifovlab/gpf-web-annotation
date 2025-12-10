@@ -1,6 +1,6 @@
 import { Component, ViewChild, OnInit, OnDestroy, NgZone} from '@angular/core';
 import { JobsTableComponent } from '../jobs-table/jobs-table.component';
-import { Observable, repeat, switchMap, take, takeWhile } from 'rxjs';
+import { Observable, take } from 'rxjs';
 import { JobsService } from '../job-creation/jobs.service';
 import { AnnotationPipelineComponent } from '../annotation-pipeline/annotation-pipeline.component';
 import { getStatusClassName, Job, JobStatus } from '../job-creation/jobs';
@@ -9,6 +9,8 @@ import { CommonModule } from '@angular/common';
 import { SingleAnnotationComponent } from '../single-annotation/single-annotation.component';
 import { AllelesTableComponent } from '../alleles-table/alleles-table.component';
 import { UsersService } from '../users.service';
+import { SocketNotificationsService } from '../socket-notifications.service';
+import { JobNotification } from '../socket-notifications/socket-notifications';
 
 @Component({
   selector: 'app-annotation-wrapper',
@@ -41,17 +43,21 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
   public downloadLink = '';
   public currentView:'jobs' | 'single allele' = 'single allele';
   public currentJob: Job = null;
+  public currentJobId: number = null;
   public hideComponents = false;
   public hideHistory = false;
   public isUserLoggedIn = false;
+
 
   public constructor(
       private jobsService: JobsService,
       private userService: UsersService,
       private ngZone: NgZone,
+      private socketNotificationsService: SocketNotificationsService,
   ) { }
 
   public ngOnInit(): void {
+    this.setupJobWebSocketConnection();
     this.userService.userData.pipe(
     ).subscribe((userData) => {
       this.isUserLoggedIn = Boolean(userData);
@@ -60,14 +66,32 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
 
 
   public ngOnDestroy(): void {
+    this.socketNotificationsService.closeConnection();
     this.userService.userData.pipe(
     ).subscribe((userData) => {
       this.isUserLoggedIn = Boolean(userData);
     });
   }
 
+
+  private setupJobWebSocketConnection(): void {
+    this.socketNotificationsService.getJobNotifications().pipe(
+    ).subscribe({
+      next: (notification: JobNotification) => {
+        if (notification.jobId === this.currentJobId) {
+          this.getCurrentJobDetails(notification.jobId);
+        }
+        if (this.isUserLoggedIn) {
+          this.jobsTableComponent.refreshTable();
+        }
+      },
+      error: err => {
+        console.error(err);
+      }
+    });
+  }
+
   public autoSavePipeline(): void {
-    this.currentJob = null;
     this.pipelinesComponent.autoSave().pipe(take(1)).subscribe(annonymousPipelineName => {
       if (annonymousPipelineName) {
         this.pipelineId = annonymousPipelineName;
@@ -103,21 +127,13 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
           this.selectedGenome,
         );
       }
+      this.isCreationFormVisible = false;
+
       createObservable.pipe(
         take(1),
-        switchMap((jobId: number) => {
-          this.isCreationFormVisible = false;
-          return this.trackJob(jobId);
-        }),
       ).subscribe({
-        next: (job: Job) => {
-          if (!this.currentJob || this.currentJob.status !== job.status) {
-            this.currentJob = job;
-            if (this.isUserLoggedIn) {
-              this.jobsTableComponent.refreshTable();
-            }
-            this.downloadLink = this.jobsService.getDownloadJobResultLink(job.id);
-          }
+        next: (jobId: number) => {
+          this.currentJobId = jobId;
         },
         error: (err: Error) => {
           this.creationError = err.message;
@@ -126,15 +142,23 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
     }
   }
 
-  private trackJob(jobId: number): Observable<Job> {
-    return this.jobsService.getJobDetails(jobId).pipe(
-      repeat({ delay: 5000 }),
-      takeWhile((job: Job) => !this.isJobFinished(job.status), true)
-    );
+  private getCurrentJobDetails(jobId: number): void {
+    this.jobsService.getJobDetails(jobId).subscribe({
+      next: (job: Job) => {
+        if (!this.currentJob || this.currentJob.status !== job.status) {
+          this.currentJob = job;
+          this.downloadLink = this.jobsService.getDownloadJobResultLink(job.id);
+        }
+      },
+      error: (err: Error) => {
+        this.creationError = err.message;
+      }
+    });
   }
 
   public showCreateMode(): void {
     this.isCreationFormVisible = true;
+    this.creationError = '';
     this.resetJobState();
   }
 
@@ -151,10 +175,6 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
     this.resetSingleAlleleReport();
     this.pipelineId = newPipeline;
     this.disableCreate();
-  }
-
-  public clearErrorMessage(): void {
-    this.creationError = '';
   }
 
   public resetSingleAlleleReport(): void {
@@ -178,7 +198,7 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
 
   public setFile(newFile: File): void {
     this.file = newFile;
-    this.clearErrorMessage();
+    this.creationError = '';
     this.disableCreate();
   }
 

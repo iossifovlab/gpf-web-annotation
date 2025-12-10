@@ -175,10 +175,7 @@ describe('AnnotationWrapperComponent', () => {
     component.selectedGenome = 'hg38';
     component.fileSeparator = '';
     component.fileHeader = null;
-
     const createJobSpy = jest.spyOn(jobsServiceMock, 'createVcfJob');
-
-    const jobDetailsSpy = jest.spyOn(jobsServiceMock, 'getJobDetails');
 
     component.autoSavePipeline();
 
@@ -187,10 +184,8 @@ describe('AnnotationWrapperComponent', () => {
       'pipeline',
       'hg38',
     );
-    expect(jobDetailsSpy).toHaveBeenCalledWith(2);
-    expect(component.currentJob.annotatedFileName).toBe('fileName2');
-    expect(component.downloadLink).toBe('url/2');
-    expect(component.currentJob.status).toBe('failed');
+    expect(component.creationError).toBe('');
+    expect(component.currentJobId).toBe(2);
   });
 
   it('should create job with csv file', () => {
@@ -200,7 +195,6 @@ describe('AnnotationWrapperComponent', () => {
     component.fileSeparator = ',';
     component.fileHeader = new Map<string, string>([['a', '1']]);
     const createJobSpy = jest.spyOn(jobsServiceMock, 'createNonVcfJob');
-    const jobDetailsSpy = jest.spyOn(jobsServiceMock, 'getJobDetails');
 
     component.autoSavePipeline();
 
@@ -211,9 +205,7 @@ describe('AnnotationWrapperComponent', () => {
       ',',
       new Map<string, string>([['a', '1']])
     );
-    expect(jobDetailsSpy).toHaveBeenCalledWith(1);
-    expect(component.currentJob.annotatedFileName).toBe('fileName1');
-    expect(component.downloadLink).toBe('url/1');
-    expect(component.currentJob.status).toBe('success');
+    expect(component.creationError).toBe('');
+    expect(component.currentJobId).toBe(1);
   });
 });
