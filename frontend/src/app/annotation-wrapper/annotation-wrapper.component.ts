@@ -128,12 +128,12 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
           this.selectedGenome,
         );
       }
-      this.isCreationFormVisible = false;
-
+      
       createObservable.pipe(
         take(1),
       ).subscribe({
         next: (jobId: number) => {
+          this.isCreationFormVisible = false;
           this.currentJobId = jobId;
         },
         error: (err: Error) => {
