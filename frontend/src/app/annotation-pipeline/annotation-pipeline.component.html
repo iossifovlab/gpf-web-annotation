@@ -26,6 +26,11 @@
       [title]="pipeline.name"
       [value]="pipeline.name">
       {{ pipeline.name }}
+      <span *ngIf="lastNotification && pipeline.id === lastNotification.pipelineId" id="socket-notification">
+        <span [ngClass]="lastNotification.status" class="material-symbols-outlined pipeline-status-icon"
+          >circle</span
+        ></span
+      >
     </mat-option>
   </mat-autocomplete>
 
