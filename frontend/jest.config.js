@@ -1,4 +1,4 @@
-var esModules = ['d3', 'd3-array', 'internmap', 'delaunator', 'robust-predicates'].join('|');
+var esModules = ['d3', 'd3-array', 'internmap', 'delaunator', 'robust-predicates', 'marked'].join('|');
 
 module.exports = {
   preset: "jest-preset-angular",
