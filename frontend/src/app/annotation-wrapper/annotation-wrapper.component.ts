@@ -128,7 +128,7 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
           this.selectedGenome,
         );
       }
-      
+
       createObservable.pipe(
         take(1),
       ).subscribe({
