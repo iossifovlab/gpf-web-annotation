@@ -1,7 +1,6 @@
 #report {
   margin: 0 auto;
   max-width: 1500px;
-  width: 100%;
   padding: 0 20px;
 }
 
@@ -19,6 +18,9 @@
   justify-content: space-around;
   padding: 10px 15px;
   margin-bottom: 20px;
+  background-color: #f4f7fb;
+  border: 1px solid #85a2b9;
+  border-radius: 15px;
 }
 
 .variant-data-label {
@@ -49,10 +51,6 @@ hr {
   gap: 35px;
   padding: 20px 0;
   border-bottom: 2px solid #cfd8df;
-}
-
-.annotator:first-child {
-  border-top: 2px solid #cfd8df;
 }
 
 .annotator-details {
@@ -129,6 +127,10 @@ hr {
 .attribute-container-modal:first-child {
   border-top: none;
   padding-top: 0;
+}
+
+.attribute-container:last-child {
+  padding-bottom: 0;
 }
 
 .attribute-source {
@@ -219,7 +221,6 @@ a:hover {
   display: flex;
   justify-content: flex-end;
   gap: 30px;
-  /* width: 12vw; */
   position: sticky;
   top: 10px;
   height: fit-content;
