@@ -1,6 +1,7 @@
 #report {
   margin: 0 auto;
   max-width: 1500px;
+  width: 100%;
   padding: 0 20px;
 }
 
@@ -108,7 +109,7 @@ hr {
 
 .attribute {
   font-size: 14px;
-  width: 30%;
+  width: 40%;
   word-break: break-all;
 }
 
@@ -145,6 +146,7 @@ hr {
   font-size: 18px;
   font-weight: bold;
   color: #435869;
+  width: 20vw;
 }
 
 a {
@@ -217,7 +219,7 @@ a:hover {
   display: flex;
   justify-content: flex-end;
   gap: 30px;
-  width: 12vw;
+  /* width: 12vw; */
   position: sticky;
   top: 10px;
   height: fit-content;
