@@ -58,8 +58,8 @@
             <div
               class="value-result"
               [ngStyle]="{ 'margin-top': showFullReport ? '20px' : '0' }"
-              *ngIf="!attribute.result.histogramLink && !tableViewSources.includes(attribute.source)"
-              >{{ attribute.result.value }}</div
+              *ngIf="!tableViewSources.includes(attribute.source)"
+              >{{ attribute.result.value | formatResultValue }}</div
             >
             <div
               *ngIf="

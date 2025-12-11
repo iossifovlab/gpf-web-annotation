@@ -6,6 +6,7 @@ import { HistogramWrapperComponent } from '../histogram-wrapper/histogram-wrappe
 import { EffectTableComponent } from '../effect-table/effect-table.component';
 import { saveAs } from 'file-saver';
 import { MatDialog } from '@angular/material/dialog';
+import { FormatResultValuePipe } from '../format-result-value.pipe';
 
 @Component({
   selector: 'app-single-annotation-report',
@@ -13,7 +14,8 @@ import { MatDialog } from '@angular/material/dialog';
     CommonModule,
     MarkdownModule,
     HistogramWrapperComponent,
-    EffectTableComponent
+    EffectTableComponent,
+    FormatResultValuePipe
   ],
   templateUrl: './single-annotation-report.component.html',
   styleUrl: './single-annotation-report.component.css'
@@ -81,5 +83,9 @@ export class SingleAnnotationReportComponent {
     reportLines.trim();
     const content = new Blob([reportLines], {type: 'text/plain;charset=utf-8'});
     saveAs(content, fileName);
+  }
+
+  public isValueMap(value: string | number | Map<string, string | number>): boolean {
+    return value instanceof Map;
   }
 }
