@@ -13,7 +13,7 @@
         (tiggerHidingComponents)="updateComponentsVisibility($event)"></app-annotation-pipeline>
     </div>
 
-    <div *ngIf="!hideComponents" style="display: flex; flex-direction: column; width: 50%">
+    <div *ngIf="!hideComponents" style="display: flex; flex-direction: column; width: auto; min-width: 0; flex-grow: 1">
       <div id="annotation-mode">
         <button
           id="single-allele-annotations"

@@ -57,6 +57,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   @Output() public tiggerHidingComponents = new EventEmitter<boolean>();
   public isUserLoggedIn = false;
   public lastNotification: PipelineNotification = null;
+  public showConfimDeletePopup = false;
 
   public constructor(
     private jobsService: JobsService,
@@ -162,6 +163,8 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   }
 
   public isConfigValid(): void {
+    this.unselectPublicPipeline();
+
     this.jobsService.validateJobConfig(this.currentPipelineText).pipe(
       take(1)
     ).subscribe((errorReason: string) => {
@@ -172,6 +175,13 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
         this.emitIsConfigValid.emit(false);
       }
     });
+  }
+
+  private unselectPublicPipeline(): void {
+    if (this.selectedPipeline && this.selectedPipeline.type === 'default' && this.isPipelineChanged()) {
+      this.selectedPipeline = null;
+      this.dropdownControl.setValue('');
+    }
   }
 
   public onPipelineClick(pipeline: Pipeline): void {
@@ -243,8 +253,13 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     });
   }
 
+  public confirmDeletePipeline(): void {
+    this.showConfimDeletePopup = true;
+  }
+
   public delete(): void {
     this.annotationPipelineService.deletePipeline(this.selectedPipeline.id).subscribe(() => this.getPipelines());
+    this.showConfimDeletePopup = false;
   }
 
   public saveName(name: string): void {

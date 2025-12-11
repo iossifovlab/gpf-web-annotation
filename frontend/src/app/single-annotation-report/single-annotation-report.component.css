@@ -18,6 +18,9 @@
   justify-content: space-around;
   padding: 10px 15px;
   margin-bottom: 20px;
+  background-color: #f4f7fb;
+  border: 1px solid #85a2b9;
+  border-radius: 15px;
 }
 
 .variant-data-label {
@@ -48,10 +51,6 @@ hr {
   gap: 35px;
   padding: 20px 0;
   border-bottom: 2px solid #cfd8df;
-}
-
-.annotator:first-child {
-  border-top: 2px solid #cfd8df;
 }
 
 .annotator-details {
@@ -108,7 +107,7 @@ hr {
 
 .attribute {
   font-size: 14px;
-  width: 30%;
+  width: 40%;
   word-break: break-all;
 }
 
@@ -130,6 +129,10 @@ hr {
   padding-top: 0;
 }
 
+.attribute-container:last-child {
+  padding-bottom: 0;
+}
+
 .attribute-source {
   margin-top: 8px;
   color: #85a2b9;
@@ -145,6 +148,7 @@ hr {
   font-size: 18px;
   font-weight: bold;
   color: #435869;
+  width: 20vw;
 }
 
 a {
@@ -217,7 +221,6 @@ a:hover {
   display: flex;
   justify-content: flex-end;
   gap: 30px;
-  width: 12vw;
   position: sticky;
   top: 10px;
   height: fit-content;

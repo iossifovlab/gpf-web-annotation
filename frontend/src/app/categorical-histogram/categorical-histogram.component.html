@@ -12,8 +12,6 @@
         <g #histogramContainer style="transform: 'translate(0px, 0px)'"></g>
         <g *ngIf="scoreValues.length">
           <ng-container *ngFor="let score of scoreValues">
-            <!-- eslint-disable-next-line prettier/prettier -->
-          <text [attr.x]="getCoordinate(score)" [attr.y]="-10" class="small single-score-value" text-anchor="middle">{{ score | textShorten }}<title>{{ score }}</title></text>
             <line
               class="single-score-marker"
               style="stroke: rgb(255, 0, 0); stroke-width: 2"

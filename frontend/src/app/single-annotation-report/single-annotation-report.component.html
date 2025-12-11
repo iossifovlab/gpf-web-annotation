@@ -51,15 +51,11 @@
             <div *ngIf="showFullReport" class="attribute-source">source: {{ attribute.source }}</div>
           </div>
           <div class="attribute-result">
-            <app-histogram-wrapper
-              *ngIf="attribute.result.histogramLink"
-              [histogramUrl]="attribute.result.histogramLink"
-              [value]="attribute.result.value"></app-histogram-wrapper>
             <div
               class="value-result"
               [ngStyle]="{ 'margin-top': showFullReport ? '20px' : '0' }"
-              *ngIf="!attribute.result.histogramLink && !tableViewSources.includes(attribute.source)"
-              >{{ attribute.result.value }}</div
+              *ngIf="!tableViewSources.includes(attribute.source)"
+              >{{ attribute.result.value | formatResultValue }}</div
             >
             <div
               *ngIf="
@@ -71,33 +67,15 @@
                 [rawEffectDetails]="attribute.result.value.toString()"
                 [source]="attribute.source"></app-effect-table>
             </div>
+            <app-histogram-wrapper
+              *ngIf="showFullReport && attribute.result.histogramLink"
+              [histogramUrl]="attribute.result.histogramLink"
+              [value]="attribute.result.value"></app-histogram-wrapper>
           </div>
         </div>
       </div>
 
-      <div *ngIf="showFullReport" class="annotator-details">
-        <div>
-          <div class="annotator-label"
-            ><span class="annotator-header">{{ annotator.details.name }}</span></div
-          >
-          <markdown class="annotator-description">{{ annotator.details.description }}</markdown>
-        </div>
-
-        <div *ngIf="annotator.details.resources.length" class="resources">
-          <div *ngFor="let resource of annotator.details.resources" class="resource">
-            <div class="resource-label">Resource</div>
-            <div
-              ><span class="id-label">id: </span>
-              <a target="_blank" [href]="resource.resourceUrl" class="annotator-resource">{{
-                resource.resourceId
-              }}</a></div
-            >
-          </div>
-        </div>
-      </div>
-
-      <div *ngIf="!showFullReport" id="compact-report">
-        <span class="annotator-header">{{ annotator.details.name }}</span>
+      <div id="compact-report">
         <span class="material-symbols-outlined info-icon" (click)="showInfo(annotator)">info</span>
 
         <ng-template #infoModal let-annotator>

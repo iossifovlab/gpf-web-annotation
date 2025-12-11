@@ -8,7 +8,10 @@
     <button (click)="triggerPipelineAutoSave()">Go</button>
   </div>
   <span *ngIf="validationMessage" id="validation-message">{{ validationMessage }}</span>
-  <span id="variant-examples">Example: chr1 11796321 G A</span>
+  <span id="variant-examples"
+    >Example:
+    <a class="example" (click)="setAllele('chr1 11796321 G A'); triggerPipelineAutoSave()">chr1 11796321 G A</a></span
+  >
 </div>
 
 <app-single-annotation-report [report]="report"></app-single-annotation-report>

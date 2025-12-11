@@ -6,9 +6,11 @@
       [title]="selectedPipeline ? selectedPipeline.id : ''"
       id="pipelines-input"
       matInput
+      #pipelineInput="matAutocompleteTrigger"
       [matAutocomplete]="pipelinesDropdown"
       [formControl]="dropdownControl"
       (click)="clearPipeline()" />
+    <span (click)="pipelineInput.openPanel()" class="material-symbols-outlined dropdown-icon">keyboard_arrow_down</span>
 
     <span *ngIf="lastNotification" id="socket-notification">
       <span [ngClass]="lastNotification.status" class="material-symbols-outlined pipeline-status-icon"
@@ -18,20 +20,26 @@
   </div>
 
   <mat-autocomplete #pipelinesDropdown="matAutocomplete">
-    <mat-option
-      *ngFor="let pipeline of filteredPipelines"
-      class="pipeline-option"
-      (click)="onPipelineClick(pipeline)"
-      (onSelectionChange)="onPipelineClick(pipeline)"
-      [title]="pipeline.name"
-      [value]="pipeline.name">
-      {{ pipeline.name }}
-      <span *ngIf="lastNotification && pipeline.id === lastNotification.pipelineId" id="socket-notification">
-        <span [ngClass]="lastNotification.status" class="material-symbols-outlined pipeline-status-icon"
-          >circle</span
-        ></span
-      >
-    </mat-option>
+    @for (group of ['default', 'user']; track group) {
+    <mat-optgroup [label]="group === 'user' ? 'User pipelines' : 'Public pipelines'">
+      @for (pipeline of filteredPipelines; track pipeline.id) {
+      <mat-option
+        *ngIf="pipeline.type === group"
+        class="pipeline-option"
+        (click)="onPipelineClick(pipeline)"
+        (onSelectionChange)="onPipelineClick(pipeline)"
+        [title]="pipeline.name"
+        [value]="pipeline.name">
+        {{ pipeline.name }}
+        <span *ngIf="lastNotification && pipeline.id === lastNotification.pipelineId" id="socket-notification">
+          <span [ngClass]="lastNotification.status" class="material-symbols-outlined pipeline-status-icon"
+            >circle</span
+          ></span
+        >
+      </mat-option>
+      }
+    </mat-optgroup>
+    }
   </mat-autocomplete>
 
   <ngx-monaco-editor
@@ -61,9 +69,20 @@
       [disabled]="!isPipelineChanged() || configError"
       ><span class="material-symbols-outlined save-icon">save</span>Save</button
     >
+
+    @if(showConfimDeletePopup) {
+    <div id="confirmation-popover">
+      <p>Are you sure you want to delete the pipeline?</p>
+      <div>
+        <button id="confirm-delete" (click)="delete()">Delete</button>
+        <button id="cancel-delete" (click)="showConfimDeletePopup = false">Cancel</button>
+      </div>
+    </div>
+    }
+
     <button
       *ngIf="isUserLoggedIn && selectedPipeline && selectedPipeline.type === 'user'"
-      (click)="delete()"
+      (click)="confirmDeletePipeline()"
       id="delete-button"
       ><span class="material-symbols-outlined delete-icon">delete</span>Delete</button
     >
