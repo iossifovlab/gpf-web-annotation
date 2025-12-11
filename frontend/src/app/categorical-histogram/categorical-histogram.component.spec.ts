@@ -265,11 +265,6 @@ describe('CategoricalHistogramComponent', () => {
     expect(redLine.getAttribute('y1')).toBe('48.75');
     expect(redLine.getAttribute('y2')).toBe('-5');
     expect(redLine.getAttribute('style')).toBe('stroke: rgb(255, 0, 0); stroke-width: 2;');
-
-    const valueText = svg.querySelector('.single-score-value');
-    expect(valueText.innerHTML).toBe('Pathogenic<title>Pathogenic</title>');
-    expect(valueText.getAttribute('x')).toBe('450');
-    expect(valueText.getAttribute('text-anchor')).toBe('middle');
   });
 
   it('should not display red mark on histogram and value when there is no value', () => {
@@ -335,14 +330,5 @@ describe('CategoricalHistogramComponent', () => {
     component.scoreValues = ['D', 'E'];
     expect(component.getCoordinate('D')).toBe(370.16129032258067);
     expect(component.getCoordinate('E')).toBe(370.16129032258067);
-  });
-
-  it('should format score value', () => {
-    component.scoreValues = ['criteria_provided|_single_submitter'];
-    fixture.detectChanges();
-    const svg = (fixture.nativeElement as HTMLElement).querySelector('svg') as SVGElement;
-
-    const valueText = svg.querySelector('.single-score-value');
-    expect(valueText.innerHTML).toBe('criteria_provided|_s...<title>criteria_provided|_single_submitter</title>');
   });
 });

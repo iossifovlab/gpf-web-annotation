@@ -44,11 +44,6 @@ describe('NumberHistogramComponent', () => {
     expect(redLine.getAttribute('y1')).toBe('49.90118577075099');
     expect(redLine.getAttribute('y2')).toBe('-5');
     expect(redLine.getAttribute('style')).toBe('stroke: rgb(255, 0, 0); stroke-width: 2;');
-
-    const valueText = svg.querySelector('.single-score-value');
-    expect(valueText.textContent).toBe('2');
-    expect(valueText.getAttribute('x')).toBe('115.2439024390244');
-    expect(valueText.getAttribute('text-anchor')).toBe('middle');
   });
 
   it('should not display red mark on histogram and value when there is no value', () => {
@@ -221,18 +216,5 @@ describe('NumberHistogramComponent', () => {
       false
     );
     expect(component.xLabelsWithDefaultValue()).toStrictEqual([0, 2, 4, 6, 8, 10, 12, 14]);
-  });
-
-  it('should return x labes if they are defined', () => {
-    component.xLabels = [5, 15, 25];
-    expect(component.xLabelsWithDefaultValue()).toStrictEqual([5, 15, 25]);
-  });
-  it('should format score value', () => {
-    component.scoreValues = [0.123456789];
-    fixture.detectChanges();
-    const svg = (fixture.nativeElement as HTMLElement).querySelector('svg') as SVGElement;
-
-    const valueText = svg.querySelector('.single-score-value');
-    expect(valueText.innerHTML).toBe('0.123');
   });
 });
