@@ -162,6 +162,8 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   }
 
   public isConfigValid(): void {
+    this.unselectPublicPipeline();
+
     this.jobsService.validateJobConfig(this.currentPipelineText).pipe(
       take(1)
     ).subscribe((errorReason: string) => {
@@ -172,6 +174,13 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
         this.emitIsConfigValid.emit(false);
       }
     });
+  }
+
+  private unselectPublicPipeline(): void {
+    if (this.selectedPipeline && this.selectedPipeline.type === 'default' && this.isPipelineChanged()) {
+      this.selectedPipeline = null;
+      this.dropdownControl.setValue('');
+    }
   }
 
   public onPipelineClick(pipeline: Pipeline): void {
