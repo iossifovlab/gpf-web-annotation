@@ -3,6 +3,7 @@ import json
 from typing import Any, cast
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
+from channels.layers import InMemoryChannelLayer
 
 from web_annotation.models import User
 
@@ -28,6 +29,17 @@ class AnnotationStateConsumer(WebsocketConsumer):
     def disconnect(self, code: Any) -> None:
         async_to_sync(self.channel_layer.group_discard)(
             self.user_id, self.channel_name)
+
+        user = self.get_user()
+        channel_count = len(
+            cast(
+                InMemoryChannelLayer,
+                self.channel_layer,
+            ).groups.get(self.user_id, {}),
+        )
+        if not user.is_authenticated and channel_count == 0:
+            user.delete_jobs()
+            user.delete_pipelines()
 
     def annotation_notify(self, event: Any) -> None:
         self.send(

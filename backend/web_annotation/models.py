@@ -128,6 +128,22 @@ class User(BaseUser, AbstractUser):
         )
         return list(jobs)
 
+    def delete_jobs(self) -> None:
+        """Get user's jobs."""
+        jobs = self.job_class.objects.filter(
+            owner=self.as_owner,
+        )
+        for job in jobs:
+            job.deactivate()
+
+    def delete_pipelines(self) -> None:
+        """Delete user pipelines."""
+        pipelines = Pipeline.objects.filter(
+            owner=self.as_owner,
+        )
+        for pipeline in pipelines:
+            pipeline.remove()
+
     def can_create(self) -> bool:
         """Check if a user is not limited by the daily quota."""
         if self.is_superuser:
@@ -200,6 +216,22 @@ class WebAnnotationAnonymousUser(BaseUser, AnonymousUser):
             owner=self.as_owner,
         )
         return list(jobs)
+
+    def delete_jobs(self) -> None:
+        """Get user's jobs."""
+        jobs = self.job_class.objects.filter(
+            owner=self.as_owner,
+        )
+        for job in jobs:
+            job.delete()
+
+    def delete_pipelines(self) -> None:
+        """Delete user pipelines."""
+        pipelines = AnonymousPipeline.objects.filter(
+            owner=self.as_owner,
+        )
+        for pipeline in pipelines:
+            pipeline.remove()
 
     def can_create(self) -> bool:
         """Check if a anonymous user is not limited by the daily quota."""
@@ -300,15 +332,24 @@ class BaseJob(models.Model):
     disk_size = models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
 
-    def deactivate(self) -> None:
-        """Diactivate a job and clean its resources."""
-        self.is_active = False
+    def _cleanup_files(self) -> None:
+        """Clean up job files."""
         os.remove(self.input_path)
         os.remove(self.config_path)
         if pathlib.Path(self.result_path).exists():
             os.remove(self.result_path)
+
+    def deactivate(self) -> None:
+        """Diactivate a job and clean its resources."""
+        self.is_active = False
+        self._cleanup_files()
         self.disk_size = 0
         self.save()
+
+    def delete(self, *args: Any, **kwargs: Any) -> tuple[int, dict[str, int]]:
+        """Delete a job and its resources."""
+        self._cleanup_files()
+        return super().delete(*args, **kwargs)
 
     class Meta:  # pylint: disable=too-few-public-methods
         """Meta class for verification model."""

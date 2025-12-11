@@ -2104,3 +2104,81 @@ async def test_annotate_anonymous_notifications(
         "job_id": job_id,
         "status": Job.Status.SUCCESS.value,
     }
+
+
+@pytest.mark.asyncio
+@pytest.mark.django_db(transaction=True)
+async def test_clean_up_anonymous_jobs(
+    anonymous_client: Client, mocker: MockerFixture,
+) -> None:
+    cache = LRUPipelineCache(16)
+    mocker.patch(
+        "web_annotation.jobs"
+        ".views.AnnotateVCF.lru_cache",
+        new=cache,
+    )
+    session = await anonymous_client.asession()
+    assert session.session_key is not None
+    user = WebAnnotationAnonymousUser(session.session_key, ip="test")
+
+    # Create two websocket connections for the same anonymous user
+    first_communicator = CustomWebsocketCommunicator(
+        AnnotationStateConsumer.as_asgi(),
+        "/ws/test/", user=user,
+        session=session,
+    )
+    second_communicator = CustomWebsocketCommunicator(
+        AnnotationStateConsumer.as_asgi(),
+        "/ws/test/", user=user,
+        session=session,
+    )
+
+    first_connected, _ = await first_communicator.connect(timeout=1000)
+    assert first_connected
+    second_connected, _ = await second_communicator.connect(timeout=1000)
+    assert second_connected
+
+    assert await sync_to_async(AnonymousPipeline.objects.count)() == 0
+    assert await sync_to_async(user.job_class.objects.count)() == 0
+
+    # Create anonymous pipeline and job
+    pipeline_response = await sync_to_async(anonymous_client.post)(
+        "/api/pipelines/user",
+        { "config": ContentFile("- position_score: scores/pos1")},
+    )
+    assert pipeline_response is not None
+    assert pipeline_response.status_code == 200
+
+    annotate_response = await sync_to_async(anonymous_client.post)(
+        "/api/jobs/annotate_columns",
+        {
+            "pipeline_id": pipeline_response.json()["id"],
+            "data": ContentFile(
+                "chrom,pos,ref,alt\n" + "\n".join(
+                    f"chr1,{i},A,T" for i in range(1, 50)
+                ),
+                "test_input.tsv",
+            ),
+            "col_chrom": "chrom",
+            "col_pos": "pos",
+            "col_ref": "ref",
+            "col_alt": "alt",
+        }
+    )
+    assert annotate_response.status_code == 200
+
+    # Check that pipeline and job are created
+    assert await sync_to_async(AnonymousPipeline.objects.count)() == 1
+    assert await sync_to_async(user.job_class.objects.count)() == 1
+
+    await first_communicator.disconnect(timeout=1000)
+
+    # Check that pipeline and job are still present
+    assert await sync_to_async(AnonymousPipeline.objects.count)() == 1
+    assert await sync_to_async(user.job_class.objects.count)() == 1
+
+    await second_communicator.disconnect(timeout=1000)
+
+    # Check that pipeline and job are cleaned up after all connections closed
+    assert await sync_to_async(AnonymousPipeline.objects.count)() == 0
+    assert await sync_to_async(user.job_class.objects.count)() == 0
