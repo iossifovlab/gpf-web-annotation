@@ -54,7 +54,7 @@ class UserServiceMock {
     limitations: {
       dailyJobs: 5,
       filesize: '64M',
-      jobsLeft: 4,
+      todayJobsCount: 4,
       variantCount: 1000,
       diskSpace: '1000'
     }

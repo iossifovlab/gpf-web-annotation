@@ -12,7 +12,7 @@ export interface UserData {
   limitations: {
     dailyJobs: number;
     filesize: string;
-    jobsLeft: number;
+    todayJobsCount: number;
     variantCount: number;
     diskSpace: string;
   }

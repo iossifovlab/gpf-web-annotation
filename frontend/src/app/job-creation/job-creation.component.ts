@@ -34,7 +34,7 @@ export class JobCreationComponent implements OnInit {
   public userLimitations: {
       dailyJobs: number;
       filesize: string;
-      jobsLeft: number;
+      todayJobsCount: number;
       variantCount: number;
       diskSpace: string;
   } = null;
@@ -51,7 +51,7 @@ export class JobCreationComponent implements OnInit {
       this.userLimitations = userData ? userData.limitations : {
         dailyJobs: 5,
         filesize: '10MB',
-        jobsLeft: 5,
+        todayJobsCount: 0,
         variantCount: 5,
         diskSpace: '10'
       };

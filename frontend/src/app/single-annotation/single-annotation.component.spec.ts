@@ -29,7 +29,7 @@ const mockUser: UserData = {
   limitations: {
     dailyJobs: 10,
     filesize: '10MB',
-    jobsLeft: 10,
+    todayJobsCount: 10,
     variantCount: 20,
     diskSpace: '100'
   }

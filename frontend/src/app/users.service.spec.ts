@@ -81,7 +81,7 @@ describe('UsersService', () => {
       limitations: {
         dailyJobs: 5,
         filesize: '30M',
-        jobsLeft: 4,
+        todayJobsCount: 4,
         variantCount: 100,
       }
     } as UserData;
@@ -114,7 +114,7 @@ describe('UsersService', () => {
       limitations: {
         dailyJobs: 5,
         filesize: '30M',
-        jobsLeft: 4,
+        todayJobsCount: 4,
         variantCount: 100,
       }
     } as UserData;
