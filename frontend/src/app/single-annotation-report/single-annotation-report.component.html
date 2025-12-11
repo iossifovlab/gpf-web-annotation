@@ -51,10 +51,6 @@
             <div *ngIf="showFullReport" class="attribute-source">source: {{ attribute.source }}</div>
           </div>
           <div class="attribute-result">
-            <app-histogram-wrapper
-              *ngIf="attribute.result.histogramLink"
-              [histogramUrl]="attribute.result.histogramLink"
-              [value]="attribute.result.value"></app-histogram-wrapper>
             <div
               class="value-result"
               [ngStyle]="{ 'margin-top': showFullReport ? '20px' : '0' }"
@@ -71,6 +67,10 @@
                 [rawEffectDetails]="attribute.result.value.toString()"
                 [source]="attribute.source"></app-effect-table>
             </div>
+            <app-histogram-wrapper
+              *ngIf="showFullReport && attribute.result.histogramLink"
+              [histogramUrl]="attribute.result.histogramLink"
+              [value]="attribute.result.value"></app-histogram-wrapper>
           </div>
         </div>
       </div>
