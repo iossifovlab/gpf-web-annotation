@@ -218,3 +218,11 @@
 .unloaded {
   color: red;
 }
+
+.dropdown-icon {
+  vertical-align: middle;
+  color: #5b778c;
+  cursor: pointer;
+  margin-left: -35px;
+  user-select: none;
+}

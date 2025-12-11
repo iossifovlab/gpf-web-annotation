@@ -6,9 +6,11 @@
       [title]="selectedPipeline ? selectedPipeline.id : ''"
       id="pipelines-input"
       matInput
+      #pipelineInput="matAutocompleteTrigger"
       [matAutocomplete]="pipelinesDropdown"
       [formControl]="dropdownControl"
       (click)="clearPipeline()" />
+    <span (click)="pipelineInput.openPanel()" class="material-symbols-outlined dropdown-icon">keyboard_arrow_down</span>
 
     <span *ngIf="lastNotification" id="socket-notification">
       <span [ngClass]="lastNotification.status" class="material-symbols-outlined pipeline-status-icon"
