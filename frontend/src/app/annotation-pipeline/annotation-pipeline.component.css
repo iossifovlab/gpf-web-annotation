@@ -226,3 +226,10 @@
   margin-left: -35px;
   user-select: none;
 }
+
+::ng-deep .mat-mdc-optgroup-label {
+  background-color: #f4f7fb;
+  min-height: 28px !important;
+  font-weight: bold !important;
+  color: #435869 !important;
+}

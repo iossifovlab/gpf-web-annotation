@@ -3,7 +3,7 @@ export class Pipeline {
     public id: string,
     public name: string,
     public content: string,
-    public type: string
+    public type: 'user' | 'default',
   ) {}
 
   public static fromJsonArray(jsonArray: object[]): Pipeline[] {
@@ -22,7 +22,7 @@ export class Pipeline {
       (json['id'] as number).toString(),
       json['name'] as string,
       json['content'] as string,
-      json['type'] as string
+      json['type'] as 'user' | 'default'
     );
   }
 }

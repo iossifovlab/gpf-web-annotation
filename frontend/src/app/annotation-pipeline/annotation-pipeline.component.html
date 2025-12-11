@@ -20,20 +20,26 @@
   </div>
 
   <mat-autocomplete #pipelinesDropdown="matAutocomplete">
-    <mat-option
-      *ngFor="let pipeline of filteredPipelines"
-      class="pipeline-option"
-      (click)="onPipelineClick(pipeline)"
-      (onSelectionChange)="onPipelineClick(pipeline)"
-      [title]="pipeline.name"
-      [value]="pipeline.name">
-      {{ pipeline.name }}
-      <span *ngIf="lastNotification && pipeline.id === lastNotification.pipelineId" id="socket-notification">
-        <span [ngClass]="lastNotification.status" class="material-symbols-outlined pipeline-status-icon"
-          >circle</span
-        ></span
-      >
-    </mat-option>
+    @for (group of ['default', 'user']; track group) {
+    <mat-optgroup [label]="group === 'user' ? 'User pipelines' : 'Public pipelines'">
+      @for (pipeline of filteredPipelines; track pipeline) {
+      <mat-option
+        *ngIf="pipeline.type === group"
+        class="pipeline-option"
+        (click)="onPipelineClick(pipeline)"
+        (onSelectionChange)="onPipelineClick(pipeline)"
+        [title]="pipeline.name"
+        [value]="pipeline.name">
+        {{ pipeline.name }}
+        <span *ngIf="lastNotification && pipeline.id === lastNotification.pipelineId" id="socket-notification">
+          <span [ngClass]="lastNotification.status" class="material-symbols-outlined pipeline-status-icon"
+            >circle</span
+          ></span
+        >
+      </mat-option>
+      }
+    </mat-optgroup>
+    }
   </mat-autocomplete>
 
   <ngx-monaco-editor
