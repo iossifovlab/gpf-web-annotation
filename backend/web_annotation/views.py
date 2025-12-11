@@ -27,12 +27,10 @@ from web_annotation.utils import (
     PasswordForgottenForm,
     ResetPasswordForm,
     bytes_to_readable,
-    calculate_anonymous_used_disk_space,
     calculate_used_disk_space,
     check_request_verification_path,
     convert_size,
     deauthenticate,
-    get_ip_from_request,
     reset_password,
     verify_user,
 )
@@ -40,9 +38,7 @@ from web_annotation.utils import (
 
 from .models import (
     AccountConfirmationCode,
-    AnonymousJob,
     BaseVerificationCode,
-    Job,
     ResetPasswordCode,
     User,
 )
@@ -85,73 +81,41 @@ class UserInfo(views.APIView):
             return None
         return cast(int, settings.QUOTAS["variant_count"])
 
-    def get_user_jobs_left(self, user: User) -> int | None:
-        """Return the number of jobs left for a user today."""
-        if user.is_superuser:
-            return None
+    def get_today_jobs_count(self, user: User) -> int:
+        """Return the number of jobs a user created today."""
         today = timezone.now().replace(
             hour=0, minute=0, second=0, microsecond=0)
-        jobs_made = Job.objects.filter(
-            created__gte=today, owner__exact=user.pk)
-        daily_limit = cast(int, settings.QUOTAS["daily_jobs"])
-        return max(0, daily_limit - len(jobs_made))
-
-    def get_anonymous_user_jobs_left(self, user_ip: str) -> int | None:
-        """Return the number of jobs left for a user today."""
-        today = timezone.now().replace(
-            hour=0, minute=0, second=0, microsecond=0)
-        jobs_made = AnonymousJob.objects.filter(
-            created__gte=today, owner__exact=user_ip)
-        daily_limit = cast(int, settings.QUOTAS["daily_jobs"])
-        return max(0, daily_limit - len(jobs_made))
+        jobs_count = user.job_class.objects.filter(
+            created__gte=today,
+            owner__exact=user.pk,
+        ).count()
+        return jobs_count
 
     def get(self, request: Request) -> Response:
         """Get a user's info and limitations."""
         user = request.user
-        limitations = {
-            "dailyJobs": self.get_user_daily_limit(user),
-            "filesize": self.get_user_filesize_limit(user),
-            "variantCount": self.get_user_variant_limit(user),
-            "jobsLeft": self.get_user_jobs_left(user),
+        info = {
+            "loggedIn": False,
+            "email": None,
+            "limitations": {
+                "dailyJobs": self.get_user_daily_limit(user),
+                "filesize": self.get_user_filesize_limit(user),
+                "variantCount": self.get_user_variant_limit(user),
+                "todayJobsCount": self.get_today_jobs_count(user),
+                "diskSpace": (
+                    f"{bytes_to_readable(
+                        calculate_used_disk_space(user)
+                    )} "
+                    f"/ {bytes_to_readable(
+                        convert_size(str(settings.QUOTAS["disk_space"])))}"
+                ),
+            }
         }
-        if not user.is_authenticated:
-            user_ip = get_ip_from_request(request)
-            return Response(
-                {
-                    "loggedIn": False,
-                    "limitations": {
-                        **limitations,
-                        "jobsLeft": self.get_anonymous_user_jobs_left(user_ip),
-                        "diskSpace": (
-                            f"{bytes_to_readable(
-                                calculate_anonymous_used_disk_space(user_ip)
-                            )} "
-                            f"/ {bytes_to_readable(
-                                convert_size(str(settings.QUOTAS["disk_space"])))}"
-                        ),
-                    },
-                },
-                views.status.HTTP_200_OK,
-            )
+        if user.is_authenticated:
+            info["loggedIn"] = True
+            info["email"] = user.email
 
-        return Response(
-            {
-                "loggedIn": True,
-                "email": user.email,
-                "limitations": {
-                    **limitations,
-                    "jobsLeft": self.get_user_jobs_left(user),
-                    "diskSpace": (
-                        f"{bytes_to_readable(
-                            calculate_used_disk_space(user)
-                        )} "
-                        f"/ {bytes_to_readable(
-                            convert_size(str(settings.QUOTAS["disk_space"])))}"
-                    ),
-                },
-            },
-            views.status.HTTP_200_OK,
-        )
+        return Response(info, views.status.HTTP_200_OK)
 
 
 class Logout(views.APIView):

@@ -442,7 +442,7 @@ def test_get_user_info(user_client: Client, settings: LazySettings) -> None:
             "dailyJobs": 5,
             "filesize": "64M",
             "variantCount": 1000,
-            "jobsLeft": 4,
+            "todayJobsCount": 1,
             "diskSpace": "10.0 MB / 2.0 GB",
         }
     }
@@ -454,11 +454,12 @@ def test_get_user_info_unauthorized(anonymous_client: Client) -> None:
     assert response.status_code == 200
     assert response.json() == {
         "loggedIn": False,
+        "email": None,
         'limitations': {
             'dailyJobs': 5,
             'diskSpace': '0.1 KB / 2.0 GB',
             'filesize': '64M',
-            'jobsLeft': 5,
+            'todayJobsCount': 0,
             'variantCount': 1000,
         },
     }

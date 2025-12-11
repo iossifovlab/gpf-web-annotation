@@ -14,11 +14,10 @@ from rest_framework.request import Request
 
 from web_annotation.models import (
     AccountConfirmationCode,
-    AnonymousJob,
     BaseVerificationCode,
-    Job,
     ResetPasswordCode,
     User,
+    WebAnnotationAnonymousUser,
 )
 from web_annotation.mail import send_email
 
@@ -289,27 +288,12 @@ def convert_size(filesize: str | int) -> int:
     return int(filesize)
 
 
-def calculate_used_disk_space(user: User) -> int:
+def calculate_used_disk_space(user: User | WebAnnotationAnonymousUser) -> int:
     """Calculate used job disk space for a user."""
-    user_jobs = Job.objects.filter(
-        owner=user,
-    )
+    user_jobs = user.get_jobs()
     used_disk_space = reduce(
         lambda x, y: x + y,
         [int(job.disk_size) for job in user_jobs],
-        0,
-    )
-    return used_disk_space
-
-
-def calculate_anonymous_used_disk_space(user_ip: str) -> int:
-    """Calculate used job disk space for a user."""
-    anonymous_user_jobs = AnonymousJob.objects.filter(
-        owner=user_ip,
-    )
-    used_disk_space = reduce(
-        lambda x, y: x + y,
-        [int(job.disk_size) for job in anonymous_user_jobs],
         0,
     )
     return used_disk_space

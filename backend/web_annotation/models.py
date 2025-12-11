@@ -121,6 +121,13 @@ class User(BaseUser, AbstractUser):
         )
         return job
 
+    def get_jobs(self) -> list[Job]:
+        """Get user's jobs."""
+        jobs = self.job_class.objects.filter(
+            owner=self.as_owner,
+        )
+        return list(jobs)
+
     def can_create(self) -> bool:
         """Check if a user is not limited by the daily quota."""
         if self.is_superuser:
@@ -186,6 +193,13 @@ class WebAnnotationAnonymousUser(BaseUser, AnonymousUser):
             **kwargs,
         )
         return job
+
+    def get_jobs(self) -> list[AnonymousJob]:
+        """Get user's jobs."""
+        jobs = self.job_class.objects.filter(
+            owner=self.as_owner,
+        )
+        return list(jobs)
 
     def can_create(self) -> bool:
         """Check if a anonymous user is not limited by the daily quota."""
