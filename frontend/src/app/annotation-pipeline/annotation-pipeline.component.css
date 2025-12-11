@@ -234,3 +234,43 @@
   font-weight: bold !important;
   color: #435869 !important;
 }
+
+#confirmation-popover {
+  padding: 15px;
+  border: 1.5px solid #5b778c;
+  position: absolute;
+  border-radius: 15px;
+  left: 225px;
+}
+
+#confirm-delete {
+  padding: 8px 10px;
+  font-size: 16px;
+  white-space: nowrap;
+  border: none;
+  background: #d74b59;
+  border-radius: 10px;
+  color: white;
+  margin-left: 10px;
+  float: right;
+}
+
+#cancel-delete {
+  padding: 8px 10px;
+  font-size: 16px;
+  white-space: nowrap;
+  border: 1px solid #cfd8df;
+  background: #fff;
+  border-radius: 10px;
+  float: right;
+}
+
+#confirm-delete:hover {
+  background: #eb8b94;
+  cursor: pointer;
+}
+
+#cancel-delete:hover {
+  background: #f4f7fb;
+  cursor: pointer;
+}

@@ -22,7 +22,7 @@
   <mat-autocomplete #pipelinesDropdown="matAutocomplete">
     @for (group of ['default', 'user']; track group) {
     <mat-optgroup [label]="group === 'user' ? 'User pipelines' : 'Public pipelines'">
-      @for (pipeline of filteredPipelines; track pipeline) {
+      @for (pipeline of filteredPipelines; track pipeline.id) {
       <mat-option
         *ngIf="pipeline.type === group"
         class="pipeline-option"
@@ -69,9 +69,20 @@
       [disabled]="!isPipelineChanged() || configError"
       ><span class="material-symbols-outlined save-icon">save</span>Save</button
     >
+
+    @if(showConfimDeletePopup) {
+    <div id="confirmation-popover">
+      <p>Are you sure you want to delete the pipeline?</p>
+      <div>
+        <button id="confirm-delete" (click)="delete()">Delete</button>
+        <button id="cancel-delete" (click)="showConfimDeletePopup = false">Cancel</button>
+      </div>
+    </div>
+    }
+
     <button
       *ngIf="isUserLoggedIn && selectedPipeline && selectedPipeline.type === 'user'"
-      (click)="delete()"
+      (click)="confirmDeletePipeline()"
       id="delete-button"
       ><span class="material-symbols-outlined delete-icon">delete</span>Delete</button
     >
