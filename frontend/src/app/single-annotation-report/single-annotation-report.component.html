@@ -75,29 +75,7 @@
         </div>
       </div>
 
-      <div *ngIf="showFullReport" class="annotator-details">
-        <div>
-          <div class="annotator-label"
-            ><span class="annotator-header">{{ annotator.details.name }}</span></div
-          >
-          <markdown class="annotator-description">{{ annotator.details.description }}</markdown>
-        </div>
-
-        <div *ngIf="annotator.details.resources.length" class="resources">
-          <div *ngFor="let resource of annotator.details.resources" class="resource">
-            <div class="resource-label">Resource</div>
-            <div
-              ><span class="id-label">id: </span>
-              <a target="_blank" [href]="resource.resourceUrl" class="annotator-resource">{{
-                resource.resourceId
-              }}</a></div
-            >
-          </div>
-        </div>
-      </div>
-
-      <div *ngIf="!showFullReport" id="compact-report">
-        <span class="annotator-header">{{ annotator.details.name }}</span>
+      <div id="compact-report">
         <span class="material-symbols-outlined info-icon" (click)="showInfo(annotator)">info</span>
 
         <ng-template #infoModal let-annotator>
