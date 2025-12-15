@@ -10,19 +10,19 @@ import { Pipeline } from './pipelines';
 const jobsMockJson = [
   {
     id: 1, name: 1, created: '1.10.2025', owner: 'test@email.com',
-    status: 2, duration: 4.7, result_filename: 'job-file.txt', size: '10 KB', error: ''
+    status: 'in process', duration: 4.7, result_filename: 'job-file.txt', size: '10 KB', error: ''
   },
   {
     id: 2, name: 2, created: '1.10.2025', owner: 'test@email.com',
-    status: 4, duration: 2.5, result_filename: 'job-file.txt', size: '10 KB', error: ''
+    status: 'failed', duration: 2.5, result_filename: 'job-file.txt', size: '10 KB', error: ''
   },
   {
     id: 3, name: 3, created: '1.10.2025', owner: 'test@email.com',
-    status: 3, duration: 2.3, result_filename: 'job-file.txt', size: '10 KB', error: ''
+    status: 'success', duration: 2.3, result_filename: 'job-file.txt', size: '10 KB', error: ''
   },
   {
     id: 4, name: 4, created: '1.10.2025', owner: 'test@email.com',
-    status: 1, duration: 1.9, result_filename: 'job-file.txt', size: '10 KB', error: ''
+    status: 'waiting', duration: 1.9, result_filename: 'job-file.txt', size: '10 KB', error: ''
   },
 ];
 /* eslint-enable */
@@ -274,7 +274,7 @@ describe('JobsService', () => {
         id: 16,
         name: 16,
         created: '2025-08-26',
-        status: 1,
+        status: 'waiting',
         owner: 'register@email.com',
         duration: 3.3,
         // eslint-disable-next-line camelcase
