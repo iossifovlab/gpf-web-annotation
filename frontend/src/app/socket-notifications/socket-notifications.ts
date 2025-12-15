@@ -11,17 +11,9 @@ export class JobNotification {
       return undefined;
     }
 
-    let status: JobStatus = null;
-    switch (json['status']) {
-      case 1: status = 'waiting'; break;
-      case 2: status = 'in process'; break;
-      case 3: status = 'success'; break;
-      case 4: status = 'failed'; break;
-    }
-
     return new JobNotification(
       json['job_id'] as number,
-      status,
+      json['status'] as JobStatus,
     );
   }
 }
