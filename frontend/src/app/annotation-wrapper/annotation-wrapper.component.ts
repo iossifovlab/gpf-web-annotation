@@ -1,6 +1,6 @@
 import { Component, ViewChild, OnInit, OnDestroy, NgZone} from '@angular/core';
 import { JobsTableComponent } from '../jobs-table/jobs-table.component';
-import { Observable, take } from 'rxjs';
+import { Observable, take, Subscription } from 'rxjs';
 import { JobsService } from '../job-creation/jobs.service';
 import { AnnotationPipelineComponent } from '../annotation-pipeline/annotation-pipeline.component';
 import { getStatusClassName, Job, JobStatus } from '../job-creation/jobs';
@@ -47,6 +47,7 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
   public hideComponents = false;
   public hideHistory = false;
   public isUserLoggedIn = false;
+  public blockCreate: boolean = false;
 
 
   public constructor(
@@ -113,7 +114,13 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
   private create(): void {
     if (this.file) {
       let createObservable: Observable<number>;
-      if (this.file.type !== 'text/vcard') {
+      if (this.file.type === 'text/vcard') {
+        createObservable = this.jobsService.createVcfJob(
+          this.file,
+          this.pipelineId,
+          this.selectedGenome,
+        );
+      } else {
         createObservable = this.jobsService.createNonVcfJob(
           this.file,
           this.pipelineId,
@@ -121,20 +128,18 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
           this.fileSeparator,
           this.fileHeader
         );
-      } else if (this.file.type === 'text/vcard') {
-        createObservable = this.jobsService.createVcfJob(
-          this.file,
-          this.pipelineId,
-          this.selectedGenome,
-        );
       }
 
+      this.blockCreate = true;
       createObservable.pipe(
         take(1),
       ).subscribe({
         next: (jobId: number) => {
           this.isCreationFormVisible = false;
           this.currentJobId = jobId;
+        },
+        complete: () => {
+          this.blockCreate = false;
         },
         error: (err: Error) => {
           this.creationError = err.message;
@@ -225,7 +230,8 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
   }
 
   public disableCreate(): boolean {
-    return !this.file
+    return this.blockCreate
+      || !this.file
       || (this.file.type !== 'text/vcard' && !this.fileHeader)
       || !this.isConfigValid
       || (this.file.type !== 'text/vcard' && !this.isGenomeValid());
