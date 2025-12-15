@@ -120,7 +120,7 @@ class JobDetail(AnnotationBaseView):
             "created": str(job.created),
             "duration": job.duration,
             "command_line": job.command_line,
-            "status": job.status,
+            "status": Job.Status(job.status).name.lower(),
             "result_filename": Path(job.result_path).name,
             "error": job.error,
             "size": bytes_to_readable(int(job.disk_size)),
