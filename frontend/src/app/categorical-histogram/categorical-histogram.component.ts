@@ -3,11 +3,10 @@ import { CategoricalHistogram } from '../single-annotation';
 import { CommonModule } from '@angular/common';
 import * as d3 from 'd3';
 import { cloneDeep } from 'lodash';
-import { TextShortenPipe } from '../text-shorten.pipe';
 
 @Component({
   selector: 'app-categorical-histogram',
-  imports: [CommonModule, TextShortenPipe],
+  imports: [CommonModule],
   templateUrl: './categorical-histogram.component.html',
   styleUrl: './categorical-histogram.component.css'
 })

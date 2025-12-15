@@ -1,6 +1,6 @@
 import { Component, ViewChild, OnInit, OnDestroy, NgZone} from '@angular/core';
 import { JobsTableComponent } from '../jobs-table/jobs-table.component';
-import { Observable, take, Subscription } from 'rxjs';
+import { Observable, take } from 'rxjs';
 import { JobsService } from '../job-creation/jobs.service';
 import { AnnotationPipelineComponent } from '../annotation-pipeline/annotation-pipeline.component';
 import { getStatusClassName, Job, JobStatus } from '../job-creation/jobs';
