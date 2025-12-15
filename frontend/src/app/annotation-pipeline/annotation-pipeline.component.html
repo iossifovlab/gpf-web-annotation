@@ -11,12 +11,6 @@
       [formControl]="dropdownControl"
       (click)="clearPipeline()" />
     <span (click)="pipelineInput.openPanel()" class="material-symbols-outlined dropdown-icon">keyboard_arrow_down</span>
-
-    <span *ngIf="lastNotification" id="socket-notification">
-      <span [ngClass]="lastNotification.status" class="material-symbols-outlined pipeline-status-icon"
-        >circle</span
-      ></span
-    >
   </div>
 
   <mat-autocomplete #pipelinesDropdown="matAutocomplete">
@@ -45,8 +39,9 @@
   <ngx-monaco-editor
     #pipelineEditor
     id="pipeline-editor"
-    [ngClass]="{ 'invalid-config': configError }"
-    [ngStyle]="{ width: setEditorMaxSize ? '95vw' : '40vw', height: setEditorMaxSize ? '70vh' : '40vh' }"
+    [ngClass]="[configError ? 'invalid-config' : '', lastNotification ? lastNotification.status : '']"
+    [style.width]="editorWidth()"
+    [style.height]="editorHeight()"
     [options]="yamlEditorOptions"
     (onInit)="onEditorInit()"
     [(ngModel)]="currentPipelineText"
@@ -88,10 +83,10 @@
     >
   </div>
   <div>
-    <button *ngIf="isFullScreen" (click)="shrinkTextarea()" id="shrink-button"
+    <button *ngIf="displayResetScreenButton" (click)="shrinkTextarea()" id="shrink-button"
       ><span class="material-symbols-outlined shrink-icon">close_fullscreen</span>Reset</button
     >
-    <button *ngIf="!isFullScreen" (click)="expandTextarea()" id="expand-button"
+    <button *ngIf="displayFullScreenButton" (click)="expandTextarea()" id="expand-button"
       ><span class="material-symbols-outlined expand-icon">open_in_full</span>Full screen</button
     >
   </div>

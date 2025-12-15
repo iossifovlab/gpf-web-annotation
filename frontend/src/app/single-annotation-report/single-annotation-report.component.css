@@ -139,7 +139,11 @@ hr {
 }
 
 .attributes {
-  width: 55vw;
+  width: 100%;
+}
+
+.attribute-result {
+  width: 60%;
 }
 
 .value-result {
@@ -148,7 +152,6 @@ hr {
   font-size: 18px;
   font-weight: bold;
   color: #435869;
-  width: 20vw;
 }
 
 a {

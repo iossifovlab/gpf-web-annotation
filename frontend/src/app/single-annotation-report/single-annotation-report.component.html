@@ -44,7 +44,7 @@
   <div id="annotators">
     <div *ngFor="let annotator of report.annotators" class="annotator">
       <div class="attributes">
-        <div *ngFor="let attribute of annotator.attributes" class="attribute-container" style="width: 100%">
+        <div *ngFor="let attribute of annotator.attributes" class="attribute-container">
           <div class="attribute">
             <div class="attribute-header">{{ attribute.name }}</div>
             <div *ngIf="showFullReport" class="attribute-description">{{ attribute.description }}</div>
