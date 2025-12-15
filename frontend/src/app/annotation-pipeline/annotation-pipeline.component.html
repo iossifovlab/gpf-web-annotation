@@ -82,10 +82,10 @@
     >
   </div>
   <div>
-    <button *ngIf="isFullScreen" (click)="shrinkTextarea()" id="shrink-button"
+    <button *ngIf="displayResetScreenButton" (click)="shrinkTextarea()" id="shrink-button"
       ><span class="material-symbols-outlined shrink-icon">close_fullscreen</span>Reset</button
     >
-    <button *ngIf="!isFullScreen" (click)="expandTextarea()" id="expand-button"
+    <button *ngIf="displayFullScreenButton" (click)="expandTextarea()" id="expand-button"
       ><span class="material-symbols-outlined expand-icon">open_in_full</span>Full screen</button
     >
   </div>

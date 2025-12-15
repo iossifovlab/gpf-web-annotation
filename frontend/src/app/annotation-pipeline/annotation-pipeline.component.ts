@@ -52,7 +52,8 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   @ViewChild('pipelineEditor') public pipelineEditorRef: EditorComponent;
   public resizeObserver: ResizeObserver = null;
   public yamlEditorOptions = {};
-  public isFullScreen = false;
+  public displayFullScreenButton = true;
+  public displayResetScreenButton = false;
   public setEditorMaxSize = false;
   @Output() public tiggerHidingComponents = new EventEmitter<boolean>();
   public isUserLoggedIn = false;
@@ -117,12 +118,19 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
 
   private isEditorMaximized(editorElement: HTMLElement): boolean {
     // editor's max-width is 95% of window width
-    if (editorElement.clientWidth === Math.ceil(window.innerWidth * 0.95)) {
+    if (editorElement.clientWidth === Math.round(window.innerWidth * 0.95)) {
       this.expandTextarea();
       return true;
-    } else {
-      this.isFullScreen = false;
-      return false;
+    }
+    return false;
+  }
+
+  private resolveResizeButtonsVisibility(editorElement: HTMLElement): void {
+    const maxWidth = Math.round(window.innerWidth * 0.95);
+    const minWidth = Math.round(window.innerWidth * 0.40);
+    if (editorElement.clientWidth < maxWidth && editorElement.clientWidth > minWidth) {
+      this.displayFullScreenButton = true;
+      this.displayResetScreenButton = true;
     }
   }
 
@@ -135,6 +143,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
         this.showParentComponents();
       }
     }
+    this.resolveResizeButtonsVisibility(editorElement);
   }
 
   private getPipelines(defaultPipelineId: string = ''): void {
