@@ -97,8 +97,15 @@ describe('SingleAnnotationReportComponent', () => {
     const savedBlob = saveAsSpy.mock.calls[0][0] as Blob;
 
     const savedText = await savedBlob.text();
-    const expectedText = 'Attribute name\tValue\nallele\tchr14 204000100 A AA\n\n'
-      + 'attr1\ttrue\nattr2\t13\nattr3\tmock_value\nattr4\tfo:5;po:3\n';
+    const expectedText = 'Attribute name\tValue\n'
+      + 'chromosome\tchr14\n'
+      + 'position\t204000100\n'
+      + 'reference\tA\n'
+      + 'alternative\tAA\n'
+      + 'attr1\ttrue\n'
+      + 'attr2\t13\n'
+      + 'attr3\tmock_value\n'
+      +'attr4\tfo:5;po:3\n';
     expect(savedText).toBe(expectedText);
   });
 });

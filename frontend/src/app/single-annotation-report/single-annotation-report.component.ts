@@ -48,10 +48,10 @@ export class SingleAnnotationReportComponent {
 
     let reportLines: string = 'Attribute name\tValue\n';
 
-    const allele = `${this.report.variant.chromosome} ${this.report.variant.position} `
-      + `${this.report.variant.reference} ${this.report.variant.alternative}`;
-    reportLines += `allele\t${allele}\n`;
-    reportLines += '\n';
+    reportLines += `chromosome\t${this.report.variant.chromosome}\n`;
+    reportLines += `position\t${this.report.variant.position}\n`;
+    reportLines += `reference\t${this.report.variant.reference}\n`;
+    reportLines += `alternative\t${this.report.variant.alternative}\n`;
 
     this.report.annotators.forEach(annotator => {
       annotator.attributes.forEach(attribute => {
