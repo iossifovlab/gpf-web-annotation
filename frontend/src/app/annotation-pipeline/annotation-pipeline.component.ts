@@ -94,7 +94,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     const editorElement = this.pipelineEditorRef._editorContainer.nativeElement as HTMLElement;
 
     this.resizeObserver = new ResizeObserver(() => {
-      if (!this.isEditorMaximized(editorElement)) {
+      if (!this.isEditorMaximized(editorElement) && !this.isEditorMinimized(editorElement)) {
         this.resolveComponentsVisibility(editorElement);
       }
     });
@@ -125,10 +125,22 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     return false;
   }
 
+  private isEditorMinimized(editorElement: HTMLElement): boolean {
+    // editor's min-width is 40% of window width
+    if (editorElement.clientWidth === Math.round(window.innerWidth * 0.40)) {
+      this.shrinkTextarea();
+      return true;
+    }
+    return false;
+  }
+
   private resolveResizeButtonsVisibility(editorElement: HTMLElement): void {
     const maxWidth = Math.round(window.innerWidth * 0.95);
     const minWidth = Math.round(window.innerWidth * 0.40);
-    if (editorElement.clientWidth < maxWidth && editorElement.clientWidth > minWidth) {
+    if (
+      editorElement.clientWidth < maxWidth && editorElement.clientWidth > minWidth ||
+      editorElement.clientWidth < minWidth
+    ) {
       this.displayFullScreenButton = true;
       this.displayResetScreenButton = true;
       this.editorSize = 'custom';
