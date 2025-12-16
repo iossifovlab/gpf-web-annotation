@@ -37,12 +37,12 @@ export class Job {
   }
 }
 
-export type JobStatus = 'waiting' | 'in process' | 'success' | 'failed';
+export type JobStatus = 'waiting' | 'in progress' | 'success' | 'failed';
 
 export function getStatusClassName(status: string): string {
   switch (status) {
     case 'waiting': return 'waiting-status';
-    case 'in process': return 'in-progress-status';
+    case 'in progress': return 'in-progress-status';
     case 'success': return 'success-status';
     case 'failed': return 'fail-status';
   }

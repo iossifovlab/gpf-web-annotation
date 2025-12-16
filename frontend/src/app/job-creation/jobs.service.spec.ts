@@ -10,7 +10,7 @@ import { Pipeline } from './pipelines';
 const jobsMockJson = [
   {
     id: 1, name: 1, created: '1.10.2025', owner: 'test@email.com',
-    status: 'in process', duration: 4.7, result_filename: 'job-file.txt', size: '10 KB', error: ''
+    status: 'in progress', duration: 4.7, result_filename: 'job-file.txt', size: '10 KB', error: ''
   },
   {
     id: 2, name: 2, created: '1.10.2025', owner: 'test@email.com',
@@ -235,7 +235,7 @@ describe('JobsService', () => {
     httpGetSpy.mockReturnValue(of(jobsMockJson));
 
     const jobsMockResult = [
-      new Job(1, 1, new Date('1.10.2025'), 'test@email.com', 'in process', 4.7, 'job-file.txt', '10 KB', ''),
+      new Job(1, 1, new Date('1.10.2025'), 'test@email.com', 'in progress', 4.7, 'job-file.txt', '10 KB', ''),
       new Job(2, 2, new Date('1.10.2025'), 'test@email.com', 'failed', 2.5, 'job-file.txt', '10 KB', ''),
       new Job(3, 3, new Date('1.10.2025'), 'test@email.com', 'success', 2.3, 'job-file.txt', '10 KB', ''),
       new Job(4, 4, new Date('1.10.2025'), 'test@email.com', 'waiting', 1.9, 'job-file.txt', '10 KB', ''),
@@ -314,7 +314,7 @@ describe('JobsService', () => {
   });
 
   it('should get correct class name for in progress status', () => {
-    expect(getStatusClassName('in process')).toBe('in-progress-status');
+    expect(getStatusClassName('in progress')).toBe('in-progress-status');
   });
 
   it('should get correct class name for success status', () => {

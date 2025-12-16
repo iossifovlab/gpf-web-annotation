@@ -12,7 +12,7 @@ import { ElementRef, TemplateRef } from '@angular/core';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 
 const jobs = [
-  new Job(1, 1, new Date('1.10.2025'), 'test@email.com', 'in process', 3.2, '', '9.7 KB', ''),
+  new Job(1, 1, new Date('1.10.2025'), 'test@email.com', 'in progress', 3.2, '', '9.7 KB', ''),
   new Job(2, 2, new Date('1.10.2025'), 'test@email.com', 'failed', 2.7, '', '9.7 KB', ''),
 ];
 class JobsServiceMock {
