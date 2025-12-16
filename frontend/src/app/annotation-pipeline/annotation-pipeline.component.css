@@ -20,15 +20,19 @@
   width: 40vw;
 }
 
-.invalid-config,
-.unloaded {
+.invalid-config {
   border: 2px solid #d74b59 !important;
   box-shadow: 0 0 0 0.2rem #edbec3;
 }
 
+.unloaded {
+  border: 2px solid #c1c1c1 !important;
+  box-shadow: 0 0 0 0.2rem #ebebeb;
+}
+
 .loaded {
-  border: 2px solid  rgb(65, 128, 65) !important;
-  box-shadow: 0 0 0 0.2rem rgb(225, 250, 225);
+  border: 2px solid #77ac77 !important;
+  box-shadow: 0 0 0 0.2rem #dcebdc;
 }
 
 .loading {
