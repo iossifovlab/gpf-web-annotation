@@ -41,17 +41,18 @@
       <span class="material-symbols-outlined download-icon">download</span>
     </a>
   </div>
-
   <div>
     <span class="label">Pipeline configuration file: </span>
     <a id="download-config" [href]="configFileLink" download>
       <span class="material-symbols-outlined download-icon">download</span>
     </a>
   </div>
-
   <div>
     <span class="label">Job size: </span>
     <span class="data size">{{ job.size }}</span>
+  </div>
+  <div class="error-block" *ngIf="job.error">
+    <span class="data error">{{ job.error }}</span>
   </div>
 </mat-dialog-content>
 <mat-dialog-actions align="center" *ngIf="job">

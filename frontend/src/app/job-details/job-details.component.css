@@ -26,6 +26,17 @@
   color: #5b778c;
 }
 
+.error {
+  color: #8d6b6b;
+}
+
+.error-block {
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
+  padding: 10px;
+}
+
 .time {
   color: #c8dae7;
 }
