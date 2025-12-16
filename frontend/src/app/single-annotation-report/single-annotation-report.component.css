@@ -19,13 +19,6 @@
   border-radius: 15px;
 }
 
-#variant-header {
-  font-weight: 500;
-  color: #252e34;
-  font-size: 16px;
-  margin-top: 5px;
-}
-
 .variant-data-label {
   color: #85a2b9;
   text-align: center;
@@ -85,6 +78,10 @@ hr {
 .attribute-description,
 .id-label {
   color: #5b778c;
+}
+
+.attribute-description {
+  font-size: 14px;
 }
 
 .annotator-label {
