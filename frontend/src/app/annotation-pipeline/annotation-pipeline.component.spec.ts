@@ -15,9 +15,9 @@ import { provideMonacoEditor } from 'ngx-monaco-editor-v2';
 import { By } from '@angular/platform-browser';
 
 const mockPipelines = [
-  new Pipeline('1', 'id1', 'content1', 'default'),
-  new Pipeline('2', 'id2', 'content2', 'default'),
-  new Pipeline('3', 'id3', 'content3', 'user'),
+  new Pipeline('1', 'id1', 'content1', 'default', 'loaded'),
+  new Pipeline('2', 'id2', 'content2', 'default', 'loaded'),
+  new Pipeline('3', 'id3', 'content3', 'user', 'loaded'),
 ];
 class JobsServiceMock {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -179,7 +179,7 @@ describe('AnnotationPipelineComponent', () => {
   it('should select new pipeline and emit to parent', () => {
     const emitPipelineIdSpy = jest.spyOn(component.emitPipelineId, 'emit');
     const setDropdownValueSpy = jest.spyOn(component.dropdownControl, 'setValue');
-    component.onPipelineClick(new Pipeline('1', 'other pipeline', 'config', 'default'));
+    component.onPipelineClick(new Pipeline('1', 'other pipeline', 'config', 'default', 'loaded'));
     expect(component.selectedPipeline.id).toBe('1');
     expect(component.selectedPipeline.name).toBe('other pipeline');
     expect(component.selectedPipeline.content).toBe('config');
@@ -249,10 +249,10 @@ describe('AnnotationPipelineComponent', () => {
 
   it('should save pipeline and trigger pipelines query if new name is set', () => {
     const updatedMockPipelines = [
-      new Pipeline('1', 'id1', 'content1', 'default'),
-      new Pipeline('2', 'id2', 'content2', 'default'),
-      new Pipeline('3', 'id3', 'content3', 'default'),
-      new Pipeline('4', 'pipeline-name', 'content', 'default'),
+      new Pipeline('1', 'id1', 'content1', 'default', 'loaded'),
+      new Pipeline('2', 'id2', 'content2', 'default', 'loaded'),
+      new Pipeline('3', 'id3', 'content3', 'default', 'loaded'),
+      new Pipeline('4', 'pipeline-name', 'content', 'default', 'loaded'),
     ];
 
     const savePipelineSpy = jest.spyOn(annotationPipelineServiceMock, 'savePipeline').mockReturnValueOnce(of('4'));
@@ -265,7 +265,7 @@ describe('AnnotationPipelineComponent', () => {
     component.saveAs();
     expect(savePipelineSpy).toHaveBeenCalledWith('', 'pipeline-name', 'mock config');
     expect(getAnnotationPipelinesSpy).toHaveBeenCalledWith();
-    expect(onPipelineClickSpy).toHaveBeenCalledWith(new Pipeline('4', 'pipeline-name', 'content', 'default'));
+    expect(onPipelineClickSpy).toHaveBeenCalledWith(new Pipeline('4', 'pipeline-name', 'content', 'default', 'loaded'));
     expect(component.selectedPipeline.id).toBe('4');
   });
 
@@ -288,7 +288,7 @@ describe('AnnotationPipelineComponent', () => {
     const deletePipelineSpy = jest.spyOn(annotationPipelineServiceMock, 'deletePipeline');
     const selectNewPipelineSpy = jest.spyOn(component, 'onPipelineClick');
 
-    component.selectedPipeline = new Pipeline('1', 'name', 'content', 'type');
+    component.selectedPipeline = new Pipeline('1', 'name', 'content', 'user', 'loaded');
 
     component.delete();
     expect(deletePipelineSpy).toHaveBeenCalledWith('1');
@@ -297,9 +297,9 @@ describe('AnnotationPipelineComponent', () => {
 
   it('should save pipeline and update list with pipelines', () => {
     const updatedMockPipelines: Pipeline[] = [
-      new Pipeline('1', 'id1', 'content1', 'default'),
-      new Pipeline('2', 'id2', 'content2', 'default'),
-      new Pipeline('3', 'id3', 'new content', 'user'),
+      new Pipeline('1', 'id1', 'content1', 'default', 'loaded'),
+      new Pipeline('2', 'id2', 'content2', 'default', 'loaded'),
+      new Pipeline('3', 'id3', 'new content', 'user', 'loaded'),
     ];
 
     const savePipelineSpy = jest.spyOn(annotationPipelineServiceMock, 'savePipeline');
@@ -312,7 +312,7 @@ describe('AnnotationPipelineComponent', () => {
 
     component.save();
     expect(savePipelineSpy).toHaveBeenCalledWith('3', 'id3', 'new content');
-    expect(selectNewPipelineSpy).toHaveBeenCalledWith(new Pipeline('3', 'id3', 'new content', 'user'));
+    expect(selectNewPipelineSpy).toHaveBeenCalledWith(new Pipeline('3', 'id3', 'new content', 'user', 'loaded'));
   });
 
   it('should save pipeline and not update pipeline list when response is invalid', () => {

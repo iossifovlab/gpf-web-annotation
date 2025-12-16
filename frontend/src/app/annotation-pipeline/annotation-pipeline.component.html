@@ -24,12 +24,12 @@
         (onSelectionChange)="onPipelineClick(pipeline)"
         [title]="pipeline.name"
         [value]="pipeline.name">
-        {{ pipeline.name }}
-        <span *ngIf="lastNotification && pipeline.id === lastNotification.pipelineId" id="socket-notification">
-          <span [ngClass]="lastNotification.status" class="material-symbols-outlined pipeline-status-icon"
+        <span id="socket-notification">
+          <span [ngClass]="pipeline.status + '-circle'" class="material-symbols-outlined pipeline-status-icon"
             >circle</span
           ></span
         >
+        {{ pipeline.name }}
       </mat-option>
       }
     </mat-optgroup>
@@ -39,7 +39,7 @@
   <ngx-monaco-editor
     #pipelineEditor
     id="pipeline-editor"
-    [ngClass]="[configError ? 'invalid-config' : '', lastNotification ? lastNotification.status : '']"
+    [ngClass]="[configError ? 'invalid-config' : '', selectedPipeline ? selectedPipeline.status + '-editor' : '']"
     [style.width]="editorWidth()"
     [style.height]="editorHeight()"
     [options]="yamlEditorOptions"

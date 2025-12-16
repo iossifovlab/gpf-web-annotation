@@ -25,19 +25,31 @@
   box-shadow: 0 0 0 0.2rem #edbec3;
 }
 
-.unloaded {
+.unloaded-editor {
   border: 2px solid #c1c1c1 !important;
   box-shadow: 0 0 0 0.2rem #ebebeb;
 }
 
-.loaded {
+.loaded-editor {
   border: 2px solid #77ac77 !important;
   box-shadow: 0 0 0 0.2rem #dcebdc;
 }
 
-.loading {
+.loading-editor {
   border: 2px solid orange !important;
   box-shadow: 0 0 0 0.2rem rgb(248, 220, 167);
+}
+
+.unloaded-circle {
+  color: #c1c1c1 !important;
+}
+
+.loaded-circle {
+  color: #77ac77 !important;
+}
+
+.loading-circle {
+  color: orange !important;
 }
 
 .pipeline-option {
@@ -216,6 +228,7 @@
 }
 
 .pipeline-status-icon {
+  font-size: 16px;
   font-variation-settings:
     "FILL" 1,
     "wght" 400,

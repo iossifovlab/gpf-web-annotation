@@ -1,9 +1,12 @@
+import { PipelineStatus } from '../socket-notifications/socket-notifications';
+
 export class Pipeline {
   public constructor(
     public id: string,
     public name: string,
     public content: string,
     public type: 'user' | 'default',
+    public status: PipelineStatus
   ) {}
 
   public static fromJsonArray(jsonArray: object[]): Pipeline[] {
@@ -22,7 +25,8 @@ export class Pipeline {
       (json['id'] as number).toString(),
       json['name'] as string,
       json['content'] as string,
-      json['type'] as 'user' | 'default'
+      json['type'] as 'user' | 'default',
+      json['status'] as PipelineStatus,
     );
   }
 }

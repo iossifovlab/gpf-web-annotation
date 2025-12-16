@@ -57,7 +57,6 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   public editorSize: 'small' | 'full' | 'custom' = 'small';
   @Output() public tiggerHidingComponents = new EventEmitter<boolean>();
   public isUserLoggedIn = false;
-  public lastNotification: PipelineNotification = null;
   public showConfimDeletePopup = false;
 
   public constructor(
@@ -105,14 +104,14 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   private setupPipelineWebSocketConnection(): void {
     this.socketNotificationsService.getPipelineNotifications().subscribe({
       next: (notification: PipelineNotification) => {
-        this.lastNotification = notification;
+        const pipeline = this.pipelines.find(p => p.id === notification.pipelineId);
+        if (pipeline) {
+          pipeline.status = notification.status;
+        }
       },
       error: err => {
         console.error(err);
       },
-      complete: () => {
-        this.lastNotification = null;
-      }
     });
   }
 
@@ -217,7 +216,6 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   }
 
   public clearPipeline(): void {
-    this.lastNotification = null;
     this.selectedPipeline = null;
     this.emitPipelineId.emit(null);
     this.currentPipelineText = '';
