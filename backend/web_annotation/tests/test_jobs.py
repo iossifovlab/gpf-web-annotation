@@ -46,6 +46,19 @@ def sequential_task_executor(
     )
 
 
+@pytest.fixture
+def mock_lru_cache(
+    mocker: pytest_mock.MockerFixture,
+) -> LRUPipelineCache:
+    cache = LRUPipelineCache(16)
+    mocker.patch(
+        "web_annotation.annotation_base_view"
+        ".AnnotationBaseView.lru_cache",
+        new=cache,
+    )
+    return cache
+
+
 @pytest.mark.django_db
 def test_job_update_new() -> None:
     test_job = Job(
@@ -1340,6 +1353,7 @@ def test_user_create_pipeline_with_bad_name(
 @pytest.mark.django_db
 def test_get_pipelines(
     user_client: Client,
+    mock_lru_cache: LRUPipelineCache,
 ) -> None:
     user = User.objects.get(email="user@example.com")
 
@@ -1372,8 +1386,11 @@ def test_get_pipelines(
     pipelines = response.json()
     assert len(pipelines) == 3
     assert pipelines[0]["name"] == "pipeline/test_pipeline"
+    assert pipelines[0]["status"] == "unloaded"
     assert pipelines[1]["name"] == "t4c8/t4c8_pipeline"
+    assert pipelines[1]["status"] == "unloaded"
     assert pipelines[2]["name"] == "test-user-pipeline"
+    assert pipelines[2]["status"] == "loaded"
     assert pipelines[2]["content"] == "- position_score: scores/pos1"
 
 

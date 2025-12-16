@@ -185,6 +185,8 @@ class ListPipelines(AnnotationBaseView):
                 "type": "default",
                 "name": pipeline["id"],
                 "content": pipeline["content"],
+                "status": "loaded" if super().lru_cache.has_pipeline(
+                    ("grr", pipeline["id"])) else "unloaded",
             }
             for pipeline in self.grr_pipelines.values()
         ]
@@ -201,6 +203,8 @@ class ListPipelines(AnnotationBaseView):
                 "content": Path(
                     pipeline.config_path
                 ).read_text(encoding="utf-8"),
+                "status": "loaded" if super().lru_cache.has_pipeline(
+                    pipeline.table_id()) else "unloaded",
             }
             for pipeline in pipelines
         ]

@@ -165,3 +165,10 @@ class LRUPipelineCache:
                 return self._cache[pipeline_id]
 
             return None
+
+    def has_pipeline(
+        self, pipeline_id: tuple[str, str],
+    ) -> bool:
+        """Check if a pipeline is in the cache."""
+        with self._cache_lock:
+            return pipeline_id in self._cache

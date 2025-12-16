@@ -123,6 +123,23 @@ def test_lru_pipeline_cache_basic_sources(
     assert pipeline_ids == {("sample", "pipeline2"), ("sample", "pipeline4")}
 
 
+def test_lru_pipeline_cache_pipeline_loaded_check(
+    sample_pipeline_factory: Callable[[], AnnotationPipeline],
+) -> None:
+    lru_cache = LRUPipelineCache(2)
+
+    assert len(lru_cache._cache) == 0  # pylint: disable=protected-access
+
+    pipeline1 = sample_pipeline_factory()
+    assert lru_cache.has_pipeline(("sample", "pipeline1")) is False
+    lru_cache.put_pipeline(("sample", "pipeline1"), pipeline1)
+    assert lru_cache.has_pipeline(("sample", "pipeline1")) is True
+    assert len(lru_cache._cache) == 1  # pylint: disable=protected-access
+    pipeline_ids = set(
+        lru_cache._cache.keys())  # pylint: disable=protected-access
+    assert pipeline_ids == {("sample", "pipeline1")}
+
+
 def test_lru_pipeline_cache_callbacks(
     sample_pipeline_factory: Callable[[], AnnotationPipeline],
 ) -> None:

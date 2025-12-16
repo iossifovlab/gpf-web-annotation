@@ -97,8 +97,6 @@ class AnnotationBaseView(views.APIView):
         self.grr_pipelines = GRR_PIPELINES
         self.grr_genomes = GRR_GENOMES
         self.result_storage_dir = Path(settings.JOB_RESULT_STORAGE_DIR)
-        self.max_variants: int = cast(
-            int, settings.QUOTAS["variant_count"])
         channel_layer = get_channel_layer()
         assert channel_layer is not None
         self.channel_layer = channel_layer
@@ -118,6 +116,11 @@ class AnnotationBaseView(views.APIView):
         if path is None:
             return path
         return Path(path)
+
+    @property
+    def max_variants(self) -> int:
+        """Return max variants allowed per job."""
+        return cast(int, settings.QUOTAS["variant_count"])
 
     @staticmethod
     def _convert_size(filesize: str | int) -> int:
