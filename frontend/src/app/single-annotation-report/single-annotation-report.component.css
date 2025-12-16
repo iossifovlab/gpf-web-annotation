@@ -8,10 +8,6 @@
   width: 100%;
 }
 
-#variant h2 {
-  color: #252e34;
-}
-
 #variant-data-container {
   display: flex;
   flex-direction: row;
@@ -21,6 +17,13 @@
   background-color: #f4f7fb;
   border: 1px solid #85a2b9;
   border-radius: 15px;
+}
+
+#variant-header {
+  font-weight: 500;
+  color: #252e34;
+  font-size: 16px;
+  margin-top: 5px;
 }
 
 .variant-data-label {
@@ -33,7 +36,7 @@
   color: #435869;
   font-weight: bold;
   text-align: center;
-  font-size: 18px;
+  font-size: 16px;
   margin-top: 10px;
 }
 
@@ -50,7 +53,7 @@ hr {
   justify-content: space-between;
   gap: 35px;
   padding: 20px 0;
-  border-bottom: 2px solid #cfd8df;
+  border-bottom: 1px solid #cfd8df;
 }
 
 .annotator-details {
@@ -72,9 +75,9 @@ hr {
 
 .attribute-header,
 .annotator-header {
-  font-weight: bold;
+  font-weight: 500;
   color: #252e34;
-  font-size: 18px;
+  font-size: 16px;
   margin-bottom: 10px;
 }
 
@@ -86,7 +89,7 @@ hr {
 
 .annotator-label {
   color: #252e34;
-  font-size: 20px;
+  font-size: 16px;
   margin-bottom: 6px;
 }
 
@@ -106,13 +109,13 @@ hr {
 }
 
 .attribute {
-  font-size: 14px;
+  font-size: 16px;
   width: 40%;
   word-break: break-all;
 }
 
 .attribute-container {
-  padding: 30px 0;
+  padding: 20px 0;
   border-top: 1px solid #cfd8df;
   display: flex;
   gap: 50px;
@@ -149,9 +152,9 @@ hr {
 .value-result {
   word-break: break-word;
   margin-top: 20px;
-  font-size: 18px;
-  font-weight: bold;
-  color: #435869;
+  font-size: 16px;
+  font-weight: 500;
+  color: #85a2b9;
 }
 
 a {
@@ -175,13 +178,15 @@ a:hover {
 #report-header {
   display: flex;
   justify-content: space-between;
+  margin-top: 20px;
+  margin-bottom: 5px;
 }
 
 #download-report-button {
   background-color: transparent;
   border: none;
   color: #435869;
-  font-size: 15px;
+  font-size: 16px;
 }
 
 #download-report-button:hover {
@@ -217,7 +222,7 @@ a:hover {
 
 #toggle-view-container label {
   color: #5b778c;
-  font-size: 18px;
+  font-size: 16px;
 }
 
 #compact-report {
@@ -231,8 +236,8 @@ a:hover {
 
 .switch {
   position: relative;
-  height: 1.5rem;
-  width: 3rem;
+  height: 1rem;
+  width: 2.5rem;
   cursor: pointer;
   appearance: none;
   border-radius: 9999px;
@@ -250,8 +255,8 @@ a:hover {
   left: calc(1.5rem - 1.6rem);
   top: calc(1.5rem - 1.6rem);
   display: block;
-  height: 1.6rem;
-  width: 1.6rem;
+  height: 1.2rem;
+  width: 1.2rem;
   cursor: pointer;
   border: 1px solid #85a2b9;
   border-radius: 9999px;
