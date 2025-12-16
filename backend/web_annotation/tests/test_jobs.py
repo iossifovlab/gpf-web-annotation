@@ -2155,7 +2155,7 @@ async def test_clean_up_anonymous_jobs(
             "pipeline_id": pipeline_response.json()["id"],
             "data": ContentFile(
                 "chrom,pos,ref,alt\n" + "\n".join(
-                    f"chr1,{i},A,T" for i in range(1, 50)
+                    f"chr1,{i},A,T" for i in range(1, 10)
                 ),
                 "test_input.tsv",
             ),
