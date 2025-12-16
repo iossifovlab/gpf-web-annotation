@@ -115,6 +115,10 @@ export class Result {
       resultValue = json['value'] as number;
     }
 
+    if (type === 'annotatable') {
+      resultValue = json['value'].toString();
+    }
+
     if (type === 'bool') {
       resultValue = (json['value'] as boolean).toString();
     }
