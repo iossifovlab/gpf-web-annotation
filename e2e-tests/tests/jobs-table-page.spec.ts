@@ -415,7 +415,7 @@ test.describe('Validation tests', () => {
 
 async function selectPipeline(page: Page, pipeline: string): Promise<void> {
   await page.locator('#pipelines-input').click();
-  await page.getByTitle(pipeline, { exact: true }).click();
+  await page.getByRole('option', { name: 'circle ' + pipeline, exact: true }).click();
 }
 
 async function waitForJobStatus(page: Page, color: string): Promise<void> {
