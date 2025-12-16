@@ -85,6 +85,12 @@
                 <div class="attribute-header">{{ attribute.name }}</div>
                 <div class="attribute-description">{{ attribute.description }}</div>
                 <div class="attribute-source">source: {{ attribute.source }}</div>
+                <div>
+                  <app-histogram-wrapper
+                    *ngIf="attribute.result.histogramLink"
+                    [histogramUrl]="attribute.result.histogramLink"
+                    [value]="attribute.result.value"></app-histogram-wrapper>
+                </div>
               </div>
             </div>
             <div class="annotator-details">
