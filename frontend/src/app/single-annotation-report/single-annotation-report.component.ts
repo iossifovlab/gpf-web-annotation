@@ -46,7 +46,7 @@ export class SingleAnnotationReportComponent {
       + `_${this.report.variant.reference}_${this.report.variant.alternative}`
       + '_report.tsv';
 
-    let reportLines: string = 'Attribute name\tValue\n';
+    let reportLines: string = 'Attribute name\tValue\tDescription\n';
 
     reportLines += `chromosome\t${this.report.variant.chromosome}\n`;
     reportLines += `position\t${this.report.variant.position}\n`;
@@ -77,7 +77,7 @@ export class SingleAnnotationReportComponent {
         } else {
           value = 'N/A';
         }
-        reportLines += `${attribute.name}\t${value}\n`;
+        reportLines += `${attribute.name}\t${value}\t${attribute.description}\n`;
       });
     });
     reportLines.trim();
