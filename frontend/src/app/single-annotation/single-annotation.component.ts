@@ -6,6 +6,7 @@ import { SingleAnnotationReportComponent } from '../single-annotation-report/sin
 import { SingleAnnotationService } from '../single-annotation.service';
 import { SingleAnnotationReport, Variant } from '../single-annotation';
 import { UsersService } from '../users.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-single-annotation',
@@ -20,6 +21,7 @@ export class SingleAnnotationComponent {
   public report: SingleAnnotationReport = null;
   @Output() public alleleUpdateEmit = new EventEmitter<void>();
   @Output() public autoSaveTrigger = new EventEmitter<void>();
+  private getReportSubscription = new Subscription();
 
   public constructor(private singleAnnotationService: SingleAnnotationService, private userService: UsersService) { }
 
@@ -79,7 +81,8 @@ export class SingleAnnotationComponent {
   }
 
   private getReport(pipelineId: string): void {
-    this.singleAnnotationService.getReport(
+    this.getReportSubscription.unsubscribe();
+    this.getReportSubscription = this.singleAnnotationService.getReport(
       this.parseVariantToObject(this.currentAllele),
       pipelineId
     ).subscribe(report => {
