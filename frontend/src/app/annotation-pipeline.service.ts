@@ -45,4 +45,13 @@ export class AnnotationPipelineService {
       options
     );
   }
+
+  public loadPipeline(id: string): Observable<void> {
+    const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
+    return this.http.post<void>(
+      `${environment.apiPath}/pipelines/load`,
+      {id: id},
+      options
+    );
+  }
 }

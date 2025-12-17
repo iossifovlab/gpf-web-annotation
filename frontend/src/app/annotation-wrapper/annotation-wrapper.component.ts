@@ -11,6 +11,7 @@ import { AllelesTableComponent } from '../alleles-table/alleles-table.component'
 import { UsersService } from '../users.service';
 import { SocketNotificationsService } from '../socket-notifications/socket-notifications.service';
 import { JobNotification } from '../socket-notifications/socket-notifications';
+import { AnnotationPipelineService } from '../annotation-pipeline.service';
 
 @Component({
   selector: 'app-annotation-wrapper',
@@ -55,6 +56,7 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
       private userService: UsersService,
       private ngZone: NgZone,
       private socketNotificationsService: SocketNotificationsService,
+      private annotationPipelineService: AnnotationPipelineService,
   ) { }
 
   public ngOnInit(): void {
@@ -180,6 +182,7 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
     }
     this.resetSingleAlleleReport();
     this.pipelineId = newPipeline;
+    this.annotationPipelineService.loadPipeline(newPipeline).pipe(take(1)).subscribe();
     this.disableCreate();
   }
 
