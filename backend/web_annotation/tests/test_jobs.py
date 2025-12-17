@@ -2199,3 +2199,25 @@ async def test_clean_up_anonymous_jobs(
     # Check that pipeline and job are cleaned up after all connections closed
     assert await sync_to_async(AnonymousPipeline.objects.count)() == 0
     assert await sync_to_async(user.job_class.objects.count)() == 0
+
+
+@pytest.mark.django_db
+def test_load_annotation_pipeline(
+    user_client: Client,
+    mock_lru_cache: LRUPipelineCache,
+) -> None:
+    params = {
+        "id": "pipeline/test_pipeline",
+    }
+
+    assert mock_lru_cache.has_pipeline(
+        ("grr", "pipeline/test_pipeline"),
+    ) is False
+
+    response = user_client.post("/api/pipelines/load", params)
+    assert response is not None
+    assert response.status_code == 204
+
+    assert mock_lru_cache.has_pipeline(
+        ("grr", "pipeline/test_pipeline"),
+    ) is True

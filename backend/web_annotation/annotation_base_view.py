@@ -228,7 +228,7 @@ class AnnotationBaseView(views.APIView):
     def get_pipeline(
         self, pipeline_id: str, user: User,
     ) -> AnnotationPipeline:
-        """Get an annotation pipeline by name."""
+        """Get an annotation pipeline by id."""
 
         if pipeline_id not in self.grr_pipelines:
             pipeline_model = user.get_pipeline(pipeline_id)

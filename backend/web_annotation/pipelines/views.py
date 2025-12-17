@@ -247,3 +247,23 @@ class PipelineValidation(AnnotationBaseView):
             result = {"errors": "Invalid configuration"}
 
         return Response(result, status=views.status.HTTP_200_OK)
+
+
+class LoadPipeline(AnnotationBaseView):
+    """Validate annotation config."""
+
+    def post(self, request: Request) -> Response:
+        """Validate annotation config."""
+        assert isinstance(request.data, dict)
+
+        pipeline_id = request.data.get("id")
+        if not pipeline_id:
+            return Response(
+                {"reason": "Pipeline ID not provided!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        pipeline = super().get_pipeline(pipeline_id, request.user)
+        assert pipeline is not None
+
+        return Response(status=views.status.HTTP_204_NO_CONTENT)
