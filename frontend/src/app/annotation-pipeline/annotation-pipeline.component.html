@@ -10,7 +10,9 @@
       [matAutocomplete]="pipelinesDropdown"
       [formControl]="dropdownControl"
       (click)="clearPipeline()" />
-    <span (click)="pipelineInput.openPanel()" class="material-symbols-outlined dropdown-icon">keyboard_arrow_down</span>
+    <span (click)="clearPipeline(); pipelineInput.openPanel()" class="material-symbols-outlined dropdown-icon"
+      >keyboard_arrow_down</span
+    >
   </div>
 
   <mat-autocomplete #pipelinesDropdown="matAutocomplete">
