@@ -16,8 +16,7 @@ import { UsersService } from '../users.service';
 export class SingleAnnotationComponent {
   public readonly environment = environment;
   public validationMessage = '';
-  public currentAlleleInput: string = '';
-  public allele: string = '';
+  public currentAllele: string = '';
   public report: SingleAnnotationReport = null;
   @Output() public alleleUpdateEmit = new EventEmitter<void>();
   @Output() public autoSaveTrigger = new EventEmitter<void>();
@@ -31,8 +30,6 @@ export class SingleAnnotationComponent {
   public annotateAllele(pipelineId: string): void {
     if (this.isAlleleValid() && pipelineId) {
       this.validationMessage = '';
-      this.allele = this.currentAlleleInput;
-      this.currentAlleleInput = '';
       this.getReport(pipelineId);
     } else {
       this.validationMessage = 'Invalid allele format!';
@@ -41,8 +38,8 @@ export class SingleAnnotationComponent {
   }
 
   private isAlleleValid(): boolean {
-    this.currentAlleleInput = this.currentAlleleInput.trim();
-    const a = this.currentAlleleInput.split(' ');
+    this.currentAllele = this.currentAllele.trim();
+    const a = this.currentAllele.split(' ');
 
     let valid = false;
     if (a.length === 3) {
@@ -74,7 +71,7 @@ export class SingleAnnotationComponent {
   }
 
   public setAllele(historyAllele: string): void {
-    this.currentAlleleInput = historyAllele;
+    this.currentAllele = historyAllele;
   }
 
   public resetReport(): void {
@@ -83,7 +80,7 @@ export class SingleAnnotationComponent {
 
   private getReport(pipelineId: string): void {
     this.singleAnnotationService.getReport(
-      this.parseVariantToObject(this.allele),
+      this.parseVariantToObject(this.currentAllele),
       pipelineId
     ).subscribe(report => {
       this.report = report;

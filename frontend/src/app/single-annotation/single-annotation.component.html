@@ -1,10 +1,11 @@
 <div id="single-annotation-container" class="main-component">
   <div>
     <input
-      [(ngModel)]="currentAlleleInput"
+      [(ngModel)]="currentAllele"
       type="text"
       placeholder="Type variant..."
-      (keydown.enter)="triggerPipelineAutoSave()" />
+      (keydown.enter)="triggerPipelineAutoSave()"
+      (click)="currentAllele = ''" />
     <button (click)="triggerPipelineAutoSave()">Go</button>
   </div>
   <span *ngIf="validationMessage" id="validation-message">{{ validationMessage }}</span>
