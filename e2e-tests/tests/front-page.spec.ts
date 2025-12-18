@@ -168,7 +168,8 @@ test.describe('Login tests', () => {
     await expect(page.locator('app-annotation-wrapper')).toBeVisible();
 
     await page.locator('#logout-button').click();
-    await page.goto('/login', {waitUntil: 'load'});
+    await page.waitForSelector('#login-button');
+    await page.locator('#login-button').click();
     await page.locator('#reset-password-link').click();
     await page.locator('#id_email').pressSequentially(randomEmail);
     await page.locator('input[value="Reset password"]').click();
