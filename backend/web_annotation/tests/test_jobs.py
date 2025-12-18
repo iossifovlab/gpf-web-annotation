@@ -1390,7 +1390,7 @@ def test_get_pipelines(
     assert pipelines[1]["name"] == "t4c8/t4c8_pipeline"
     assert pipelines[1]["status"] == "unloaded"
     assert pipelines[2]["name"] == "test-user-pipeline"
-    assert pipelines[2]["status"] == "loaded"
+    assert pipelines[2]["status"] == "unloaded"
     assert pipelines[2]["content"] == "- position_score: scores/pos1"
 
 
@@ -2221,3 +2221,57 @@ def test_load_annotation_pipeline(
     assert mock_lru_cache.has_pipeline(
         ("grr", "pipeline/test_pipeline"),
     ) is True
+
+
+@pytest.mark.django_db
+def test_save_unloads_pipeline(
+    user_client: Client,
+    mock_lru_cache: LRUPipelineCache,
+) -> None:
+    # Pipeline doesn't exist yet
+    assert mock_lru_cache.has_pipeline(
+        ("user", "1"),
+    ) is False
+
+    # Save pipeline
+    response = user_client.post(
+        "/api/pipelines/user",
+        {
+            "config": ContentFile("- position_score: scores/pos2"),
+            "name": "test-pipeline",
+        },
+    )
+    assert response is not None
+    assert response.status_code == 200
+
+    # Save should not load the pipeline
+    assert mock_lru_cache.has_pipeline(
+        ("user", "1"),
+    ) is False
+
+    # Load pipeline
+    response = user_client.post("/api/pipelines/load", {"id": 1})
+    assert response is not None
+    assert response.status_code == 204
+
+    # Pipeline should be loaded now
+    assert mock_lru_cache.has_pipeline(
+        ("user", "1"),
+    ) is True
+
+    # Save again, with updated config
+    response = user_client.post(
+        "/api/pipelines/user",
+        {
+            "config": ContentFile("- position_score: scores/pos1"),
+            "name": "test-pipeline",
+            "id": "1",
+        },
+    )
+    assert response is not None
+    assert response.status_code == 200
+
+    # Save should unload the pipeline
+    assert mock_lru_cache.has_pipeline(
+        ("user", "1"),
+    ) is False

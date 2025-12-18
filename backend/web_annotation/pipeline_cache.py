@@ -172,3 +172,20 @@ class LRUPipelineCache:
         """Check if a pipeline is in the cache."""
         with self._cache_lock:
             return pipeline_id in self._cache
+
+    def unload_pipeline(
+        self, pipeline_id: tuple[str, str],
+    ) -> None:
+        """Unload a pipeline from the cache."""
+        with self._cache_lock:
+            if pipeline_id in self._cache:
+                delete_cb = self._pipeline_callbacks.get(pipeline_id)
+                if delete_cb:
+                    try:
+                        delete_cb(self._cache[pipeline_id])
+                    except Exception as e:  # pylint: disable=broad-except
+                        logger.error(
+                            "Error during pipeline deletion callback: %s", e)
+                del self._cache[pipeline_id]
+                del self._pipeline_callbacks[pipeline_id]
+                self._order.remove(pipeline_id)
