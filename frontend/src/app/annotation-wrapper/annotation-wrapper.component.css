@@ -135,3 +135,9 @@
   border-left: 1px solid #e1e9ef;
   padding-left: 25px;
 }
+
+.sticky-elements {
+  position: sticky;
+  top: 10px;
+  height: fit-content;
+}

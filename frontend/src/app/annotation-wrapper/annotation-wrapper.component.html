@@ -7,10 +7,12 @@
         >
       </div>
 
-      <app-annotation-pipeline
-        (emitPipelineId)="setPipeline($event)"
-        (emitIsConfigValid)="setConfigValid($event)"
-        (tiggerHidingComponents)="updateComponentsVisibility($event)"></app-annotation-pipeline>
+      <div class="sticky-elements">
+        <app-annotation-pipeline
+          (emitPipelineId)="setPipeline($event)"
+          (emitIsConfigValid)="setConfigValid($event)"
+          (tiggerHidingComponents)="updateComponentsVisibility($event)"></app-annotation-pipeline>
+      </div>
     </div>
 
     <div
@@ -76,7 +78,11 @@
     </div>
   </div>
 
-  <div *ngIf="isUserLoggedIn" [style.visibility]="hideComponents ? 'hidden' : 'visible'" id="history-table">
+  <div
+    *ngIf="isUserLoggedIn"
+    [style.visibility]="hideComponents ? 'hidden' : 'visible'"
+    id="history-table"
+    class="sticky-elements">
     <div>
       <button id="toggle-history" (click)="this.hideHistory = !this.hideHistory"
         ><span
