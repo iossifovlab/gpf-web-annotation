@@ -1,18 +1,15 @@
 <div id="wrapper-container">
   <div id="annotation-container">
-    <div>
+    <div class="sticky-elements">
       <div *ngIf="hideComponents">
         <button id="show-components" (click)="showComponents()"
           ><span class="material-symbols-outlined show-components-icon">right_panel_open</span></button
         >
       </div>
-
-      <div class="sticky-elements">
-        <app-annotation-pipeline
-          (emitPipelineId)="setPipeline($event)"
-          (emitIsConfigValid)="setConfigValid($event)"
-          (tiggerHidingComponents)="updateComponentsVisibility($event)"></app-annotation-pipeline>
-      </div>
+      <app-annotation-pipeline
+        (emitPipelineId)="setPipeline($event)"
+        (emitIsConfigValid)="setConfigValid($event)"
+        (tiggerHidingComponents)="updateComponentsVisibility($event)"></app-annotation-pipeline>
     </div>
 
     <div
