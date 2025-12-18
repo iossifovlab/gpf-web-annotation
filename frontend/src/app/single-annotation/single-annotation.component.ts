@@ -76,6 +76,12 @@ export class SingleAnnotationComponent {
 
   public setAllele(historyAllele: string): void {
     this.currentAllele = historyAllele;
+    this.resetReport();
+  }
+
+  public resetAllele(): void {
+    this.currentAllele = '';
+    this.resetReport();
   }
 
   public resetReport(): void {
