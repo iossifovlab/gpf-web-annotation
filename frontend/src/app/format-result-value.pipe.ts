@@ -11,7 +11,7 @@ export class FormatResultValuePipe implements PipeTransform {
         result += `${k}:${v}; `;
       });
     } if (typeof value === 'number') {
-      result = String(value);
+      result = value === 0 ? '0' : value.toPrecision(3);
     } else if (typeof value === 'string') {
       return value;
     }
