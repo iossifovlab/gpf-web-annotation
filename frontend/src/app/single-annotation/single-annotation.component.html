@@ -13,6 +13,10 @@
     >Example:
     <a class="example" (click)="setAllele('chr1 11796321 G A'); triggerPipelineAutoSave()">chr1 11796321 G A</a></span
   >
-</div>
+  @if (loading) {
+  <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>
+  <span id="loading-text">Loading...</span>
+  }
 
-<app-single-annotation-report [report]="report"></app-single-annotation-report>
+  <app-single-annotation-report [report]="report"></app-single-annotation-report
+></div>

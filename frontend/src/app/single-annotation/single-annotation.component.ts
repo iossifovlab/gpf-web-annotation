@@ -7,10 +7,11 @@ import { SingleAnnotationService } from '../single-annotation.service';
 import { SingleAnnotationReport, Variant } from '../single-annotation';
 import { UsersService } from '../users.service';
 import { Subscription } from 'rxjs';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-single-annotation',
-  imports: [CommonModule, FormsModule, SingleAnnotationReportComponent],
+  imports: [CommonModule, FormsModule, SingleAnnotationReportComponent, MatProgressSpinnerModule],
   templateUrl: './single-annotation.component.html',
   styleUrl: './single-annotation.component.css'
 })
@@ -22,6 +23,7 @@ export class SingleAnnotationComponent {
   @Output() public alleleUpdateEmit = new EventEmitter<void>();
   @Output() public autoSaveTrigger = new EventEmitter<void>();
   private getReportSubscription = new Subscription();
+  public loading = false;
 
   public constructor(private singleAnnotationService: SingleAnnotationService, private userService: UsersService) { }
 
@@ -82,10 +84,12 @@ export class SingleAnnotationComponent {
 
   private getReport(pipelineId: string): void {
     this.getReportSubscription.unsubscribe();
+    this.loading = true;
     this.getReportSubscription = this.singleAnnotationService.getReport(
       this.parseVariantToObject(this.currentAllele),
       pipelineId
     ).subscribe(report => {
+      this.loading = false;
       this.report = report;
       this.triggerAllelesTableUpdate();
     });

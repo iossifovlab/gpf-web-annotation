@@ -88,3 +88,15 @@ button {
   cursor: pointer;
   color: #5b778c;
 }
+
+mat-progress-spinner {
+  stroke: #24699e;
+  stroke-width: 20px;
+  margin-top: 60px;
+}
+
+#loading-text {
+  color: #b9d3e7;
+  font-style: italic;
+  margin-top: 10px;
+}
