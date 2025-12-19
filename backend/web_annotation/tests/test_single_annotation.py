@@ -137,7 +137,7 @@ def test_use_of_thread_safe_pipelines(
 ) -> None:
     view = SingleAnnotation()
     custom_cache = LRUPipelineCache(test_grr, 16)
-    custom_cache.load_pipeline(("dummy", "dummy"), "")  # type: ignore
+    custom_cache.load_pipeline(("dummy", "dummy"), "")
     thread_safe_dummy = custom_cache.get_pipeline(("dummy", "dummy"))
     assert thread_safe_dummy is not None
     thread_safe_dummy.lock = MagicMock()
