@@ -52,7 +52,7 @@
               class="value-result"
               [ngStyle]="{ 'margin-top': showFullReport ? '20px' : '0' }"
               *ngIf="!tableViewSources.includes(attribute.source)"
-              >{{ attribute.result.value | formatResultValue }}</div
+              >{{ attribute.result.value | formatResultValue : 3 }}</div
             >
             <div
               *ngIf="
