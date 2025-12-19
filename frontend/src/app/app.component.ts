@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, DoCheck, OnInit } from '@angular/core';
 import { Router, RouterModule, RouterOutlet } from '@angular/router';
 import { UserData, UsersService } from './users.service';
-import { take, takeWhile } from 'rxjs';
+import { takeWhile } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { MarkdownModule } from 'ngx-markdown';
 
@@ -23,9 +23,7 @@ export class AppComponent implements DoCheck, OnInit {
   ) { }
 
   public ngOnInit(): void {
-    if (!this.currentUserData) {
-      this.usersService.autoLogin().pipe(take(1)).subscribe();
-    }
+    this.usersService.refreshUserData();
   }
 
   public ngDoCheck(): void {
@@ -41,6 +39,7 @@ export class AppComponent implements DoCheck, OnInit {
     this.usersService.logout().subscribe(() => {
       this.currentUserData = null;
       window.location.reload();
+      this.usersService.refreshUserData();
     });
   }
 

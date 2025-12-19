@@ -1,3 +1,4 @@
+@if (currentUserData) {
 <div id="app-container" style="max-width: 100%">
   <div id="app-header" *ngIf="isAppHeaderVisible()">
     <div>
@@ -5,11 +6,11 @@
       <span id="app-title">GPF Web Annotation</span>
     </div>
     <div id="header-right">
-      <div id="user-data" *ngIf="currentUserData">
+      <div id="user-data" *ngIf="currentUserData.loggedIn">
         <span id="user-email">{{ currentUserData.email }}</span>
         <button id="logout-button" (click)="logout()">Logout</button>
       </div>
-      <div id="login-register-buttons" *ngIf="!currentUserData">
+      <div id="login-register-buttons" *ngIf="!currentUserData.loggedIn">
         <button id="login-button" (click)="login()">Login</button>
         <button id="register-button" (click)="register()">Register</button>
       </div>
@@ -17,3 +18,4 @@
   </div>
   <router-outlet></router-outlet>
 </div>
+}
