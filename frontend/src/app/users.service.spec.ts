@@ -106,32 +106,6 @@ describe('UsersService', () => {
     );
   });
 
-  it('should set current user after getting user data on auto login', () => {
-    const userDataMockResult = {
-      email: 'mockEmail@email.com',
-      isAdmin: false,
-      loggedIn: true,
-      limitations: {
-        dailyJobs: 5,
-        filesize: '30M',
-        todayJobsCount: 4,
-        variantCount: 100,
-      }
-    } as UserData;
-    jest.spyOn(service, 'getUserData').mockReturnValue(of(userDataMockResult));
-
-    service.autoLogin().subscribe();
-    expect(service.userData.value).toStrictEqual(userDataMockResult);
-  });
-
-  it('should expect user data to be null if auto login fails', () => {
-    const userDataMockResult = { loggedIn: false, limitations: null} as UserData;
-    jest.spyOn(service, 'getUserData').mockReturnValue(of(userDataMockResult));
-
-    service.autoLogin().subscribe();
-    expect(service.userData.value).toBeNull();
-  });
-
   it('should check params of logout query', () => {
     const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
     httpGetSpy.mockReturnValue(of({}));

@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { CookieService } from 'ngx-cookie-service';
-import { BehaviorSubject, Observable, map, of, switchMap, take, tap } from 'rxjs';
+import { BehaviorSubject, Observable, map, switchMap, take, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export interface UserData {
@@ -43,19 +43,6 @@ export class UsersService {
         this.cookieService.delete('csrftoken');
         this.userData.next(null);
         this.router.navigate(['/']);
-      })
-    );
-  }
-
-  public autoLogin(): Observable<boolean> {
-    return this.getUserData().pipe(
-      take(1),
-      switchMap((userData: UserData) => {
-        if (userData.loggedIn) {
-          this.userData.next(userData);
-          return of(true);
-        }
-        return of(false);
       })
     );
   }

@@ -8,12 +8,11 @@ import { provideRouter, Router } from '@angular/router';
 
 class UsersServiceMock {
   public userData = new BehaviorSubject<UserData>(null);
-  public autoLogin(): Observable<boolean> {
-    return of(true);
-  }
   public logout(): Observable<object> {
     return of({});
   }
+
+  public refreshUserData(): void { }
 }
 describe('AppComponent', () => {
   let component: AppComponent;
@@ -45,17 +44,10 @@ describe('AppComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should trigger auto login on component init if there is no user', () => {
-    const autoLoginSpy = jest.spyOn(usersServiceMock, 'autoLogin');
+  it('should trigger refresh user data on component init', () => {
+    const refreshUserDataSpy = jest.spyOn(usersServiceMock, 'refreshUserData');
     component.ngOnInit();
-    expect(autoLoginSpy).toHaveBeenCalledWith();
-  });
-
-  it('should not trigger auto login on component init if there is user', () => {
-    const autoLoginSpy = jest.spyOn(usersServiceMock, 'autoLogin');
-    component.currentUserData = { email: 'mockEmail@email.com', isAdmin: false } as UserData;
-    component.ngOnInit();
-    expect(autoLoginSpy).not.toHaveBeenCalledWith();
+    expect(refreshUserDataSpy).toHaveBeenCalledWith();
   });
 
   it('should set current user to null when logout', () => {

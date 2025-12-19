@@ -17,8 +17,6 @@ class UsersServiceMock {
   public isUserLoggedIn(): boolean {
     return true;
   }
-
-  public autoLogin(): void { }
 }
 
 describe('LoginComponent', () => {
