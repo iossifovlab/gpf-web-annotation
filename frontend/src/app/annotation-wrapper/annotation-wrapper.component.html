@@ -13,7 +13,7 @@
     </div>
 
     <div
-      [style.visibility]="hideComponents ? 'hidden' : 'visible'"
+      [style.display]="hideComponents ? 'none' : 'flex'"
       style="display: flex; flex-direction: column; width: auto; min-width: 0; flex-grow: 1">
       <div id="annotation-mode">
         <button
@@ -77,7 +77,7 @@
 
   <div
     *ngIf="isUserLoggedIn"
-    [style.visibility]="hideComponents ? 'hidden' : 'visible'"
+    [style.display]="hideComponents ? 'none' : 'block'"
     id="history-table"
     class="sticky-elements">
     <div>
