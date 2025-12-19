@@ -92,6 +92,9 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
   }
 
   public autoSavePipeline(): void {
+    if(!this.pipelinesComponent.currentPipelineText) {
+      return;
+    }
     this.pipelinesComponent.autoSave().pipe(take(1)).subscribe(annonymousPipelineName => {
       if (annonymousPipelineName) {
         this.pipelineId = annonymousPipelineName;
@@ -99,7 +102,7 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
       if (this.currentView === 'jobs') {
         this.create();
       } else {
-        this.singleAnnotationComponent.annotateAllele(this.pipelineId);
+        this.singleAnnotationComponent.annotateAllele();
       }
     });
   }
@@ -173,12 +176,14 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
   }
 
   public setPipeline(newPipeline: string): void {
-    if (this.pipelineId === newPipeline || !newPipeline) {
+    if (this.pipelineId === newPipeline) {
       return;
     }
     this.resetSingleAlleleReport();
     this.pipelineId = newPipeline;
-    this.annotationPipelineService.loadPipeline(newPipeline).pipe(take(1)).subscribe();
+    if(newPipeline) {
+      this.annotationPipelineService.loadPipeline(newPipeline).pipe(take(1)).subscribe();
+    }
     this.disableCreate();
   }
 
@@ -230,6 +235,7 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
 
   public disableCreate(): boolean {
     return this.blockCreate
+      || !this.pipelineId
       || !this.file
       || (this.file.type !== 'text/vcard' && !this.fileHeader)
       || !this.isConfigValid

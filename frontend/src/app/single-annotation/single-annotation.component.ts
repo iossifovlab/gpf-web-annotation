@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -16,6 +16,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   styleUrl: './single-annotation.component.css'
 })
 export class SingleAnnotationComponent {
+  @Input() public pipelineId = '';
   public readonly environment = environment;
   public validationMessage = '';
   public currentAllele: string = '';
@@ -31,14 +32,18 @@ export class SingleAnnotationComponent {
     this.autoSaveTrigger.emit();
   }
 
-  public annotateAllele(pipelineId: string): void {
-    if (this.isAlleleValid() && pipelineId) {
+  public annotateAllele(): void {
+    if (this.isAlleleValid() && this.pipelineId) {
       this.validationMessage = '';
-      this.getReport(pipelineId);
+      this.getReport(this.pipelineId);
     } else {
-      this.validationMessage = 'Invalid allele format!';
+      this.validationMessage = 'Invalid allele format or missing pipeline!';
       this.report = null;
     }
+  }
+
+  public disableGo(): boolean {
+    return !(Boolean(this.currentAllele) && Boolean(this.pipelineId));
   }
 
   private isAlleleValid(): boolean {
@@ -94,10 +99,15 @@ export class SingleAnnotationComponent {
     this.getReportSubscription = this.singleAnnotationService.getReport(
       this.parseVariantToObject(this.currentAllele),
       pipelineId
-    ).subscribe(report => {
-      this.loading = false;
-      this.report = report;
-      this.triggerAllelesTableUpdate();
+    ).subscribe({
+      next: report => {
+        this.loading = false;
+        this.report = report;
+        this.triggerAllelesTableUpdate();
+      },
+      error: () => {
+        this.loading = false;
+      }
     });
   }
 

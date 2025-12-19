@@ -70,6 +70,14 @@ button {
   border-radius: 10px;
 }
 
+button:disabled {
+  opacity: 30%;
+}
+
+button:disabled:hover {
+  cursor: auto;
+}
+
 #validation-message {
   color: #d74b59;
 }
