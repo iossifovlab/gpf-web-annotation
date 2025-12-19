@@ -20,7 +20,7 @@ def sequential_task_executor(
     mocker: MockerFixture,
 ) -> None:
     mocker.patch(
-        "web_annotation.annotation_base_view.AnnotationBaseView.TASK_EXECUTOR",
+        "web_annotation.annotation_base_view.AnnotationBaseView.JOB_EXECUTOR",
         new_callable=SequentialTaskExecutor,
     )
 

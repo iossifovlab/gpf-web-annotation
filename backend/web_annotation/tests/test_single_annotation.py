@@ -133,12 +133,11 @@ def test_build_attribute_description_stringifies_non_mapping_objects(
 
 def test_use_of_thread_safe_pipelines(
     mocker: MockerFixture,
+    test_grr: GenomicResourceRepo,
 ) -> None:
     view = SingleAnnotation()
-    custom_cache = LRUPipelineCache(16)
-    dummy_pipeline = DummyPipeline()
-    custom_cache.put_pipeline(
-        ("dummy", "dummy"), dummy_pipeline)  # type: ignore
+    custom_cache = LRUPipelineCache(test_grr, 16)
+    custom_cache.load_pipeline(("dummy", "dummy"), "")  # type: ignore
     thread_safe_dummy = custom_cache.get_pipeline(("dummy", "dummy"))
     assert thread_safe_dummy is not None
     thread_safe_dummy.lock = MagicMock()

@@ -184,7 +184,7 @@ class ListPipelines(AnnotationBaseView):
                 "type": "default",
                 "name": pipeline["id"],
                 "content": pipeline["content"],
-                "status": "loaded" if super().lru_cache.has_pipeline(
+                "status": "loaded" if super().lru_cache.is_pipeline_loaded(
                     ("grr", pipeline["id"])) else "unloaded",
             }
             for pipeline in self.grr_pipelines.values()
@@ -202,7 +202,7 @@ class ListPipelines(AnnotationBaseView):
                 "content": Path(
                     pipeline.config_path
                 ).read_text(encoding="utf-8"),
-                "status": "loaded" if super().lru_cache.has_pipeline(
+                "status": "loaded" if super().lru_cache.is_pipeline_loaded(
                     pipeline.table_id()) else "unloaded",
             }
             for pipeline in pipelines
@@ -262,7 +262,9 @@ class LoadPipeline(AnnotationBaseView):
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
 
-        pipeline = super().get_pipeline(pipeline_id, request.user)
-        assert pipeline is not None
+        self.load_pipeline(
+            self.get_full_pipeline_id(pipeline_id, request.user),
+            request.user,
+        )
 
         return Response(status=views.status.HTTP_204_NO_CONTENT)

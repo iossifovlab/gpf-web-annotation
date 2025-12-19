@@ -41,7 +41,7 @@ def sequential_task_executor(
     mocker: pytest_mock.MockerFixture,
 ) -> None:
     mocker.patch(
-        "web_annotation.annotation_base_view.AnnotationBaseView.TASK_EXECUTOR",
+        "web_annotation.annotation_base_view.AnnotationBaseView.JOB_EXECUTOR",
         new_callable=SequentialTaskExecutor,
     )
 
@@ -49,8 +49,9 @@ def sequential_task_executor(
 @pytest.fixture
 def mock_lru_cache(
     mocker: pytest_mock.MockerFixture,
+    test_grr: GenomicResourceRepo,
 ) -> LRUPipelineCache:
-    cache = LRUPipelineCache(16)
+    cache = LRUPipelineCache(test_grr, 16)
     mocker.patch(
         "web_annotation.annotation_base_view"
         ".AnnotationBaseView.lru_cache",
@@ -1557,8 +1558,9 @@ def test_annotate_columns_variant_quota(
 @pytest.mark.django_db(transaction=True)
 async def test_annotate_vcf_notifications(
     user_client: Client, mocker: MockerFixture,
+    test_grr: GenomicResourceRepo,
 ) -> None:
-    cache = LRUPipelineCache(16)
+    cache = LRUPipelineCache(test_grr, 16)
     mocker.patch(
         "web_annotation.jobs"
         ".views.AnnotateVCF.lru_cache",
@@ -1626,8 +1628,9 @@ async def test_annotate_vcf_notifications(
 @pytest.mark.django_db(transaction=True)
 async def test_annotate_columns_notifications(
     user_client: Client, mocker: MockerFixture,
+    test_grr: GenomicResourceRepo,
 ) -> None:
-    cache = LRUPipelineCache(16)
+    cache = LRUPipelineCache(test_grr, 16)
     mocker.patch(
         "web_annotation.jobs"
         ".views.AnnotateColumns.lru_cache",
@@ -1702,8 +1705,9 @@ async def test_annotate_columns_notifications(
 @pytest.mark.django_db(transaction=True)
 async def test_annotate_vcf_notifications_fail(
     user_client: Client, mocker: MockerFixture,
+    test_grr: GenomicResourceRepo,
 ) -> None:
-    cache = LRUPipelineCache(16)
+    cache = LRUPipelineCache(test_grr, 16)
     mocker.patch(
         "web_annotation.jobs"
         ".views.AnnotateVCF.lru_cache",
@@ -1776,8 +1780,9 @@ async def test_annotate_vcf_notifications_fail(
 @pytest.mark.django_db(transaction=True)
 async def test_annotate_columns_notifications_fail(
     user_client: Client, mocker: MockerFixture,
+    test_grr: GenomicResourceRepo,
 ) -> None:
-    cache = LRUPipelineCache(16)
+    cache = LRUPipelineCache(test_grr, 16)
     mocker.patch(
         "web_annotation.jobs"
         ".views.AnnotateColumns.lru_cache",
@@ -1857,8 +1862,9 @@ async def test_annotate_columns_notifications_fail(
 @pytest.mark.django_db(transaction=True)
 async def test_annotate_notifications_unloading_pipeline(
     user_client: Client, mocker: MockerFixture,
+    test_grr: GenomicResourceRepo,
 ) -> None:
-    cache = LRUPipelineCache(1)
+    cache = LRUPipelineCache(test_grr, 1)
     mocker.patch(
         "web_annotation.jobs"
         ".views.AnnotateVCF.lru_cache",
@@ -2053,8 +2059,9 @@ def test_job_failure_read_stored_exception(
 @pytest.mark.django_db(transaction=True)
 async def test_annotate_anonymous_notifications(
     anonymous_client: Client, mocker: MockerFixture,
+    test_grr: GenomicResourceRepo,
 ) -> None:
-    cache = LRUPipelineCache(16)
+    cache = LRUPipelineCache(test_grr, 16)
     mocker.patch(
         "web_annotation.jobs"
         ".views.AnnotateVCF.lru_cache",
@@ -2127,8 +2134,9 @@ async def test_annotate_anonymous_notifications(
 @pytest.mark.django_db(transaction=True)
 async def test_clean_up_anonymous_jobs(
     anonymous_client: Client, mocker: MockerFixture,
+    test_grr: GenomicResourceRepo,
 ) -> None:
-    cache = LRUPipelineCache(16)
+    cache = LRUPipelineCache(test_grr, 16)
     mocker.patch(
         "web_annotation.jobs"
         ".views.AnnotateVCF.lru_cache",

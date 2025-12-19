@@ -1,6 +1,9 @@
 """Module for thread-safe annotation utilities."""
+from concurrent.futures import CancelledError, Future, ThreadPoolExecutor
+from dataclasses import dataclass
 import logging
-from threading import Lock
+from threading import Lock, RLock
+import time
 from types import TracebackType
 from typing import Callable, Sequence
 from dae.annotation.annotatable import Annotatable
@@ -12,6 +15,10 @@ from dae.annotation.annotation_config import (
 )
 from dae.annotation.annotation_pipeline import AnnotationPipeline, Annotator
 from dae.genomic_resources.repository import GenomicResourceRepo
+
+from dae.annotation.annotation_factory import load_pipeline_from_yaml
+
+from web_annotation.executor import ThreadedTaskExecutor
 
 
 logger = logging.getLogger(__name__)
@@ -117,54 +124,37 @@ class ThreadSafePipeline(AnnotationPipeline):
         return exc_type is None
 
 
+@dataclass
+class LoadingDetails:
+    time_started: float
+    pipeline_id: tuple[str, str]
+    future: Future[ThreadSafePipeline]
+
+    def __hash__(self) -> int:
+        return hash(self.pipeline_id)
+
 class LRUPipelineCache:
     """LRU cache that wraps and provides thread-safe annotation pipelines."""
 
     def __init__(
-        self, capacity: int,
+        self,
+        grr: GenomicResourceRepo,
+        capacity: int,
+        load_workers: int = 8,
+        load_timeout: float = 5 * 60,
     ):
+        self._grr = grr
+        self._load_executor = ThreadedTaskExecutor(
+            max_workers=load_workers,
+            job_timeout=load_timeout,
+        )
+        self._load_timeout = load_timeout
+
         self.capacity = capacity
-        self._cache: dict[tuple[str, str], ThreadSafePipeline] = {}
+        self._cache: dict[tuple[str, str], LoadingDetails] = {}
         self._pipeline_callbacks: dict[tuple[str, str], Callable | None] = {}
-        self._cache_lock: Lock = Lock()
+        self._cache_lock: RLock = RLock()
         self._order: list[tuple[str, str]] = []
-
-    def put_pipeline(
-        self, pipeline_id: tuple[str, str], pipeline: AnnotationPipeline,
-        callback: Callable[[ThreadSafePipeline], None] | None = None,
-    ) -> ThreadSafePipeline:
-        """Put a pipeline into the cache."""
-        with self._cache_lock:
-            if len(self._cache) >= self.capacity:
-                last_pipeline_id = self._order.pop(0)
-                delete_cb = self._pipeline_callbacks.get(last_pipeline_id)
-                if delete_cb:
-                    try:
-                        delete_cb(self._cache[last_pipeline_id])
-                    except Exception as e:  # pylint: disable=broad-except
-                        logger.error(
-                            "Error during pipeline deletion callback: %s", e)
-                del self._cache[last_pipeline_id]
-                del self._pipeline_callbacks[last_pipeline_id]
-
-            self._order.append(pipeline_id)
-            wrapped = ThreadSafePipeline(pipeline)
-            wrapped.open()
-            self._cache[pipeline_id] = wrapped
-            self._pipeline_callbacks[pipeline_id] = callback
-            return wrapped
-
-    def get_pipeline(
-        self, pipeline_id: tuple[str, str],
-    ) -> ThreadSafePipeline | None:
-        """Get a pipeline by its ID, loading it if necessary."""
-        with self._cache_lock:
-            if pipeline_id in self._cache:
-                self._order.remove(pipeline_id)
-                self._order.append(pipeline_id)
-                return self._cache[pipeline_id]
-
-            return None
 
     def has_pipeline(
         self, pipeline_id: tuple[str, str],
@@ -173,19 +163,109 @@ class LRUPipelineCache:
         with self._cache_lock:
             return pipeline_id in self._cache
 
+    def is_pipeline_loaded(
+        self, pipeline_id: tuple[str, str],
+    ) -> bool:
+        """Check if a pipeline is loaded."""
+        with self._cache_lock:
+            try:
+                return self.get_pipeline_future(pipeline_id).done()
+            except ValueError:
+                return False
+
+    @staticmethod
+    def _load_pipeline_raw(
+        raw: str,
+        grr: GenomicResourceRepo,
+    ) -> ThreadSafePipeline:
+        pipeline = ThreadSafePipeline(load_pipeline_from_yaml(raw, grr))
+        pipeline.open()
+        return pipeline
+
+    def load_pipeline(
+        self,
+        pipeline_id: tuple[str, str],
+        pipeline_config: str,
+        delete_callback: Callable[[ThreadSafePipeline], None] | None = None,
+    ) -> Future[ThreadSafePipeline]:
+        """Put a pipeline into the cache."""
+        pipeline_future = self._load_executor.execute(
+            self._load_pipeline_raw,
+            raw=pipeline_config,
+            grr=self._grr,
+        )
+        loading_details = LoadingDetails(
+            time_started=time.time(),
+            pipeline_id=pipeline_id,
+            future=pipeline_future
+        )
+        with self._cache_lock:
+            if pipeline_id in self._cache:
+                self.unload_pipeline(pipeline_id)
+            if len(self._cache) >= self.capacity:
+                last_pipeline_id = self._order[0]
+                self.unload_pipeline(last_pipeline_id, do_cancel=False)
+            self._pipeline_callbacks[pipeline_id] = delete_callback
+            self._cache[pipeline_id] = loading_details
+            self._order.append(pipeline_id)
+        return pipeline_future
+
+    def clean_old_tasks(self) -> None:
+        to_remove = []
+        now = time.time()
+        with self._cache_lock:
+            for pipeline_id, details in self._cache.items():
+                if now - details.time_started > self._load_timeout:
+                    logger.warning(
+                        "Cancelling long-running task started at %s",
+                        details.time_started,
+                    )
+                    to_remove.append(pipeline_id)
+            for pipeline_id in to_remove:
+                self.unload_pipeline(pipeline_id)
+
+    def get_pipeline_future(self, pipeline_id: tuple[str, str]) -> Future[ThreadSafePipeline]:
+        with self._cache_lock:
+            if pipeline_id not in self._cache:
+                raise ValueError(f"Pipeline {pipeline_id} not found")
+            self._order.remove(pipeline_id)
+            self._order.append(pipeline_id)
+            return self._cache[pipeline_id].future
+
+
+    def get_pipeline(self, pipeline_id: tuple[str, str]) -> ThreadSafePipeline:
+        """Get a pipeline by its ID."""
+        pipeline = None
+        while pipeline is None:
+            pipeline_future = self.get_pipeline_future(pipeline_id)
+            try:
+                pipeline = pipeline_future.result()
+            except CancelledError:
+                logger.debug("Retrying to get %s", pipeline_id)
+        return pipeline
+
     def unload_pipeline(
         self, pipeline_id: tuple[str, str],
+        *,
+        do_cancel: bool = True,
     ) -> None:
         """Unload a pipeline from the cache."""
         with self._cache_lock:
             if pipeline_id in self._cache:
-                delete_cb = self._pipeline_callbacks.get(pipeline_id)
-                if delete_cb:
-                    try:
-                        delete_cb(self._cache[pipeline_id])
-                    except Exception as e:  # pylint: disable=broad-except
-                        logger.error(
-                            "Error during pipeline deletion callback: %s", e)
+                details = self._cache[pipeline_id]
+                future = details.future
+                if future.done():
+                    future.result().close()
+                    delete_cb = self._pipeline_callbacks.get(pipeline_id)
+                    if delete_cb:
+                        try:
+                            delete_cb(self._cache[pipeline_id])
+                        except Exception:  # pylint: disable=broad-except
+                            logger.exception(
+                                "Error during pipeline deletion callback")
+                elif do_cancel:
+                    future.cancel()
+
                 del self._cache[pipeline_id]
                 del self._pipeline_callbacks[pipeline_id]
                 self._order.remove(pipeline_id)

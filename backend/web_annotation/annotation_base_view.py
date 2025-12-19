@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Any, cast
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
-from dae.annotation.annotation_factory import load_pipeline_from_yaml
 from dae.annotation.annotation_pipeline import AnnotationPipeline
 from dae.genomic_resources.implementations.annotation_pipeline_impl import (
     AnnotationPipelineImplementation,
@@ -34,7 +33,7 @@ from web_annotation.models import (
     User,
     WebAnnotationAnonymousUser,
 )
-from web_annotation.pipeline_cache import LRUPipelineCache
+from web_annotation.pipeline_cache import LRUPipelineCache, ThreadSafePipeline
 
 logger = logging.getLogger(__name__)
 
@@ -71,11 +70,11 @@ GRR_GENOMES = get_grr_genomes(GRR)
 class AnnotationBaseView(views.APIView):
     """Base view for views which access annotation resources."""
 
-    lru_cache = LRUPipelineCache(settings.PIPELINES_CACHE_SIZE)
+    lru_cache = LRUPipelineCache(GRR, settings.PIPELINES_CACHE_SIZE)
 
-    TASK_EXECUTOR: TaskExecutor = ThreadedTaskExecutor(
+    JOB_EXECUTOR: TaskExecutor = ThreadedTaskExecutor(
             max_workers=settings.ANNOTATION_MAX_WORKERS,
-            job_timeout=settings.ANNOTATION_TASK_TIMEOUT)
+            job_timeout=settings.ANNOTATION_TASK_TIMEOUT)\
 
     """Base view for views which access annotation resources."""
     tool_columns = [
@@ -199,7 +198,7 @@ class AnnotationBaseView(views.APIView):
     def load_pipeline(
         self, full_pipeline_id: tuple[str, str],
         user: BaseUser | WebAnnotationAnonymousUser,
-    ) -> AnnotationPipeline:
+    ) -> None:
         """Load an annotation pipeline by ID and notify the user channel."""
         _, pipeline_id = full_pipeline_id
         if pipeline_id in self.grr_pipelines:
@@ -215,33 +214,32 @@ class AnnotationBaseView(views.APIView):
         def callback(*args: Any) -> None:  # pylint: disable=unused-argument
             notify_function(pipeline_id, "unloaded")
 
-        pipeline = self.lru_cache.put_pipeline(
+        self.lru_cache.load_pipeline(
             full_pipeline_id,
-            load_pipeline_from_yaml(pipeline_config, self.grr),
-            callback=callback,
+            pipeline_config,
+            delete_callback=callback,
         )
 
         notify_function(pipeline_id, "loaded")
 
-        return pipeline
-
     def get_pipeline(
         self, pipeline_id: str, user: User,
-    ) -> AnnotationPipeline:
+    ) -> ThreadSafePipeline:
         """Get an annotation pipeline by id."""
 
+        full_pipeline_id = self.get_full_pipeline_id(pipeline_id, user)
+
+        if not self.lru_cache.has_pipeline(full_pipeline_id):
+            self.load_pipeline(full_pipeline_id, user)
+        return self.lru_cache.get_pipeline(full_pipeline_id)
+
+    def get_full_pipeline_id(
+        self, pipeline_id: str, user: User,
+    ) -> tuple[str, str]:
         if pipeline_id not in self.grr_pipelines:
             pipeline_model = user.get_pipeline(pipeline_id)
-            full_pipeline_id = pipeline_model.table_id()
-        else:
-            full_pipeline_id = ("grr", pipeline_id)
-
-        pipeline = self.lru_cache.get_pipeline(full_pipeline_id)
-
-        if pipeline is not None:
-            return pipeline
-
-        return self.load_pipeline(full_pipeline_id, user)
+            return pipeline_model.table_id()
+        return ("grr", pipeline_id)
 
     def get_genome(self, data: QueryDict) -> str:
         """Get genome from a request."""

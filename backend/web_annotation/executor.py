@@ -1,10 +1,11 @@
+from __future__ import annotations
 import abc
 import logging
 import threading
 import time
 from collections.abc import Callable
 from concurrent.futures import Future, ThreadPoolExecutor
-from typing import Any
+from typing import Any, cast
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +19,7 @@ class TaskExecutor(abc.ABC):
         callback_success: Callable[[Any], None] | None = None,
         callback_failure: Callable[[BaseException], None] | None = None,
         **kwargs: Any,
-    ) -> None:
+    ) -> Future[Any]:
         """Run a given function with provided arguments."""
 
     @abc.abstractmethod
@@ -34,6 +35,53 @@ class TaskExecutor(abc.ABC):
         """Return the number of pending tasks."""
 
 
+class FakeFuture(object):
+    """Create fake future that can be used in sequentialy"""
+    def __init__(self, result: Any) -> None:
+        """Initializes fake future."""
+        self._result = result
+        self._done_callbacks: Any = []
+
+    def _invoke_callbacks(self) -> None:
+        for callback in self._done_callbacks:
+            try:
+                callback(self)
+            except Exception:
+                logger.exception('exception calling callback for %r', self)
+
+    def cancel(self) -> None:
+        return
+
+    def cancelled(self) -> bool:
+        return False
+
+    def running(self) -> bool:
+        return False
+
+    def done(self) -> bool:
+        return True
+
+    def add_done_callback(self, fn: Any) -> None:
+        self._done_callbacks.append(fn)
+        self._invoke_callbacks()
+
+    def result(self, timeout: Any=None) -> Any:
+        return self._result
+
+    def exception(self, timeout: Any=None) -> None:
+        return None
+
+    def set_running_or_notify_cancel(self) -> None:
+        return
+
+    def set_result(self, result: Any) -> None:
+        self._result = result
+        self._invoke_callbacks()
+
+    def set_exception(self, exception: Any) -> None:
+        self._invoke_callbacks()
+
+
 class SequentialTaskExecutor(TaskExecutor):
     """Synchronous job executor."""
     def execute(
@@ -41,16 +89,18 @@ class SequentialTaskExecutor(TaskExecutor):
         callback_success: Callable[[list[Any]], None] | None = None,
         callback_failure: Callable[[BaseException], None] | None = None,
         **kwargs: Any,
-    ) -> None:
+    ) -> Future[Any]:
         try:
             result = fn(**kwargs)
             if callback_success is not None:
                 logger.debug("Task completed with result: %s", result)
                 callback_success(result)
+            return cast(Future, FakeFuture(result))
         except BaseException as e:
             logger.error("Task failed with exception: %s", e)
             if callback_failure is not None:
                 callback_failure(e)
+        return cast(Future, FakeFuture(None))
 
     def wait_all(self, timeout: float) -> None:
         return
@@ -104,7 +154,7 @@ class ThreadedTaskExecutor(TaskExecutor):
         callback_success: Callable[[list[Any]], None] | None = None,
         callback_failure: Callable[[BaseException], None] | None = None,
         **kwargs: Any,
-    ) -> None:
+    ) -> Future[Any]:
         now = time.time()
         to_remove = []
         with self._lock:
@@ -130,6 +180,7 @@ class ThreadedTaskExecutor(TaskExecutor):
                 callback_failure=callback_failure,
             )
         future.add_done_callback(wrapper)
+        return future
 
     def wait_all(self, timeout: float) -> None:
         start = time.time()

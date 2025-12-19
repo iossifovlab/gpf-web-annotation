@@ -262,7 +262,7 @@ class AnnotateVCF(AnnotationBaseView):
 
         self._notify_user_job(request.user, str(job.pk), job.status)
 
-        self.TASK_EXECUTOR.execute(
+        self.JOB_EXECUTOR.execute(
             run_vcf_wrapper,
             callback_success=on_success,
             callback_failure=on_failure,
@@ -398,7 +398,7 @@ class AnnotateColumns(AnnotationBaseView):
 
         self._notify_user_job(request.user, str(job.pk), job.status)
 
-        self.TASK_EXECUTOR.execute(
+        self.JOB_EXECUTOR.execute(
             run_columns_wrapper,
             callback_success=on_success,
             callback_failure=on_failure,

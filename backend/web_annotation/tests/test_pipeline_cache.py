@@ -1,6 +1,6 @@
 # pylint: disable=W0621,C0114,C0116,W0212,W0613
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Callable
+from typing import Callable, cast
 import pytest
 from pytest_mock import MockerFixture
 
@@ -8,6 +8,7 @@ from dae.annotation.annotatable import VCFAllele
 from dae.annotation.annotation_factory import load_pipeline_from_yaml
 from dae.annotation.annotation_pipeline import AnnotationPipeline
 from dae.genomic_resources.repository import GenomicResourceRepo
+from web_annotation.executor import SequentialTaskExecutor, ThreadedTaskExecutor
 from web_annotation.annotation_base_view import AnnotationBaseView
 from web_annotation.models import (
     AnonymousPipeline,
@@ -87,36 +88,36 @@ def test_thread_safe_pipeline_concurrent(
 
 
 def test_lru_pipeline_cache_basic_sources(
-    sample_pipeline_factory: Callable[[], AnnotationPipeline],
+    test_grr: GenomicResourceRepo
 ) -> None:
-    lru_cache = LRUPipelineCache(2)
+    lru_cache = LRUPipelineCache(test_grr, 2)
 
     assert len(lru_cache._cache) == 0  # pylint: disable=protected-access
 
-    pipeline1 = sample_pipeline_factory()
-    lru_cache.put_pipeline(("sample", "pipeline1"), pipeline1)
+    lru_cache.load_pipeline(
+        ("sample", "pipeline1"), "- position_score: scores/pos1")
     assert len(lru_cache._cache) == 1  # pylint: disable=protected-access
     pipeline_ids = set(
         lru_cache._cache.keys())  # pylint: disable=protected-access
     assert pipeline_ids == {("sample", "pipeline1")}
 
-    pipeline2 = sample_pipeline_factory()
-    lru_cache.put_pipeline(("sample", "pipeline2"), pipeline2)
+    lru_cache.load_pipeline(
+        ("sample", "pipeline2"), "- position_score: scores/pos1")
     assert len(lru_cache._cache) == 2  # pylint: disable=protected-access
     pipeline_ids = set(
         lru_cache._cache.keys())  # pylint: disable=protected-access
     assert pipeline_ids == {("sample", "pipeline1"), ("sample", "pipeline2")}
 
-    pipeline3 = sample_pipeline_factory()
-    lru_cache.put_pipeline(("sample", "pipeline3"), pipeline3)
+    lru_cache.load_pipeline(
+        ("sample", "pipeline3"), "- position_score: scores/pos1")
     assert len(lru_cache._cache) == 2  # pylint: disable=protected-access
     pipeline_ids = set(
         lru_cache._cache.keys())  # pylint: disable=protected-access
     assert pipeline_ids == {("sample", "pipeline2"), ("sample", "pipeline3")}
 
-    pipeline4 = sample_pipeline_factory()
     lru_cache.get_pipeline(("sample", "pipeline2"))
-    lru_cache.put_pipeline(("sample", "pipeline4"), pipeline4)
+    lru_cache.load_pipeline(
+        ("sample", "pipeline4"), "- position_score: scores/pos1")
     assert len(lru_cache._cache) == 2  # pylint: disable=protected-access
     pipeline_ids = set(
         lru_cache._cache.keys())  # pylint: disable=protected-access
@@ -124,15 +125,15 @@ def test_lru_pipeline_cache_basic_sources(
 
 
 def test_lru_pipeline_cache_pipeline_loaded_check(
-    sample_pipeline_factory: Callable[[], AnnotationPipeline],
+    test_grr: GenomicResourceRepo,
 ) -> None:
-    lru_cache = LRUPipelineCache(2)
+    lru_cache = LRUPipelineCache(test_grr, 2)
 
     assert len(lru_cache._cache) == 0  # pylint: disable=protected-access
 
-    pipeline1 = sample_pipeline_factory()
     assert lru_cache.has_pipeline(("sample", "pipeline1")) is False
-    lru_cache.put_pipeline(("sample", "pipeline1"), pipeline1)
+    lru_cache.load_pipeline(
+        ("sample", "pipeline1"), "- position_score: scores/pos1")
     assert lru_cache.has_pipeline(("sample", "pipeline1")) is True
     assert len(lru_cache._cache) == 1  # pylint: disable=protected-access
     pipeline_ids = set(
@@ -141,34 +142,44 @@ def test_lru_pipeline_cache_pipeline_loaded_check(
 
 
 def test_lru_pipeline_cache_callbacks(
-    sample_pipeline_factory: Callable[[], AnnotationPipeline],
+    test_grr: GenomicResourceRepo,
 ) -> None:
-    lru_cache = LRUPipelineCache(1)
+    lru_cache = LRUPipelineCache(test_grr, 1)
+    lru_cache._load_executor = cast(
+        ThreadedTaskExecutor,
+        SequentialTaskExecutor(),
+    )
     deleted_pipelines = []
 
     def delete_callback(pipeline: ThreadSafePipeline) -> None:
         deleted_pipelines.append(pipeline)
 
-    pipeline1 = sample_pipeline_factory()
-    lru_cache.put_pipeline(
-        ("sample", "pipeline1"), pipeline1, callback=delete_callback)
+    lru_cache.load_pipeline(
+        ("sample", "pipeline1"),
+        "- position_score: scores/pos1",
+        delete_callback=delete_callback,
+    )
     assert len(lru_cache._cache) == 1  # pylint: disable=protected-access
 
-    pipeline2 = sample_pipeline_factory()
-    lru_cache.put_pipeline(
-        ("sample", "pipeline2"), pipeline2, callback=delete_callback)
+    lru_cache.load_pipeline(
+        ("sample", "pipeline2"),
+        "- position_score: scores/pos1",
+        delete_callback=delete_callback,
+    )
     assert len(lru_cache._cache) == 1  # pylint: disable=protected-access
 
     assert len(deleted_pipelines) == 1
-    assert deleted_pipelines[0].pipeline is pipeline1
+    assert deleted_pipelines[0].pipeline_id == ("sample", "pipeline1")
 
 
 @pytest.mark.django_db
 def test_writing_same_id_pipelines_to_cache(
     mocker: MockerFixture,
+    test_grr: GenomicResourceRepo,
 ) -> None:
     base_view = AnnotationBaseView()
-    lru_cache = LRUPipelineCache(16)
+    lru_cache = LRUPipelineCache(test_grr, 16)
+
     pipeline_config = "- position_score: scores/pos1"
     mocker.patch.object(
         base_view, "_get_user_pipeline_yaml", return_value=pipeline_config)
