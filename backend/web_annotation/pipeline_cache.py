@@ -1,5 +1,5 @@
 """Module for thread-safe annotation utilities."""
-from concurrent.futures import CancelledError, Future, ThreadPoolExecutor
+from concurrent.futures import CancelledError, Future
 from dataclasses import dataclass
 import logging
 from threading import Lock, RLock
@@ -211,6 +211,7 @@ class LRUPipelineCache:
         return pipeline_future
 
     def clean_old_tasks(self) -> None:
+        """Clean old tasks that have timed out"""
         to_remove = []
         now = time.time()
         with self._cache_lock:

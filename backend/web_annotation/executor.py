@@ -35,7 +35,7 @@ class TaskExecutor(abc.ABC):
         """Return the number of pending tasks."""
 
 
-class FakeFuture(object):
+class FakeFuture():
     """Create fake future that can be used in sequentialy"""
     def __init__(self, result: Any) -> None:
         """Initializes fake future."""
