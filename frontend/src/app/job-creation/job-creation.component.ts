@@ -48,13 +48,7 @@ export class JobCreationComponent implements OnInit {
   public ngOnInit(): void {
     this.usersService.userData.pipe(
     ).subscribe((userData) => {
-      this.userLimitations = userData ? userData.limitations : {
-        dailyJobs: 5,
-        filesize: '10MB',
-        todayJobsCount: 0,
-        variantCount: 5,
-        diskSpace: '10'
-      };
+      this.userLimitations = userData.limitations;
     });
 
     this.singleAnnotationService.getGenomes().pipe(take(1)).subscribe((genomes) => {

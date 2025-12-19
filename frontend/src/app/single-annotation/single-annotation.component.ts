@@ -104,7 +104,7 @@ export class SingleAnnotationComponent {
   private triggerAllelesTableUpdate(): void {
     this.userService.userData.pipe(
     ).subscribe((userData) => {
-      if (userData) {
+      if (userData.loggedIn) {
         this.alleleUpdateEmit.emit();
       }
     });

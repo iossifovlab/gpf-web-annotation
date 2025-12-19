@@ -63,17 +63,13 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
     this.setupJobWebSocketConnection();
     this.userService.userData.pipe(
     ).subscribe((userData) => {
-      this.isUserLoggedIn = Boolean(userData);
+      this.isUserLoggedIn = userData.loggedIn;
     });
   }
 
 
   public ngOnDestroy(): void {
     this.socketNotificationsService.closeConnection();
-    this.userService.userData.pipe(
-    ).subscribe((userData) => {
-      this.isUserLoggedIn = Boolean(userData);
-    });
   }
 
 
@@ -177,7 +173,7 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
   }
 
   public setPipeline(newPipeline: string): void {
-    if (this.pipelineId === newPipeline) {
+    if (this.pipelineId === newPipeline || !newPipeline) {
       return;
     }
     this.resetSingleAlleleReport();

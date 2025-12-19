@@ -74,7 +74,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   public ngOnInit(): void {
     this.userService.userData.pipe(
     ).subscribe((userData) => {
-      this.isUserLoggedIn = Boolean(userData);
+      this.isUserLoggedIn = userData.loggedIn;
     });
 
     this.yamlEditorOptions = editorConfig;
