@@ -92,7 +92,7 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
   }
 
   public autoSavePipeline(): void {
-    if(!this.pipelinesComponent.currentPipelineText) {
+    if (!this.pipelinesComponent.currentPipelineText) {
       return;
     }
     this.pipelinesComponent.autoSave().pipe(take(1)).subscribe(annonymousPipelineName => {
@@ -181,7 +181,7 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
     }
     this.resetSingleAlleleReport();
     this.pipelineId = newPipeline;
-    if(newPipeline) {
+    if (newPipeline) {
       this.annotationPipelineService.loadPipeline(newPipeline).pipe(take(1)).subscribe();
     }
     this.disableCreate();
