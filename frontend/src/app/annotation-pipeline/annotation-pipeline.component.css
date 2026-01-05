@@ -290,3 +290,10 @@
   background: #f4f7fb;
   cursor: pointer;
 }
+
+#pipeline-editor::-webkit-resizer {
+  border-width: 6px;
+  border-style: solid;
+  border-color: #49272700 #435869 #435869 transparent;
+  border-bottom-right-radius: 11px;
+}
