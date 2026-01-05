@@ -13,6 +13,8 @@ import { AnnotationPipelineService } from '../annotation-pipeline.service';
 import { ElementRef, TemplateRef } from '@angular/core';
 import { provideMonacoEditor } from 'ngx-monaco-editor-v2';
 import { By } from '@angular/platform-browser';
+import { SocketNotificationsService } from '../socket-notifications/socket-notifications.service';
+import { PipelineNotification } from '../socket-notifications/socket-notifications';
 
 const mockPipelines = [
   new Pipeline('1', 'id1', 'content1', 'default', 'loaded'),
@@ -98,6 +100,14 @@ class AnnotationPipelineServiceMock {
   }
 }
 
+class SocketNotificationsServiceMock {
+  public getPipelineNotifications(): Observable<PipelineNotification> {
+    return of(new PipelineNotification('1', 'unloaded'));
+  }
+
+  public closeConnection(): void { }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
 (global as any).ResizeObserver = class {
   public observe(): void {}
@@ -114,6 +124,7 @@ describe('AnnotationPipelineComponent', () => {
   const mockMatDialogRef = new MatDialogRefMock();
   const mockMatRef = new MatDialogMock();
   const annotationPipelineServiceMock = new AnnotationPipelineServiceMock();
+  const socketNotificationsServiceMock = new SocketNotificationsServiceMock();
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -138,6 +149,10 @@ describe('AnnotationPipelineComponent', () => {
         {
           provide: AnnotationPipelineService,
           useValue: annotationPipelineServiceMock
+        },
+        {
+          provide: SocketNotificationsService,
+          useValue: socketNotificationsServiceMock
         },
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -175,6 +190,94 @@ describe('AnnotationPipelineComponent', () => {
     expect(getPipelinesSpy).toHaveBeenCalledWith();
     expect(component.pipelines).toStrictEqual(mockPipelines);
   });
+
+  it('should set up web socket communication on component init', () => {
+    const getSocketNotificationSpy = jest.spyOn(socketNotificationsServiceMock, 'getPipelineNotifications');
+    component.ngOnInit();
+    expect(getSocketNotificationSpy).toHaveBeenCalledWith();
+    expect(component.pipelines[0].status).toBe('unloaded');
+  });
+
+  it('should close socket connection on destroy', () => {
+    const closeConnectionSpy = jest.spyOn(socketNotificationsServiceMock, 'closeConnection');
+    component.ngOnDestroy();
+    expect(closeConnectionSpy).toHaveBeenCalledWith();
+  });
+
+  it('should check if user is logged in on component init', () => {
+    component.ngOnInit();
+    expect(component.isUserLoggedIn).toBe(true);
+  });
+
+  it('should check editor\'s options on component init', () => {
+    expect(component.yamlEditorOptions).toStrictEqual({
+      language: 'yaml',
+      minimap: {
+        enabled: false
+      },
+      lineNumbers: 'off',
+      folding: false,
+      stickyScroll: {
+        enabled: false,
+      },
+      scrollBeyondLastLine: false,
+      theme: 'annotationPipelineTheme',
+      automaticLayout: true
+    });
+  });
+
+  it('should filter pipelines list in dropdown when typing in input', () => {
+    expect(component.filteredPipelines).toStrictEqual(mockPipelines);
+    component.dropdownControl.setValue('ID2');
+    expect(component.filteredPipelines).toStrictEqual([mockPipelines[1]]);
+  });
+
+  it('should not filter pipelines list in dropdown when typing spaces in input', () => {
+    expect(component.filteredPipelines).toStrictEqual(mockPipelines);
+    component.dropdownControl.setValue('  ');
+    expect(component.filteredPipelines).toStrictEqual(mockPipelines);
+  });
+
+  it('should determine editor\'s width', () => {
+    component.editorSize = 'custom';
+    expect(component.editorWidth()).toBe('auto');
+
+    component.editorSize = 'full';
+    expect(component.editorWidth()).toBe('95vw');
+
+    component.editorSize = 'small';
+    expect(component.editorWidth()).toBe('40vw');
+  });
+
+  it('should determine editor\'s height', () => {
+    component.editorSize = 'custom';
+    expect(component.editorHeight()).toBe('auto');
+
+    component.editorSize = 'full';
+    expect(component.editorHeight()).toBe('70vh');
+
+    component.editorSize = 'small';
+    expect(component.editorHeight()).toBe('40vh');
+  });
+
+  it('should expand editor and hide elements', () => {
+    const triggerHideElementsSpy = jest.spyOn(component.tiggerHidingComponents, 'emit');
+    component.expandTextarea();
+    expect(component.displayFullScreenButton).toBe(false);
+    expect(component.displayResetScreenButton).toBe(true);
+    expect(component.editorSize).toBe('full');
+    expect(triggerHideElementsSpy).toHaveBeenCalledWith(true);
+  });
+
+  it('should auto shrink editor and display elements', () => {
+    const triggerHideElementsSpy = jest.spyOn(component.tiggerHidingComponents, 'emit');
+    component.shrinkTextarea();
+    expect(component.displayFullScreenButton).toBe(true);
+    expect(component.displayResetScreenButton).toBe(false);
+    expect(component.editorSize).toBe('small');
+    expect(triggerHideElementsSpy).toHaveBeenCalledWith(false);
+  });
+
 
   it('should select new pipeline and emit to parent', () => {
     const emitPipelineIdSpy = jest.spyOn(component.emitPipelineId, 'emit');
