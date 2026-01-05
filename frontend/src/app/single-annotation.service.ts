@@ -32,7 +32,10 @@ export class SingleAnnotationService {
     };
 
     const userToken = this.getCSRFToken();
-    const options = userToken ? { headers: {'X-CSRFToken': userToken}, withCredentials: true } : {};
+    const options = { withCredentials: true };
+    if (userToken) {
+      options['headers'] = {'X-CSRFToken': userToken};
+    }
 
     return this.http.post<object>(
       this.getReportUrl,

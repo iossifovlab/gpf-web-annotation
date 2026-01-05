@@ -13,7 +13,7 @@ from django.utils import timezone
 from pytest_mock import MockerFixture
 from web_annotation.annotation_base_view import AnnotationBaseView
 from web_annotation.executor import SequentialTaskExecutor
-from web_annotation.models import AnonymousJob, Job, Pipeline, User
+from web_annotation.models import AnonymousJob, Job, User
 from web_annotation.pipeline_cache import LRUPipelineCache
 
 
