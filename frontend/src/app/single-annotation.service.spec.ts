@@ -153,7 +153,7 @@ describe('SingleAnnotationService', () => {
       '//localhost:8000/api/single_allele/annotate',
       // eslint-disable-next-line camelcase
       { variant: { chrom: 'chr14', pos: 204000100, ref: 'A', alt: 'AA'}, pipeline_id: 'pipeline' },
-      {}
+      { withCredentials: true }
     );
   });
 
