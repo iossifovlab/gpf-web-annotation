@@ -87,6 +87,25 @@ def test_thread_safe_pipeline_concurrent(
     assert not pipeline._is_open  # pylint: disable=protected-access
 
 
+def test_lru_pipeline_cache_uses_executor(
+    test_grr: GenomicResourceRepo,
+    mocker: MockerFixture,
+) -> None:
+    lru_cache = LRUPipelineCache(test_grr, 2)
+    execute_spy = mocker.spy(lru_cache._load_executor, "execute")
+
+    assert len(lru_cache._cache) == 0  # pylint: disable=protected-access
+
+    lru_cache.load_pipeline(
+        ("sample", "pipeline1"), "- position_score: scores/pos1")
+    assert len(lru_cache._cache) == 1  # pylint: disable=protected-access
+    execute_spy.assert_called_once_with(
+        lru_cache._load_pipeline_raw,
+        raw="- position_score: scores/pos1",
+        grr=test_grr,
+    )
+
+
 def test_lru_pipeline_cache_basic_sources(
     test_grr: GenomicResourceRepo
 ) -> None:

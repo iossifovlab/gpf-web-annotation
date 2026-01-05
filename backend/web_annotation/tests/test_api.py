@@ -1,18 +1,20 @@
 # pylint: disable=C0116
-import gzip
-import pytest
 import datetime
+import gzip
 import pathlib
 import textwrap
 
-from pytest_mock import MockerFixture
-from django.core.files.base import ContentFile
+import pytest
+from dae.genomic_resources.repository import GenomicResourceRepo
 from django.conf import LazySettings
+from django.core.files.base import ContentFile
 from django.test import Client
 from django.utils import timezone
-
+from pytest_mock import MockerFixture
+from web_annotation.annotation_base_view import AnnotationBaseView
 from web_annotation.executor import SequentialTaskExecutor
-from web_annotation.models import AnonymousJob, Job, User
+from web_annotation.models import AnonymousJob, Job, Pipeline, User
+from web_annotation.pipeline_cache import LRUPipelineCache
 
 
 @pytest.fixture(autouse=True)
@@ -722,6 +724,35 @@ def test_single_annotation_no_pipeline(admin_client: Client) -> None:
     )
 
     assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_single_annotation_pipeline_usage(
+    mocker: MockerFixture,
+    test_grr: GenomicResourceRepo,
+    user_client: Client,
+) -> None:
+    base_view = AnnotationBaseView()
+
+    get_spy = mocker.spy(LRUPipelineCache, "get_pipeline")
+    load_spy = mocker.spy(LRUPipelineCache, "load_pipeline")
+
+    user = User.objects.get(email="user@example.com")
+
+    user_client.post("/api/pipelines/user", {
+        "config": ContentFile(""),
+        "name": "test_pipeline",
+    })
+
+    base_view.get_pipeline("1", user)
+
+    assert load_spy.call_count == 1
+    assert get_spy.call_count == 1
+
+    base_view.get_pipeline("1", user)
+
+    assert load_spy.call_count == 1
+    assert get_spy.call_count == 2
 
 
 def test_histogram_view(admin_client: Client) -> None:
