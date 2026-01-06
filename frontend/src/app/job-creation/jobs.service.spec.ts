@@ -10,19 +10,19 @@ import { Pipeline } from './pipelines';
 const jobsMockJson = [
   {
     id: 1, name: 1, created: '1.10.2025', owner: 'test@email.com',
-    status: 2, duration: 4.7, result_filename: 'job-file.txt', size: '10 KB'
+    status: 2, duration: 4.7, result_filename: 'job-file.txt', size: '10 KB', error: ''
   },
   {
     id: 2, name: 2, created: '1.10.2025', owner: 'test@email.com',
-    status: 4, duration: 2.5, result_filename: 'job-file.txt', size: '10 KB'
+    status: 4, duration: 2.5, result_filename: 'job-file.txt', size: '10 KB', error: ''
   },
   {
     id: 3, name: 3, created: '1.10.2025', owner: 'test@email.com',
-    status: 3, duration: 2.3, result_filename: 'job-file.txt', size: '10 KB'
+    status: 3, duration: 2.3, result_filename: 'job-file.txt', size: '10 KB', error: ''
   },
   {
     id: 4, name: 4, created: '1.10.2025', owner: 'test@email.com',
-    status: 1, duration: 1.9, result_filename: 'job-file.txt', size: '10 KB'
+    status: 1, duration: 1.9, result_filename: 'job-file.txt', size: '10 KB', error: ''
   },
 ];
 /* eslint-enable */
@@ -235,10 +235,10 @@ describe('JobsService', () => {
     httpGetSpy.mockReturnValue(of(jobsMockJson));
 
     const jobsMockResult = [
-      new Job(1, 1, new Date('1.10.2025'), 'test@email.com', 'in process', 4.7, 'job-file.txt', '10 KB'),
-      new Job(2, 2, new Date('1.10.2025'), 'test@email.com', 'failed', 2.5, 'job-file.txt', '10 KB'),
-      new Job(3, 3, new Date('1.10.2025'), 'test@email.com', 'success', 2.3, 'job-file.txt', '10 KB'),
-      new Job(4, 4, new Date('1.10.2025'), 'test@email.com', 'waiting', 1.9, 'job-file.txt', '10 KB'),
+      new Job(1, 1, new Date('1.10.2025'), 'test@email.com', 'in process', 4.7, 'job-file.txt', '10 KB', ''),
+      new Job(2, 2, new Date('1.10.2025'), 'test@email.com', 'failed', 2.5, 'job-file.txt', '10 KB', ''),
+      new Job(3, 3, new Date('1.10.2025'), 'test@email.com', 'success', 2.3, 'job-file.txt', '10 KB', ''),
+      new Job(4, 4, new Date('1.10.2025'), 'test@email.com', 'waiting', 1.9, 'job-file.txt', '10 KB', ''),
     ];
 
     const getResponse = service.getJobs();
@@ -279,11 +279,13 @@ describe('JobsService', () => {
         duration: 3.3,
         // eslint-disable-next-line camelcase
         result_filename: 'job-file.txt',
-        size: '12'
+        size: '12K',
+        error: ''
       }
     ));
 
-    const job = new Job(16, 16, new Date('2025-08-26'), 'register@email.com', 'waiting', 3.3, 'job-file.txt', '12');
+    // eslint-disable-next-line @stylistic/max-len
+    const job = new Job(16, 16, new Date('2025-08-26'), 'register@email.com', 'waiting', 3.3, 'job-file.txt', '12K', '');
 
     const getResponse = service.getJobDetails(16);
 
@@ -330,9 +332,9 @@ describe('JobsService', () => {
   it('should get pipeline list', async() => {
     const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
     httpGetSpy.mockReturnValue(of([
-      { id: '1', name: 'pipeline1', content: '', type: 'default' },
-      { id: '2', name: 'pipeline2', content: '', type: 'default' },
-      { id: '3', name: 'pipeline3', content: '', type: 'default' },
+      { id: '1', name: 'pipeline1', content: '', type: 'default', status: 'loaded' },
+      { id: '2', name: 'pipeline2', content: '', type: 'default', status: 'loaded' },
+      { id: '3', name: 'pipeline3', content: '', type: 'default', status: 'loaded' },
     ]));
 
     const getResponse = service.getAnnotationPipelines();
@@ -343,9 +345,9 @@ describe('JobsService', () => {
     );
     const res = await lastValueFrom(getResponse.pipe(take(1)));
     expect(res).toStrictEqual([
-      new Pipeline('1', 'pipeline1', '', 'default'),
-      new Pipeline('2', 'pipeline2', '', 'default'),
-      new Pipeline('3', 'pipeline3', '', 'default'),
+      new Pipeline('1', 'pipeline1', '', 'default', 'loaded'),
+      new Pipeline('2', 'pipeline2', '', 'default', 'loaded'),
+      new Pipeline('3', 'pipeline3', '', 'default', 'loaded'),
     ]);
   });
 
@@ -366,7 +368,7 @@ describe('JobsService', () => {
   it('should return undefined for each invalid pipeline from response array', async() => {
     const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
     httpGetSpy.mockReturnValue(of([
-      { id: '1', name: 'pipeline1', content: '', type: 'default' },
+      { id: '1', name: 'pipeline1', content: '', type: 'default', status: 'loaded' },
       null
     ]));
 
@@ -378,7 +380,7 @@ describe('JobsService', () => {
     );
     const res = await lastValueFrom(getResponse.pipe(take(1)));
     expect(res).toStrictEqual([
-      new Pipeline('1', 'pipeline1', '', 'default'),
+      new Pipeline('1', 'pipeline1', '', 'default', 'loaded'),
       undefined
     ]);
   });

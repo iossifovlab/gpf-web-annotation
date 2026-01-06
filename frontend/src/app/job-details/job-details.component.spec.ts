@@ -8,7 +8,7 @@ import { Job } from '../job-creation/jobs';
 
 class JobsServiceMock {
   public getJobDetails(jobId: number): Observable<Job> {
-    return of(new Job(jobId, jobId, new Date('12.12.12'), 'test@email.com', 'success', 2.5, '', '9.7 KB'));
+    return of(new Job(jobId, jobId, new Date('12.12.12'), 'test@email.com', 'success', 2.5, '', '9.7 KB', ''));
   }
 
   public getDownloadJobResultLink(jobId: number): string {
@@ -63,7 +63,7 @@ describe('JobDetailsComponent', () => {
   it('should get job details on init', () => {
     component.ngOnInit();
     expect(component.job).toStrictEqual(
-      new Job(3, 3, new Date('12.12.12'), 'test@email.com', 'success', 2.5, '', '9.7 KB')
+      new Job(3, 3, new Date('12.12.12'), 'test@email.com', 'success', 2.5, '', '9.7 KB', '')
     );
   });
 
