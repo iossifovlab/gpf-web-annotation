@@ -18,13 +18,13 @@ services:
     image: busybox:latest
     command: echo "PostgreSQL data only container"
     volumes:
-      - ./gpfwa-pg-data:/var/lib/postgresql
+      - ${WD:-.}/gpfwa-pg-data:/var/lib/postgresql
 
   static-data:
     image: busybox:latest
     command: echo "Static data only container"
     volumes:
-      - ./gpfwa-static-data:/static
+      - ${WD:-.}/gpfwa-static-data:/static
 
   db:
     image: postgres
@@ -62,11 +62,13 @@ services:
       mail:
         condition: service_started
     volumes:
-      - ./gpfwa-data:/data
-      - ./gpfwa-logs:/logs
-      - /mnt/wigclust3/data/unsafe/chorbadj/grr.sync:/grr
+      - ${WD:-.}/gpfwa-data:/data
+      - ${WD:-.}/gpfwa-logs:/logs
+      - ${GRR}:/grr
     volumes_from:
       - static-data
+    ports:
+      - "9001:9001"
     environment:
       DJANGO_SETTINGS_MODULE: web_annotation.settings_gunicorn
       GPFWA_EMAIL_HOST: mail
@@ -79,8 +81,8 @@ services:
       GPFWA_DATA_STORAGE: /data
       GPFWA_LOG_DIR: /logs
       GPFWA_SECRET_KEY: "django-insecure-3rz4n(_u+x8r+n%&xr-(vg83v8&llq7pin*x%@%y@d8af%iphk"
-      GPFWA_EMAIL_VERIFICATION_ENDPOINT: "http://wigclust3.cshl.edu:8000"
-      GPFWA_EMAIL_REDIRECT_ENDPOINT: "http://wigclust3.cshl.edu:8000"
+      GPFWA_EMAIL_VERIFICATION_ENDPOINT: "http://iossifovweb.cshl.edu:9002"
+      GPFWA_EMAIL_REDIRECT_ENDPOINT: "http://iossifovweb.cshl.edu:9002"
     healthcheck:
       test: ["CMD", "curl", "http://localhost:9001/api/user_info"]
       interval: 10s
@@ -105,4 +107,4 @@ services:
       timeout: 5s
       retries: 5
     ports:
-    - "8000:80"
+    - "9002:80"
