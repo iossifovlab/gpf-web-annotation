@@ -8,10 +8,12 @@ import { UsersService } from '../users.service';
 import { provideHttpClient } from '@angular/common/http';
 import { SingleAnnotationService } from '../single-annotation.service';
 import { Pipeline } from '../job-creation/pipelines';
+import { ElementRef, TemplateRef } from '@angular/core';
+import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 
 const jobs = [
-  new Job(1, 1, new Date('1.10.2025'), 'test@email.com', 'in process', 3.2, '', '9.7 KB'),
-  new Job(2, 2, new Date('1.10.2025'), 'test@email.com', 'failed', 2.7, '', '9.7 KB'),
+  new Job(1, 1, new Date('1.10.2025'), 'test@email.com', 'in process', 3.2, '', '9.7 KB', ''),
+  new Job(2, 2, new Date('1.10.2025'), 'test@email.com', 'failed', 2.7, '', '9.7 KB', ''),
 ];
 class JobsServiceMock {
   public getJobs(): Observable<Job[]> {
@@ -24,9 +26,9 @@ class JobsServiceMock {
 
   public getAnnotationPipelines(): Observable<Pipeline[]> {
     return of([
-      new Pipeline('id1', 'name1', 'content1', 'default'),
-      new Pipeline('id2', 'name2', 'content2', 'default'),
-      new Pipeline('id3', 'name3', 'content3', 'default'),
+      new Pipeline('id1', 'name1', 'content1', 'default', 'loaded'),
+      new Pipeline('id2', 'name2', 'content2', 'default', 'loaded'),
+      new Pipeline('id3', 'name3', 'content3', 'default', 'loaded'),
     ]);
   }
 
@@ -49,12 +51,26 @@ class UserServiceMock {
     }
   };
 }
+class MatDialogRefMock {
+  public afterClosed(): Observable<number> {
+    return of(2);
+  }
+}
+
+class MatDialogMock {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, @stylistic/max-len
+  public open(templateRef: TemplateRef<ElementRef>, config: MatDialogConfig<string>): MatDialogRefMock {
+    return new MatDialogRefMock();
+  }
+}
 
 describe('JobsTableComponent', () => {
   let component: JobsTableComponent;
   let fixture: ComponentFixture<JobsTableComponent>;
   const jobsServiceMock = new JobsServiceMock();
   const userServiceMock = new UserServiceMock();
+
+  const mockMatRef = new MatDialogMock();
 
   beforeEach(async() => {
     await TestBed.configureTestingModule({
@@ -63,6 +79,10 @@ describe('JobsTableComponent', () => {
         {
           provide: UsersService,
           useValue: userServiceMock
+        },
+        {
+          provide: MatDialog,
+          useValue: mockMatRef
         },
         provideHttpClient(),
         SingleAnnotationService,
@@ -95,5 +115,11 @@ describe('JobsTableComponent', () => {
     component.onDelete(12);
     expect(deleteSpy).toHaveBeenCalledWith(12);
     expect(getJobsSpy).toHaveBeenCalledWith();
+  });
+
+  it('should refresh table when delete a job from modal', () => {
+    const refreshTableSpy = jest.spyOn(component, 'refreshTable');
+    component.openDetailsModal(2);
+    expect(refreshTableSpy).toHaveBeenCalledWith();
   });
 });

@@ -15,6 +15,9 @@ describe('AnnotationPipelineService', () => {
     });
 
     service = TestBed.inject(AnnotationPipelineService);
+
+    const mockCookie = 'csrftoken=token1; csrftoken=token2';
+    document.cookie = mockCookie;
   });
 
   it('should be created', () => {
@@ -44,7 +47,7 @@ describe('AnnotationPipelineService', () => {
 
     const options = {
       headers: {
-        'X-CSRFToken': ''
+        'X-CSRFToken': 'token1'
       },
       withCredentials: true
     };
@@ -84,7 +87,7 @@ describe('AnnotationPipelineService', () => {
     const httpDelteSpy = jest.spyOn(HttpClient.prototype, 'delete');
     const options = {
       headers: {
-        'X-CSRFToken': ''
+        'X-CSRFToken': 'token1'
       },
       withCredentials: true
     };
@@ -93,6 +96,24 @@ describe('AnnotationPipelineService', () => {
 
     expect(httpDelteSpy).toHaveBeenCalledWith(
       '//localhost:8000/api/pipelines/user?id=1',
+      options
+    );
+  });
+
+  it('should load specific pipeline', () => {
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
+    const options = {
+      headers: {
+        'X-CSRFToken': 'token1'
+      },
+      withCredentials: true
+    };
+
+    service.loadPipeline('1');
+
+    expect(httpPostSpy).toHaveBeenCalledWith(
+      '//localhost:8000/api/pipelines/load',
+      {id: '1'},
       options
     );
   });
