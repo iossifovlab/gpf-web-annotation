@@ -62,6 +62,8 @@ export class JobCreationComponent implements OnInit {
     this.emitUpdatedFileHeader.emit(mappedColumns);
     if (mappedColumns && (mappedColumns.has('location') || mappedColumns.has('variant'))) {
       this.requireGenome = true;
+    } else {
+      this.requireGenome = false;
     }
   }
 
