@@ -265,6 +265,7 @@ describe('AnnotationWrapperComponent', () => {
     );
     expect(component.creationError).toBe('');
     expect(component.currentJobId).toBe(2);
+    expect(component.currentJob).toStrictEqual(jobs[1]);
   });
 
   it('should create job with csv file and auto save pipeline', () => {

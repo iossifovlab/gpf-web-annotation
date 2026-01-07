@@ -138,6 +138,7 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
         next: (jobId: number) => {
           this.isCreationFormVisible = false;
           this.currentJobId = jobId;
+          this.getCurrentJobDetails(jobId);
         },
         complete: () => {
           this.blockCreate = false;
