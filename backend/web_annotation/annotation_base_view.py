@@ -372,6 +372,14 @@ class AnnotationBaseView(views.APIView):
 
         return ext
 
+    def get_config_path(self, job_name: int, user: User) -> Path:
+        config_filename = f"config-{job_name}.yaml"
+        return Path(
+            settings.ANNOTATION_CONFIG_STORAGE_DIR,
+            user.identifier,
+            config_filename,
+        )
+
     def _create_job(
         self,
         request: Request,
@@ -394,13 +402,9 @@ class AnnotationBaseView(views.APIView):
             )
 
         job_name = request.user.generate_job_name()
-        config_filename = f"config-{job_name}.yaml"
 
-        config_path = Path(
-            settings.ANNOTATION_CONFIG_STORAGE_DIR,
-            request.user.identifier,
-            config_filename,
-        )
+        config_path = self.get_config_path(job_name, request.user)
+
         save_response_or_pipeline = self._save_annotation_config(
             request, config_path)
         if isinstance(save_response_or_pipeline, Response):

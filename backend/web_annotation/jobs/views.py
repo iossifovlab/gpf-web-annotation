@@ -2,11 +2,13 @@
 import gzip
 import logging
 from pathlib import Path
+import subprocess
 from subprocess import CalledProcessError
 import time
 from typing import Any, cast
 from dae.annotation.annotation_factory import build_annotation_pipeline
 from dae.annotation.record_to_annotatable import build_record_to_annotatable
+from django.conf import settings
 from django.core.files.uploadedfile import UploadedFile
 from django.db.models import ObjectDoesNotExist, QuerySet
 from django.http import FileResponse, QueryDict
@@ -164,18 +166,30 @@ class AnnotateVCF(AnnotationBaseView):
 
     parser_classes = [MultiPartParser]
 
-    def check_variants_limit(self, file: VariantFile, user: User) -> bool:
+    def validate_vcf(
+        self,
+        file_path: str,
+        job_name: int,
+        user: User,
+    ) -> bool:
         """Check if a variants file does not exceed the variants limit."""
-        if user.is_superuser:
-            return True
-        for i, _ in enumerate(file.fetch()):
-            if i >= self.max_variants:
-                logger.debug(
-                    "User %s exceeded max variants limit: %d",
-                    user.identifier, self.max_variants,
-                )
-                return False
-        return True
+
+        args = [
+            "validate_vcf_file",
+            file_path,
+            str(self.get_config_path(job_name, user)),
+            cast(str, settings.GRR_DEFINITION_PATH),
+        ]
+        if not user.is_superuser:
+            args.extend(["--limit", str(self.max_variants)])
+
+        proc = subprocess.run(
+            args,
+            check=True,
+            text=True,
+            capture_output=True,
+        )
+        return proc.stdout.strip() == "valid"
 
     def post(self, request: Request) -> Response:
         """Run VCF annotation job."""
@@ -187,31 +201,19 @@ class AnnotateVCF(AnnotationBaseView):
         work_folder_name = request.user.identifier
 
         try:
-            vcf = VariantFile(job.input_path)
-        except (ValueError, OSError):
-            logger.exception("Failed to parse VCF file")
+            if not self.validate_vcf(
+                job.input_path,
+                job_name,
+                request.user,
+            ):
+                self._cleanup(job_name, work_folder_name)
+                return Response(
+                    status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
+        except CalledProcessError as e:
             self._cleanup(job_name, work_folder_name)
             return Response(
-                {"reason": "Invalid VCF file"},
-                status=views.status.HTTP_400_BAD_REQUEST,
-            )
-        except NotImplementedError:
-            logger.exception("GZip upload")
-            self._cleanup(job_name, work_folder_name)
-            return Response(
-                {
-                    "reason": (
-                        "Uploaded VCF file not supported"
-                        " (GZipped not supported)."
-                    )
-                },
-                status=views.status.HTTP_400_BAD_REQUEST,
-            )
-
-        if not self.check_variants_limit(vcf, request.user):
-            self._cleanup(job_name, work_folder_name)
-            return Response(
-                status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
+                {"reason": str(e.stderr)},
+                status=views.status.HTTP_400_BAD_REQUEST)
 
         job.save()
         work_dir = self.result_storage_dir / work_folder_name
