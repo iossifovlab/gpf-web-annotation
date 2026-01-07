@@ -98,6 +98,7 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
     this.pipelinesComponent.autoSave().pipe(take(1)).subscribe(annonymousPipelineName => {
       if (annonymousPipelineName) {
         this.pipelineId = annonymousPipelineName;
+        this.singleAnnotationComponent.pipelineId = annonymousPipelineName;
       }
       if (this.currentView === 'jobs') {
         this.create();
@@ -182,6 +183,9 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
     }
     this.resetSingleAlleleReport();
     this.pipelineId = newPipeline;
+    if (this.currentView === 'single allele') {
+      this.singleAnnotationComponent.pipelineId = newPipeline;
+    }
     if (newPipeline) {
       this.annotationPipelineService.loadPipeline(newPipeline).pipe(take(1)).subscribe();
     }
