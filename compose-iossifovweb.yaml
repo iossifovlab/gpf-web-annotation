@@ -69,7 +69,6 @@ services:
       - static-data
     environment:
       DJANGO_SETTINGS_MODULE: web_annotation.settings_gunicorn
-      GPFWA_EMAIL_HOST: mail
       GRR_DEFINITION_FILE: /grr-definition-dir.yaml
       GPFWA_DB_NAME: gpfwa
       GPFWA_DB_USER: postgres
@@ -78,12 +77,23 @@ services:
       GPFWA_DB_PORT: 5432
       GPFWA_DATA_STORAGE: /data
       GPFWA_LOG_DIR: /logs
-      GPFWA_SECRET_KEY: "${GPFWA_SECRET_KEY:-django-insecure-3rz4n(_u+x8r+n%&xr-(vg83v8&llq7pin*x%@%y@d8af%iphk}"
-      GPFWA_EMAIL_VERIFICATION_ENDPOINT: "${GPFWA_PUBLIC_ENDPOINT:-http://localhost:9002}"
-      GPFWA_EMAIL_REDIRECT_ENDPOINT: "${GPFWA_PUBLIC_ENDPOINT:-http://localhost:9002}"
+      GPFWA_SECRET_KEY: "${SECRET_KEY:-django-insecure-3rz4n(_u+x8r+n%&xr-(vg83v8&llq7pin*x%@%y@d8af%iphk}"
+
+      GPFWA_EMAIL_VERIFICATION_ENDPOINT: "${PUBLIC_ENDPOINT:-http://localhost:9002}"
+      GPFWA_EMAIL_REDIRECT_ENDPOINT: "${PUBLIC_ENDPOINT:-http://localhost:9002}"
+
+      GPFWA_DEFAULT_FROM_EMAIL: "${DEFAULT_FROM_EMAIL:-no-reply@iossifovlab.com}"
+      GPFWA_EMAIL_HOST: "${EMAIL_HOST:-in-v3.mailjet.com}"
+      GPFWA_EMAIL_HOST_USER: "${EMAIL_HOST_USER:-}"
+      GPFWA_EMAIL_HOST_PASSWORD: "${EMAIL_HOST_PASSWORD:-}"
+      GPFWA_EMAIL_PORT: "${EMAIL_PORT:-587}"
+      GPFWA_EMAIL_USE_TLS: "${EMAIL_USE_TLS:-True}"
+
+      GPFWA_PUBLIC_NAME: "${PUBLIC_NAME:-localhost}"
+
     healthcheck:
       test: ["CMD", "curl", "http://localhost:9001/api/user_info"]
-      interval: 10s
+      interval: 120s
       timeout: 5s
       retries: 5
 

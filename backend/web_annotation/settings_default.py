@@ -60,8 +60,11 @@ SECRET_KEY = os.environ.get(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['*']
-
+ALLOWED_HOSTS = ["localhost", os.environ.get("GPFWA_PUBLIC_NAME", "*")]
+if os.environ.get("GPFWA_PUBLIC_NAME"):
+    CSRF_TRUSTED_ORIGINS = [
+        f"https://{os.environ.get('GPFWA_PUBLIC_NAME')}",
+    ]
 
 # Application definition
 
@@ -271,6 +274,11 @@ LOGGING = {
         },
     },
     "loggers": {
+        "http_protocol": {
+            "handlers": ["console", "logdebug"],
+            "propagate": True,
+            "level": "INFO",
+        },
         "django": {
             "handlers": ["console", "logdebug"],
             "propagate": True,
