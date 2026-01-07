@@ -80,10 +80,10 @@ describe('SingleAnnotationReportComponent', () => {
       new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
       [
         new Annotator(new AnnotatorDetails('allele_score', 'desc', [new Resource('resourceId', 'resourceUrl')]), [
-          new Attribute('attr1', 'desc1', 'AF', {value: 'true', histogramLink: null} as Result),
-          new Attribute('attr2', 'desc2', 'AF', {value: 13, histogramLink: null} as Result),
-          new Attribute('attr3', 'desc3', 'AF', {value: 'mock_value', histogramLink: null} as Result),
-          new Attribute('attr4', 'desc4', 'AF',
+          new Attribute('attr1', 'desc1\nblabla1\n', 'AF', {value: 'true', histogramLink: null} as Result),
+          new Attribute('attr2', 'desc2\nblabla2\n', 'AF', {value: 13, histogramLink: null} as Result),
+          new Attribute('attr3', 'desc3\nblabla3\n', 'AF', {value: 'mock_value', histogramLink: null} as Result),
+          new Attribute('attr4', 'desc4\nblabla4\n', 'AF',
             {value: new Map<string, number>([['fo', 5], ['po', 3]]), histogramLink: null} as Result
           ),
         ])
@@ -102,10 +102,10 @@ describe('SingleAnnotationReportComponent', () => {
       + 'position\t204000100\n'
       + 'reference\tA\n'
       + 'alternative\tAA\n'
-      + 'attr1\ttrue\tdesc1\n'
-      + 'attr2\t13\tdesc2\n'
-      + 'attr3\tmock_value\tdesc3\n'
-      +'attr4\tfo:5;po:3\tdesc4\n';
+      + 'attr1\ttrue\tdesc1 blabla1\n'
+      + 'attr2\t13\tdesc2 blabla2\n'
+      + 'attr3\tmock_value\tdesc3 blabla3\n'
+      +'attr4\tfo:5;po:3\tdesc4 blabla4\n';
     expect(savedText).toBe(expectedText);
   });
 });

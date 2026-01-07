@@ -77,7 +77,8 @@ export class SingleAnnotationReportComponent {
         } else {
           value = 'N/A';
         }
-        reportLines += `${attribute.name}\t${value}\t${attribute.description}\n`;
+        const description = attribute.description.replace(/\r?\n/g, ' ').trim();
+        reportLines += `${attribute.name}\t${value}\t${description}\n`;
       });
     });
     reportLines.trim();
