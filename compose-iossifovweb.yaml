@@ -67,8 +67,6 @@ services:
       - ${GRR}:/grr
     volumes_from:
       - static-data
-    ports:
-      - "9001:9001"
     environment:
       DJANGO_SETTINGS_MODULE: web_annotation.settings_gunicorn
       GPFWA_EMAIL_HOST: mail
@@ -80,9 +78,9 @@ services:
       GPFWA_DB_PORT: 5432
       GPFWA_DATA_STORAGE: /data
       GPFWA_LOG_DIR: /logs
-      GPFWA_SECRET_KEY: "django-insecure-3rz4n(_u+x8r+n%&xr-(vg83v8&llq7pin*x%@%y@d8af%iphk"
-      GPFWA_EMAIL_VERIFICATION_ENDPOINT: "http://iossifovweb.cshl.edu:9002"
-      GPFWA_EMAIL_REDIRECT_ENDPOINT: "http://iossifovweb.cshl.edu:9002"
+      GPFWA_SECRET_KEY: "${GPFWA_SECRET_KEY:-django-insecure-3rz4n(_u+x8r+n%&xr-(vg83v8&llq7pin*x%@%y@d8af%iphk}"
+      GPFWA_EMAIL_VERIFICATION_ENDPOINT: "${GPFWA_PUBLIC_ENDPOINT:-http://localhost:9002}"
+      GPFWA_EMAIL_REDIRECT_ENDPOINT: "${GPFWA_PUBLIC_ENDPOINT:-http://localhost:9002}"
     healthcheck:
       test: ["CMD", "curl", "http://localhost:9001/api/user_info"]
       interval: 10s
