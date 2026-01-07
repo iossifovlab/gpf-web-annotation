@@ -49,10 +49,10 @@
   </div>
   <div>
     <span class="label">Job size: </span>
-    <span class="data size">{{ job.size }}</span>
+    <span id="data-size">{{ job.size }}</span>
   </div>
   <div class="error-block" *ngIf="job.error">
-    <span class="data error">{{ job.error }}</span>
+    <span id="data-error">{{ job.error }}</span>
   </div>
 </mat-dialog-content>
 <mat-dialog-actions align="center" *ngIf="job">
