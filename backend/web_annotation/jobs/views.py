@@ -78,7 +78,9 @@ class JobAll(generics.ListAPIView):
 class JobList(generics.ListAPIView):
     """Generic view for listing jobs for the user."""
     def get_queryset(self) -> QuerySet:
-        return Job.objects.filter(owner=self.request.user, is_active=True)
+        return Job.objects \
+            .order_by("name") \
+            .filter(owner=self.request.user, is_active=True)
 
     serializer_class = JobSerializer
     permission_classes = [permissions.IsAuthenticated]
