@@ -8,7 +8,6 @@ import time
 from typing import Any, cast
 from dae.annotation.annotation_factory import build_annotation_pipeline
 from dae.annotation.record_to_annotatable import build_record_to_annotatable
-from django.conf import settings
 from django.core.files.uploadedfile import UploadedFile
 from django.db.models import ObjectDoesNotExist, QuerySet
 from django.http import FileResponse, QueryDict
@@ -171,7 +170,6 @@ class AnnotateVCF(AnnotationBaseView):
     def validate_vcf(
         self,
         file_path: str,
-        job_name: int,
         user: User,
     ) -> bool:
         """Check if a variants file does not exceed the variants limit."""
@@ -179,8 +177,6 @@ class AnnotateVCF(AnnotationBaseView):
         args = [
             "validate_vcf_file",
             file_path,
-            str(self.get_config_path(job_name, user)),
-            cast(str, settings.GRR_DEFINITION_PATH),
         ]
         if not user.is_superuser:
             args.extend(["--limit", str(self.max_variants)])
@@ -205,7 +201,6 @@ class AnnotateVCF(AnnotationBaseView):
         try:
             if not self.validate_vcf(
                 job.input_path,
-                job_name,
                 request.user,
             ):
                 self._cleanup(job_name, work_folder_name)
