@@ -1065,6 +1065,9 @@ def test_annotate_columns_bad_request(admin_client: Client) -> None:
     )
 
     assert response.status_code == 400
+    assert Job.objects.filter(
+        owner=User.objects.get(email="admin@example.com"),
+    ).count() == 1
 
 
 @pytest.mark.django_db
@@ -1087,6 +1090,9 @@ def test_annotate_columns_bad_genome(admin_client: Client) -> None:
     response = admin_client.post("/api/jobs/annotate_columns", params)
 
     assert response.status_code == 404
+    assert Job.objects.filter(
+        owner=User.objects.get(email="admin@example.com"),
+    ).count() == 1
 
 
 @pytest.mark.django_db

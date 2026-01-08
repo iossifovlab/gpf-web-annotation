@@ -318,13 +318,14 @@ class AnnotateColumns(AnnotationBaseView):
         assert isinstance(request.data, QueryDict)
         if not any(param in self.tool_columns for param in request.data):
             logger.debug("No column options sent in request body!")
+            job.delete()
             return Response(
                 {"reason": "Invalid column specification!"},
                 status=views.status.HTTP_400_BAD_REQUEST)
 
         if self.check_variants_limit(
                 Path(job.input_path), request.user) is False:
-            self._cleanup(job.name, request.user.identifier)
+            job.delete()
             return Response(
                 status=views.status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
 
@@ -344,6 +345,7 @@ class AnnotateColumns(AnnotationBaseView):
             details = job.get_job_details()
         except ObjectDoesNotExist:
             logger.exception("Job not found!")
+            job.delete()
             return Response(status=views.status.HTTP_404_NOT_FOUND)
 
         pipeline = build_annotation_pipeline(pipeline.raw, pipeline.repository)
