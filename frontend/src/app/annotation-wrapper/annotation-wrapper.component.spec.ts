@@ -535,4 +535,25 @@ describe('AnnotationWrapperComponent', () => {
     component.refreshUserQuota();
     expect(refreshUserDataSpy).toHaveBeenCalledWith();
   });
+
+  it('should display confirmation dialog on beforeUnload event when pipeline is not saved', () => {
+    const mockBoeforeUnloadEvent = { preventDefault: jest.fn() } as unknown as BeforeUnloadEvent;
+    jest.spyOn(component.pipelinesComponent, 'isPipelineChanged').mockReturnValue(true);
+    component.beforeUnload(mockBoeforeUnloadEvent);
+    expect(mockBoeforeUnloadEvent.preventDefault).toHaveBeenCalledWith();
+  });
+
+  it('should display confirmation dialog on beforeUnload event when creating job is not finished', () => {
+    const mockBoeforeUnloadEvent = { preventDefault: jest.fn() } as unknown as BeforeUnloadEvent;
+    component.currentView = 'jobs';
+    component.file = new File([], 'mock.vcf', { type: 'text/vcard' });
+    component.beforeUnload(mockBoeforeUnloadEvent);
+    expect(mockBoeforeUnloadEvent.preventDefault).toHaveBeenCalledWith();
+  });
+
+  it('should not display confirmation dialog on beforeUnload event when no unsaved changes', () => {
+    const mockBoeforeUnloadEvent = { preventDefault: jest.fn() } as unknown as BeforeUnloadEvent;
+    component.beforeUnload(mockBoeforeUnloadEvent);
+    expect(mockBoeforeUnloadEvent.preventDefault).not.toHaveBeenCalledWith();
+  });
 });
