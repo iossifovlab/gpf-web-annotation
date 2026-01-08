@@ -1,4 +1,4 @@
-import { Component, ViewChild, OnInit, OnDestroy, NgZone} from '@angular/core';
+import { Component, ViewChild, OnInit, OnDestroy, NgZone, HostListener } from '@angular/core';
 import { JobsTableComponent } from '../jobs-table/jobs-table.component';
 import { Observable, take } from 'rxjs';
 import { JobsService } from '../job-creation/jobs.service';
@@ -67,6 +67,23 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
     });
   }
 
+  @HostListener('window:beforeunload', ['$event'])
+  public beforeUnload(event: BeforeUnloadEvent): void {
+    if (this.hasUnsavedChanges()) {
+      event.preventDefault(); // display the confirmation dialog
+    }
+  }
+
+  private hasUnsavedChanges(): boolean {
+    if (this.pipelinesComponent.isPipelineChanged()) {
+      return true;
+    }
+
+    if (this.currentView === 'jobs' && this.file) {
+      return true;
+    }
+    return false;
+  }
 
   public ngOnDestroy(): void {
     this.socketNotificationsService.closeConnection();
@@ -98,6 +115,7 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
     this.pipelinesComponent.autoSave().pipe(take(1)).subscribe(annonymousPipelineName => {
       if (annonymousPipelineName) {
         this.pipelineId = annonymousPipelineName;
+        this.singleAnnotationComponent.pipelineId = annonymousPipelineName;
       }
       if (this.currentView === 'jobs') {
         this.create();
@@ -182,6 +200,9 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
     }
     this.resetSingleAlleleReport();
     this.pipelineId = newPipeline;
+    if (this.currentView === 'single allele') {
+      this.singleAnnotationComponent.pipelineId = newPipeline;
+    }
     if (newPipeline) {
       this.annotationPipelineService.loadPipeline(newPipeline).pipe(take(1)).subscribe();
     }
