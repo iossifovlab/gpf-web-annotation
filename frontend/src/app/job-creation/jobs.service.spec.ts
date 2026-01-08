@@ -10,7 +10,7 @@ import { Pipeline } from './pipelines';
 const jobsMockJson = [
   {
     id: 1, name: 1, created: '1.10.2025', owner: 'test@email.com',
-    status: 'in progress', duration: 4.7, result_filename: 'job-file.txt', size: '10 KB', error: ''
+    status: 'in_progress', duration: 4.7, result_filename: 'job-file.txt', size: '10 KB', error: ''
   },
   {
     id: 2, name: 2, created: '1.10.2025', owner: 'test@email.com',

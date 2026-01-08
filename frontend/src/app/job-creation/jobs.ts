@@ -23,12 +23,20 @@ export class Job {
       return undefined;
     }
 
+    let status: JobStatus = null;
+    switch (json['status']) {
+      case 'waiting': status = 'waiting'; break;
+      case 'in_progress': status = 'in progress'; break;
+      case 'success': status = 'success'; break;
+      case 'failed': status = 'failed'; break;
+    }
+
     return new Job(
       json['id'] as number,
       json['name'] as number,
       new Date(json['created'] as string),
       json['owner'] as string,
-      json['status'] as JobStatus,
+      status,
       json['duration'] as number,
       json['result_filename'] as string,
       json['size'] as string,
