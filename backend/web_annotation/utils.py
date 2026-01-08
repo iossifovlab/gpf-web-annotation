@@ -1,3 +1,4 @@
+import subprocess
 
 from functools import reduce
 from typing import Any
@@ -324,3 +325,24 @@ def get_ip_from_request(request: Request) -> str:
     else:
         ip = request.META.get('REMOTE_ADDR')
     return str(ip)
+
+def validate_vcf(
+    file_path: str,
+    limit: int | None = None,
+) -> bool:
+    """Check if a variants file is valid."""
+
+    args = [
+        "validate_vcf_file",
+        file_path,
+    ]
+    if limit is not None:
+        args.extend(["--limit", str(limit)])
+
+    proc = subprocess.run(
+        args,
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    return proc.stdout.strip() == "valid"

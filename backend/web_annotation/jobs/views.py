@@ -2,7 +2,6 @@
 import gzip
 import logging
 from pathlib import Path
-import subprocess
 from subprocess import CalledProcessError
 import time
 from typing import Any, cast
@@ -32,7 +31,7 @@ from web_annotation.models import (
 )
 from web_annotation.permissions import has_job_permission
 from web_annotation.serializers import JobSerializer
-from web_annotation.utils import bytes_to_readable
+from web_annotation.utils import bytes_to_readable, validate_vcf
 from web_annotation.tasks import (
     get_args_columns,
     get_args_vcf,
@@ -167,27 +166,18 @@ class AnnotateVCF(AnnotationBaseView):
 
     parser_classes = [MultiPartParser]
 
-    def validate_vcf(
+    def _validate_vcf(
         self,
         file_path: str,
         user: User,
     ) -> bool:
         """Check if a variants file does not exceed the variants limit."""
-
-        args = [
-            "validate_vcf_file",
-            file_path,
-        ]
         if not user.is_superuser:
-            args.extend(["--limit", str(self.max_variants)])
+            limit = self.max_variants
+        else:
+            limit = None
 
-        proc = subprocess.run(
-            args,
-            check=True,
-            text=True,
-            capture_output=True,
-        )
-        return proc.stdout.strip() == "valid"
+        return validate_vcf(file_path, limit)
 
     def post(self, request: Request) -> Response:
         """Run VCF annotation job."""
@@ -199,7 +189,7 @@ class AnnotateVCF(AnnotationBaseView):
         work_folder_name = request.user.identifier
 
         try:
-            if not self.validate_vcf(
+            if not self._validate_vcf(
                 job.input_path,
                 request.user,
             ):
