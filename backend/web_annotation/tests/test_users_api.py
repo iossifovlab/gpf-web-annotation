@@ -463,3 +463,25 @@ def test_get_user_info_unauthorized(anonymous_client: Client) -> None:
             'variantCount': 1000,
         },
     }
+
+
+@pytest.mark.django_db
+def test_get_user_info_cookie() -> None:
+    client = Client()
+    response = client.get("/api/user_info")
+    assert response.status_code == 200
+    assert "sessionid" in response.cookies
+    first_cookie = response.cookies["sessionid"].value
+    assert first_cookie is not None
+    client.login(email="user@example.com", password="secret")
+    assert response.status_code == 200
+    assert "sessionid" in response.cookies
+    second_cookie = response.cookies["sessionid"].value
+    assert second_cookie is not None
+    assert first_cookie != second_cookie
+    response = client.get("/api/logout")
+    assert response.status_code == 200
+    assert "sessionid" in response.cookies
+    third_cookie = response.cookies["sessionid"].value
+    assert third_cookie is not None
+    assert second_cookie != third_cookie

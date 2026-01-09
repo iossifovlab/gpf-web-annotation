@@ -208,7 +208,6 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': None,
     'PAGE_SIZE': None,
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'web_annotation.authentication.WebAnnotationAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ),
     'DEFAULT_THROTTLE_RATES': {

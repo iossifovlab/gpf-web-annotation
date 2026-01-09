@@ -1247,3 +1247,10 @@ def test_genomes_view(admin_client: Client) -> None:
     assert len(data) == 2
     assert data[0] == "hg38/GRCh38-hg38/genome"
     assert data[1] == "t4c8/t4c8_genome"
+
+
+def test_genomes_view_does_not_set_cookie(anonymous_client: Client) -> None:
+    assert "sessionid" not in anonymous_client.cookies
+    response = anonymous_client.get("/api/jobs/genomes")
+    assert response.status_code == 200
+    assert "sessionid" not in anonymous_client.cookies

@@ -29,6 +29,7 @@ from rest_framework.throttling import UserRateThrottle
 from rest_framework.views import Request, Response
 
 from web_annotation.annotation_base_view import AnnotationBaseView
+from web_annotation.authentication import WebAnnotationAuthentication
 from web_annotation.models import AlleleQuery, User
 from web_annotation.serializers import AlleleSerializer
 
@@ -106,6 +107,7 @@ class SingleAnnotation(AnnotationBaseView):
     """Single annotation view."""
 
     throttle_classes = [UserRateThrottle]
+    authentication_classes = [WebAnnotationAuthentication]
 
     def generate_annotator_help(
         self,
@@ -317,6 +319,8 @@ class HistogramView(AnnotationBaseView):
 class AlleleHistory(generics.ListAPIView):
     """View for managing a user's allele annotation history."""
 
+
+    authentication_classes = [WebAnnotationAuthentication]
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = AlleleSerializer
 
