@@ -163,6 +163,7 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
         },
         error: (err: Error) => {
           this.creationError = err.message;
+          this.blockCreate = false;
         }
       });
     }
@@ -257,6 +258,7 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
 
   public disableCreate(): boolean {
     return this.blockCreate
+      || this.creationError !== ''
       || !this.pipelineId
       || !this.file
       || (this.file.type !== 'text/vcard' && !this.fileHeader)
