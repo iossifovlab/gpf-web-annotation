@@ -10,19 +10,19 @@ import { Pipeline } from './pipelines';
 const jobsMockJson = [
   {
     id: 1, name: 1, created: '1.10.2025', owner: 'test@email.com',
-    status: 2, duration: 4.7, result_filename: 'job-file.txt', size: '10 KB', error: ''
+    status: 'in_progress', duration: 4.7, result_filename: 'job-file.txt', size: '10 KB', error: ''
   },
   {
     id: 2, name: 2, created: '1.10.2025', owner: 'test@email.com',
-    status: 4, duration: 2.5, result_filename: 'job-file.txt', size: '10 KB', error: ''
+    status: 'failed', duration: 2.5, result_filename: 'job-file.txt', size: '10 KB', error: ''
   },
   {
     id: 3, name: 3, created: '1.10.2025', owner: 'test@email.com',
-    status: 3, duration: 2.3, result_filename: 'job-file.txt', size: '10 KB', error: ''
+    status: 'success', duration: 2.3, result_filename: 'job-file.txt', size: '10 KB', error: ''
   },
   {
     id: 4, name: 4, created: '1.10.2025', owner: 'test@email.com',
-    status: 1, duration: 1.9, result_filename: 'job-file.txt', size: '10 KB', error: ''
+    status: 'waiting', duration: 1.9, result_filename: 'job-file.txt', size: '10 KB', error: ''
   },
 ];
 /* eslint-enable */
@@ -235,7 +235,7 @@ describe('JobsService', () => {
     httpGetSpy.mockReturnValue(of(jobsMockJson));
 
     const jobsMockResult = [
-      new Job(1, 1, new Date('1.10.2025'), 'test@email.com', 'in process', 4.7, 'job-file.txt', '10 KB', ''),
+      new Job(1, 1, new Date('1.10.2025'), 'test@email.com', 'in progress', 4.7, 'job-file.txt', '10 KB', ''),
       new Job(2, 2, new Date('1.10.2025'), 'test@email.com', 'failed', 2.5, 'job-file.txt', '10 KB', ''),
       new Job(3, 3, new Date('1.10.2025'), 'test@email.com', 'success', 2.3, 'job-file.txt', '10 KB', ''),
       new Job(4, 4, new Date('1.10.2025'), 'test@email.com', 'waiting', 1.9, 'job-file.txt', '10 KB', ''),
@@ -274,7 +274,7 @@ describe('JobsService', () => {
         id: 16,
         name: 16,
         created: '2025-08-26',
-        status: 1,
+        status: 'waiting',
         owner: 'register@email.com',
         duration: 3.3,
         // eslint-disable-next-line camelcase
@@ -314,7 +314,7 @@ describe('JobsService', () => {
   });
 
   it('should get correct class name for in progress status', () => {
-    expect(getStatusClassName('in process')).toBe('in-progress-status');
+    expect(getStatusClassName('in progress')).toBe('in-progress-status');
   });
 
   it('should get correct class name for success status', () => {

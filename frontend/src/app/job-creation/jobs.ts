@@ -25,10 +25,10 @@ export class Job {
 
     let status: JobStatus = null;
     switch (json['status']) {
-      case 1: status = 'waiting'; break;
-      case 2: status = 'in process'; break;
-      case 3: status = 'success'; break;
-      case 4: status = 'failed'; break;
+      case 'waiting': status = 'waiting'; break;
+      case 'in_progress': status = 'in progress'; break;
+      case 'success': status = 'success'; break;
+      case 'failed': status = 'failed'; break;
     }
 
     return new Job(
@@ -45,12 +45,12 @@ export class Job {
   }
 }
 
-export type JobStatus = 'waiting' | 'in process' | 'success' | 'failed';
+export type JobStatus = 'waiting' | 'in progress' | 'success' | 'failed';
 
 export function getStatusClassName(status: string): string {
   switch (status) {
     case 'waiting': return 'waiting-status';
-    case 'in process': return 'in-progress-status';
+    case 'in progress': return 'in-progress-status';
     case 'success': return 'success-status';
     case 'failed': return 'fail-status';
   }

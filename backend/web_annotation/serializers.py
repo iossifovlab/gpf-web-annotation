@@ -1,3 +1,4 @@
+from typing import cast
 from rest_framework import serializers
 
 from .models import AlleleQuery, Job, User
@@ -13,6 +14,12 @@ class JobSerializer(serializers.ModelSerializer):
         fields = [
             "id", "name", "created", "status", "duration", "owner", "error"]
 
+    def to_representation(self, instance: Job) -> dict:
+        """Transform status into human-readable format."""
+        representation = cast(dict, super().to_representation(instance))
+        representation["status"] = Job.Status(instance.status).name.lower()
+        return representation
+
 
 class UserSerializer(serializers.ModelSerializer):
     """User model serializer class."""
@@ -23,6 +30,7 @@ class UserSerializer(serializers.ModelSerializer):
         """Meta class for user serializer."""
         model = User
         fields = ["email", "jobs"]
+
 
 class AlleleSerializer(serializers.ModelSerializer):
     """Allele model serializer class."""

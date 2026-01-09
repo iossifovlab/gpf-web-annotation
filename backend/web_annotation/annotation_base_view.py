@@ -191,7 +191,7 @@ class AnnotationBaseView(views.APIView):
             {
                 "type": "job_status",
                 "job_id": job_id,
-                "status": status,
+                "status": Job.Status(status).name.lower(),
             },
         )
 
