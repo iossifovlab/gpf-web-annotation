@@ -67,6 +67,7 @@ class User(BaseUser, AbstractUser):
     email = models.EmailField(("email address"), unique=True)
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
+    job_counter = models.IntegerField(default=0)
 
     @property
     def job_class(self) -> type[Job]:
@@ -111,7 +112,11 @@ class User(BaseUser, AbstractUser):
 
     def generate_job_name(self) -> int:
         job_count = self.job_class.objects.filter(owner=self).count()
-        return job_count + 1
+        if job_count > self.job_counter:
+            self.job_counter += job_count
+        self.job_counter += 1
+        self.save()
+        return self.job_counter
 
     def create_job(self, **kwargs: Any) -> Job:
         """Create a new job for the user."""
