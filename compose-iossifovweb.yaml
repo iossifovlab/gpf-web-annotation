@@ -92,8 +92,8 @@ services:
       GPFWA_PUBLIC_NAME: "${PUBLIC_NAME:-localhost}"
 
     healthcheck:
-      test: ["CMD", "curl", "http://localhost:9001/api/user_info"]
-      interval: 120s
+      test: ["CMD", "curl", "http://localhost:9001/api/jobs/genomes"]
+      interval: 10s
       timeout: 5s
       retries: 5
 
