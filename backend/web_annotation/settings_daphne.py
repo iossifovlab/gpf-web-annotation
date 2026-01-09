@@ -8,10 +8,10 @@ STATIC_ROOT = '/static/gpf/static'
 
 
 QUOTAS = {
-    "daily_jobs": 50,
-    "filesize": "64M",
+    "daily_jobs": 500,
+    "filesize": "128M",
     "disk_space": "2048M",
-    "variant_count": 10_000,
+    "variant_count": 1_000_000,
 }
 
 RESOURCES_BASE_URL = "http://grr.iossifovlab.com/"
