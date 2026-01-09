@@ -23,6 +23,7 @@ from web_annotation.annotate_helpers import (
     is_compressed_filename,
 )
 from web_annotation.annotation_base_view import AnnotationBaseView
+from web_annotation.authentication import WebAnnotationAuthentication
 from web_annotation.models import (
     AnonymousJob,
     Job,
@@ -68,6 +69,7 @@ class ListGenomePipelines(AnnotationBaseView):
 
 class JobAll(generics.ListAPIView):
     """Generic view for listing all jobs."""
+    authentication_classes = [WebAnnotationAuthentication]
     queryset = Job.objects.filter(is_active=True)
     serializer_class = JobSerializer
     permission_classes = [permissions.IsAdminUser]
@@ -75,6 +77,7 @@ class JobAll(generics.ListAPIView):
 
 class JobList(generics.ListAPIView):
     """Generic view for listing jobs for the user."""
+    authentication_classes = [WebAnnotationAuthentication]
     def get_queryset(self) -> QuerySet:
         return Job.objects \
             .order_by("name") \
@@ -86,6 +89,8 @@ class JobList(generics.ListAPIView):
 
 class JobDetail(AnnotationBaseView):
     """View for listing job details."""
+
+    authentication_classes = [WebAnnotationAuthentication]
 
     def get_job(
         self,
@@ -165,6 +170,8 @@ class JobDetail(AnnotationBaseView):
 
 class AnnotateVCF(AnnotationBaseView):
     """View for creating jobs."""
+
+    authentication_classes = [WebAnnotationAuthentication]
 
     parser_classes = [MultiPartParser]
 
@@ -267,6 +274,8 @@ class AnnotateVCF(AnnotationBaseView):
 
 class AnnotateColumns(AnnotationBaseView):
     """View for creating jobs."""
+
+    authentication_classes = [WebAnnotationAuthentication]
 
     parser_classes = [MultiPartParser]
 
@@ -405,6 +414,8 @@ class AnnotateColumns(AnnotationBaseView):
 class ColumnValidation(AnnotationBaseView):
     """Validate if column selection returns annotatable."""
 
+    authentication_classes = [WebAnnotationAuthentication]
+
     ANNOTATABLES = {
         "RecordToCNVAllele": "CNV Allele",
         "RecordToRegion": "Region",
@@ -475,6 +486,8 @@ class ColumnValidation(AnnotationBaseView):
 class JobGetFile(views.APIView):
     """View for downloading job files."""
 
+    authentication_classes = [WebAnnotationAuthentication]
+
     def get(
         self, request: Request, pk: int, file: str,
     ) -> Response | FileResponse:
@@ -512,6 +525,8 @@ class JobGetFile(views.APIView):
 
 class PreviewFileUpload(AnnotationBaseView):
     """Try to determine the separator of a file split into columns"""
+
+    authentication_classes = [WebAnnotationAuthentication]
 
     def post(self, request: Request) -> Response:
         """Determine the separator of a file split into columns."""
