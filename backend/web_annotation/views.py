@@ -165,12 +165,12 @@ class Login(views.APIView):
                 {"error": "Invalid login credentials"},
                 status=views.status.HTTP_400_BAD_REQUEST)
 
+        request.session.flush()
+        request.session.save()
+
         login(cast(HttpRequest, request), user)
 
         umodel = User.objects.get(email=email)
-
-        request.session.flush()
-        request.session.save()
 
         return Response(
             {"email": umodel.email,
