@@ -115,13 +115,15 @@ class JobDetail(AnnotationBaseView):
 
         response = {
             "id": job.pk,
-            "name": job.name,
+            "name": job.name \
+                if isinstance(job, Job) else "anonymous_job",
             "owner": request.user.identifier,
             "created": str(job.created),
             "duration": job.duration,
             "command_line": job.command_line,
             "status": Job.Status(job.status).name.lower(),
-            "result_filename": Path(job.result_path).name,
+            "result_filename": Path(job.result_path).name \
+                if isinstance(job, Job) else "result",
             "error": job.error,
             "size": bytes_to_readable(int(job.disk_size)),
         }
@@ -495,7 +497,17 @@ class JobGetFile(views.APIView):
 
         if not file_path.exists():
             return Response(status=views.status.HTTP_404_NOT_FOUND)
-        return FileResponse(open(file_path, "rb"), as_attachment=True)
+
+        if isinstance(job, Job):
+            filename = file_path.name
+        else:
+            filename = file + file_path.suffix
+
+        return FileResponse(
+            open(file_path, "rb"),
+            as_attachment=True,
+            filename=filename,
+        )
 
 
 class PreviewFileUpload(AnnotationBaseView):

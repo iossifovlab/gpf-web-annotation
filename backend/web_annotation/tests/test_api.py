@@ -82,7 +82,7 @@ def test_get_all_jobs_admin_user(admin_client: Client) -> None:
     now = datetime.datetime.now(datetime.timezone.utc)
     assert abs(now - created) < datetime.timedelta(minutes=1)
     assert job["id"] == 1
-    assert job["name"] == 1
+    assert job["name"] == "1"
     assert job["status"] == "waiting"
     assert job["owner"] == "user@example.com"
 
@@ -92,7 +92,7 @@ def test_get_all_jobs_admin_user(admin_client: Client) -> None:
     now = datetime.datetime.now(datetime.timezone.utc)
     assert abs(now - created) < datetime.timedelta(minutes=1)
     assert job["id"] == 2
-    assert job["name"] == 2
+    assert job["name"] == "2"
     assert job["status"] == "waiting"
     assert job["owner"] == "admin@example.com"
 
@@ -149,7 +149,7 @@ def test_annotate_columns_job_details(user_client: Client) -> None:
     now = datetime.datetime.now(datetime.timezone.utc)
     assert abs(now - created) < datetime.timedelta(minutes=1)
     assert result["id"] == 3
-    assert result["name"] == 2
+    assert result["name"] == "2"
     assert result["owner"] == "user@example.com"
     assert result["head"] == [
         {

@@ -298,7 +298,7 @@ class AnnotationBaseView(views.APIView):
         input_path.parent.mkdir(parents=True, exist_ok=True)
         input_path.write_bytes(uploaded_file.read())
 
-    def _cleanup(self, job_name: int, folder_name: str) -> None:
+    def _cleanup(self, job_name: str, folder_name: str) -> None:
         """Cleanup the files of a failed job."""
         data_filename = f"data-{job_name}"
         inputs = Path(settings.JOB_INPUT_STORAGE_DIR).glob(
@@ -372,7 +372,7 @@ class AnnotationBaseView(views.APIView):
 
         return ext
 
-    def get_config_path(self, job_name: int, user: User) -> Path:
+    def get_config_path(self, job_name: str, user: User) -> Path:
         config_filename = f"config-{job_name}.yaml"
         return Path(
             settings.ANNOTATION_CONFIG_STORAGE_DIR,

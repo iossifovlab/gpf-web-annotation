@@ -110,13 +110,13 @@ class User(BaseUser, AbstractUser):
         self.is_active = True
         self.save()
 
-    def generate_job_name(self) -> int:
+    def generate_job_name(self) -> str:
         job_count = self.job_class.objects.filter(owner=self).count()
         if job_count > self.job_counter:
             self.job_counter += job_count
         self.job_counter += 1
         self.save()
-        return self.job_counter
+        return str(self.job_counter)
 
     def create_job(self, **kwargs: Any) -> Job:
         """Create a new job for the user."""
@@ -196,10 +196,8 @@ class WebAnnotationAnonymousUser(BaseUser, AnonymousUser):
     def is_owner(self, job: AnonymousJob) -> bool:
         return job.owner == self.identifier
 
-    def generate_job_name(self) -> int:
-        job_count = \
-            self.job_class.objects.filter(owner=self.identifier).count()
-        return job_count + 1
+    def generate_job_name(self) -> str:
+        return str(uuid.uuid4())
 
     def check_pipeline_owner(self, pipeline: BasePipeline) -> bool:
         """Check if user is owner of the pipeline."""
@@ -326,7 +324,7 @@ class BaseJob(models.Model):
     input_path = models.FilePathField()
     config_path = models.FilePathField()
     result_path = models.FilePathField()
-    name = models.IntegerField(default=0)
+    name = models.CharField(max_length=1024)
     reference_genome = models.CharField(max_length=1024, default="")
     created = models.DateTimeField(default=timezone.now)
     status = models.IntegerField(choices=Status, default=Status.WAITING)
