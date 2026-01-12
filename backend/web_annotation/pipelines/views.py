@@ -14,6 +14,7 @@ from rest_framework import views
 from rest_framework.request import MultiValueDict
 from rest_framework.views import Request, Response
 from web_annotation.annotation_base_view import AnnotationBaseView
+from web_annotation.authentication import WebAnnotationAuthentication
 from web_annotation.models import User
 
 
@@ -22,6 +23,8 @@ logger = logging.getLogger(__name__)
 
 class UserPipeline(AnnotationBaseView):
     """View for saving user annotation pipelines."""
+
+    authentication_classes = [WebAnnotationAuthentication]
 
     def _save_user_pipeline(
         self,
@@ -177,6 +180,8 @@ class UserPipeline(AnnotationBaseView):
 class ListPipelines(AnnotationBaseView):
     """View for listing all annotation pipelines for files."""
 
+    authentication_classes = [WebAnnotationAuthentication]
+
     def _get_grr_pipelines(self) -> list[dict[str, str]]:
         return [
             {
@@ -250,6 +255,8 @@ class PipelineValidation(AnnotationBaseView):
 
 class LoadPipeline(AnnotationBaseView):
     """Validate annotation config."""
+
+    authentication_classes = [WebAnnotationAuthentication]
 
     def post(self, request: Request) -> Response:
         """Validate annotation config."""

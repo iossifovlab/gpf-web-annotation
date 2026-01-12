@@ -23,6 +23,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.request import QueryDict, Request
 from rest_framework.response import Response
 from web_annotation.serializers import UserSerializer
+from web_annotation.authentication import WebAnnotationAuthentication
 from web_annotation.utils import (
     PasswordForgottenForm,
     ResetPasswordForm,
@@ -50,6 +51,7 @@ class UserList(generics.ListAPIView):
     """Generic view for listing users."""
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    authentication_classes = [WebAnnotationAuthentication]
     permission_classes = [permissions.IsAdminUser]
 
 
@@ -57,11 +59,14 @@ class UserDetail(generics.RetrieveAPIView):
     """Generic view for listing a user's details"""
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    authentication_classes = [WebAnnotationAuthentication]
     permission_classes = [permissions.IsAdminUser]
 
 
 class UserInfo(views.APIView):
     """View that returns the request session's user information."""
+
+    authentication_classes = [WebAnnotationAuthentication]
 
     def get_user_daily_limit(self, user: User | None = None) -> int | None:
         """Return the daily job limit for a user."""
@@ -120,14 +125,21 @@ class UserInfo(views.APIView):
 
 class Logout(views.APIView):
     """View for logging out."""
+
+    authentication_classes = [WebAnnotationAuthentication]
+
     def get(self, request: Request) -> Response:
         logout(cast(HttpRequest, request))
+        request.session.flush()
+        request.session.save()
         return Response(views.status.HTTP_204_NO_CONTENT)
 
 
 class Login(views.APIView):
     """View for logging in."""
     parser_classes = [JSONParser]
+
+    authentication_classes = [WebAnnotationAuthentication]
 
     def post(self, request: Request) -> Response:
         """Log in a user."""
@@ -153,9 +165,13 @@ class Login(views.APIView):
                 {"error": "Invalid login credentials"},
                 status=views.status.HTTP_400_BAD_REQUEST)
 
+        request.session.flush()
+        request.session.save()
+
         login(cast(HttpRequest, request), user)
 
         umodel = User.objects.get(email=email)
+
         return Response(
             {"email": umodel.email,
              "isAdmin": umodel.is_superuser},
@@ -165,6 +181,7 @@ class Login(views.APIView):
 class Registration(views.APIView):
     """Registration related view."""
     parser_classes = [JSONParser]
+    authentication_classes = [WebAnnotationAuthentication]
 
     def post(self, request: Request) -> Response:
         """Register a new user."""
@@ -235,6 +252,8 @@ class ConfirmAccount(views.APIView):  # USE
 
 class ForgotPassword(views.APIView):
     """View for forgotten password."""
+
+    authentication_classes = [WebAnnotationAuthentication]
 
     def get(self, request: Request) -> HttpResponse:
         form = PasswordForgottenForm()
