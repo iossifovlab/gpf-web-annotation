@@ -405,7 +405,7 @@ describe('AnnotationWrapperComponent', () => {
   });
 
   it('should get css class names of different job statuses', () => {
-    component.currentJob = new Job(123, 1, null, 'user1', 'in process', 12, 'fileName', '12K', '');
+    component.currentJob = new Job(123, 1, null, 'user1', 'in progress', 12, 'fileName', '12K', '');
     expect(component.getStatusClass()).toBe('in-progress-status');
 
     component.currentJob = new Job(123, 1, null, 'user1', 'waiting', 12, 'fileName', '12K', '');
