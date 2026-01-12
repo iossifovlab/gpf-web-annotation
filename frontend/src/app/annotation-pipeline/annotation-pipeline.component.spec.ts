@@ -330,6 +330,38 @@ describe('AnnotationPipelineComponent', () => {
     expect(emitIsConfigValid).toHaveBeenCalledWith(false);
   });
 
+  it('should display \' *\' when pipeline config is changed and not saved', () => {
+    jest.spyOn(component, 'isPipelineChanged').mockReturnValue(true);
+    component.dropdownControl.setValue('pipeline-name');
+    component.selectedPipeline = new Pipeline('1', 'pipeline-name', 'content', 'user', 'loaded');
+    component.isConfigValid();
+    expect(component.dropdownControl.value).toBe('pipeline-name *');
+  });
+
+  it('should not display \' *\' if it is already displayed', () => {
+    jest.spyOn(component, 'isPipelineChanged').mockReturnValue(true);
+    component.dropdownControl.setValue('pipeline-name *');
+    component.selectedPipeline = new Pipeline('1', 'pipeline-name', 'content', 'user', 'loaded');
+    component.isConfigValid();
+    expect(component.dropdownControl.value).toBe('pipeline-name *');
+  });
+
+  it('should remove \' *\' when pipeline config is saved after being changed', () => {
+    jest.spyOn(component, 'isPipelineChanged').mockReturnValue(false);
+    component.dropdownControl.setValue('pipeline-name *');
+    component.selectedPipeline = new Pipeline('1', 'pipeline-name', 'content', 'user', 'loaded');
+    component.isConfigValid();
+    expect(component.dropdownControl.value).toBe('pipeline-name');
+  });
+
+  it('should not add \' *\' when pipeline config is has not been changed', () => {
+    jest.spyOn(component, 'isPipelineChanged').mockReturnValue(false);
+    component.dropdownControl.setValue('pipeline-name');
+    component.selectedPipeline = new Pipeline('1', 'pipeline-name', 'content', 'user', 'loaded');
+    component.isConfigValid();
+    expect(component.dropdownControl.value).toBe('pipeline-name');
+  });
+
   it('should clear selected pipeline', () => {
     const setDropdownValueSpy = jest.spyOn(component.dropdownControl, 'setValue');
     component.clearPipeline();
