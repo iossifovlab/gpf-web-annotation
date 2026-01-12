@@ -355,7 +355,7 @@ test.describe('Validation tests', () => {
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/invalid-vcf-input-file.vcf');
 
     await page.locator('#create-button').click();
-    await expect(page.getByText('Invalid VCF file')).toBeVisible();
+    await expect(page.getByText('does not have valid header')).toBeVisible();
   });
 
   test('should expect error message file with invalid separator is uploaded', async({ page }) => {
