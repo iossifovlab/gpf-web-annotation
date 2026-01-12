@@ -179,7 +179,7 @@ describe('AnnotationWrapperComponent', () => {
 
     component.currentJobId = 1;
     component.isUserLoggedIn = true;
-    component.currentJob = new Job(123, 1, null, 'user1', 'in process', 12, 'fileName', '12K', '');
+    component.currentJob = new Job(123, 1, null, 'user1', 'in progress', 12, 'fileName', '12K', '');
     component.ngOnInit();
     expect(getJobDetailsSpy).toHaveBeenCalledWith(1);
     expect(component.currentJob).toStrictEqual(jobs[1]);
@@ -476,7 +476,7 @@ describe('AnnotationWrapperComponent', () => {
   it('should check if job is finished', () => {
     expect(component.isJobFinished('success')).toBe(true);
     expect(component.isJobFinished('failed')).toBe(true);
-    expect(component.isJobFinished('in process')).toBe(false);
+    expect(component.isJobFinished('in progress')).toBe(false);
     expect(component.isJobFinished('waiting')).toBe(false);
   });
 
