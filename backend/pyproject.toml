@@ -35,7 +35,7 @@ classifiers = [
 Homepage = "https://www.iossifovlab.com/"
 
 [project.scripts]
-validate_vcf_file = "web_annotation.jobs.scripts.validate_vcf_file:main"
+validate_vcf_file = "web_annotation.jobs.validate_vcf_file:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
