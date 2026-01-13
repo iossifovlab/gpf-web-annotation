@@ -113,10 +113,8 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
       return;
     }
     this.pipelinesComponent.autoSave().pipe(take(1)).subscribe(annonymousPipelineName => {
-      if (annonymousPipelineName) {
-        this.pipelineId = annonymousPipelineName;
-        this.singleAnnotationComponent.pipelineId = annonymousPipelineName;
-      }
+      this.pipelineId = annonymousPipelineName;
+      this.singleAnnotationComponent.pipelineId = annonymousPipelineName;
       if (this.currentView === 'jobs') {
         this.create();
       } else {

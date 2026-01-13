@@ -474,14 +474,12 @@ describe('AnnotationPipelineComponent', () => {
 
   it('should auto save current pipeline', () => {
     const savePipelineSpy = jest.spyOn(annotationPipelineServiceMock, 'savePipeline').mockReturnValueOnce(of(null));
-    const saveSpy = jest.spyOn(component, 'save');
 
     component.selectedPipeline = mockPipelines[2];
     component.currentPipelineText = 'new content';
 
     component.autoSave();
     expect(savePipelineSpy).toHaveBeenCalledWith('3', 'id3', 'new content');
-    expect(saveSpy).toHaveBeenCalledWith();
   });
 
   it('should save annonymous pipeline', () => {

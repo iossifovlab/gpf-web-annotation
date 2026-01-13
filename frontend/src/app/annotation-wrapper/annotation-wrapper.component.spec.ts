@@ -11,6 +11,7 @@ import { provideMonacoEditor } from 'ngx-monaco-editor-v2';
 import { SocketNotificationsService } from '../socket-notifications/socket-notifications.service';
 import { JobNotification, PipelineNotification } from '../socket-notifications/socket-notifications';
 import { AnnotationPipelineService } from '../annotation-pipeline.service';
+import { SingleAnnotationComponent } from '../single-annotation/single-annotation.component';
 
 class UserServiceMock {
   public userData = new BehaviorSubject<UserData>({
@@ -100,6 +101,11 @@ class AnnotationPipelineServiceMock {
   public loadPipeline(name: string): Observable<void> {
     return of();
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public savePipeline(id: string, name: string, config: string): Observable<string> {
+    return of('id1');
+  }
 }
 
 
@@ -151,6 +157,7 @@ describe('AnnotationWrapperComponent', () => {
     component.currentView = 'jobs';
 
     fixture.detectChanges();
+    component.singleAnnotationComponent = TestBed.createComponent(SingleAnnotationComponent).componentInstance;
   });
 
   it('should create', () => {
@@ -233,11 +240,11 @@ describe('AnnotationWrapperComponent', () => {
 
   it('should auto save pipeline', () => {
     const pipelinesComponentSpy = jest.spyOn(component.pipelinesComponent, 'autoSave')
-      .mockReturnValue(of(null));
+      .mockReturnValue(of('temp'));
 
     component.autoSavePipeline();
     expect(pipelinesComponentSpy).toHaveBeenCalledWith();
-    expect(component.pipelineId).toBe('id1');
+    expect(component.pipelineId).toBe('temp');
   });
 
   it('should not trigger auto save pipeline when editor is empty', () => {
@@ -260,7 +267,7 @@ describe('AnnotationWrapperComponent', () => {
 
     expect(createJobSpy).toHaveBeenCalledWith(
       new File([], 'mock.vcf'),
-      'pipeline',
+      'id1',
       'hg38',
     );
     expect(component.creationError).toBe('');
@@ -280,7 +287,7 @@ describe('AnnotationWrapperComponent', () => {
 
     expect(createJobSpy).toHaveBeenCalledWith(
       new File([], 'mock.csv'),
-      'pipeline',
+      'id1',
       'hg38',
       ',',
       new Map<string, string>([['a', '1']])

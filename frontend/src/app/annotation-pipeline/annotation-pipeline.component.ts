@@ -192,6 +192,8 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
       this.configError = errorReason;
       if (!this.configError) {
         this.emitIsConfigValid.emit(true);
+        // Save pipeline as temporary when valid
+        this.autoSave();
       } else {
         this.emitIsConfigValid.emit(false);
       }
@@ -261,24 +263,19 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   }
 
   public autoSave(): Observable<string> {
-    if (!this.selectedPipeline || (this.isPipelineChanged() && this.selectedPipeline.type === 'default')) {
-      return this.annotationPipelineService.savePipeline(
-        this.currentTemporaryPipelineId,
-        '',
-        this.currentPipelineText,
-      ).pipe(
-        tap((pipelineId: string) => {
-          // Set what ID should be used for the next autosave
-          // it's better to reuse the same temporary pipeline
-          if (this.currentTemporaryPipelineId === '') {
-            this.currentTemporaryPipelineId = pipelineId;
-          }
-        })
-      );
-    } else {
-      this.save();
-      return of(null);
-    }
+    return this.annotationPipelineService.savePipeline(
+      this.currentTemporaryPipelineId,
+      '',
+      this.currentPipelineText,
+    ).pipe(
+      tap((pipelineId: string) => {
+        // Set what ID should be used for the next autosave
+        // it's better to reuse the same temporary pipeline
+        if (this.currentTemporaryPipelineId === '') {
+          this.currentTemporaryPipelineId = pipelineId;
+        }
+      })
+    );
   }
 
   public save(): void {
