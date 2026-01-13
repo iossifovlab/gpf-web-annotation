@@ -116,7 +116,7 @@ pipeline {
     always {
       script {
         sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
-        sh "mkdir -p logs; gzip -C gpfwa-logs/gpfwa-debug.log > logs/gpfwa-debug.log.gz || true"
+        sh "mkdir -p logs; gzip -c gpfwa-logs/gpfwa-debug.log > logs/gpfwa-debug.log.gz || true"
 
 
         try {
