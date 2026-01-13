@@ -42,7 +42,7 @@ class JobsServiceMock {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public validateJobConfig(config: string): Observable<string> {
+  public validatePipelineConfig(config: string): Observable<string> {
     return of('');
   }
 }
@@ -311,7 +311,7 @@ describe('AnnotationPipelineComponent', () => {
   it('should success config validation', () => {
     const emitIsConfigValid = jest.spyOn(component.emitIsConfigValid, 'emit');
 
-    const configValidationSpy = jest.spyOn(jobsServiceMock, 'validateJobConfig');
+    const configValidationSpy = jest.spyOn(jobsServiceMock, 'validatePipelineConfig');
     component.currentPipelineText = 'config content';
     component.isConfigValid();
     expect(configValidationSpy).toHaveBeenCalledWith('config content');
@@ -322,7 +322,8 @@ describe('AnnotationPipelineComponent', () => {
   it('should fail config validation', () => {
     const emitIsConfigValid = jest.spyOn(component.emitIsConfigValid, 'emit');
 
-    const configValidationSpy = jest.spyOn(jobsServiceMock, 'validateJobConfig').mockReturnValue(of('error message'));
+    const configValidationSpy = jest.spyOn(jobsServiceMock, 'validatePipelineConfig')
+      .mockReturnValue(of('error message'));
     component.currentPipelineText = 'config content';
     component.isConfigValid();
     expect(configValidationSpy).toHaveBeenCalledWith('config content');

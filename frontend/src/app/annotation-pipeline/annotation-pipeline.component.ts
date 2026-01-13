@@ -186,7 +186,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     this.unselectPublicPipeline();
     this.displayUnsavedPipelineIndication();
 
-    this.jobsService.validateJobConfig(this.currentPipelineText).pipe(
+    this.jobsService.validatePipelineConfig(this.currentPipelineText).pipe(
       take(1)
     ).subscribe((errorReason: string) => {
       this.configError = errorReason;

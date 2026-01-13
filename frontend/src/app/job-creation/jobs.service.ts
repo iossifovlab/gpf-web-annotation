@@ -7,7 +7,7 @@ import { environment } from '../../../environments/environment';
 
 @Injectable()
 export class JobsService {
-  private readonly validateJobConfigUrl = `${environment.apiPath}/pipelines/validate`;
+  private readonly validatePipelineConfigUrl = `${environment.apiPath}/pipelines/validate`;
   private readonly validateColumnsUrl = `${environment.apiPath}/jobs/validate_columns`;
   private readonly jobsUrl = `${environment.apiPath}/jobs`;
   private readonly jobPreviewUrl = `${environment.apiPath}/jobs/preview`;
@@ -161,11 +161,11 @@ export class JobsService {
   }
 
 
-  public validateJobConfig(config: string): Observable<string> {
+  public validatePipelineConfig(config: string): Observable<string> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
 
     return this.http.post(
-      this.validateJobConfigUrl,
+      this.validatePipelineConfigUrl,
       {config: config},
       options
     ).pipe(
