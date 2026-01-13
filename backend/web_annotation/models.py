@@ -325,7 +325,7 @@ class BaseJob(models.Model):
     input_path = models.FilePathField()
     config_path = models.FilePathField()
     result_path = models.FilePathField()
-    name = models.IntegerField(default=0)
+    name = models.BigIntegerField(default=0)
     reference_genome = models.CharField(max_length=1024, default="")
     created = models.DateTimeField(default=timezone.now)
     status = models.IntegerField(choices=Status, default=Status.WAITING)
