@@ -51,3 +51,33 @@ cd backend
 export DJANGO_SETTINGS_MODULE=web_annotation.test_settings
 pytest web_annotation/tests/
 ```
+
+
+## Run using Docker compose
+
+### Initial build
+```
+mv ~/conda-channel.tar.gz .
+tar zxvf conda-channel.tar.gz 
+docker compose ubuntu-image
+docker compose build ubuntu-image
+docker compose build gpf-image
+docker compose build backend
+docker compose build frontend
+```
+
+### Initial start
+```
+docker compose up frontend
+```
+
+```
+http://localhost
+```
+
+### Rebuild and re-start the frontend
+```
+docker compose down frontend
+docker compose build frontend
+docker compose up frontend
+```
