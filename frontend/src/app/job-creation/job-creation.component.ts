@@ -118,7 +118,7 @@ export class JobCreationComponent implements OnInit {
       return;
     }
     this.updateFile(file);
-    if (!file.name.endsWith('.vcf')) {
+    if (!file.name.endsWith('.vcf') && !file.name.endsWith('.gz') && !file.name.endsWith('.bgz')) {
       this.submitFile();
     }
   }
