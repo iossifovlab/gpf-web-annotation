@@ -10,7 +10,7 @@ import {
   TemplateRef,
   ViewChild
 } from '@angular/core';
-import { map, Observable, of, startWith, switchMap, take } from 'rxjs';
+import { map, Observable, of, startWith, switchMap, take, tap } from 'rxjs';
 import { JobsService } from '../job-creation/jobs.service';
 import { Pipeline } from '../job-creation/pipelines';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -42,6 +42,7 @@ import { PipelineNotification } from '../socket-notifications/socket-notificatio
 export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterViewInit {
   public pipelines : Pipeline[] = [];
   public currentPipelineText = '';
+  public currentTemporaryPipelineId = '';
   public selectedPipeline: Pipeline = null;
   public configError = '';
   @Output() public emitPipelineId = new EventEmitter<string>();
@@ -261,7 +262,19 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
 
   public autoSave(): Observable<string> {
     if (!this.selectedPipeline || (this.isPipelineChanged() && this.selectedPipeline.type === 'default')) {
-      return this.annotationPipelineService.savePipeline('', '', this.currentPipelineText);
+      return this.annotationPipelineService.savePipeline(
+        this.currentTemporaryPipelineId,
+        '',
+        this.currentPipelineText,
+      ).pipe(
+        tap((pipelineId: string) => {
+          // Set what ID should be used for the next autosave
+          // it's better to reuse the same temporary pipeline
+          if (this.currentTemporaryPipelineId === '') {
+            this.currentTemporaryPipelineId = pipelineId;
+          }
+        })
+      );
     } else {
       this.save();
       return of(null);
