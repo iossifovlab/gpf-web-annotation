@@ -116,13 +116,13 @@ pipeline {
     always {
       script {
         sh "docker compose -f compose-jenkins.yaml down --remove-orphans"
-        sh "gzip gpfwa-logs/gpfwa-debug.log || true"
+        sh "mkdir -p logs; gzip -C gpfwa-logs/gpfwa-debug.log > logs/gpfwa-debug.log.gz || true"
 
 
         try {
 
             archiveArtifacts artifacts: 'e2e-tests/reports/**', fingerprint: false, allowEmptyArchive: true
-            archiveArtifacts artifacts: 'gpfwa-logs/gpfwa-debug.log.gz', fingerprint: true, allowEmptyArchive: true
+            archiveArtifacts artifacts: 'logs/gpfwa-debug.log.gz', fingerprint: true, allowEmptyArchive: true
 
             discoverGitReferenceBuild(latestBuildIfNotFound: true, maxCommits: 400, skipUnknownCommits: true)
 
