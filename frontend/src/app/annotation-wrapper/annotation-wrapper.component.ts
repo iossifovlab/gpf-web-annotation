@@ -1,6 +1,6 @@
 import { Component, ViewChild, OnInit, OnDestroy, NgZone, HostListener } from '@angular/core';
 import { JobsTableComponent } from '../jobs-table/jobs-table.component';
-import { Observable, take } from 'rxjs';
+import { Observable, Subscription, take } from 'rxjs';
 import { JobsService } from '../job-creation/jobs.service';
 import { AnnotationPipelineComponent } from '../annotation-pipeline/annotation-pipeline.component';
 import { getStatusClassName, Job, JobStatus } from '../job-creation/jobs';
@@ -49,6 +49,7 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
   public hideHistory = false;
   public isUserLoggedIn = false;
   public blockCreate: boolean = false;
+  public socketNotificationSubscription: Subscription = new Subscription();
 
 
   public constructor(
@@ -91,7 +92,7 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
 
 
   private setupJobWebSocketConnection(): void {
-    this.socketNotificationsService.getJobNotifications().pipe(
+    this.socketNotificationSubscription = this.socketNotificationsService.getJobNotifications().pipe(
     ).subscribe({
       next: (notification: JobNotification) => {
         this.userService.refreshUserData();
@@ -104,6 +105,10 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
       },
       error: err => {
         console.error(err);
+        if (err instanceof CloseEvent && err.type === 'close') {
+          this.socketNotificationSubscription.unsubscribe();
+          this.setupJobWebSocketConnection();
+        }
       }
     });
   }

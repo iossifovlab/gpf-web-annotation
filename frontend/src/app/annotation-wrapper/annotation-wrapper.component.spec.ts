@@ -4,7 +4,7 @@ import { JobsService } from '../job-creation/jobs.service';
 import { provideHttpClient } from '@angular/common/http';
 import { UserData, UsersService } from '../users.service';
 import { SingleAnnotationService } from '../single-annotation.service';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { FileContent, Job } from '../job-creation/jobs';
 import { Pipeline } from '../job-creation/pipelines';
 import { provideMonacoEditor } from 'ngx-monaco-editor-v2';
@@ -193,6 +193,34 @@ describe('AnnotationWrapperComponent', () => {
     expect(component.downloadLink).toBe('url/1');
   });
 
+  it('should reconnects to socket notifications on close event', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const setupSpy = jest.spyOn(component as any, 'setupJobWebSocketConnection');
+    jest.spyOn(socketNotificationsServiceMock, 'getJobNotifications')
+      .mockReturnValueOnce(throwError(new CloseEvent('close')));
+    const unsubSpy = jest.spyOn(component.socketNotificationSubscription, 'unsubscribe');
+
+    component.ngOnInit();
+
+    expect(unsubSpy).toHaveBeenCalledWith();
+    expect(setupSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not reconnect for non-close events', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const setupSpy = jest.spyOn(component as any, 'setupJobWebSocketConnection');
+    jest.spyOn(socketNotificationsServiceMock, 'getJobNotifications')
+      .mockReturnValueOnce(throwError({ type: 'other' }));
+
+    component.ngOnInit();
+    expect(setupSpy).toHaveBeenCalledTimes(1);
+
+    const unsubSpy = jest.spyOn(component.socketNotificationSubscription, 'unsubscribe');
+
+    expect(unsubSpy).not.toHaveBeenCalled();
+    expect(setupSpy).toHaveBeenCalledTimes(1);
+  });
+
   it('should close socket connection on destroy', () => {
     const closeConnectionSpy = jest.spyOn(socketNotificationsServiceMock, 'closeConnection');
     component.ngOnDestroy();
@@ -272,7 +300,9 @@ describe('AnnotationWrapperComponent', () => {
     );
     expect(component.creationError).toBe('');
     expect(component.currentJobId).toBe(2);
-    expect(component.currentJob).toStrictEqual(jobs[1]);
+    expect(component.currentJob).toStrictEqual(
+      new Job(2, 2, new Date('1.10.2025'), 'test@email.com', 'failed', 2.7, 'fileName2', '12 KB', '')
+    );
   });
 
   it('should create job with csv file and auto save pipeline', () => {
