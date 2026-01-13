@@ -59,7 +59,6 @@ pytest web_annotation/tests/
 ```
 mv ~/conda-channel.tar.gz .
 tar zxvf conda-channel.tar.gz 
-docker compose ubuntu-image
 docker compose build ubuntu-image
 docker compose build gpf-image
 docker compose build backend
