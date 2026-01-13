@@ -44,7 +44,7 @@ def test_sequential_task_executor_success_with_result() -> None:
 
     assert fn.call_count == 1
     assert callback_success.call_count == 1
-    callback_success.assert_called_once_with("test_result")
+    callback_success.assert_called_once()
     assert callback_failure.call_count == 0
 
 
@@ -148,12 +148,6 @@ def test_sequential_task_executor_multiple_executions() -> None:
     assert fn3.call_count == 1
     assert callback_success.call_count == 3
 
-    # Verify execution order through callback calls
-    calls = callback_success.call_args_list
-    assert calls[0][0][0] == "result1"
-    assert calls[1][0][0] == "result2"
-    assert calls[2][0][0] == "result3"
-
 
 def test_threaded_task_executor_execute() -> None:
     executor = ThreadedTaskExecutor(max_workers=1)
@@ -176,7 +170,7 @@ def test_threaded_task_executor_execute() -> None:
     fn.assert_called_once_with(args=(1, 2), key="value")
 
     assert callback_success.call_count == 1
-    callback_success.assert_called_once_with("result")
+    callback_success.assert_called_once_with()
 
 
 def test_threaded_task_executor_timeout() -> None:
@@ -335,7 +329,7 @@ def test_threaded_task_executor_with_args_and_kwargs() -> None:
     executor.wait_all(timeout=5)
 
     fn.assert_called_once_with(key1="value1", key2="value2")
-    callback_success.assert_called_once_with("result")
+    callback_success.assert_called_once()
 
     executor.shutdown()
 
@@ -436,7 +430,7 @@ def test_threaded_task_executor_partial_failure() -> None:
     failure_count = 0
     lock = threading.Lock()
 
-    def on_success(result: Any) -> None:
+    def on_success() -> None:
         nonlocal success_count
         with lock:
             success_count += 1
@@ -485,7 +479,7 @@ def test_sequential_task_executor_with_kwargs_only() -> None:
     executor.execute(fn, callback_success=callback_success, key1="val1", key2="val2")
 
     fn.assert_called_once_with(key1="val1", key2="val2")
-    callback_success.assert_called_once_with("result")
+    callback_success.assert_called_once()
 
 
 def test_sequential_task_executor_exception_propagation() -> None:
@@ -576,7 +570,7 @@ def test_threaded_task_executor_return_none() -> None:
     executor.execute(returns_none, callback_success=callback_success)
     executor.wait_all(timeout=5)
 
-    callback_success.assert_called_once_with(None)
+    callback_success.assert_called_once()
     executor.shutdown()
 
 
@@ -590,7 +584,7 @@ def test_sequential_task_executor_return_none() -> None:
 
     executor.execute(returns_none, callback_success=callback_success)
 
-    callback_success.assert_called_once_with(None)
+    callback_success.assert_called_once()
 
 
 def test_threaded_task_executor_rapid_submission() -> None:

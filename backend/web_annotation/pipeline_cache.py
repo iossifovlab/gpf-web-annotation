@@ -127,11 +127,13 @@ class ThreadSafePipeline(AnnotationPipeline):
 @dataclass
 class LoadingDetails:
     time_started: float
+    config_hash: int
     pipeline_id: tuple[str, str]
     future: Future[ThreadSafePipeline]
 
     def __hash__(self) -> int:
         return hash(self.pipeline_id)
+
 
 class LRUPipelineCache:
     """LRU cache that wraps and provides thread-safe annotation pipelines."""
@@ -182,33 +184,46 @@ class LRUPipelineCache:
         pipeline.open()
         return pipeline
 
-    def load_pipeline(
+    def put_pipeline(
         self,
         pipeline_id: tuple[str, str],
         pipeline_config: str,
+        begin_load_callback: Callable[[], None] | None = None,
+        finish_load_callback: Callable[[], None] | None = None,
         delete_callback: Callable[[ThreadSafePipeline], None] | None = None,
-    ) -> Future[ThreadSafePipeline]:
+    ) -> None:
         """Put a pipeline into the cache."""
-        pipeline_future = self._load_executor.execute(
-            self._load_pipeline_raw,
-            raw=pipeline_config,
-            grr=self._grr,
-        )
-        loading_details = LoadingDetails(
-            time_started=time.time(),
-            pipeline_id=pipeline_id,
-            future=pipeline_future
-        )
+        pipeline_config_hash = hash(pipeline_config)
+
         with self._cache_lock:
             if pipeline_id in self._cache:
-                self.unload_pipeline(pipeline_id)
+                details = self._cache[pipeline_id]
+                if details.config_hash == pipeline_config_hash:
+                    return
+                else:
+                    self.delete_pipeline(pipeline_id)
+
+            pipeline_future = self._load_executor.execute(
+                self._load_pipeline_raw,
+                raw=pipeline_config,
+                grr=self._grr,
+                callback_start=begin_load_callback,
+                callback_success=finish_load_callback,
+            )
+
+            loading_details = LoadingDetails(
+                time_started=time.time(),
+                pipeline_id=pipeline_id,
+                config_hash=pipeline_config_hash,
+                future=pipeline_future
+            )
+
             if len(self._cache) >= self.capacity:
                 last_pipeline_id = self._order[0]
-                self.unload_pipeline(last_pipeline_id, do_cancel=False)
+                self.delete_pipeline(last_pipeline_id, do_cancel=False)
             self._pipeline_callbacks[pipeline_id] = delete_callback
             self._cache[pipeline_id] = loading_details
             self._order.append(pipeline_id)
-        return pipeline_future
 
     def clean_old_tasks(self) -> None:
         """Clean old tasks that have timed out"""
@@ -223,16 +238,17 @@ class LRUPipelineCache:
                     )
                     to_remove.append(pipeline_id)
             for pipeline_id in to_remove:
-                self.unload_pipeline(pipeline_id)
+                self.delete_pipeline(pipeline_id)
 
-    def get_pipeline_future(self, pipeline_id: tuple[str, str]) -> Future[ThreadSafePipeline]:
+    def get_pipeline_future(
+        self, pipeline_id: tuple[str, str],
+    ) -> Future[ThreadSafePipeline]:
         with self._cache_lock:
             if pipeline_id not in self._cache:
                 raise ValueError(f"Pipeline {pipeline_id} not found")
             self._order.remove(pipeline_id)
             self._order.append(pipeline_id)
             return self._cache[pipeline_id].future
-
 
     def get_pipeline(self, pipeline_id: tuple[str, str]) -> ThreadSafePipeline:
         """Get a pipeline by its ID."""
@@ -245,7 +261,7 @@ class LRUPipelineCache:
                 logger.debug("Retrying to get %s", pipeline_id)
         return pipeline
 
-    def unload_pipeline(
+    def delete_pipeline(
         self, pipeline_id: tuple[str, str],
         *,
         do_cancel: bool = True,

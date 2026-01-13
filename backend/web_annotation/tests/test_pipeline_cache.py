@@ -96,14 +96,16 @@ def test_lru_pipeline_cache_uses_executor(
 
     assert len(lru_cache._cache) == 0  # pylint: disable=protected-access
 
-    lru_cache.load_pipeline(
+    lru_cache.put_pipeline(
         ("sample", "pipeline1"), "- position_score: scores/pos1")
     assert len(lru_cache._cache) == 1  # pylint: disable=protected-access
-    execute_spy.assert_called_once_with(
-        lru_cache._load_pipeline_raw,
-        raw="- position_score: scores/pos1",
-        grr=test_grr,
-    )
+    assert len(execute_spy.call_args_list) == 1
+    call_args = execute_spy.call_args_list[0]
+    assert call_args[0][0] == \
+        lru_cache._load_pipeline_raw  # pylint: disable=comparison-with-callable
+    assert call_args[1]["raw"] == \
+        "- position_score: scores/pos1"
+    assert call_args[1]["grr"] == test_grr
 
 
 def test_lru_pipeline_cache_basic_sources(
@@ -113,21 +115,21 @@ def test_lru_pipeline_cache_basic_sources(
 
     assert len(lru_cache._cache) == 0  # pylint: disable=protected-access
 
-    lru_cache.load_pipeline(
+    lru_cache.put_pipeline(
         ("sample", "pipeline1"), "- position_score: scores/pos1")
     assert len(lru_cache._cache) == 1  # pylint: disable=protected-access
     pipeline_ids = set(
         lru_cache._cache.keys())  # pylint: disable=protected-access
     assert pipeline_ids == {("sample", "pipeline1")}
 
-    lru_cache.load_pipeline(
+    lru_cache.put_pipeline(
         ("sample", "pipeline2"), "- position_score: scores/pos1")
     assert len(lru_cache._cache) == 2  # pylint: disable=protected-access
     pipeline_ids = set(
         lru_cache._cache.keys())  # pylint: disable=protected-access
     assert pipeline_ids == {("sample", "pipeline1"), ("sample", "pipeline2")}
 
-    lru_cache.load_pipeline(
+    lru_cache.put_pipeline(
         ("sample", "pipeline3"), "- position_score: scores/pos1")
     assert len(lru_cache._cache) == 2  # pylint: disable=protected-access
     pipeline_ids = set(
@@ -135,7 +137,7 @@ def test_lru_pipeline_cache_basic_sources(
     assert pipeline_ids == {("sample", "pipeline2"), ("sample", "pipeline3")}
 
     lru_cache.get_pipeline(("sample", "pipeline2"))
-    lru_cache.load_pipeline(
+    lru_cache.put_pipeline(
         ("sample", "pipeline4"), "- position_score: scores/pos1")
     assert len(lru_cache._cache) == 2  # pylint: disable=protected-access
     pipeline_ids = set(
@@ -151,7 +153,7 @@ def test_lru_pipeline_cache_pipeline_loaded_check(
     assert len(lru_cache._cache) == 0  # pylint: disable=protected-access
 
     assert lru_cache.has_pipeline(("sample", "pipeline1")) is False
-    lru_cache.load_pipeline(
+    lru_cache.put_pipeline(
         ("sample", "pipeline1"), "- position_score: scores/pos1")
     assert lru_cache.has_pipeline(("sample", "pipeline1")) is True
     assert len(lru_cache._cache) == 1  # pylint: disable=protected-access
@@ -173,14 +175,14 @@ def test_lru_pipeline_cache_callbacks(
     def delete_callback(pipeline: ThreadSafePipeline) -> None:
         deleted_pipelines.append(pipeline)
 
-    lru_cache.load_pipeline(
+    lru_cache.put_pipeline(
         ("sample", "pipeline1"),
         "- position_score: scores/pos1",
         delete_callback=delete_callback,
     )
     assert len(lru_cache._cache) == 1  # pylint: disable=protected-access
 
-    lru_cache.load_pipeline(
+    lru_cache.put_pipeline(
         ("sample", "pipeline2"),
         "- position_score: scores/pos1",
         delete_callback=delete_callback,
@@ -221,12 +223,12 @@ def test_writing_same_id_pipelines_to_cache(
     assert len(
         base_view.lru_cache._cache) == 0  # pylint: disable=protected-access
 
-    base_view.load_pipeline(("anonymous", "100"), user=anonymous_user)
+    base_view.put_pipeline(("anonymous", "100"), user=anonymous_user)
 
     assert len(
         base_view.lru_cache._cache) == 1  # pylint: disable=protected-access
 
-    base_view.load_pipeline(("user", "100"), user=test_user)
+    base_view.put_pipeline(("user", "100"), user=test_user)
 
     assert len(
         base_view.lru_cache._cache) == 2  # pylint: disable=protected-access
@@ -235,3 +237,5 @@ def test_writing_same_id_pipelines_to_cache(
         ("anonymous", "100"),
         ("user", "100"),
     }
+    pipeline = base_view.get_pipeline("100", test_user)
+    assert pipeline is not None

@@ -16,7 +16,7 @@ class TaskExecutor(abc.ABC):
     @abc.abstractmethod
     def execute(
         self, fn: Callable, *,
-        callback_success: Callable[[Any], None] | None = None,
+        callback_success: Callable[[], None] | None = None,
         callback_failure: Callable[[BaseException], None] | None = None,
         **kwargs: Any,
     ) -> Future[Any]:
@@ -86,21 +86,25 @@ class SequentialTaskExecutor(TaskExecutor):
     """Synchronous job executor."""
     def execute(
         self, fn: Callable, *,
-        callback_success: Callable[[list[Any]], None] | None = None,
+        callback_start: Callable[[], None] | None = None,
+        callback_success: Callable[[], None] | None = None,
         callback_failure: Callable[[BaseException], None] | None = None,
         **kwargs: Any,
     ) -> Future[Any]:
+        result = None
         try:
+            if callback_start is not None:
+                callback_start()
             result = fn(**kwargs)
             if callback_success is not None:
                 logger.debug("Task completed with result: %s", result)
-                callback_success(result)
+                callback_success()
             return cast(Future, FakeFuture(result))
         except BaseException as e:
             logger.error("Task failed with exception: %s", e)
             if callback_failure is not None:
                 callback_failure(e)
-        return cast(Future, FakeFuture(None))
+        return cast(Future, FakeFuture(result))
 
     def wait_all(self, timeout: float) -> None:
         return
@@ -130,7 +134,7 @@ class ThreadedTaskExecutor(TaskExecutor):
         self,
         start_time: float,
         future: Future[Any],
-        callback_success: Callable[[list[Any]], None] | None = None,
+        callback_success: Callable[[], None] | None = None,
         callback_failure: Callable[[BaseException], None] | None = None,
     ) -> None:
         if future.cancelled():
@@ -144,14 +148,15 @@ class ThreadedTaskExecutor(TaskExecutor):
             result = future.result()
             logger.debug("Task completed with result: %s", result)
             if callback_success is not None:
-                callback_success(result)
+                callback_success()
         with self._lock:
             self._futures.remove((start_time, future))
             logger.debug("Remaining tasks: %d", len(self._futures))
 
     def execute(
         self, fn: Callable, *,
-        callback_success: Callable[[list[Any]], None] | None = None,
+        callback_start: Callable[[], None] | None = None,
+        callback_success: Callable[[], None] | None = None,
         callback_failure: Callable[[BaseException], None] | None = None,
         **kwargs: Any,
     ) -> Future[Any]:
@@ -168,8 +173,10 @@ class ThreadedTaskExecutor(TaskExecutor):
                     to_remove.append((time_started, future))
             for time_started, future in to_remove:
                 self._futures.remove((time_started, future))
-        future = self._executor.submit(fn, **kwargs)
         with self._lock:
+            future = self._executor.submit(fn, **kwargs)
+            if callback_start is not None:
+                callback_start()
             self._futures.append((now, future))
 
         def wrapper(fut: Future) -> None:

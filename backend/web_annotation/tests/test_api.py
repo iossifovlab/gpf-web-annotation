@@ -735,7 +735,7 @@ def test_single_annotation_pipeline_usage(
     base_view = AnnotationBaseView()
 
     get_spy = mocker.spy(LRUPipelineCache, "get_pipeline")
-    load_spy = mocker.spy(LRUPipelineCache, "load_pipeline")
+    load_spy = mocker.spy(LRUPipelineCache, "put_pipeline")
 
     user = User.objects.get(email="user@example.com")
 

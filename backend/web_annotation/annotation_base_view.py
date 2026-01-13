@@ -55,6 +55,7 @@ def get_grr_pipelines(grr: GenomicResourceRepo) -> dict[str, dict[str, str]]:
 
 GRR_PIPELINES = get_grr_pipelines(GRR)
 
+
 def get_grr_genomes(grr: GenomicResourceRepo) -> list[str]:
     """Return pipelines used for file annotation."""
     genomes: list[str] = []
@@ -63,6 +64,7 @@ def get_grr_genomes(grr: GenomicResourceRepo) -> list[str]:
             genomes.append(resource.get_id())
 
     return genomes
+
 
 GRR_GENOMES = get_grr_genomes(GRR)
 
@@ -195,7 +197,7 @@ class AnnotationBaseView(views.APIView):
             },
         )
 
-    def load_pipeline(
+    def put_pipeline(
         self, full_pipeline_id: tuple[str, str],
         user: BaseUser | WebAnnotationAnonymousUser,
     ) -> None:
@@ -209,18 +211,24 @@ class AnnotationBaseView(views.APIView):
             pipeline_config = self._get_user_pipeline_yaml(user_pipeline)
             notify_function = partial(self._notify_user_pipeline, user)
 
-        notify_function(pipeline_id, "loading")
+        def begin_load_callback() -> None:
+            notify_function(pipeline_id, "loading")
 
-        def callback(*args: Any) -> None:  # pylint: disable=unused-argument
+        def finish_load_callback() -> None:
+            notify_function(pipeline_id, "loaded")
+
+        def delete_callback(
+            *args: Any  # pylint: disable=unused-argument
+        ) -> None:
             notify_function(pipeline_id, "unloaded")
 
-        self.lru_cache.load_pipeline(
+        self.lru_cache.put_pipeline(
             full_pipeline_id,
             pipeline_config,
-            delete_callback=callback,
+            begin_load_callback=begin_load_callback,
+            finish_load_callback=finish_load_callback,
+            delete_callback=delete_callback,
         )
-
-        notify_function(pipeline_id, "loaded")
 
     def get_pipeline(
         self, pipeline_id: str, user: User,
@@ -230,7 +238,7 @@ class AnnotationBaseView(views.APIView):
         full_pipeline_id = self.get_full_pipeline_id(pipeline_id, user)
 
         if not self.lru_cache.has_pipeline(full_pipeline_id):
-            self.load_pipeline(full_pipeline_id, user)
+            self.put_pipeline(full_pipeline_id, user)
         return self.lru_cache.get_pipeline(full_pipeline_id)
 
     def get_full_pipeline_id(
