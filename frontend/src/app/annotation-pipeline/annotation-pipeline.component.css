@@ -153,6 +153,7 @@
   color: #eb8b94;
 }
 
+#save-as-button:disabled,
 #save-button:disabled {
   cursor: initial;
   color: #85a2b9;
