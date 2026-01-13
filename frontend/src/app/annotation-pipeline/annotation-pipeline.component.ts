@@ -10,7 +10,7 @@ import {
   TemplateRef,
   ViewChild
 } from '@angular/core';
-import { map, Observable, of, startWith, switchMap, take, tap } from 'rxjs';
+import { map, Observable, of, startWith, Subscription, switchMap, take, tap } from 'rxjs';
 import { JobsService } from '../job-creation/jobs.service';
 import { Pipeline } from '../job-creation/pipelines';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -59,6 +59,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   @Output() public tiggerHidingComponents = new EventEmitter<boolean>();
   public isUserLoggedIn = false;
   public showConfimDeletePopup = false;
+  public socketNotificationSubscription: Subscription = new Subscription();
 
   public constructor(
     private jobsService: JobsService,
@@ -103,7 +104,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   }
 
   private setupPipelineWebSocketConnection(): void {
-    this.socketNotificationsService.getPipelineNotifications().subscribe({
+    this.socketNotificationSubscription = this.socketNotificationsService.getPipelineNotifications().subscribe({
       next: (notification: PipelineNotification) => {
         const pipeline = this.pipelines.find(p => p.id === notification.pipelineId);
         if (pipeline) {
@@ -112,7 +113,11 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
       },
       error: err => {
         console.error(err);
-      },
+        if (err instanceof CloseEvent && err.type === 'close') {
+          this.socketNotificationSubscription.unsubscribe();
+          this.setupPipelineWebSocketConnection();
+        }
+      }
     });
   }
 

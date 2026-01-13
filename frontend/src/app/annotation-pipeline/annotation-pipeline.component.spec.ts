@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AnnotationPipelineComponent } from './annotation-pipeline.component';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { JobCreationComponent } from '../job-creation/job-creation.component';
 import { FileContent } from '../job-creation/jobs';
 import { JobsService } from '../job-creation/jobs.service';
@@ -196,6 +196,34 @@ describe('AnnotationPipelineComponent', () => {
     component.ngOnInit();
     expect(getSocketNotificationSpy).toHaveBeenCalledWith();
     expect(component.pipelines[0].status).toBe('unloaded');
+  });
+
+  it('should reconnects to socket notifications on close event', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const setupSpy = jest.spyOn(component as any, 'setupPipelineWebSocketConnection');
+    jest.spyOn(socketNotificationsServiceMock, 'getPipelineNotifications')
+      .mockReturnValueOnce(throwError(new CloseEvent('close')));
+    const unsubSpy = jest.spyOn(component.socketNotificationSubscription, 'unsubscribe');
+
+    component.ngOnInit();
+
+    expect(unsubSpy).toHaveBeenCalledWith();
+    expect(setupSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not reconnect for non-close events', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const setupSpy = jest.spyOn(component as any, 'setupPipelineWebSocketConnection');
+    jest.spyOn(socketNotificationsServiceMock, 'getPipelineNotifications')
+      .mockReturnValueOnce(throwError({ type: 'other' }));
+
+    component.ngOnInit();
+    expect(setupSpy).toHaveBeenCalledTimes(1);
+
+    const unsubSpy = jest.spyOn(component.socketNotificationSubscription, 'unsubscribe');
+
+    expect(unsubSpy).not.toHaveBeenCalled();
+    expect(setupSpy).toHaveBeenCalledTimes(1);
   });
 
   it('should close socket connection on destroy', () => {
