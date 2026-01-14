@@ -1,4 +1,5 @@
 # pylint: disable=W0621,C0114,C0116,W0212,W0613
+from typing import Any
 import pytest
 import threading
 import time
@@ -7,6 +8,8 @@ from web_annotation.executor import (
     ThreadedTaskExecutor,
 )
 from unittest.mock import MagicMock
+from web_annotation.executor import FakeFuture
+
 
 
 def test_sequential_task_executor_execute() -> None:
@@ -626,3 +629,76 @@ def test_threaded_task_executor_cancels_long_running_tasks() -> None:
 
     executor.wait_all(timeout=10)
     executor.shutdown()
+
+
+def test_fake_future_result() -> None:
+    future = FakeFuture("test_result")
+    assert future.result() == "test_result"
+    assert future.done() is True
+    assert future.cancelled() is False
+    assert future.running() is False
+
+
+def test_fake_future_add_done_callback() -> None:
+    future = FakeFuture("result")
+    callback = MagicMock()
+
+    future.add_done_callback(callback)
+
+    callback.assert_called_once_with(future)
+
+
+def test_fake_future_set_result() -> None:
+    future = FakeFuture("initial")
+    callback = MagicMock()
+
+    future.add_done_callback(callback)
+    future.set_result("new_result")
+
+    assert future.result() == "new_result"
+    assert callback.call_count == 2
+
+
+def test_sequential_task_executor_callback_start() -> None:
+    executor = SequentialTaskExecutor()
+    
+    fn = MagicMock(return_value="result")
+    callback_start = MagicMock()
+
+    executor.execute(fn, callback_start=callback_start)
+
+    callback_start.assert_called_once()
+    fn.assert_called_once()
+
+
+def test_threaded_task_executor_callback_start() -> None:
+    executor = ThreadedTaskExecutor(max_workers=1)
+
+    fn = MagicMock(return_value="result")
+    callback_start = MagicMock()
+
+    executor.execute(fn, callback_start=callback_start)
+    executor.wait_all(timeout=5)
+
+    callback_start.assert_called_once()
+    executor.shutdown()
+
+
+def test_threaded_task_executor_future_result() -> None:
+    executor = ThreadedTaskExecutor(max_workers=1)
+
+    def test_fn() -> str:
+        return "expected_result"
+
+    future = executor.execute(test_fn)
+    result = future.result(timeout=5)
+
+    assert result == "expected_result"
+    executor.shutdown()
+
+
+def test_fake_future_cancel() -> None:
+
+    future = FakeFuture("result")
+    future.cancel()
+    assert future.cancelled() is False
