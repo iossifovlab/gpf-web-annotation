@@ -126,6 +126,7 @@ class ThreadSafePipeline(AnnotationPipeline):
 
 @dataclass
 class LoadingDetails:
+    """Utility for identifying which pipeline is being loaded."""
     time_started: float
     config_hash: int
     pipeline_id: tuple[str, str]
@@ -200,8 +201,7 @@ class LRUPipelineCache:
                 details = self._cache[pipeline_id]
                 if details.config_hash == pipeline_config_hash:
                     return
-                else:
-                    self.delete_pipeline(pipeline_id)
+                self.delete_pipeline(pipeline_id)
 
             pipeline_future = self._load_executor.execute(
                 self._load_pipeline_raw,
@@ -243,6 +243,7 @@ class LRUPipelineCache:
     def get_pipeline_future(
         self, pipeline_id: tuple[str, str],
     ) -> Future[ThreadSafePipeline]:
+        """Get a pipeline future by its ID."""
         with self._cache_lock:
             if pipeline_id not in self._cache:
                 raise ValueError(f"Pipeline {pipeline_id} not found")

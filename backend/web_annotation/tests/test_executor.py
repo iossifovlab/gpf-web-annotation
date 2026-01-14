@@ -2,7 +2,6 @@
 import pytest
 import threading
 import time
-from typing import Any
 from web_annotation.executor import (
     SequentialTaskExecutor,
     ThreadedTaskExecutor,
