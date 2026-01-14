@@ -5,7 +5,7 @@
       type="text"
       placeholder="Type variant..."
       (keydown.enter)="triggerPipelineAutoSave()"
-      (click)="resetAllele()" />
+      (ngModelChange)="resetAllele()" />
     <button (click)="triggerPipelineAutoSave()" [disabled]="disableGo()">Go</button>
   </div>
   <span *ngIf="validationMessage" id="validation-message">{{ validationMessage }}</span>

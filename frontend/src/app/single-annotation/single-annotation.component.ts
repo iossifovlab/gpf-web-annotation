@@ -85,7 +85,6 @@ export class SingleAnnotationComponent {
   }
 
   public resetAllele(): void {
-    this.currentAllele = '';
     this.resetReport();
   }
 
