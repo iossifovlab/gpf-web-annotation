@@ -111,7 +111,10 @@ class UserPipeline(AnnotationBaseView):
 
         pipeline.save()
 
-        super().lru_cache.unload_pipeline(pipeline.table_id())
+        self.put_pipeline(
+            self.get_full_pipeline_id(pipeline.id, request.user),
+            request.user,
+        )
 
         return Response(
             {"id": str(pipeline.pk)},
@@ -269,7 +272,7 @@ class LoadPipeline(AnnotationBaseView):
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
 
-        self.load_pipeline(
+        self.put_pipeline(
             self.get_full_pipeline_id(pipeline_id, request.user),
             request.user,
         )

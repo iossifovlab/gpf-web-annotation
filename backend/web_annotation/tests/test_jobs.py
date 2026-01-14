@@ -2261,16 +2261,6 @@ def test_save_unloads_pipeline(
     # Save should not load the pipeline
     assert mock_lru_cache.has_pipeline(
         ("user", "1"),
-    ) is False
-
-    # Load pipeline
-    response = user_client.post("/api/pipelines/load", {"id": 1})
-    assert response is not None
-    assert response.status_code == 204
-
-    # Pipeline should be loaded now
-    assert mock_lru_cache.has_pipeline(
-        ("user", "1"),
     ) is True
 
     # Save again, with updated config
@@ -2285,7 +2275,6 @@ def test_save_unloads_pipeline(
     assert response is not None
     assert response.status_code == 200
 
-    # Save should unload the pipeline
     assert mock_lru_cache.has_pipeline(
         ("user", "1"),
-    ) is False
+    ) is True

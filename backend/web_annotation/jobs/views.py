@@ -218,8 +218,7 @@ class AnnotateVCF(AnnotationBaseView):
             job, pipeline, str(work_dir))
         start_time = time.time()
 
-        def on_success(
-                result: None) -> None:  # pylint: disable=unused-argument
+        def on_success() -> None:
             """Callback when annotation is done."""
             job.duration = time.time() - start_time
             job.disk_size += Path(job.result_path).stat().st_size
@@ -364,7 +363,7 @@ class AnnotateColumns(AnnotationBaseView):
             job, details, pipeline, str(work_dir))
         start_time = time.time()
 
-        def on_success(result: None) -> None:
+        def on_success() -> None:
             job.duration = time.time() - start_time
             job.disk_size += Path(job.result_path).stat().st_size
             job.update_job_success(str(args))
