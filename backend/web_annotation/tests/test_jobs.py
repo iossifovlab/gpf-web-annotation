@@ -1234,6 +1234,32 @@ def test_user_create_anonymous_pipeline(
 
 
 @pytest.mark.django_db
+def test_user_create_pipeline_with_unicode_error(
+    user_client: Client,
+) -> None:
+    user = User.objects.get(email="user@example.com")
+    pipeline_config = "\x80\x81".encode('latin-1')
+
+    params = {
+        "config": ContentFile(pipeline_config),
+        "name": "test_pipeline",
+    }
+
+    assert Pipeline.objects.filter(owner=user).count() == 0
+
+    response = user_client.post("/api/pipelines/user", params)
+
+    assert response is not None
+    assert response.status_code == 400
+    assert response.json() == {
+        "reason": (
+            "Invalid pipeline configuration file: 'utf-8' codec can't decode "
+            "byte 0x80 in position 0: invalid start byte"
+        )
+    }
+
+
+@pytest.mark.django_db
 def test_user_update_pipeline(
     user_client: Client,
 ) -> None:
