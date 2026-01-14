@@ -8,6 +8,8 @@ from pytest_mock import MockerFixture
 
 from web_annotation.utils import bytes_to_readable, convert_size, validate_vcf
 from web_annotation.utils import get_ip_from_request
+from web_annotation.utils import calculate_used_disk_space
+
 
 @pytest.mark.parametrize(
     "raw_bytes, result",
@@ -146,4 +148,50 @@ def test_get_ip_from_request(
     }
     
     assert get_ip_from_request(mock_request) == expected_ip
+
+
+def test_calculate_used_disk_space_with_jobs(
+    mocker: MockerFixture,
+) -> None:
+
+    mock_user = mocker.MagicMock()
+    mock_job1 = mocker.MagicMock(disk_size="1000")
+    mock_job2 = mocker.MagicMock(disk_size="2000")
+    mock_job3 = mocker.MagicMock(disk_size="3000")
+    mock_user.get_jobs.return_value = [mock_job1, mock_job2, mock_job3]
+
+    assert calculate_used_disk_space(mock_user) == 6000
+
+
+def test_calculate_used_disk_space_no_jobs(
+    mocker: MockerFixture,
+) -> None:
+
+    mock_user = mocker.MagicMock()
+    mock_user.get_jobs.return_value = []
+
+    assert calculate_used_disk_space(mock_user) == 0
+
+
+def test_calculate_used_disk_space_single_job(
+    mocker: MockerFixture,
+) -> None:
+
+    mock_user = mocker.MagicMock()
+    mock_job = mocker.MagicMock(disk_size="5000")
+    mock_user.get_jobs.return_value = [mock_job]
+
+    assert calculate_used_disk_space(mock_user) == 5000
+
+
+def test_calculate_used_disk_space_with_numeric_disk_sizes(
+    mocker: MockerFixture,
+) -> None:
+
+    mock_user = mocker.MagicMock()
+    mock_job1 = mocker.MagicMock(disk_size=1500)
+    mock_job2 = mocker.MagicMock(disk_size=2500)
+    mock_user.get_jobs.return_value = [mock_job1, mock_job2]
+
+    assert calculate_used_disk_space(mock_user) == 4000
 
