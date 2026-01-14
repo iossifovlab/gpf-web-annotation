@@ -6,7 +6,7 @@ import textwrap
 import pytest
 from pytest_mock import MockerFixture
 
-from web_annotation.utils import bytes_to_readable, validate_vcf
+from web_annotation.utils import bytes_to_readable, convert_size, validate_vcf
 
 @pytest.mark.parametrize(
     "raw_bytes, result",
@@ -26,6 +26,27 @@ def test_bytes_to_readable(
   result: str,
 ) -> None:
     assert bytes_to_readable(raw_bytes) == result
+
+
+@pytest.mark.parametrize(
+    "readable, result",
+    [
+        ("79.3 TB", 79300000000000),
+        ("13.0 GB", 13000000000),
+        ("19.0 MB", 19000000),
+        ("1.2 MB", 1200000),
+        ("900.0 KB", 900000),
+        ("15.6 KB", 15600),
+        ("3.3 KB", 3300),
+        ("0.1 KB", 100),
+        (679, 679),
+    ]
+)
+def test_readable_to_bytes(
+  readable: str,
+  result: int,
+) -> None:
+    assert convert_size(readable) == result
 
 
 def test_validate_vcf_file_valid(

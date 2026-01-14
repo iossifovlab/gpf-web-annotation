@@ -285,7 +285,7 @@ def convert_size(filesize: str | int) -> int:
     }
     for unit, mult in units.items():
         if filesize.endswith(unit):
-            return int(filesize.rstrip(f"{unit}")) * mult
+            return int(float(filesize.rstrip(f"{unit}").strip()) * mult)
     return int(filesize)
 
 
