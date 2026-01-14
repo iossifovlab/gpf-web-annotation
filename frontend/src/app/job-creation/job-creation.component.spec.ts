@@ -36,7 +36,7 @@ class JobsServiceMock {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public submitFile(file: File): Observable<FileContent> {
+  public createFilePreview(file: File): Observable<FileContent> {
     return of(new FileContent(',', ['chr', 'pos'], [['1', '123']]));
   }
 
@@ -143,9 +143,9 @@ describe('JobCreationComponent', () => {
       target: { files: [mockFile] } as unknown as HTMLInputElement,
     } as unknown as Event;
 
-    const submitFileSpy = jest.spyOn(jobsServiceMock, 'submitFile');
+    const createFilePreviewSpy = jest.spyOn(jobsServiceMock, 'createFilePreview');
     component.onUpload(mockEvent);
-    expect(submitFileSpy).toHaveBeenCalledWith(mockFile);
+    expect(createFilePreviewSpy).toHaveBeenCalledWith(mockFile);
     expect(component.uploadError).toBe('');
   });
 

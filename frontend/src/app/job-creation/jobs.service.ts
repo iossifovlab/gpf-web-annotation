@@ -103,7 +103,7 @@ export class JobsService {
     );
   }
 
-  public submitFile(file: File) : Observable<FileContent> {
+  public createFilePreview(file: File) : Observable<FileContent> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
     const formData = new FormData();
     formData.append('data', file);

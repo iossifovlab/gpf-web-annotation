@@ -37,7 +37,7 @@ class JobsServiceMock {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public submitFile(file: File): Observable<FileContent> {
+  public createFilePreview(file: File): Observable<FileContent> {
     return of(new FileContent(',', ['chr', 'pos'], [['1', '123']]));
   }
 

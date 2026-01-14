@@ -421,7 +421,7 @@ describe('JobsService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockPreview));
 
-    const postResult = service.submitFile(new File(['mockData'], 'mockInput.tsv'));
+    const postResult = service.createFilePreview(new File(['mockData'], 'mockInput.tsv'));
 
     const res = await lastValueFrom(postResult.pipe(take(1)));
     expect(res).toStrictEqual(
