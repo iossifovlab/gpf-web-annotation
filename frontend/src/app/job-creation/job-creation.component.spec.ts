@@ -149,20 +149,27 @@ describe('JobCreationComponent', () => {
     expect(component.uploadError).toBe('');
   });
 
-  it('should upload vcf file and emit it to parent', () => {
-    const emitFileSpy = jest.spyOn(component.emitFile, 'emit');
-    const mockFile = new File([], 'mockFile.vcf');
-    const mockEvent = {
-      target: { files: [mockFile] } as unknown as HTMLInputElement,
-    } as unknown as Event;
+  ['vcf', 'vcf.gz', 'vcf.bgz'].forEach((extension) => {
+    it(`should upload ${extension} file and emit it to parent`, () => {
+      const emitFileSpy = jest.spyOn(component.emitFile, 'emit');
+      const emitSepartorSpy = jest.spyOn(component.emitFileSeparator, 'emit');
 
-    component.onUpload(mockEvent);
-    expect(component.uploadError).toBe('');
-    expect(emitFileSpy).toHaveBeenCalledWith(mockFile);
-  });
+      const mockFile = new File([], `mockFile.${extension}`);
+      const mockEvent = {
+        target: { files: [mockFile] } as unknown as HTMLInputElement,
+      } as unknown as Event;
+
+      component.onUpload(mockEvent);
+      expect(component.uploadError).toBe('');
+      expect(emitFileSpy).toHaveBeenCalledWith(mockFile);
+      expect(emitSepartorSpy).not.toHaveBeenCalled();
+    })
+  };
 
   it('should drop csv file and emit it to parent', () => {
     const emitFileSpy = jest.spyOn(component.emitFile, 'emit');
+    const emitSepartorSpy = jest.spyOn(component.emitFileSeparator, 'emit');
+
     const mockFile = new File([], 'mockFile.csv');
     const mockDataTransfer = { files: [mockFile] } as unknown as DataTransfer;
     const mockEvent = { dataTransfer: mockDataTransfer, preventDefault: jest.fn() } as unknown as DragEvent;
@@ -173,10 +180,13 @@ describe('JobCreationComponent', () => {
     expect(component.file).toBe(mockFile);
     expect(component.uploadError).toBe('');
     expect(emitFileSpy).toHaveBeenCalledWith(mockFile);
+    expect(emitSepartorSpy).toHaveBeenCalledWith(',');
   });
 
   it('should drop file with unsupported format', () => {
     const emitFileSpy = jest.spyOn(component.emitFile, 'emit');
+    const emitSepartorSpy = jest.spyOn(component.emitFileSeparator, 'emit');
+
     const mockFile = new File([], 'mockFile', { type: 'application/pdf' });
     const mockDataTransfer = { files: [mockFile] } as unknown as DataTransfer;
     const mockEvent = { dataTransfer: mockDataTransfer, preventDefault: jest.fn() } as unknown as DragEvent;
@@ -187,6 +197,7 @@ describe('JobCreationComponent', () => {
     expect(component.file).toStrictEqual(mockFile);
     expect(component.uploadError).toBe('Unsupported format!');
     expect(emitFileSpy).not.toHaveBeenCalledWith();
+    expect(emitSepartorSpy).not.toHaveBeenCalled();
   });
 
   it('should do nothing if no files are dropped', () => {
