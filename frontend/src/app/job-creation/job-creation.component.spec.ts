@@ -163,8 +163,8 @@ describe('JobCreationComponent', () => {
       expect(component.uploadError).toBe('');
       expect(emitFileSpy).toHaveBeenCalledWith(mockFile);
       expect(emitSepartorSpy).not.toHaveBeenCalled();
-    })
-  };
+    });
+  });
 
   it('should drop csv file and emit it to parent', () => {
     const emitFileSpy = jest.spyOn(component.emitFile, 'emit');
