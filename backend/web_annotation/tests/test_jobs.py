@@ -1260,6 +1260,34 @@ def test_user_create_pipeline_with_unicode_error(
 
 
 @pytest.mark.django_db
+def test_user_create_pipeline_with_os_error(
+    user_client: Client,
+    mocker: MockerFixture,
+) -> None:
+    mocker.patch(
+        'pathlib.Path.write_text',
+        side_effect=OSError("Permission denied")
+    )
+    user = User.objects.get(email="user@example.com")
+    pipeline_config = "- position_score: scores/pos1"
+
+    params = {
+        "config": ContentFile(pipeline_config),
+        "name": "test_pipeline",
+    }
+
+    assert Pipeline.objects.filter(owner=user).count() == 0
+
+    response = user_client.post("/api/pipelines/user", params)
+
+    assert response is not None
+    assert response.status_code == 500
+    assert response.json() == {
+        "reason": "Could not write file!",
+    }
+
+
+@pytest.mark.django_db
 def test_user_update_pipeline(
     user_client: Client,
 ) -> None:
@@ -1351,6 +1379,28 @@ def test_user_get_pipeline(
         "owner": "user@example.com",
         "pipeline": "- position_score: scores/pos1",
     }
+
+
+@pytest.mark.django_db
+def test_user_get_pipeline_without_id(
+    user_client: Client,
+) -> None:
+    response = user_client.get("/api/pipelines/user?id=")
+
+    assert response is not None
+    assert response.status_code == 400
+    assert response.json() == {"reason": "Pipeline ID not provided!"}
+
+
+@pytest.mark.django_db
+def test_user_get_pipeline_with_bad_id(
+    user_client: Client,
+) -> None:
+    response = user_client.get("/api/pipelines/user?id=123")
+
+    assert response is not None
+    assert response.status_code == 400
+    assert response.json() == {"reason": "Pipeline name not recognized!"}
 
 
 @pytest.mark.django_db

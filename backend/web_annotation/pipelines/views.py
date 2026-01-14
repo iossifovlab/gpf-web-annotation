@@ -86,12 +86,6 @@ class UserPipeline(AnnotationBaseView):
             )
             pipeline = user_pipelines[0]
             config_path = Path(str(pipeline.config_path))
-            user_pipelines_count = user_pipelines.count()
-            if user_pipelines_count > 1:
-                return Response(
-                    {"reason": "More than one pipeline share the same ID!"},
-                    status=views.status.HTTP_500_INTERNAL_SERVER_ERROR,
-                )
         else:  # Create
             assert pipeline_name is not None
             config_path = Path(
@@ -133,12 +127,12 @@ class UserPipeline(AnnotationBaseView):
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
 
-        pipeline = request.user.pipeline_class.objects.get(
-            owner=request.user,
-            pk=pipeline_id,
-        )
-
-        if not pipeline:
+        try:
+            pipeline = request.user.pipeline_class.objects.get(
+                owner=request.user,
+                pk=pipeline_id,
+            )
+        except request.user.pipeline_class.DoesNotExist:
             return Response(
                 {"reason": "Pipeline name not recognized!"},
                 status=views.status.HTTP_400_BAD_REQUEST,
