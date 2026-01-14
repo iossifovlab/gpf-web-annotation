@@ -7,6 +7,7 @@ import pytest
 from pytest_mock import MockerFixture
 
 from web_annotation.utils import bytes_to_readable, convert_size, validate_vcf
+from web_annotation.utils import get_ip_from_request
 
 @pytest.mark.parametrize(
     "raw_bytes, result",
@@ -121,3 +122,28 @@ def test_validate_vcf_file_invalid_header(
         validate_vcf(str(vcf_path))
 
     assert "does not have valid header" in str(err.value.stderr)
+
+
+@pytest.mark.parametrize(
+    "x_forwarded_for, remote_addr, expected_ip",
+    [
+        ("192.168.1.100, 10.0.0.1", None, "192.168.1.100"),
+        ("203.0.113.45, 198.51.100.20, 192.0.2.1", None, "203.0.113.45"),
+        (None, "192.168.1.50", "192.168.1.50"),
+        ("", "10.0.0.5", "10.0.0.5"),
+    ]
+)
+def test_get_ip_from_request(
+    mocker: MockerFixture,
+    x_forwarded_for: str | None,
+    remote_addr: str | None,
+    expected_ip: str,
+) -> None:
+    mock_request = mocker.MagicMock()
+    mock_request.META = {
+        "HTTP_X_FORWARDED_FOR": x_forwarded_for,
+        "REMOTE_ADDR": remote_addr,
+    }
+    
+    assert get_ip_from_request(mock_request) == expected_ip
+
