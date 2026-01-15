@@ -51,3 +51,29 @@ export async function loginUser(page: Page, email: string, password: string): Pr
   await page.locator('#login-container').getByRole('button', { name: 'Login' }).click();
   await expect(page.locator('app-annotation-wrapper')).toBeVisible();
 }
+
+export async function typeInPipelineEditor(page: Page, input: string): Promise<void> {
+  const monacoEditor = page.locator('.monaco-editor').nth(0);
+  await monacoEditor.click();
+  await page.keyboard.insertText(input);
+}
+
+export async function clearPipelineEditor(page: Page): Promise<void> {
+  const monacoEditor = page.locator('.monaco-editor').nth(0);
+  await monacoEditor.click();
+  await page.keyboard.press('Control+A');
+  await page.keyboard.press('Delete');
+}
+
+
+export async function selectPipeline(page: Page, pipeline: string): Promise<void> {
+  await page.locator('#pipelines-input').click();
+  await page.getByRole('option', { name: 'circle ' + pipeline, exact: true }).click();
+  await waitForPipelineToLoad(page);
+}
+
+async function waitForPipelineToLoad(page: Page): Promise<void> {
+  await expect(async() => {
+    await expect(page.locator('ngx-monaco-editor')).toHaveCSS('border-color', 'rgb(119, 172, 119)');
+  }).toPass({intervals: [2000, 3000, 5000]});
+}
