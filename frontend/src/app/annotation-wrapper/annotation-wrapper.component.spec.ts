@@ -261,6 +261,8 @@ describe('AnnotationWrapperComponent', () => {
   it('should auto save and get annonymous pipeline name', () => {
     const pipelinesComponentSpy = jest.spyOn(component.pipelinesComponent, 'autoSave')
       .mockReturnValue(of('annonymous pipeline'));
+    jest.spyOn(component.pipelinesComponent, 'isPipelineChanged').mockReturnValue(true);
+
     component.autoSavePipeline();
     expect(pipelinesComponentSpy).toHaveBeenCalledWith();
     expect(component.pipelineId).toBe('annonymous pipeline');
@@ -269,6 +271,7 @@ describe('AnnotationWrapperComponent', () => {
   it('should auto save pipeline', () => {
     const pipelinesComponentSpy = jest.spyOn(component.pipelinesComponent, 'autoSave')
       .mockReturnValue(of('temp'));
+    jest.spyOn(component.pipelinesComponent, 'isPipelineChanged').mockReturnValue(true);
 
     component.autoSavePipeline();
     expect(pipelinesComponentSpy).toHaveBeenCalledWith();
@@ -290,6 +293,7 @@ describe('AnnotationWrapperComponent', () => {
     component.fileSeparator = '';
     component.fileHeader = null;
     const createJobSpy = jest.spyOn(jobsServiceMock, 'createVcfJob');
+    jest.spyOn(component.pipelinesComponent, 'isPipelineChanged').mockReturnValue(true);
 
     component.autoSavePipeline();
 
@@ -312,6 +316,7 @@ describe('AnnotationWrapperComponent', () => {
     component.fileSeparator = ',';
     component.fileHeader = new Map<string, string>([['a', '1']]);
     const createJobSpy = jest.spyOn(jobsServiceMock, 'createNonVcfJob');
+    jest.spyOn(component.pipelinesComponent, 'isPipelineChanged').mockReturnValue(true);
 
     component.autoSavePipeline();
 
@@ -333,6 +338,7 @@ describe('AnnotationWrapperComponent', () => {
     component.pipelineId = 'pipeline';
     const pipelinesComponentSpy = jest.spyOn(component.pipelinesComponent, 'autoSave').mockReturnValue(of(''));
     const annotateAlleleSpy = jest.spyOn(component.singleAnnotationComponent, 'annotateAllele');
+    jest.spyOn(component.pipelinesComponent, 'isPipelineChanged').mockReturnValue(true);
 
     component.autoSavePipeline();
     expect(pipelinesComponentSpy).toHaveBeenCalledWith();

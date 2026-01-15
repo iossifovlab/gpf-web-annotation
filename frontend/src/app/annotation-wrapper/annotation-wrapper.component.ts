@@ -117,15 +117,23 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
     if (!this.pipelinesComponent.currentPipelineText) {
       return;
     }
-    this.pipelinesComponent.autoSave().pipe(take(1)).subscribe(annonymousPipelineName => {
-      this.pipelineId = annonymousPipelineName;
-      if (this.currentView === 'jobs') {
-        this.create();
-      } else {
-        this.singleAnnotationComponent.pipelineId = annonymousPipelineName;
-        this.singleAnnotationComponent.annotateAllele();
-      }
-    });
+    if (this.pipelinesComponent.isPipelineChanged()) {
+      this.pipelinesComponent.autoSave().pipe(take(1)).subscribe(annonymousPipelineName => {
+        this.pipelineId = annonymousPipelineName;
+        this.annotate();
+      });
+    } else {
+      this.annotate();
+    }
+  }
+
+  private annotate(): void {
+    if (this.currentView === 'jobs') {
+      this.create();
+    } else {
+      this.singleAnnotationComponent.pipelineId = this.pipelineId;
+      this.singleAnnotationComponent.annotateAllele();
+    }
   }
 
   public triggerSingleAlleleAnnotation(allele: string): void {
