@@ -4,7 +4,7 @@ import { defineConfig, devices } from '@playwright/test';
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-  workers: 1, //process.env.CI ? 16 : undefined,
+  workers: process.env.CI ? 16 : undefined,
   timeout: 300000,
   expect: {
     timeout: 5000,
