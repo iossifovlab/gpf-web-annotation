@@ -195,7 +195,7 @@ class LRUPipelineCache:
     ) -> None:
         """Put a pipeline into the cache."""
         pipeline_config_hash = hash(pipeline_config)
-
+        started = time.time()
         with self._cache_lock:
             if pipeline_id in self._cache:
                 details = self._cache[pipeline_id]
@@ -212,7 +212,7 @@ class LRUPipelineCache:
             )
 
             loading_details = LoadingDetails(
-                time_started=time.time(),
+                time_started=started,
                 pipeline_id=pipeline_id,
                 config_hash=pipeline_config_hash,
                 future=pipeline_future
@@ -224,6 +224,9 @@ class LRUPipelineCache:
             self._pipeline_callbacks[pipeline_id] = delete_callback
             self._cache[pipeline_id] = loading_details
             self._order.append(pipeline_id)
+        elapsed = time.time() - started
+        logger.debug(
+            "put pipeline %s in %.2f seconds", pipeline_id, elapsed)
 
     def clean_old_tasks(self) -> None:
         """Clean old tasks that have timed out"""
@@ -244,22 +247,30 @@ class LRUPipelineCache:
         self, pipeline_id: tuple[str, str],
     ) -> Future[ThreadSafePipeline]:
         """Get a pipeline future by its ID."""
+        started = time.time()
         with self._cache_lock:
             if pipeline_id not in self._cache:
                 raise ValueError(f"Pipeline {pipeline_id} not found")
             self._order.remove(pipeline_id)
             self._order.append(pipeline_id)
+            elapsed = time.time() - started
+            logger.debug(
+                "get_pipeline_future %s in %.2f seconds", pipeline_id, elapsed)
             return self._cache[pipeline_id].future
 
     def get_pipeline(self, pipeline_id: tuple[str, str]) -> ThreadSafePipeline:
         """Get a pipeline by its ID."""
         pipeline = None
+        started = time.time()
         while pipeline is None:
             pipeline_future = self.get_pipeline_future(pipeline_id)
             try:
                 pipeline = pipeline_future.result()
             except CancelledError:
                 logger.debug("Retrying to get %s", pipeline_id)
+        elapsed = time.time() - started
+        logger.debug(
+            "got pipeline %s in %.2f seconds", pipeline_id, elapsed)
         return pipeline
 
     def delete_pipeline(
