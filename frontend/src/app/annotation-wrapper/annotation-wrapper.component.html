@@ -69,6 +69,7 @@
 
       <div *ngIf="currentView === 'single allele'">
         <app-single-annotation
+          [isPipelineValid]="isConfigValid"
           [pipelineId]="pipelineId"
           (alleleUpdateEmit)="refreshAllelesTable()"
           (autoSaveTrigger)="autoSavePipeline()"></app-single-annotation>

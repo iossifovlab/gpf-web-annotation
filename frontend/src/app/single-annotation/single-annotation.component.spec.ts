@@ -164,6 +164,7 @@ describe('SingleAnnotationComponent', () => {
   it('should get report when clicking go button and input is valid', () => {
     component.currentAllele = 'chr1 11796321 G GT';
     component.pipelineId = 'pipelineId';
+    component.isPipelineValid = true;
     const getReportSpy = jest.spyOn(mockSingleAnnotationService, 'getReport');
 
     component.annotateAllele();
@@ -179,6 +180,7 @@ describe('SingleAnnotationComponent', () => {
 
   it('should trigger update table in parent after getting the report', () => {
     component.pipelineId = 'pipelineId';
+    component.isPipelineValid = true;
     component.currentAllele = 'chr1 11796321 G GT';
     const emitSpy = jest.spyOn(component.alleleUpdateEmit, 'emit');
 

@@ -247,12 +247,12 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
 
   public clearPipeline(): void {
     this.selectedPipeline = null;
-    this.emitPipelineId.emit(null);
     this.currentPipelineText = '';
     this.currentTemporaryPipelineId = '';
     this.currentTemporaryPipelineStatus = null;
     this.configError = '';
     this.dropdownControl.setValue('');
+    this.emitPipelineId.emit(null);
   }
 
   public saveAs(): void {
@@ -288,6 +288,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
         // it's better to reuse the same temporary pipeline
         if (this.currentTemporaryPipelineId === '') {
           this.currentTemporaryPipelineId = pipelineId;
+          this.emitPipelineId.emit(this.currentTemporaryPipelineId);
         }
       })
     );

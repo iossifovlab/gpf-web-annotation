@@ -17,6 +17,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 })
 export class SingleAnnotationComponent {
   @Input() public pipelineId = '';
+  @Input() public isPipelineValid: boolean;
   public readonly environment = environment;
   public validationMessage = '';
   public currentAllele: string = '';
@@ -43,7 +44,7 @@ export class SingleAnnotationComponent {
   }
 
   public disableGo(): boolean {
-    return !(Boolean(this.currentAllele) && Boolean(this.pipelineId));
+    return !(Boolean(this.currentAllele) && Boolean(this.pipelineId) && this.isPipelineValid);
   }
 
   private isAlleleValid(): boolean {
@@ -93,6 +94,9 @@ export class SingleAnnotationComponent {
   }
 
   private getReport(pipelineId: string): void {
+    if (this.disableGo()) {
+      return;
+    }
     this.getReportSubscription.unsubscribe();
     this.loading = true;
     this.getReportSubscription = this.singleAnnotationService.getReport(
