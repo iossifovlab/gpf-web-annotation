@@ -573,6 +573,15 @@ def test_validate_annotation_config(
         "Repeated attributes in pipeline were found - {'pos1': ['A1', 'A0']}",
     }
 
+    response = user_client.post(
+        "/api/pipelines/validate",
+        {"config": "   "},
+    )
+    assert response.status_code == 200
+    assert response.json() == {
+        "errors": "Configuration is empty.",
+    }
+
 
 def test_single_annotation(admin_client: Client) -> None:
     response = admin_client.post(
