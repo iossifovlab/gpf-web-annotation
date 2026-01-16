@@ -22,7 +22,7 @@ import { EditorComponent, MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { editorConfig, initEditor } from './annotation-pipeline-editor.config';
 import { UsersService } from '../users.service';
 import { SocketNotificationsService } from '../socket-notifications/socket-notifications.service';
-import { PipelineNotification } from '../socket-notifications/socket-notifications';
+import { PipelineNotification, PipelineStatus } from '../socket-notifications/socket-notifications';
 
 @Component({
   selector: 'app-annotation-pipeline',
@@ -43,7 +43,9 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   public pipelines : Pipeline[] = [];
   public currentPipelineText = '';
   public currentTemporaryPipelineId = '';
+  public currentTemporaryPipelineStatus: PipelineStatus;
   public selectedPipeline: Pipeline = null;
+  public currentPipelineStatus: PipelineStatus;
   public configError = '';
   @Output() public emitPipelineId = new EventEmitter<string>();
   @Output() public emitIsConfigValid = new EventEmitter<boolean>();
@@ -106,6 +108,11 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   private setupPipelineWebSocketConnection(): void {
     this.socketNotificationSubscription = this.socketNotificationsService.getPipelineNotifications().subscribe({
       next: (notification: PipelineNotification) => {
+        if (this.currentTemporaryPipelineId === notification.pipelineId) {
+          this.currentTemporaryPipelineStatus = notification.status;
+          return;
+        }
+
         const pipeline = this.pipelines.find(p => p.id === notification.pipelineId);
         if (pipeline) {
           pipeline.status = notification.status;
@@ -242,6 +249,8 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     this.selectedPipeline = null;
     this.emitPipelineId.emit(null);
     this.currentPipelineText = '';
+    this.currentTemporaryPipelineId = '';
+    this.currentTemporaryPipelineStatus = null;
     this.configError = '';
     this.dropdownControl.setValue('');
   }

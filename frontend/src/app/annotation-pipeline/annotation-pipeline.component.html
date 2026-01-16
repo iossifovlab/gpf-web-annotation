@@ -41,7 +41,15 @@
   <ngx-monaco-editor
     #pipelineEditor
     id="pipeline-editor"
-    [ngClass]="[configError ? 'invalid-config' : selectedPipeline ? selectedPipeline.status + '-editor' : '']"
+    [ngClass]="[
+      configError
+        ? 'invalid-config'
+        : selectedPipeline
+        ? selectedPipeline.status + '-editor'
+        : currentTemporaryPipelineStatus
+        ? currentTemporaryPipelineStatus + '-editor'
+        : ''
+    ]"
     [style.width]="editorWidth()"
     [style.height]="editorHeight()"
     [options]="yamlEditorOptions"
