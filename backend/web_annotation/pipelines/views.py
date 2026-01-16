@@ -239,7 +239,7 @@ class PipelineValidation(AnnotationBaseView):
         result = {"errors": ""}
 
         if content.strip() == "":
-            result = {"errors": "Configuration is empty"}
+            result = {"errors": "Configuration is empty."}
             return Response(result, status=views.status.HTTP_200_OK)
 
         try:
