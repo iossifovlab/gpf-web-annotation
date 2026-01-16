@@ -375,12 +375,15 @@ describe('AnnotationPipelineComponent', () => {
     expect(component.dropdownControl.value).toBe('pipeline-name *');
   });
 
-  it('should remove \' *\' when pipeline config is saved after being changed', () => {
+  it('should remove \' *\' when pipeline config has not changed and update pipeline id in parent', () => {
+    const emitPipelineIdSpy = jest.spyOn(component.emitPipelineId, 'emit');
     jest.spyOn(component, 'isPipelineChanged').mockReturnValue(false);
     component.dropdownControl.setValue('pipeline-name *');
     component.selectedPipeline = new Pipeline('1', 'pipeline-name', 'content', 'user', 'loaded');
+
     component.isConfigValid();
     expect(component.dropdownControl.value).toBe('pipeline-name');
+    expect(emitPipelineIdSpy).toHaveBeenCalledWith('1');
   });
 
   it('should not add \' *\' when pipeline config is has not been changed', () => {

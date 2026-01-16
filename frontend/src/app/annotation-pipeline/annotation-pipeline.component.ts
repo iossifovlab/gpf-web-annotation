@@ -214,6 +214,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
       this.dropdownControl.setValue(this.dropdownControl.value + ' *');
     } else if (!this.isPipelineChanged() && this.dropdownControl.value.includes(' *')) {
       this.dropdownControl.setValue(this.dropdownControl.value.replace(' *', ''));
+      this.emitPipelineId.emit(this.selectedPipeline.id);
     }
   }
 
