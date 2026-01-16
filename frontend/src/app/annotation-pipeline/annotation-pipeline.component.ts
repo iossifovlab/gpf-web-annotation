@@ -198,7 +198,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
       if (!this.configError) {
         this.emitIsConfigValid.emit(true);
         // Save pipeline as temporary when valid
-        this.autoSave();
+        this.autoSave().subscribe();
       } else {
         this.emitIsConfigValid.emit(false);
       }
