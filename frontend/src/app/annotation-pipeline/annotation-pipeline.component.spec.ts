@@ -198,6 +198,19 @@ describe('AnnotationPipelineComponent', () => {
     expect(component.pipelines[0].status).toBe('unloaded');
   });
 
+  it('should set temporary pipeline id on notification arrival if id is not set', () => {
+    const emitPipelineIdSpy = jest.spyOn(component.emitPipelineId, 'emit');
+    jest.spyOn(socketNotificationsServiceMock, 'getPipelineNotifications').mockReturnValueOnce(
+      of(new PipelineNotification('215', 'loading'))
+    );
+    component.currentTemporaryPipelineId = '';
+    component.currentTemporaryPipelineStatus = null;
+    component.ngOnInit();
+    expect(component.currentTemporaryPipelineId).toBe('215');
+    expect(component.currentTemporaryPipelineStatus).toBe('loading');
+    expect(emitPipelineIdSpy).toHaveBeenCalledWith('215');
+  });
+
   it('should reconnects to socket notifications on close event', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const setupSpy = jest.spyOn(component as any, 'setupPipelineWebSocketConnection');
@@ -518,6 +531,7 @@ describe('AnnotationPipelineComponent', () => {
     const savePipelineSpy = jest.spyOn(annotationPipelineServiceMock, 'savePipeline').mockReturnValueOnce(of(null));
     const saveSpy = jest.spyOn(component, 'save');
 
+    component.currentTemporaryPipelineId = '';
     component.selectedPipeline = null;
     component.currentPipelineText = 'new content';
 
@@ -530,6 +544,7 @@ describe('AnnotationPipelineComponent', () => {
     const savePipelineSpy = jest.spyOn(annotationPipelineServiceMock, 'savePipeline').mockReturnValueOnce(of(null));
     const saveSpy = jest.spyOn(component, 'save');
 
+    component.currentTemporaryPipelineId = '';
     component.selectedPipeline = mockPipelines[0];
     component.currentPipelineText = 'new content';
 

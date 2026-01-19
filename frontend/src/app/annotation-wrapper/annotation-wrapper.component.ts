@@ -207,7 +207,7 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
   }
 
   public setPipeline(newPipeline: string): void {
-    if (this.pipelineId === newPipeline) {
+    if (!newPipeline || this.pipelineId === newPipeline) {
       return;
     }
     this.resetSingleAlleleReport();

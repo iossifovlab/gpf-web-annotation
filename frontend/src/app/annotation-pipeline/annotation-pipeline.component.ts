@@ -112,6 +112,12 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
           this.currentTemporaryPipelineStatus = notification.status;
           return;
         }
+        if (!this.currentTemporaryPipelineId && !this.pipelines.find(p => p.id === notification.pipelineId)) {
+          this.currentTemporaryPipelineId = notification.pipelineId;
+          this.currentTemporaryPipelineStatus = notification.status;
+          this.emitPipelineId.emit(this.currentTemporaryPipelineId);
+          return;
+        }
 
         const pipeline = this.pipelines.find(p => p.id === notification.pipelineId);
         if (pipeline) {
