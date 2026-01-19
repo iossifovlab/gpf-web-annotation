@@ -1,12 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, Inject, OnInit } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogActions, MatDialogContent, MatDialogRef } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogContent } from '@angular/material/dialog';
 import { JobsService } from '../job-creation/jobs.service';
 import { getStatusClassName, Job } from '../job-creation/jobs';
 
 @Component({
   selector: 'app-job-details',
-  imports: [MatDialogActions, MatDialogContent, CommonModule],
+  imports: [MatDialogContent, CommonModule],
   templateUrl: './job-details.component.html',
   styleUrl: './job-details.component.css'
 })
@@ -18,7 +18,6 @@ export class JobDetailsComponent implements OnInit {
 
   public constructor(
     @Inject(MAT_DIALOG_DATA) public jobId: number,
-    private dialogRef: MatDialogRef<JobDetailsComponent>,
     private jobsService: JobsService
   ) { }
 
@@ -28,12 +27,6 @@ export class JobDetailsComponent implements OnInit {
       this.annotatedFileLink = this.jobsService.getDownloadJobResultLink(this.jobId);
       this.uploadedFileLink = this.jobsService.getJobInputDownloadLink(this.jobId);
       this.configFileLink = this.jobsService.getJobConfigLink(this.jobId);
-    });
-  }
-
-  public onDelete(jobId: number): void {
-    this.jobsService.deleteJob(jobId).subscribe(() => {
-      this.dialogRef.close(true);
     });
   }
 

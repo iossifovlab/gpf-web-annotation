@@ -116,7 +116,6 @@ test.describe('Job details tests', () => {
     await expect(page.locator('app-job-details').locator('#download-config')).toBeVisible();
     await expect(page.locator('app-job-details').locator('#download-annotated')).not.toBeVisible();
     await expect(page.locator('app-job-details').locator('#data-size')).toBeVisible();
-    await expect(page.locator('app-job-details').locator('#delete-button')).toBeVisible();
   });
 
   test('should download uploaded file from job details modal', async({ page }) => {
@@ -168,16 +167,6 @@ test.describe('Job details tests', () => {
     const fixtureFrame = await fixtureData.collect();
     const downloadFrame = await downloadData.collect();
     expect(fixtureFrame.toString()).toEqual(downloadFrame.toString());
-  });
-
-  test('should delete job from job details modal', async({ page }) => {
-    await createJobWithPipeline(page, 'pipeline/Autism_annotation', 'input-vcf-file.vcf');
-    await waitForJobStatus(page, utils.successBackgroundColor);
-
-    await page.locator('.job-name').getByText('info').nth(0).click();
-    await page.locator('app-job-details').locator('#delete-button').click();
-    await expect(page.locator('app-job-details')).not.toBeVisible();
-    await expect(page.locator('.job-name')).not.toBeVisible();
   });
 
   test('should check job details modal of failed job', async({ page }) => {
