@@ -342,6 +342,12 @@ describe('AnnotationPipelineComponent', () => {
     expect(setDropdownValueSpy).not.toHaveBeenCalledWith();
   });
 
+  it('should select pipeline by providing its name', () => {
+    component.selectedPipeline = null;
+    component.selectPipelineByName('id3');
+    expect(component.selectedPipeline).toStrictEqual(new Pipeline('3', 'id3', 'content3', 'user', 'loaded'));
+  });
+
   it('should reset component state', () => {
     component.selectedPipeline = mockPipelines[2];
     component.resetState();
@@ -413,6 +419,20 @@ describe('AnnotationPipelineComponent', () => {
     expect(component.selectedPipeline).toBeNull();
     expect(component.currentPipelineText).toBe('');
     expect(setDropdownValueSpy).toHaveBeenCalledWith('');
+  });
+
+  it('should not set pipeline name in dropdown input if it contains text', () => {
+    const setDropdownValueSpy = jest.spyOn(component.dropdownControl, 'setValue');
+    component.displayPipelineNameInInput();
+    expect(setDropdownValueSpy).not.toHaveBeenCalledWith();
+  });
+
+  it('should set current pipeline name in dropdown input if it is empty', () => {
+    const setDropdownValueSpy = jest.spyOn(component.dropdownControl, 'setValue');
+    component.selectedPipeline = new Pipeline('1', 'pipeline-name', 'content', 'user', 'loaded');
+    component.dropdownControl.setValue('');
+    component.displayPipelineNameInInput();
+    expect(setDropdownValueSpy).toHaveBeenCalledWith('pipeline-name');
   });
 
   it('should save pipeline name', () => {

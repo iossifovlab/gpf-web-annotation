@@ -236,7 +236,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   private unselectPublicPipeline(): void {
     if (this.selectedPipeline && this.selectedPipeline.type === 'default' && this.isPipelineChanged()) {
       this.selectedPipeline = null;
-      this.dropdownControl.setValue('');
+      this.clearPipelineInput();
       this.emitPipelineId.emit(null);
     }
   }
@@ -251,16 +251,40 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     this.currentPipelineText = pipeline.content;
     this.emitPipelineId.emit(this.selectedPipeline.id);
     this.dropdownControl.setValue(this.selectedPipeline.name);
+    this.clearTemporaryPipeline();
+  }
+
+  public selectPipelineByName(pipelineName: string): void {
+    const pipeline = this.pipelines.find(p => p.name === pipelineName);
+    if (pipeline) {
+      this.onPipelineClick(pipeline);
+    }
+  }
+
+  public clearTemporaryPipeline(): void {
+    this.currentTemporaryPipelineId = '';
+    this.currentTemporaryPipelineStatus = null;
+  }
+
+  public clearPipelineInput(): void {
+    this.dropdownControl.setValue('');
+  }
+
+  public displayPipelineNameInInput(): void {
+    if (!this.selectedPipeline || this.dropdownControl.value) {
+      return;
+    }
+
+    this.dropdownControl.setValue(this.selectedPipeline.name);
+    this.displayUnsavedPipelineIndication();
   }
 
   public clearPipeline(): void {
     this.selectedPipeline = null;
     this.currentPipelineText = '';
-    this.currentTemporaryPipelineId = '';
-    this.currentTemporaryPipelineStatus = null;
-    this.configError = '';
-    this.dropdownControl.setValue('');
     this.emitPipelineId.emit(null);
+    this.clearPipelineInput();
+    this.clearTemporaryPipeline();
   }
 
   public saveAs(): void {

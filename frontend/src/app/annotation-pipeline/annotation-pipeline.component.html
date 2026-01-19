@@ -3,19 +3,22 @@
   <div>
     <input
       placeholder="Select pipeline"
-      [title]="selectedPipeline ? selectedPipeline.id : ''"
+      [title]="selectedPipeline ? selectedPipeline.name : ''"
       id="pipelines-input"
       matInput
       #pipelineInput="matAutocompleteTrigger"
       [matAutocomplete]="pipelinesDropdown"
       [formControl]="dropdownControl"
-      (click)="clearPipeline()" />
-    <span (click)="clearPipeline(); pipelineInput.openPanel()" class="material-symbols-outlined dropdown-icon"
+      (click)="clearPipelineInput()" />
+    <span (click)="clearPipelineInput(); pipelineInput.openPanel()" class="material-symbols-outlined dropdown-icon"
       >keyboard_arrow_down</span
     >
   </div>
 
-  <mat-autocomplete #pipelinesDropdown="matAutocomplete">
+  <mat-autocomplete
+    #pipelinesDropdown="matAutocomplete"
+    (closed)="displayPipelineNameInInput()"
+    (optionSelected)="selectPipelineByName($event.option.value)">
     @for (group of ['default', 'user']; track group) {
     <mat-optgroup [label]="group === 'user' ? 'User pipelines' : 'Public pipelines'">
       @for (pipeline of filteredPipelines; track pipeline.id) {
@@ -23,7 +26,6 @@
         *ngIf="pipeline.type === group"
         class="pipeline-option"
         (click)="onPipelineClick(pipeline)"
-        (onSelectionChange)="onPipelineClick(pipeline)"
         [title]="pipeline.name"
         [value]="pipeline.name">
         <span id="socket-notification">
