@@ -118,7 +118,7 @@ export class JobCreationComponent implements OnInit {
       return;
     }
     this.updateFile(file);
-    if (file.name.search('.vcf') == -1) {
+    if (file.name.search('.vcf') === -1) {
       this.createFilePreview();
     }
   }
