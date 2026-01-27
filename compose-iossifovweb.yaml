@@ -42,12 +42,6 @@ services:
       timeout: 5s
       retries: 5
 
-  mail:
-    image: mailhog/mailhog
-    hostname: mail
-    ports:
-      - "8025:8025"
-
   backend:
     build:
       context: backend
@@ -59,12 +53,11 @@ services:
         condition: service_completed_successfully
       db:
         condition: service_healthy
-      mail:
-        condition: service_started
     volumes:
       - ${WD:-.}/gpfwa-data:/data
       - ${WD:-.}/gpfwa-logs:/logs
       - ${GRR}:/grr
+      - ${GRR_ENCODE}:/grr_encode
     volumes_from:
       - static-data
     environment:
