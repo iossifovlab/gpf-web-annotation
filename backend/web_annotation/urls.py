@@ -24,6 +24,12 @@ from web_annotation.pipelines.urls import urlpatterns as pipeline_urls
 from web_annotation.single_allele_annotation.urls import (
     urlpatterns as single_allele_urls,
 )
+from web_annotation.resources.urls import (
+    urlpatterns as resources_urls,
+)
+from web_annotation.editor.urls import (
+    urlpatterns as editor_urls,
+)
 from web_annotation.consumers import AnnotationStateConsumer
 
 
@@ -33,6 +39,8 @@ urlpatterns = [
     *job_urls,
     *single_allele_urls,
     *pipeline_urls,
+    *resources_urls,
+    *editor_urls,
 
     path('api/users', views.UserList.as_view()),
     path('api/users/<int:pk>', views.UserDetail.as_view()),
