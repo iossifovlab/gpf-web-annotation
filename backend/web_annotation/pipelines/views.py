@@ -255,7 +255,7 @@ class PipelineValidation(AnnotationBaseView):
 
         try:
             AnnotationConfigParser.parse_str(content, grr=self.grr)
-            loaded = load_pipeline_from_yaml(content, self.grr)
+            load_pipeline_from_yaml(content, self.grr)
         except (AnnotationConfigurationError, KeyError) as e:
             error = str(e)
             if error == "":
@@ -264,10 +264,6 @@ class PipelineValidation(AnnotationBaseView):
                 result = {"errors": f"Invalid configuration, reason: {error}"}
         except Exception:  # pylint: disable=broad-exception-caught
             result = {"errors": "Invalid configuration"}
-
-        if len(loaded) == 0:
-            result = {"errors": "Configuration is empty."}
-            return Response(result, status=views.status.HTTP_200_OK)
 
         return Response(result, status=views.status.HTTP_200_OK)
 
