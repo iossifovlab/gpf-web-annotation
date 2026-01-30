@@ -588,7 +588,10 @@ def test_validate_annotation_config(
     )
     assert response.status_code == 200
     assert response.json() == {
-        "errors": "Configuration is empty.",
+        "errors": (
+            "Invalid configuration, reason: "
+            "The annotation pipeline configuration is empty."
+        ),
     }
 
 
