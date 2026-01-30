@@ -93,6 +93,17 @@ class UserPipeline(AnnotationBaseView):
                 request.user.identifier,
                 config_filename,
             )
+            if pipeline_name is not None:
+                if request.user.pipeline_class.objects.filter(
+                    owner=request.user,
+                    name=pipeline_name,
+                ):
+                    return Response({
+                        "reason": (
+                            "Pipeline with name "
+                            f"{pipeline_name} already exists!"
+                        ),
+                    })
             pipeline = request.user.pipeline_class(
                 name=pipeline_name,
                 config_path=config_path,

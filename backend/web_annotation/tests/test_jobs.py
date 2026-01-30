@@ -1121,6 +1121,32 @@ def test_user_create_pipeline(
     output = pathlib.Path(pipeline.config_path).read_text(encoding="utf-8")
     assert output == "- position_score: scores/pos1"
 
+@pytest.mark.django_db
+def test_user_create_pipeline_does_not_duplicate(
+    user_client: Client,
+) -> None:
+    user = User.objects.get(email="user@example.com")
+    pipeline_config = "- position_score: scores/pos1"
+
+    params = {
+        "config": ContentFile(pipeline_config),
+        "name": "test_pipeline",
+    }
+
+    assert Pipeline.objects.filter(owner=user).count() == 0
+
+    response = user_client.post("/api/pipelines/user", params)
+
+    assert response is not None
+    assert response.status_code == 200
+    assert response.json() == {"id": "1"}
+    assert Pipeline.objects.filter(owner=user).count() == 1
+    pipeline = Pipeline.objects.last()
+    assert pipeline is not None
+    assert pipeline.name == "test_pipeline"
+    response = user_client.post("/api/pipelines/user", params)
+    assert Pipeline.objects.filter(owner=user).count() == 1
+
 
 @pytest.mark.django_db
 def test_create_job_for_pipeline_with_preamble(

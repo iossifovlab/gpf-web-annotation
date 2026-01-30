@@ -582,6 +582,18 @@ def test_validate_annotation_config(
         "errors": "Configuration is empty.",
     }
 
+    response = user_client.post(
+        "/api/pipelines/validate",
+        {"config": "# some comment"},
+    )
+    assert response.status_code == 200
+    assert response.json() == {
+        "errors": (
+            "Invalid configuration, reason: "
+            "The annotation pipeline configuration is empty."
+        ),
+    }
+
 
 def test_single_annotation(admin_client: Client) -> None:
     response = admin_client.post(
