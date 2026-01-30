@@ -93,6 +93,17 @@ class UserPipeline(AnnotationBaseView):
                 request.user.identifier,
                 config_filename,
             )
+            if pipeline_name is not None:
+                if request.user.pipeline_class.objects.filter(
+                    owner=request.user,
+                    name=pipeline_name,
+                ):
+                    return Response({
+                        "reason": (
+                            "Pipeline with name "
+                            f"{pipeline_name} already exists!"
+                        ),
+                    })
             pipeline = request.user.pipeline_class(
                 name=pipeline_name,
                 config_path=config_path,
@@ -244,7 +255,7 @@ class PipelineValidation(AnnotationBaseView):
 
         try:
             AnnotationConfigParser.parse_str(content, grr=self.grr)
-            load_pipeline_from_yaml(content, self.grr)
+            loaded = load_pipeline_from_yaml(content, self.grr)
         except (AnnotationConfigurationError, KeyError) as e:
             error = str(e)
             if error == "":
@@ -253,6 +264,10 @@ class PipelineValidation(AnnotationBaseView):
                 result = {"errors": f"Invalid configuration, reason: {error}"}
         except Exception:  # pylint: disable=broad-exception-caught
             result = {"errors": "Invalid configuration"}
+
+        if len(loaded) == 0:
+            result = {"errors": "Configuration is empty."}
+            return Response(result, status=views.status.HTTP_200_OK)
 
         return Response(result, status=views.status.HTTP_200_OK)
 
