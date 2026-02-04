@@ -137,10 +137,24 @@ def user_client() -> Client:
     client.login(email="user@example.com", password="secret")
     return client
 
+
 @pytest.fixture
 def anonymous_client() -> Client:
     client = Client()
     return client
+
+
+@pytest.fixture
+def clients(
+    admin_client: Client,
+    user_client: Client,
+    anonymous_client: Client,
+) -> dict[str, Client]:
+    return {
+        "admin": admin_client,
+        "user": user_client,
+        "anonymous": anonymous_client,
+    }
 
 
 @pytest.fixture
