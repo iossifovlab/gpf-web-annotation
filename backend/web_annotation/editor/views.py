@@ -180,7 +180,9 @@ class AnnotatorTypes(EditorView):
 
 
 class AnnotatorAttributes(EditorView):
+    """View for annotator attributes."""
     def post(self, request: Request) -> Response:
+        """POST method to get annotator attributes."""
         assert isinstance(request.data, dict)
         data = dict(request.data)
         if "annotator_type" not in data:
