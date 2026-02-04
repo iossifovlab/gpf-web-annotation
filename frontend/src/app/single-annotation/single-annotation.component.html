@@ -16,7 +16,7 @@
   @if (loading) {
   <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>
   <span id="loading-text">Loading...</span>
-  }
-
-  <app-single-annotation-report [report]="report"></app-single-annotation-report
-></div>
+  } @if (report) {
+  <app-single-annotation-report [report]="report"></app-single-annotation-report>
+  }</div
+>
