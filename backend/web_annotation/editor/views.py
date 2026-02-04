@@ -1,9 +1,10 @@
 from typing import Any
 
 import yaml
+from rest_framework.views import Request, Response, status
+
 from dae.annotation.annotation_config import AnnotationConfigParser, \
     AnnotatorInfo
-from rest_framework.views import Request, Response, status
 from dae.annotation.annotation_factory import (
     get_annotator_factory, get_available_annotator_types,
 )
@@ -39,7 +40,7 @@ class EditorView(AnnotationBaseView):
                     "field_type": "string",
                 },
             }
-        elif annotator_type == "allele_score":
+        if annotator_type == "allele_score":
             return {
                 "annotator_type": "allele_score",
                 "resource_id": {
@@ -50,7 +51,7 @@ class EditorView(AnnotationBaseView):
                     "field_type": "string",
                 },
             }
-        elif annotator_type == "gene_score_annotator":
+        if annotator_type == "gene_score_annotator":
             return {
                 "annotator_type": "gene_score_annotator",
                 "resource_id": {
@@ -64,7 +65,7 @@ class EditorView(AnnotationBaseView):
                     "field_type": "string",
                 },
             }
-        elif annotator_type == "gene_set_annotator":
+        if annotator_type == "gene_set_annotator":
             return {
                 "annotator_type": "gene_set_annotator",
                 "resource_id": {
@@ -78,7 +79,7 @@ class EditorView(AnnotationBaseView):
                     "field_type": "string",
                 },
             }
-        elif annotator_type == "cnv_collection":
+        if annotator_type == "cnv_collection":
             return {
                 "annotator_type": "cnv_collection",
                 "resource_id": {
@@ -92,7 +93,7 @@ class EditorView(AnnotationBaseView):
                     "field_type": "string",
                 },
             }
-        elif annotator_type == "effect_annotator":
+        if annotator_type == "effect_annotator":
             return {
                 "annotator_type": "effect_annotator",
                 "gene_models": {
@@ -107,7 +108,7 @@ class EditorView(AnnotationBaseView):
                     "field_type": "string",
                 },
             }
-        elif annotator_type == "liftover_annotator":
+        if annotator_type == "liftover_annotator":
             return {
                 "annotator_type": "liftover_annotator",
                 "chain": {
@@ -126,7 +127,7 @@ class EditorView(AnnotationBaseView):
                     "field_type": "string",
                 },
             }
-        elif annotator_type == "normalize_allele_annotator":
+        if annotator_type == "normalize_allele_annotator":
             return {
                 "annotator_type": "normalize_allele_annotator",
                 "genome": {
@@ -142,7 +143,9 @@ class EditorView(AnnotationBaseView):
 
 
 class AnnotatorConfig(EditorView):
+    """View for annotator configuration templates."""
     def post(self, request: Request) -> Response:
+        """POST method to get annotator config template."""
         assert isinstance(request.data, dict)
         data = {**request.data}
         if "annotator_type" not in data:
@@ -169,7 +172,9 @@ class AnnotatorConfig(EditorView):
 
 
 class AnnotatorTypes(EditorView):
+    """View for available annotator types."""
     def get(self, request: Request) -> Response:
+        """GET method to retrieve available annotator types."""
         annotator_types = self._get_annotator_types()
         return Response(annotator_types, status=status.HTTP_200_OK)
 
@@ -248,7 +253,9 @@ class AnnotatorAttributes(EditorView):
 
 
 class AnnotatorYAML(EditorView):
+    """View for annotator configuration in YAML format."""
     def post(self, request: Request) -> Response:
+        """POST method to get annotator config in YAML format."""
         assert isinstance(request.data, dict)
         data = dict(request.data)
         if "annotator_type" not in data:
@@ -284,8 +291,10 @@ class AnnotatorYAML(EditorView):
 
 
 class ResourceAnnotators(EditorView):
+    """View for annotators associated with a resource."""
 
     def get(self, request: Request) -> Response:
+        """GET method to retrieve annotators associated with a resource."""
         resource_id = request.query_params.get("resource_id")
         if resource_id is None:
             return Response(
