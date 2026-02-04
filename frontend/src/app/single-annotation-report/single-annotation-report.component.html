@@ -45,25 +45,24 @@
         <div *ngFor="let attribute of annotator.attributes" class="attribute-container">
           <div class="attribute">
             <div class="attribute-header">{{ attribute.name }}</div>
-            <div *ngIf="showFullReport" class="attribute-description">{{ attribute.description }}</div>
-          </div>
-          <div class="attribute-result">
-            <div
-              class="value-result"
-              [ngStyle]="{ 'margin-top': showFullReport ? '20px' : '0' }"
-              *ngIf="!tableViewSources.includes(attribute.source)"
-              >{{ attribute.result.value | formatResultValue : 3 }}</div
-            >
-            <div
-              *ngIf="
-                tableViewSources.includes(attribute.source) &&
-                annotator.details.name === 'effect_annotator' &&
-                attribute.result.value
-              ">
-              <app-effect-table
-                [rawEffectDetails]="attribute.result.value.toString()"
-                [source]="attribute.source"></app-effect-table>
+            <div class="attribute-result">
+              <div class="value-result" *ngIf="!tableViewSources.includes(attribute.source)">{{
+                attribute.result.value | formatResultValue : 3
+              }}</div>
+              <div
+                *ngIf="
+                  tableViewSources.includes(attribute.source) &&
+                  annotator.details.name === 'effect_annotator' &&
+                  attribute.result.value
+                ">
+                <app-effect-table
+                  [rawEffectDetails]="attribute.result.value.toString()"
+                  [source]="attribute.source"></app-effect-table>
+              </div>
             </div>
+          </div>
+          <div *ngIf="showFullReport" class="attribute-description">{{ attribute.description }}</div>
+          <div style="display: flex; justify-content: center">
             <app-histogram-wrapper
               *ngIf="showFullReport && attribute.result.histogramLink"
               [histogramUrl]="attribute.result.histogramLink"

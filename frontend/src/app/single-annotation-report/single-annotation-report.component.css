@@ -71,7 +71,7 @@ hr {
   font-weight: 500;
   color: #252e34;
   font-size: 16px;
-  margin-bottom: 10px;
+  width: 30%;
 }
 
 .annotator-description,
@@ -82,6 +82,7 @@ hr {
 
 .attribute-description {
   font-size: 14px;
+  margin-top: 20px;
 }
 
 .annotator-label {
@@ -107,15 +108,14 @@ hr {
 
 .attribute {
   font-size: 16px;
-  width: 40%;
   word-break: break-all;
+  display: flex;
+  gap: 50px;
 }
 
 .attribute-container {
   padding: 20px 0;
   border-top: 1px solid #cfd8df;
-  display: flex;
-  gap: 50px;
 }
 
 .attribute-container-modal {
@@ -148,7 +148,6 @@ hr {
 
 .value-result {
   word-break: break-word;
-  margin-top: 20px;
   font-size: 16px;
   font-weight: 500;
   color: #252e34;
