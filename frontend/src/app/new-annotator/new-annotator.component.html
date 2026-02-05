@@ -1,0 +1,37 @@
+<div style="display: flex">
+  <mat-stepper [orientation]="'vertical'" #stepper [linear]="true" class="stepper-headers">
+    <mat-step label="Select annotator" [editable]="false" [stepControl]="annotatorStep">
+      <form [formGroup]="annotatorStep">
+        <mat-form-field>
+          <input
+            type="text"
+            placeholder="Select annotator"
+            matInput
+            formControlName="annotator"
+            [matAutocomplete]="annotatorsDropdown"
+            #annotatorInput="matAutocompleteTrigger" />
+          <span (click)="annotatorInput.openPanel()" class="material-symbols-outlined dropdown-icon"
+            >keyboard_arrow_down</span
+          >
+
+          <mat-autocomplete #annotatorsDropdown="matAutocomplete">
+            @for (annotator of filteredAnnotators; track annotator) {
+            <mat-option class="annotator-option" [value]="annotator">{{ annotator }}</mat-option>
+            }
+          </mat-autocomplete>
+        </mat-form-field>
+
+        <div>
+          <button matButton matStepperNext [disabled]="annotatorStep.invalid">Next</button>
+        </div>
+      </form>
+    </mat-step>
+    <mat-step label="Select resourse" [editable]="false"></mat-step>
+    <mat-step label="Attributes" [editable]="false"></mat-step>
+    <mat-step label="Modify atttributes" [editable]="false" [optional]="true"></mat-step>
+  </mat-stepper>
+
+  @if(selectedStepIndex === 1) {
+  <span class="stepper-connector-text">{{ selectedAnnotator }}</span>
+  }
+</div>
