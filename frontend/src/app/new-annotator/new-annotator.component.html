@@ -1,5 +1,10 @@
 <div style="display: flex">
-  <mat-stepper [orientation]="'vertical'" #stepper [linear]="true" class="stepper-headers">
+  <mat-stepper
+    [orientation]="'vertical'"
+    (selectionChange)="onStepChanged($event)"
+    #stepper
+    [linear]="true"
+    class="stepper-headers">
     <mat-step label="Select annotator" [editable]="false" [stepControl]="annotatorStep">
       <form [formGroup]="annotatorStep">
         <mat-form-field>
@@ -22,11 +27,62 @@
         </mat-form-field>
 
         <div>
-          <button matButton matStepperNext [disabled]="annotatorStep.invalid">Next</button>
+          <button matButton [disabled]="annotatorStep.invalid" (click)="requestResources()">Next</button>
         </div>
       </form>
     </mat-step>
-    <mat-step label="Select resourse" [editable]="false"></mat-step>
+
+    <mat-step label="Select resource" [editable]="false" [stepControl]="resourceStep">
+      <ng-template matStepContent>
+        <form [formGroup]="resourceStep">
+          <span>input annotatable</span>
+          <input type="text" />
+          @for (resource of annotatorConfig.resources; track resource) {
+          <div class="resource">key: {{ resource.key }}</div>
+          <div class="resource">fieldType: {{ resource.fieldType }}</div>
+          <div class="resource">resourceType: {{ resource.resourceType }}</div>
+          <div class="resource">value: {{ resource.defaultValue }}</div>
+          @if(resource.fieldType === 'resource') {
+          <div>
+            <mat-form-field>
+              <input
+                type="text"
+                placeholder="Select resource"
+                matInput
+                [formControlName]="resource.key"
+                [matAutocomplete]="resourcesDropdown"
+                #resourceInput="matAutocompleteTrigger" />
+              <span (click)="resourceInput.openPanel()" class="material-symbols-outlined dropdown-icon"
+                >keyboard_arrow_down</span
+              >
+
+              <mat-autocomplete #resourcesDropdown="matAutocomplete">
+                @for (r of resource.possibleValues; track $index) {
+                <mat-option class="resource-option" [value]="r">{{ r }}</mat-option>
+                }
+              </mat-autocomplete>
+            </mat-form-field>
+          </div>
+          } @else if(resource.fieldType === 'string') {
+          <div>
+            <input type="text" [formControlName]="resource.key" />
+          </div>
+          } @else if(resource.fieldType === 'bool') {
+          <div>
+            <input type="radio" [formControlName]="resource.key" for="true" />
+            <label name="true">True</label>
+            <input type="radio" [formControlName]="resource.key" for="false" />
+            <label name="false">False</label>
+          </div>
+          }
+          <hr />
+          }
+          <div>
+            <button matButton [disabled]="resourceStep.invalid" (click)="requestAttributes()">Next</button>
+          </div>
+        </form>
+      </ng-template>
+    </mat-step>
     <mat-step label="Attributes" [editable]="false"></mat-step>
     <mat-step label="Modify atttributes" [editable]="false" [optional]="true"></mat-step>
   </mat-stepper>

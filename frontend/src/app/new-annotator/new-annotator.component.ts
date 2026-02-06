@@ -1,14 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatStepperModule } from '@angular/material/stepper';
+import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { CdkStepperModule, StepperSelectionEvent, STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { PipelineEditorService } from '../pipeline-editor.service';
-import { map, Observable, of, startWith } from 'rxjs';
+import { map, take } from 'rxjs';
+import { AnnotatorConfig } from './annotator';
 
 @Component({
   selector: 'app-new-annotator',
@@ -38,6 +39,9 @@ export class NewAnnotatorComponent implements OnInit {
   public filteredAnnotators: string[];
   public selectedAnnotator = '';
   public annotatorStep: FormGroup;
+  public resourceStep: FormGroup = new FormGroup({});
+  public annotatorConfig: AnnotatorConfig;
+  @ViewChild('stepper', { static: true }) public stepper: MatStepper;
 
   public constructor(private editorService: PipelineEditorService, private formBuilder: FormBuilder) {
   }
@@ -62,7 +66,6 @@ export class NewAnnotatorComponent implements OnInit {
       this.selectedAnnotator = value;
     });
 
-
     annotatorCtrl.valueChanges.pipe(
       map((value: string) => this.filterAnnotators(value))
     ).subscribe(filtered => {
@@ -73,5 +76,34 @@ export class NewAnnotatorComponent implements OnInit {
   private filterAnnotators(value: string): string[] {
     const filterValue = value.toLowerCase().replace(/\s/g, '');
     return this.annotators.filter(p => p.toLowerCase().replace(/\s/g, '').includes(filterValue));
+  }
+
+  public onStepChanged(event: StepperSelectionEvent): void {
+    this.selectedStepIndex = event.selectedIndex;
+  }
+
+  public requestResources(): void {
+    this.editorService.getAnnotatorConfig(this.selectedAnnotator).pipe(take(1)).subscribe(res => {
+      this.annotatorConfig = res;
+      this.setupResourceControls();
+      this.stepper.next();
+    });
+  }
+
+  private setupResourceControls(): void {
+    const resourceGroup: Record<string, FormControl> = {};
+
+    for (const resource of this.annotatorConfig.resources) {
+      resourceGroup[resource.key] = new FormControl(
+        resource.defaultValue ?? '',
+        Validators.required
+      );
+    }
+
+    this.resourceStep = new FormGroup(resourceGroup);
+  }
+
+  public requestAttributes(): void {
+    this.stepper.next();
   }
 }
