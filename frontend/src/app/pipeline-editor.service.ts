@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
-import { map, Observable } from 'rxjs';
+import { forkJoin, map, Observable, of, switchMap, tap } from 'rxjs';
 import { AnnotatorAttribute, AnnotatorConfig } from './new-annotator/annotator';
 
 @Injectable({
@@ -38,13 +38,21 @@ export class PipelineEditorService {
       options
     ).pipe(
       map((response: object) => AnnotatorConfig.fromJson(response)),
-      map(config => {
-        config.resources.forEach(r => {
-          if (r.fieldType === 'resource') {
-            this.getResources(r.resourceType).subscribe(v => r.possibleValues = v);
-          }
-        });
-        return config;
+      switchMap(config => {
+        const resourceObservables = config.resources.filter(r => r.fieldType === 'resource')
+          .map(r =>
+            this.getResources(r.resourceType).pipe(
+              tap(values => {
+                r.possibleValues = values;
+              })
+            )
+          );
+
+        if (resourceObservables.length === 0) {
+          return of(config);
+        }
+
+        return forkJoin(resourceObservables).pipe(map(() => config));
       })
     );
   }
