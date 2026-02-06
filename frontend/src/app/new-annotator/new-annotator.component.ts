@@ -65,18 +65,13 @@ export class NewAnnotatorComponent implements OnInit {
     });
 
     annotatorCtrl.valueChanges.pipe(
-      map((value: string) => this.filterAnnotators(value))
+      map((value: string) => this.filterDropdownContent(value, this.annotators))
     ).subscribe(filtered => {
       this.filteredAnnotators = filtered;
       if (!filtered.length) {
         this.annotatorStep.get('annotator').setErrors({ invalidOption: true });
       }
     });
-  }
-
-  private filterAnnotators(value: string): string[] {
-    const filterValue = value.toLowerCase().replace(/\s/g, '');
-    return this.annotators.filter(p => p.toLowerCase().replace(/\s/g, '').includes(filterValue));
   }
 
   public onStepChanged(event: StepperSelectionEvent): void {
@@ -118,7 +113,7 @@ export class NewAnnotatorComponent implements OnInit {
 
     this.annotatorConfig.resources.filter(r => r.fieldType === 'resource').forEach(resource => {
       this.resourceStep.get(resource.key).valueChanges.pipe(
-        map((value: string) => this.filterResourceValues(value, resource.possibleValues))
+        map((value: string) => this.filterDropdownContent(value, resource.possibleValues))
       ).subscribe(filtered => {
         this.filteredResourceValues.set(resource.key, filtered);
         if (!filtered.length) {
@@ -128,7 +123,7 @@ export class NewAnnotatorComponent implements OnInit {
     });
   }
 
-  private filterResourceValues(value: string, options: string[]): string[] {
+  private filterDropdownContent(value: string, options: string[]): string[] {
     const filterValue = value.toLowerCase().replace(/\s/g, '');
     return options.filter(p => p.toLowerCase().replace(/\s/g, '').includes(filterValue));
   }
