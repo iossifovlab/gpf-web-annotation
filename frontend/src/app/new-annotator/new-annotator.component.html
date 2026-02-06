@@ -38,10 +38,7 @@
           <span>input annotatable</span>
           <input type="text" [formControlName]="'inputAnnotatable'" />
           @for (resource of annotatorConfig.resources; track resource) {
-          <div class="resource">key: {{ resource.key }}</div>
-          <div class="resource">fieldType: {{ resource.fieldType }}</div>
-          <div class="resource">resourceType: {{ resource.resourceType }}</div>
-          <div class="resource">value: {{ resource.defaultValue }}</div>
+          <div class="resource">{{ resource.key }}</div>
           @if(resource.fieldType === 'resource') {
           <div>
             <mat-form-field>
@@ -57,7 +54,7 @@
               >
 
               <mat-autocomplete #resourcesDropdown="matAutocomplete">
-                @for (r of resource.possibleValues; track $index) {
+                @for (r of filteredResourceValues.get(resource.key); track $index) {
                 <mat-option class="resource-option" [value]="r">{{ r }}</mat-option>
                 }
               </mat-autocomplete>
@@ -91,10 +88,10 @@
         <div class="attribute">internal: {{ attribute.internal }}</div>
         <hr />
         }
+        <div>
+          <button matButton matStepperNext>Next</button>
+        </div>
       </ng-template>
-      <div>
-        <button matButton matStepperNext>Next</button>
-      </div>
     </mat-step>
     <mat-step label="Modify attributes" [editable]="false" [optional]="true"></mat-step>
   </mat-stepper>

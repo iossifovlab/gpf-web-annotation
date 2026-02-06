@@ -38,6 +38,7 @@ export class NewAnnotatorComponent implements OnInit {
   public selectedStepIndex = 0;
   public annotators: string[] = [];
   public filteredAnnotators: string[];
+  public filteredResourceValues: Map<string, string[]>;
   public annotatorStep: FormGroup;
   public resourceStep: FormGroup = new FormGroup({});
   public annotatorConfig: AnnotatorConfig;
@@ -85,9 +86,19 @@ export class NewAnnotatorComponent implements OnInit {
   public requestResources(): void {
     this.editorService.getAnnotatorConfig(this.annotatorStep.value.annotator).pipe(take(1)).subscribe(res => {
       this.annotatorConfig = res;
+      this.initializeFilteredResourceValues();
       this.setupResourceControls();
       this.stepper.next();
     });
+  }
+
+  private initializeFilteredResourceValues(): void {
+    this.filteredResourceValues = new Map<string, string[]>();
+    for (const resource of this.annotatorConfig.resources) {
+      if (resource.fieldType === 'resource') {
+        this.filteredResourceValues.set(resource.key, resource.possibleValues);
+      }
+    }
   }
 
   private setupResourceControls(): void {
@@ -103,6 +114,23 @@ export class NewAnnotatorComponent implements OnInit {
     resourceGroup['inputAnnotatable'] = new FormControl();
 
     this.resourceStep = new FormGroup(resourceGroup);
+
+
+    this.annotatorConfig.resources.filter(r => r.fieldType === 'resource').forEach(resource => {
+      this.resourceStep.get(resource.key).valueChanges.pipe(
+        map((value: string) => this.filterResourceValues(value, resource.possibleValues))
+      ).subscribe(filtered => {
+        this.filteredResourceValues.set(resource.key, filtered);
+        if (!filtered.length) {
+          this.resourceStep.get(resource.key).setErrors({ invalidOption: true });
+        }
+      });
+    });
+  }
+
+  private filterResourceValues(value: string, options: string[]): string[] {
+    const filterValue = value.toLowerCase().replace(/\s/g, '');
+    return options.filter(p => p.toLowerCase().replace(/\s/g, '').includes(filterValue));
   }
 
   public requestAttributes(): void {
