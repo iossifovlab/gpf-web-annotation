@@ -87,7 +87,9 @@
     <mat-step label="Modify atttributes" [editable]="false" [optional]="true"></mat-step>
   </mat-stepper>
 
-  @if(selectedStepIndex === 1) {
-  <span class="stepper-connector-text">{{ selectedAnnotator }}</span>
+  @if(selectedStepIndex >= 1) {
+  <div class="annotator-display-text">{{ annotatorStep.value | json }}</div>
+  } @if(selectedStepIndex >= 2) {
+  <div class="resources-display-text">{{ resourceStep.value | json }}</div>
   }
 </div>

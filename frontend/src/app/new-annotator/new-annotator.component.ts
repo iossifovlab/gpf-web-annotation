@@ -38,7 +38,6 @@ export class NewAnnotatorComponent implements OnInit {
   public selectedStepIndex = 0;
   public annotators: string[] = [];
   public filteredAnnotators: string[];
-  public selectedAnnotator = '';
   public annotatorStep: FormGroup;
   public resourceStep: FormGroup = new FormGroup({});
   public annotatorConfig: AnnotatorConfig;
@@ -63,18 +62,13 @@ export class NewAnnotatorComponent implements OnInit {
       this.filteredAnnotators = res;
     });
 
-    annotatorCtrl.valueChanges.subscribe((value: string) => {
-      if (!this.annotators.includes(value)) {
-        this.annotatorStep.get('annotator').setErrors({ invalidOption: true });
-        return;
-      }
-      this.selectedAnnotator = value;
-    });
-
     annotatorCtrl.valueChanges.pipe(
       map((value: string) => this.filterAnnotators(value))
     ).subscribe(filtered => {
       this.filteredAnnotators = filtered;
+      if (!filtered.length) {
+        this.annotatorStep.get('annotator').setErrors({ invalidOption: true });
+      }
     });
   }
 
@@ -88,7 +82,7 @@ export class NewAnnotatorComponent implements OnInit {
   }
 
   public requestResources(): void {
-    this.editorService.getAnnotatorConfig(this.selectedAnnotator).pipe(take(1)).subscribe(res => {
+    this.editorService.getAnnotatorConfig(this.annotatorStep.value.annotator).pipe(take(1)).subscribe(res => {
       this.annotatorConfig = res;
       this.setupResourceControls();
       this.stepper.next();
@@ -113,8 +107,8 @@ export class NewAnnotatorComponent implements OnInit {
   public requestAttributes(): void {
     this.editorService.getAttributes(
       this.pipelineId,
-      this.selectedAnnotator,
-      new Map(Object.entries(this.resourceStep.value))
+      this.annotatorStep.value.annotator,
+      this.resourceStep.value
     ).pipe(take(1)).subscribe(res => {
       this.stepper.next();
     });
