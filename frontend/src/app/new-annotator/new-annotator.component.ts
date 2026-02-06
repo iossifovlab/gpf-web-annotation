@@ -9,7 +9,7 @@ import { CdkStepperModule, StepperSelectionEvent, STEPPER_GLOBAL_OPTIONS } from 
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { PipelineEditorService } from '../pipeline-editor.service';
 import { map, take } from 'rxjs';
-import { AnnotatorConfig } from './annotator';
+import { AnnotatorAttribute, AnnotatorConfig } from './annotator';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 @Component({
@@ -41,6 +41,7 @@ export class NewAnnotatorComponent implements OnInit {
   public annotatorStep: FormGroup;
   public resourceStep: FormGroup = new FormGroup({});
   public annotatorConfig: AnnotatorConfig;
+  public annotatorAttributes: AnnotatorAttribute[];
   @ViewChild('stepper', { static: true }) public stepper: MatStepper;
 
   public constructor(
@@ -110,6 +111,7 @@ export class NewAnnotatorComponent implements OnInit {
       this.annotatorStep.value.annotator,
       this.resourceStep.value
     ).pipe(take(1)).subscribe(res => {
+      this.annotatorAttributes = res;
       this.stepper.next();
     });
   }
