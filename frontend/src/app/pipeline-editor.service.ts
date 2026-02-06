@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
-import { AnnotatorConfig } from './new-annotator/annotator';
+import { AnnotatorAttribute, AnnotatorConfig } from './new-annotator/annotator';
 
 @Injectable({
   providedIn: 'root',
@@ -62,7 +62,7 @@ export class PipelineEditorService {
     pipelineId: string,
     annotatorType: string,
     resources: object
-  ): Observable<object[]> {
+  ): Observable<AnnotatorAttribute[]> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
 
     const body = {
@@ -72,10 +72,10 @@ export class PipelineEditorService {
       annotator_type: annotatorType,
     };
 
-    return this.http.post<object[]>(
+    return this.http.post<AnnotatorAttribute[]>(
       this.getAttributesUrl,
       Object.assign(body, resources),
       options
-    );
+    ).pipe(map((response: object[]) => AnnotatorAttribute.fromJsonArray(response)));
   }
 }

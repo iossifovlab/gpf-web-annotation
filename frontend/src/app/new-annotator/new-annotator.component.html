@@ -83,8 +83,20 @@
         </form>
       </ng-template>
     </mat-step>
-    <mat-step label="Attributes" [editable]="false"></mat-step>
-    <mat-step label="Modify atttributes" [editable]="false" [optional]="true"></mat-step>
+    <mat-step label="Attributes" [editable]="false">
+      <ng-template matStepContent>
+        @for (attribute of annotatorAttributes; track attribute) {
+        <div class="attribute">name: {{ attribute.name }}</div>
+        <div class="attribute">source: {{ attribute.source }}</div>
+        <div class="attribute">internal: {{ attribute.internal }}</div>
+        <hr />
+        }
+      </ng-template>
+      <div>
+        <button matButton matStepperNext>Next</button>
+      </div>
+    </mat-step>
+    <mat-step label="Modify attributes" [editable]="false" [optional]="true"></mat-step>
   </mat-stepper>
 
   @if(selectedStepIndex >= 1) {
