@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
-import { map, Observable, take } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { AnnotatorConfig } from './new-annotator/annotator';
 
 @Injectable({
@@ -11,6 +11,7 @@ export class PipelineEditorService {
   private getAnnotatorsUrl = `${environment.apiPath}/editor/annotator_types`;
   private getAnnotatorConfigUrl = `${environment.apiPath}/editor/annotator_config`;
   private getResourcesUrl = `${environment.apiPath}/resources`;
+  private getAttributesUrl = `${environment.apiPath}/editor/annotator_attributes`;
 
   public constructor(private http: HttpClient) { }
 
@@ -49,10 +50,32 @@ export class PipelineEditorService {
   }
 
 
-  public getResources(annotator: string): Observable<string[]> {
+  public getResources(annotatorType: string): Observable<string[]> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
     return this.http.get<string[]>(
-      `${this.getResourcesUrl}?type=${annotator}`,
+      `${this.getResourcesUrl}?type=${annotatorType}`,
+      options
+    );
+  }
+
+  public getAttributes(
+    pipelineId: string,
+    annotatorType: string,
+    resources: Map<string, string>
+  ): Observable<object[]> {
+    const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
+
+    const body = {
+      // eslint-disable-next-line camelcase
+      pipeline_id: pipelineId,
+      // eslint-disable-next-line camelcase
+      annotator_type: annotatorType,
+      ...Object.fromEntries(resources)
+    };
+
+    return this.http.post<object[]>(
+      this.getAttributesUrl,
+      body,
       options
     );
   }
