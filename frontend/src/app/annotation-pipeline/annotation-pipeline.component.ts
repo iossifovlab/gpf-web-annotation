@@ -283,6 +283,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   public openAnnotatorFormModal(): void {
     this.dialog.open(NewAnnotatorComponent, {
       id: 'newAnnotator',
+      data: this.selectedPipeline.id || this.currentTemporaryPipelineId,
       width: '50vw',
       maxWidth: '700px'
     });

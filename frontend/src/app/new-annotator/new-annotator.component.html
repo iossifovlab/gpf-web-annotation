@@ -36,7 +36,7 @@
       <ng-template matStepContent>
         <form [formGroup]="resourceStep">
           <span>input annotatable</span>
-          <input type="text" />
+          <input type="text" [formControlName]="'inputAnnotatable'" />
           @for (resource of annotatorConfig.resources; track resource) {
           <div class="resource">key: {{ resource.key }}</div>
           <div class="resource">fieldType: {{ resource.fieldType }}</div>

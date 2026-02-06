@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -10,6 +10,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { PipelineEditorService } from '../pipeline-editor.service';
 import { map, take } from 'rxjs';
 import { AnnotatorConfig } from './annotator';
+import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-new-annotator',
@@ -43,7 +44,11 @@ export class NewAnnotatorComponent implements OnInit {
   public annotatorConfig: AnnotatorConfig;
   @ViewChild('stepper', { static: true }) public stepper: MatStepper;
 
-  public constructor(private editorService: PipelineEditorService, private formBuilder: FormBuilder) {
+  public constructor(
+    private editorService: PipelineEditorService,
+    private formBuilder: FormBuilder,
+    @Inject(MAT_DIALOG_DATA) public pipelineId: string,
+  ) {
   }
 
   public ngOnInit(): void {
@@ -100,10 +105,18 @@ export class NewAnnotatorComponent implements OnInit {
       );
     }
 
+    resourceGroup['inputAnnotatable'] = new FormControl();
+
     this.resourceStep = new FormGroup(resourceGroup);
   }
 
   public requestAttributes(): void {
-    this.stepper.next();
+    this.editorService.getAttributes(
+      this.pipelineId,
+      this.selectedAnnotator,
+      new Map(Object.entries(this.resourceStep.value))
+    ).pipe(take(1)).subscribe(res => {
+      this.stepper.next();
+    });
   }
 }
