@@ -24,20 +24,115 @@
   pointer-events: none;
 }
 
-.mat-stepper-horizontal-line {
-  border-top-width: 2px;
-}
-
-::ng-deep .mat-mdc-option.mdc-list-item {
-  background: white !important;
-}
-
 ::ng-deep .mat-mdc-option.mat-mdc-option-active.mdc-list-item,
 ::ng-deep .mat-mdc-option:hover {
   background-color: #f4f7fb !important;
+  color: #435869 !important;
+}
+
+::ng-deep .mdc-list-item {
+  color: #435869 !important;
 }
 
 ::ng-deep div.mat-mdc-autocomplete-panel {
   padding: 0 !important;
-  border: 1px solid #dee2e6 !important;
+  border: 1px solid #e6e6de !important;
+}
+
+#input-annotatable-field,
+.resource-field {
+  padding: 10px;
+  border: 1px solid #cfd8df;
+  border-radius: 5px;
+  color: #252e34;
+  font-size: 16px;
+  max-width: 30vw;
+  width: 95%;
+}
+
+#input-annotatable-field:focus,
+.resource-field:focus {
+  border-color: #85a2b9;
+  box-shadow: inset 0 0 0 1px #85a2b9;
+  outline: 0;
+}
+
+::ng-deep .mat-mdc-form-field-infix {
+  display: flex;
+  align-items: center;
+}
+
+::ng-deep .mat-mdc-form-field {
+  width: 60%;
+}
+
+.custom-stepper {
+  --mat-form-field-outlined-outline-color: #cfd8df;
+  --mat-outlined-text-field-focus-outline-color: #85a2b9;
+  --mat-form-field-outlined-hover-outline-color: #85a2b9;
+  --mat-form-field-filled-focus-active-indicator-color: #435869;
+  --mat-form-field-outlined-focus-outline-color: #85a2b9;
+  --mat-form-field-container-vertical-padding: 0;
+  --mat-form-field-container-height: 40px;
+  --mat-form-field-outlined-error-outline-color: #cfd8df;
+  --mat-form-field-outlined-error-focus-outline-color: #85a2b9;
+  --mat-form-field-outlined-error-hover-outline-color: #cfd8df;
+  --mat-stepper-header-hover-state-layer-color: white;
+  --mat-stepper-header-focus-state-layer-color: white;
+  --mat-stepper-header-icon-background-color: white;
+}
+
+::ng-deep .mat-step-icon.mat-step-icon-state-number {
+  background-color: #c7c7c7 !important;
+  color: white !important;
+}
+
+::ng-deep .mat-step-icon.mat-step-icon-state-number.mat-step-icon-selected {
+  background-color: #435869 !important;
+  color: white !important;
+}
+
+::ng-deep .mat-step-icon.mat-step-icon-state-done {
+  background-color: #85a2b9 !important;
+  color: white !important;
+}
+
+.field {
+  display: flex;
+  margin-bottom: 20px;
+  gap: 20px;
+  align-items: baseline;
+}
+
+.field-label {
+  color: #85a2b9;
+  width: 150px;
+  text-align: end;
+}
+
+.dropdown-icon {
+  color: #5b778c;
+}
+
+::ng-deep .mat-mdc-form-field-subscript-wrapper.mat-mdc-form-field-bottom-align {
+  display: none !important;
+}
+
+.attribute {
+  display: flex;
+  gap: 10px;
+  text-align: end;
+  margin-bottom: 5px;
+}
+
+hr {
+  width: 80%;
+  color: #e2e2e2;
+  border-style: solid;
+}
+
+::ng-deep .mat-vertical-content {
+  overflow: auto;
+  height: fit-content;
+  max-height: 35vh;
 }
