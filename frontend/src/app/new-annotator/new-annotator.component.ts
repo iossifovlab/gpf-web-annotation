@@ -10,7 +10,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { PipelineEditorService } from '../pipeline-editor.service';
 import { map, take } from 'rxjs';
 import { AnnotatorAttribute, AnnotatorConfig } from './annotator';
-import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-new-annotator',
@@ -49,6 +49,7 @@ export class NewAnnotatorComponent implements OnInit {
     private editorService: PipelineEditorService,
     private formBuilder: FormBuilder,
     @Inject(MAT_DIALOG_DATA) public pipelineId: string,
+    private dialogRef: MatDialogRef<NewAnnotatorComponent>
   ) {
   }
 
@@ -129,13 +130,31 @@ export class NewAnnotatorComponent implements OnInit {
   }
 
   public requestAttributes(): void {
+    const filtered = Object.fromEntries(
+      Object.entries(this.resourceStep.value as object).filter(([k, v]) => v !== null)
+    );
+
     this.editorService.getAttributes(
       this.pipelineId,
       this.annotatorStep.value.annotator,
-      this.resourceStep.value
+      filtered
     ).pipe(take(1)).subscribe(res => {
       this.annotatorAttributes = res;
       this.stepper.next();
+    });
+  }
+
+  public onFinish(): void {
+    const filtered = Object.fromEntries(
+      Object.entries(this.resourceStep.value as object).filter(([k, v]) => v !== null)
+    );
+
+    this.editorService.getAnnotatorYml(
+      this.annotatorStep.value.annotator,
+      filtered,
+      this.annotatorAttributes
+    ).pipe(take(1)).subscribe(res => {
+      this.dialogRef.close(res);
     });
   }
 }

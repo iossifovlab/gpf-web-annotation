@@ -12,6 +12,7 @@ export class PipelineEditorService {
   private getAnnotatorConfigUrl = `${environment.apiPath}/editor/annotator_config`;
   private getResourcesUrl = `${environment.apiPath}/resources`;
   private getAttributesUrl = `${environment.apiPath}/editor/annotator_attributes`;
+  private getAnnotatorYmlUrl = `${environment.apiPath}/editor/annotator_yaml`;
 
   public constructor(private http: HttpClient) { }
 
@@ -85,5 +86,24 @@ export class PipelineEditorService {
       Object.assign(body, resources),
       options
     ).pipe(map((response: object[]) => AnnotatorAttribute.fromJsonArray(response)));
+  }
+
+  public getAnnotatorYml(
+    annotatorType: string,
+    resources: object,
+    attributes: AnnotatorAttribute[]
+  ): Observable<string> {
+    const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
+    const body = {
+      // eslint-disable-next-line camelcase
+      attributes: attributes,
+      // eslint-disable-next-line camelcase
+      annotator_type: annotatorType,
+    };
+    return this.http.post<string>(
+      this.getAnnotatorYmlUrl,
+      Object.assign(body, resources),
+      options
+    );
   }
 }
