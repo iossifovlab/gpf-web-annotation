@@ -14,7 +14,7 @@ test.describe('Pipeline tests', () => {
   });
 
   test('should create new pipeline and save it', async({ page }) => {
-    await page.locator('#pipeline-actions').getByRole('button', { name: 'New' }).click();
+    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New', exact: true }).click();
     await expect(page.locator('#pipelines-input')).toBeEmpty();
     await expect(page.locator('.monaco-editor').nth(0)).toBeEmpty();
 
@@ -45,7 +45,7 @@ test.describe('Pipeline tests', () => {
   });
 
   test('should not be able to save pipeline if invalid', async({ page }) => {
-    await page.locator('#pipeline-actions').getByRole('button', { name: 'New' }).click();
+    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New', exact: true }).click();
     await expect(page.locator('#pipelines-input')).toBeEmpty();
     await expect(page.locator('.monaco-editor').nth(0)).toBeEmpty();
 
