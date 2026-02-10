@@ -1,0 +1,130 @@
+<div>
+  <mat-stepper
+    [orientation]="'horizontal'"
+    (selectionChange)="onStepChanged($event)"
+    #stepper
+    [linear]="true"
+    class="stepper-headers custom-stepper">
+    <mat-step label="Select annotator" [editable]="false" [stepControl]="annotatorStep">
+      <div class="annotator-input-form">
+        <form [formGroup]="annotatorStep">
+          <mat-form-field [appearance]="'outline'">
+            <input
+              type="text"
+              placeholder="Select annotator"
+              autocomplete="off"
+              matInput
+              formControlName="annotator"
+              [matAutocomplete]="annotatorsDropdown"
+              #annotatorInput="matAutocompleteTrigger" />
+            <span (click)="annotatorInput.openPanel()" class="material-symbols-outlined dropdown-icon"
+              >keyboard_arrow_down</span
+            >
+
+            <mat-autocomplete #annotatorsDropdown="matAutocomplete">
+              @for (annotator of filteredAnnotators; track annotator) {
+              <mat-option class="annotator-option" [value]="annotator">{{ annotator }}</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+
+          <div>
+            <button matButton [disabled]="annotatorStep.invalid" (click)="requestResources()">Next</button>
+          </div>
+        </form>
+      </div>
+    </mat-step>
+
+    <mat-step label="Select resource" [editable]="false" [stepControl]="resourceStep">
+      <ng-template matStepContent>
+        <div class="summary-content">
+          <pre class="annotator-display-text">{{ annotatorStep.value | keyValueDisplay }}</pre>
+        </div>
+        <div class="inputs-content">
+          <form [formGroup]="resourceStep">
+            <div class="field">
+              <span class="field-label">input annotatable</span>
+              <input
+                id="input-annotatable-field"
+                type="text"
+                [formControlName]="'inputAnnotatable'"
+                autocomplete="off" />
+            </div>
+
+            @for (resource of annotatorConfig.resources; track resource) {
+            <div class="field">
+              <span class="resource field-label">{{ resource.key }}</span>
+
+              @if(resource.fieldType === 'resource') {
+              <mat-form-field [appearance]="'outline'">
+                <input
+                  type="text"
+                  placeholder="Select resource"
+                  autocomplete="off"
+                  matInput
+                  [formControlName]="resource.key"
+                  [matAutocomplete]="resourcesDropdown"
+                  #resourceInput="matAutocompleteTrigger" />
+                <span (click)="resourceInput.openPanel()" class="material-symbols-outlined dropdown-icon"
+                  >keyboard_arrow_down</span
+                >
+
+                <mat-autocomplete #resourcesDropdown="matAutocomplete">
+                  @for (r of filteredResourceValues.get(resource.key); track $index) {
+                  <mat-option class="resource-option" [value]="r">{{ r }}</mat-option>
+                  }
+                </mat-autocomplete>
+              </mat-form-field>
+              } @else if(resource.fieldType === 'string') {
+              <div>
+                <input class="resource-field" type="text" [formControlName]="resource.key" autocomplete="off" />
+              </div>
+              } @else if(resource.fieldType === 'bool') {
+              <div>
+                <input type="radio" [formControlName]="resource.key" for="true" />
+                <label name="true">True</label>
+                <input type="radio" [formControlName]="resource.key" for="false" />
+                <label name="false">False</label>
+              </div>
+              }
+            </div>
+            }
+            <div>
+              <button matButton [disabled]="resourceStep.invalid" (click)="requestAttributes()">Next</button>
+            </div>
+          </form>
+        </div>
+      </ng-template>
+    </mat-step>
+    <mat-step label="Attributes" [editable]="false">
+      <ng-template matStepContent>
+        <div class="summary-content">
+          <pre class="annotator-display-text">{{ annotatorStep.value | keyValueDisplay }}</pre>
+          <pre class="resources-display-text">{{ resourceStep.value | keyValueDisplay }}</pre>
+        </div>
+        <div class="inputs-content">
+          @for (attribute of annotatorAttributes; track attribute) {
+          <div class="attribute">
+            <span class="field-label">name</span>
+            <span>{{ attribute.name }}</span>
+          </div>
+          <div class="attribute">
+            <span class="field-label">source</span>
+            <span>{{ attribute.source }}</span>
+          </div>
+          <div class="attribute">
+            <span class="field-label">internal</span>
+            <span>{{ attribute.internal }}</span>
+          </div>
+          <hr />
+          }
+          <div>
+            <button matButton (click)="onFinish()">Finish</button>
+            <button matButton matStepperNext>Next</button>
+          </div>
+        </div>
+      </ng-template>
+    </mat-step>
+    <mat-step label="Modify attributes" [editable]="false" [optional]="true"></mat-step>
+  </mat-stepper>
+</div>

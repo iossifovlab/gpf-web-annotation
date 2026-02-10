@@ -23,6 +23,7 @@ import { editorConfig, initEditor } from './annotation-pipeline-editor.config';
 import { UsersService } from '../users.service';
 import { SocketNotificationsService } from '../socket-notifications/socket-notifications.service';
 import { PipelineNotification, PipelineStatus } from '../socket-notifications/socket-notifications';
+import { NewAnnotatorComponent } from '../new-annotator/new-annotator.component';
 
 @Component({
   selector: 'app-annotation-pipeline',
@@ -277,6 +278,23 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
 
     this.dropdownControl.setValue(this.selectedPipeline.name);
     this.displayUnsavedPipelineIndication();
+  }
+
+  public openAnnotatorFormModal(): void {
+    const newAnnotatorModal = this.dialog.open(NewAnnotatorComponent, {
+      id: 'newAnnotator',
+      data: this.selectedPipeline?.id || this.currentTemporaryPipelineId,
+      height: '70vh',
+      width: '60vw',
+      maxWidth: '1000px',
+      minWidth: '500px'
+    });
+
+    newAnnotatorModal.afterClosed().subscribe((result: string) => {
+      if (result) {
+        this.currentPipelineText += result;
+      }
+    });
   }
 
   public clearPipeline(): void {
