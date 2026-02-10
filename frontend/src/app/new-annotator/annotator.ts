@@ -15,9 +15,11 @@ export class AnnotatorConfig {
       if (!['annotator_type', 'input_annotatable'].includes(key)) {
         resources.push(new Resource(
           key,
+          /* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access */
           json[key]['field_type'] || '',
           json[key]['resource_type'] || '',
           json[key]['value'] || '',
+          /* eslint-enable */
           null
         ));
       }

@@ -11,6 +11,7 @@ import { PipelineEditorService } from '../pipeline-editor.service';
 import { map, take } from 'rxjs';
 import { AnnotatorAttribute, AnnotatorConfig } from './annotator';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { KeyValueDisplayPipe } from '../key-value-display.pipe';
 
 @Component({
   selector: 'app-new-annotator',
@@ -23,7 +24,8 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
     MatInputModule,
     CommonModule,
     CdkStepperModule,
-    MatAutocompleteModule
+    MatAutocompleteModule,
+    KeyValueDisplayPipe
   ],
   providers: [
     {

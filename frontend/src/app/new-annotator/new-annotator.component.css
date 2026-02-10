@@ -3,10 +3,6 @@
 }
 
 .annotator-display-text {
-  position: absolute;
-  top: 60px;
-  left: 20%;
-  transform: translateX(-50px);
   padding: 0 8px;
   font-size: 12px;
   color: #666;
@@ -14,10 +10,6 @@
 }
 
 .resources-display-text {
-  position: absolute;
-  top: 160px;
-  left: 20%;
-  transform: translateX(-50px);
   padding: 0 8px;
   font-size: 12px;
   color: #666;
@@ -47,7 +39,7 @@
   color: #252e34;
   font-size: 16px;
   max-width: 30vw;
-  width: 95%;
+  width: 75%;
 }
 
 #input-annotatable-field:focus,
@@ -106,7 +98,7 @@
 
 .field-label {
   color: #85a2b9;
-  width: 150px;
+  width: 250px;
   text-align: end;
 }
 
@@ -126,13 +118,34 @@
 }
 
 hr {
-  width: 80%;
   color: #e2e2e2;
   border-style: solid;
+  width: 50%;
 }
 
 ::ng-deep .mat-vertical-content {
   overflow: auto;
   height: fit-content;
   max-height: 35vh;
+}
+
+.mdc-button {
+  float: right;
+}
+
+::ng-deep .mat-horizontal-stepper-content.mat-horizontal-stepper-content-current {
+  display: flex;
+  justify-content: space-between;
+}
+
+.summary-content {
+  width: 40%;
+}
+
+.inputs-content {
+  width: 70%;
+}
+
+.annotator-input-form {
+  width: 100%;
 }
