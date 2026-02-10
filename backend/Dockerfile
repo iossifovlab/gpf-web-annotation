@@ -1,7 +1,7 @@
 ARG COMPOSE_PROJECT_NAME=gpfwa
 FROM ${COMPOSE_PROJECT_NAME}-gpf-image:latest AS build
 
-RUN mamba install -y -n base -c conda-forge conda-pack=0.8.1
+RUN mamba install -y -n base -c conda-forge conda-pack=0.9.1
 
 WORKDIR /app
 
