@@ -39,7 +39,7 @@ export class NewAnnotatorComponent implements OnInit {
   public annotators: string[] = [];
   public filteredAnnotators: string[];
   public filteredResourceValues: Map<string, string[]>;
-  public annotatorStep: FormGroup;
+  public annotatorStep: FormGroup<{ annotator: FormControl<string> }>;
   public resourceStep: FormGroup = new FormGroup({});
   public annotatorConfig: AnnotatorConfig;
   public annotatorAttributes: AnnotatorAttribute[];
@@ -58,14 +58,15 @@ export class NewAnnotatorComponent implements OnInit {
       annotator: ['', Validators.required],
     });
 
-    const annotatorCtrl = this.annotatorStep.get('annotator');
-
     this.editorService.getAnnotators().subscribe(res => {
       this.annotators = res;
       this.filteredAnnotators = res;
+      this.setupAnnotatorValueFiltering();
     });
+  }
 
-    annotatorCtrl.valueChanges.pipe(
+  private setupAnnotatorValueFiltering(): void {
+    this.annotatorStep.get('annotator').valueChanges.pipe(
       map((value: string) => this.filterDropdownContent(value, this.annotators))
     ).subscribe(filtered => {
       this.filteredAnnotators = filtered;
@@ -110,8 +111,10 @@ export class NewAnnotatorComponent implements OnInit {
     resourceGroup['inputAnnotatable'] = new FormControl();
 
     this.resourceStep = new FormGroup(resourceGroup);
+    this.setupResourceValueFiltering();
+  }
 
-
+  private setupResourceValueFiltering(): void {
     this.annotatorConfig.resources.filter(r => r.fieldType === 'resource').forEach(resource => {
       this.resourceStep.get(resource.key).valueChanges.pipe(
         map((value: string) => this.filterDropdownContent(value, resource.possibleValues))
@@ -130,9 +133,7 @@ export class NewAnnotatorComponent implements OnInit {
   }
 
   public requestAttributes(): void {
-    const filtered = Object.fromEntries(
-      Object.entries(this.resourceStep.value as object).filter(([k, v]) => v !== null)
-    );
+    const filtered = this.getPopulatedResourceValues();
 
     this.editorService.getAttributes(
       this.pipelineId,
@@ -145,9 +146,7 @@ export class NewAnnotatorComponent implements OnInit {
   }
 
   public onFinish(): void {
-    const filtered = Object.fromEntries(
-      Object.entries(this.resourceStep.value as object).filter(([k, v]) => v !== null)
-    );
+    const filtered = this.getPopulatedResourceValues();
 
     this.editorService.getAnnotatorYml(
       this.annotatorStep.value.annotator,
@@ -156,5 +155,11 @@ export class NewAnnotatorComponent implements OnInit {
     ).pipe(take(1)).subscribe(res => {
       this.dialogRef.close(res);
     });
+  }
+
+  public getPopulatedResourceValues(): object {
+    return Object.fromEntries(
+      Object.entries(this.resourceStep.value as object).filter(([, v]) => v !== null)
+    );
   }
 }
