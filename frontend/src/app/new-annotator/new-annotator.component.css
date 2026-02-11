@@ -17,6 +17,12 @@
   text-overflow: ellipsis;
 }
 
+input[type="text"] {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 ::ng-deep .mat-mdc-option.mat-mdc-option-active.mdc-list-item,
 ::ng-deep .mat-mdc-option:hover {
   background-color: #f4f7fb !important;

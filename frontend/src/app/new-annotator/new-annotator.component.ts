@@ -130,6 +130,9 @@ export class NewAnnotatorComponent implements OnInit {
   }
 
   private filterDropdownContent(value: string, options: string[]): string[] {
+    if(!value) {
+      return options;
+    }
     const filterValue = value.toLowerCase().replace(/\s/g, '');
     return options.filter(p => p.toLowerCase().replace(/\s/g, '').includes(filterValue));
   }
@@ -163,5 +166,13 @@ export class NewAnnotatorComponent implements OnInit {
     return Object.fromEntries(
       Object.entries(this.resourceStep.value as object).filter(([, v]) => v !== null)
     );
+  }
+
+  public clearAnnotator(): void {
+    this.annotatorStep.get('annotator').setValue(null);
+  }
+
+  public clearResource(resource: string): void {
+    this.resourceStep.get(resource).setValue(null);
   }
 }

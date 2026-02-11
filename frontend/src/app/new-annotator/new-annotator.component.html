@@ -11,8 +11,11 @@
             matInput
             formControlName="annotator"
             [matAutocomplete]="annotatorsDropdown"
-            #annotatorInput="matAutocompleteTrigger" />
-          <span (click)="annotatorInput.openPanel()" class="material-symbols-outlined dropdown-icon"
+            #annotatorInput="matAutocompleteTrigger"
+            #annotatorInputValue
+            [title]="annotatorInputValue.value"
+            (click)="clearAnnotator()" />
+          <span (click)="annotatorInput.openPanel(); clearAnnotator()" class="material-symbols-outlined dropdown-icon"
             >keyboard_arrow_down</span
           >
 
@@ -46,7 +49,9 @@
                   id="input-annotatable-field"
                   type="text"
                   [formControlName]="'inputAnnotatable'"
-                  autocomplete="off" />
+                  autocomplete="off"
+                  #inputAnnotatableValue
+                  [title]="inputAnnotatableValue.value" />
               </div>
 
               @for (resource of annotatorConfig.resources; track resource) {
@@ -62,8 +67,13 @@
                     matInput
                     [formControlName]="resource.key"
                     [matAutocomplete]="resourcesDropdown"
-                    #resourceInput="matAutocompleteTrigger" />
-                  <span (click)="resourceInput.openPanel()" class="material-symbols-outlined dropdown-icon"
+                    #resourceInput="matAutocompleteTrigger"
+                    #resourceInputValue
+                    [title]="resourceInputValue.value"
+                    (click)="clearResource(resource.key)" />
+                  <span
+                    (click)="resourceInput.openPanel(); clearResource(resource.key)"
+                    class="material-symbols-outlined dropdown-icon"
                     >keyboard_arrow_down</span
                   >
 
@@ -99,8 +109,12 @@
     <mat-step label="Attributes" [editable]="false">
       <ng-template matStepContent>
         <div class="summary-content">
-          <div class="annotator-display-text">{{ annotatorStep.value | keyValueDisplay }}</div>
-          <div class="resources-display-text">{{ resourceStep.value | keyValueDisplay }}</div>
+          <div class="annotator-display-text" [title]="annotatorStep.value | keyValueDisplay">{{
+            annotatorStep.value | keyValueDisplay
+          }}</div>
+          <div class="resources-display-text" [title]="resourceStep.value | keyValueDisplay">{{
+            resourceStep.value | keyValueDisplay
+          }}</div>
         </div>
 
         <div class="left-content">
