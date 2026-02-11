@@ -10,7 +10,7 @@ export class KeyValueDisplayPipe implements PipeTransform {
     }
 
     return Object.entries(obj).map(([k, v]) => {
-      return v ? `${k}: ${v}` : '';
-    }).join('\n');
+      return v ? `${k}\n${v}` : '';
+    }).join('\n\n');
   }
 }
