@@ -45,6 +45,7 @@ export class NewAnnotatorComponent implements OnInit {
   public resourceStep: FormGroup = new FormGroup({});
   public annotatorConfig: AnnotatorConfig;
   public annotatorAttributes: AnnotatorAttribute[];
+  public selectedAttributes: AnnotatorAttribute[];
   @ViewChild('stepper', { static: true }) public stepper: MatStepper;
 
   public constructor(
@@ -130,7 +131,7 @@ export class NewAnnotatorComponent implements OnInit {
   }
 
   private filterDropdownContent(value: string, options: string[]): string[] {
-    if(!value) {
+    if (!value) {
       return options;
     }
     const filterValue = value.toLowerCase().replace(/\s/g, '');
@@ -146,6 +147,7 @@ export class NewAnnotatorComponent implements OnInit {
       filtered
     ).pipe(take(1)).subscribe(res => {
       this.annotatorAttributes = res;
+      this.selectedAttributes = res;
       this.stepper.next();
     });
   }
@@ -156,7 +158,7 @@ export class NewAnnotatorComponent implements OnInit {
     this.editorService.getAnnotatorYml(
       this.annotatorStep.value.annotator,
       filtered,
-      this.annotatorAttributes
+      this.selectedAttributes
     ).pipe(take(1)).subscribe(res => {
       this.dialogRef.close(res);
     });
@@ -174,5 +176,20 @@ export class NewAnnotatorComponent implements OnInit {
 
   public clearResource(resource: string): void {
     this.resourceStep.get(resource).setValue(null);
+  }
+
+  public toggleSelectedAttribute(attribute: AnnotatorAttribute): void {
+    if (this.selectedAttributes.includes(attribute)) {
+      this.selectedAttributes = this.selectedAttributes.filter(a => a !== attribute);
+    } else {
+      this.selectedAttributes.push(attribute);
+    }
+  }
+
+  public setAttributeInternal(attribute: AnnotatorAttribute, value: boolean): void {
+    const index = this.selectedAttributes.findIndex(a => a.name === attribute.name);
+    if (index !== -1) {
+      this.selectedAttributes[index] = { ...this.selectedAttributes[index], internal: value };
+    }
   }
 }
