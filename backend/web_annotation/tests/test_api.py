@@ -760,8 +760,15 @@ def test_single_annotation_pipeline_usage(
 
     user = User.objects.get(email="user@example.com")
 
+    pipeline_config = textwrap.dedent("""
+        - position_score:
+            attributes:
+              - name: position_1
+                source: pos1
+            resource_id: scores/pos1
+    """)
     user_client.post("/api/pipelines/user", {
-        "config": ContentFile(""),
+        "config": ContentFile(pipeline_config),
         "name": "test_pipeline",
     })
 

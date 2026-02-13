@@ -46,6 +46,27 @@ class UserPipeline(AnnotationBaseView):
             )
 
         try:
+            AnnotationConfigParser.parse_str(content, grr=self.grr)
+            load_pipeline_from_yaml(content, self.grr)
+        except (AnnotationConfigurationError, KeyError) as e:
+            error = str(e)
+            if error == "":
+                return Response(
+                    {"errors": "Invalid configuration"},
+                    status=views.status.HTTP_400_BAD_REQUEST,
+                )
+            else:
+                return Response(
+                    {"errors": f"Invalid configuration, reason: {error}"},
+                    status=views.status.HTTP_400_BAD_REQUEST,
+                )
+        except Exception:  # pylint: disable=broad-exception-caught
+            return Response(
+                {"errors": "Invalid configuration"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
             config_path.parent.mkdir(parents=True, exist_ok=True)
             config_path.write_text(content)
         except OSError:
