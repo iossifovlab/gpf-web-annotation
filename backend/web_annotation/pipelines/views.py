@@ -55,11 +55,10 @@ class UserPipeline(AnnotationBaseView):
                     {"errors": "Invalid configuration"},
                     status=views.status.HTTP_400_BAD_REQUEST,
                 )
-            else:
-                return Response(
-                    {"errors": f"Invalid configuration, reason: {error}"},
-                    status=views.status.HTTP_400_BAD_REQUEST,
-                )
+            return Response(
+                {"errors": f"Invalid configuration, reason: {error}"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
         except Exception:  # pylint: disable=broad-exception-caught
             return Response(
                 {"errors": "Invalid configuration"},
