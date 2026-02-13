@@ -1,8 +1,9 @@
 # pylint: disable=W0621,C0114,C0116,W0212,W0613
-import yaml
 from typing import Any
+import yaml
 from django.test import Client
 import pytest
+
 
 @pytest.mark.parametrize("current_client", ["admin", "user", "anonymous"])
 def test_annotator_types(
@@ -15,19 +16,14 @@ def test_annotator_types(
     assert response.status_code == 200
     assert set(response.json()) == {
         "allele_score",
-        "np_score",
         "position_score",
         "effect_annotator",
         "gene_set_annotator",
         "liftover_annotator",
-        "basic_liftover_annotator",
-        "bcf_liftover_annotator",
         "normalize_allele_annotator",
         "gene_score_annotator",
         "simple_effect_annotator",
         "cnv_collection",
-        "chrom_mapping",
-        "debug_annotator",
     }
 
 
@@ -149,7 +145,6 @@ def test_annotator_yaml_position_score(
             {
                 "name": "pos1",
                 "source": "pos1",
-                "type": "float",
                 "internal": False,
             }
         ]
@@ -166,7 +161,6 @@ def test_annotator_yaml_position_score(
                 {
                     "name": "pos1",
                     "source": "pos1",
-                    "type": "float",
                     "internal": False,
                 }
             ],
@@ -240,7 +234,6 @@ def test_annotator_creation_workflow(
                 {
                     "name": "pos1_score",
                     "source": "pos1",
-                    "type": "float",
                     "internal": False,
                 }
             ],
@@ -316,7 +309,6 @@ def test_annotator_creation_resource_workflow(
                 {
                     "name": "pos1_score",
                     "source": "pos1",
-                    "type": "float",
                     "internal": False,
                 }
             ],

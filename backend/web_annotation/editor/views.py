@@ -11,6 +11,7 @@ from dae.annotation.annotation_factory import (
 from dae.annotation.effect_annotator import EffectAnnotatorAdapter
 
 from web_annotation.annotation_base_view import AnnotationBaseView
+from web_annotation.authentication import WebAnnotationAuthentication
 
 
 class EditorView(AnnotationBaseView):
@@ -19,7 +20,17 @@ class EditorView(AnnotationBaseView):
     def _get_annotator_types(self) -> list[str]:
         """Get all available annotator types from the DAE registry."""
 
-        return get_available_annotator_types()
+        return [
+            "position_score",
+            "allele_score",
+            "gene_score_annotator",
+            "gene_set_annotator",
+            "cnv_collection",
+            "effect_annotator",
+            "simple_effect_annotator",
+            "liftover_annotator",
+            "normalize_allele_annotator",
+        ]
 
     def _get_annotator_config_template(
         self, annotator_type: str,
@@ -28,6 +39,9 @@ class EditorView(AnnotationBaseView):
         Temporary method to get annotator config template
         until it is implemented internally in DAE.
         """
+
+        if annotator_type not in get_available_annotator_types():
+            raise ValueError(f"Unknown annotator_type: {annotator_type}")
 
         if annotator_type == "position_score":
             return {
@@ -94,6 +108,21 @@ class EditorView(AnnotationBaseView):
                 },
             }
         if annotator_type == "effect_annotator":
+            return {
+                "annotator_type": "effect_annotator",
+                "gene_models": {
+                    "field_type": "resource",
+                    "resource_type": "gene_models",
+                },
+                "genome": {
+                    "field_type": "resource",
+                    "resource_type": "genome",
+                },
+                "input_annotatable": {
+                    "field_type": "string",
+                },
+            }
+        if annotator_type == "simple_effect_annotator":
             return {
                 "annotator_type": "effect_annotator",
                 "gene_models": {
@@ -181,6 +210,9 @@ class AnnotatorTypes(EditorView):
 
 class AnnotatorAttributes(EditorView):
     """View for annotator attributes."""
+
+    authentication_classes = [WebAnnotationAuthentication]
+
     def post(self, request: Request) -> Response:
         """POST method to get annotator attributes."""
         assert isinstance(request.data, dict)
