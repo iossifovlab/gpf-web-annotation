@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatStepper, MatStepperModule } from '@angular/material/stepper';
-import { CdkStepperModule, StepperSelectionEvent, STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
+import { CdkStepperModule, STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { PipelineEditorService } from '../pipeline-editor.service';
 import { map, take } from 'rxjs';
@@ -77,10 +77,6 @@ export class NewAnnotatorComponent implements OnInit {
         this.annotatorStep.get('annotator').setErrors({ invalidOption: true });
       }
     });
-  }
-
-  public onStepChanged(event: StepperSelectionEvent): void {
-    this.selectedStepIndex = event.selectedIndex;
   }
 
   public requestResources(): void {
@@ -164,7 +160,7 @@ export class NewAnnotatorComponent implements OnInit {
     });
   }
 
-  public getPopulatedResourceValues(): object {
+  private getPopulatedResourceValues(): object {
     return Object.fromEntries(
       Object.entries(this.resourceStep.value as object).filter(([, v]) => v !== null)
     );

@@ -1,6 +1,6 @@
 <div id="modal-header">New annotator</div>
 <div style="height: 100%">
-  <mat-stepper (selectionChange)="onStepChanged($event)" #stepper [linear]="true" class="custom-stepper">
+  <mat-stepper #stepper [linear]="true" class="custom-stepper">
     <mat-step label="Select annotator" [editable]="false" [stepControl]="annotatorStep">
       <form [formGroup]="annotatorStep" id="annotator-input-form">
         <mat-form-field [appearance]="'outline'">
