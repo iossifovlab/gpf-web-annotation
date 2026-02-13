@@ -129,10 +129,6 @@ class EditorView(AnnotationBaseView):
                     "field_type": "resource",
                     "resource_type": "gene_models",
                 },
-                "genome": {
-                    "field_type": "resource",
-                    "resource_type": "genome",
-                },
                 "input_annotatable": {
                     "field_type": "string",
                 },
