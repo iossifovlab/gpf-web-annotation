@@ -11,6 +11,7 @@ class ResourcesAPIView(AnnotationBaseView):
         "gene_set_collection", "genome",
         "gene_models", "allele_score",
         "liftover_chain",
+        "cnv_collection",
     }
 
 
