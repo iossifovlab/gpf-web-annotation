@@ -16,6 +16,7 @@ import pytest
             "t4c8/genomic_scores/score_one",
             "t4c8/t4c8_genes",
             "t4c8/t4c8_genome",
+            "cnv_collections/test_collection",
         ]),
         ("genome", None, [
             "hg38/GRCh38-hg38/genome",
@@ -83,4 +84,5 @@ def test_get_resource_types(
         "position_score",
         "allele_score",
         "gene_score",
+        "cnv_collection",
     }

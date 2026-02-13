@@ -284,14 +284,19 @@ class LRUPipelineCache:
                 details = self._cache[pipeline_id]
                 future = details.future
                 if future.done():
-                    future.result().close()
+                    try:
+                        future.result().close()
+                    except Exception:  # pylint: disable=broad-except
+                        logger.exception(
+                            "Error during pipeline close for %s", pipeline_id)
                     delete_cb = self._pipeline_callbacks.get(pipeline_id)
                     if delete_cb:
                         try:
                             delete_cb(self._cache[pipeline_id])
                         except Exception:  # pylint: disable=broad-except
                             logger.exception(
-                                "Error during pipeline deletion callback")
+                                "Error during pipeline deletion"
+                                "callback for %s", pipeline_id)
                 elif do_cancel:
                     future.cancel()
 

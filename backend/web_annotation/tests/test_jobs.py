@@ -1499,7 +1499,7 @@ def test_get_pipelines(
     assert pipelines[1]["name"] == "t4c8/t4c8_pipeline"
     assert pipelines[1]["status"] == "unloaded"
     assert pipelines[2]["name"] == "test-user-pipeline"
-    assert pipelines[2]["status"] == "unloaded"
+    assert pipelines[2]["status"] == "loaded"
     assert pipelines[2]["content"] == "- position_score: scores/pos1"
 
 
