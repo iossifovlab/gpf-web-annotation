@@ -43,6 +43,23 @@ def test_annotator_types(
             },
         },
     ),
+    (
+        "gene_set_annotator",
+        {},
+        {
+            "annotator_type": "gene_set_annotator",
+            "resource_id": {
+                "field_type": "resource",
+                "resource_type": "gene_set_collection",
+            },
+            "input_gene_list": {
+                "field_type": "string",
+            },
+            "input_annotatable": {
+                "field_type": "string",
+            },
+        },
+    ),
 ])
 def test_annotator_config(
     current_client: str, clients: dict[str, Client],

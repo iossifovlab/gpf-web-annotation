@@ -84,7 +84,7 @@ class EditorView(AnnotationBaseView):
                 "annotator_type": "gene_set_annotator",
                 "resource_id": {
                     "field_type": "resource",
-                    "resource_type": "gene_score",
+                    "resource_type": "gene_set_collection",
                 },
                 "input_gene_list": {
                     "field_type": "string",
