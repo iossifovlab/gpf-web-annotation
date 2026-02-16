@@ -4,7 +4,7 @@ import { Pipe, PipeTransform } from '@angular/core';
   name: 'formatResultValue'
 })
 export class FormatResultValuePipe implements PipeTransform {
-  public transform(value: string | number | Map<string, string | number>, numberOfDigits?: number): string {
+  public transform(value: string | number | Map<string, string | number> | string[], numberOfDigits?: number): string {
     let result = '';
     if (value instanceof Map) {
       value.forEach((v, k) => {
@@ -14,10 +14,12 @@ export class FormatResultValuePipe implements PipeTransform {
           result += `${k}:${v}; `;
         }
       });
-    } if (typeof value === 'number') {
+    } else if (typeof value === 'number') {
       result = this.formatNumber(value, numberOfDigits);
     } else if (typeof value === 'string') {
       return value;
+    } else if (Array.isArray(value)) {
+      return '[' + value.join(', ') + ']';
     }
     return result;
   }

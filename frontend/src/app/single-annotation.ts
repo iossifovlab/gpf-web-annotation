@@ -96,7 +96,7 @@ export class AnnotatorDetails {
 
 export class Result {
   public constructor(
-    public value: string | number | Map<string, string | number>,
+    public value: string | number | Map<string, string | number> | string[],
     public histogramLink: string,
   ) {}
 
@@ -108,7 +108,7 @@ export class Result {
       return undefined;
     }
 
-    let resultValue: string | number | Map<string, string | number> = null;
+    let resultValue: string | number | Map<string, string | number> | string[] = null;
 
     const types = ['int', 'float', 'str'];
     if (types.includes(type)) {
@@ -123,8 +123,12 @@ export class Result {
       resultValue = (json['value'] as boolean).toString();
     }
 
-    if (type === 'object') {
+    if (type === 'object' && typeof json['value'] === 'object') {
       resultValue = new Map<string, string | number>(Object.entries(json['value']));
+    }
+
+    if (type === 'object' && Array.isArray(json['value'])) {
+      resultValue = json['value'];
     }
 
     return new Result(

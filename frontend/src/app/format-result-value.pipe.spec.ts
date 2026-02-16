@@ -36,4 +36,9 @@ describe('FormatResultValuePipe', () => {
     const map = new Map<string, number>([['MTHFR', 15454], ['ABC', 52]]);
     expect(pipe.transform(map, 3)).toBe('MTHFR:1.55e+04; ABC:52; ');
   });
+
+  it('should format value of type array with strings', () => {
+    const pipe = new FormatResultValuePipe();
+    expect(pipe.transform(['MTHFR', 'ABC'])).toBe('[MTHFR, ABC]');
+  });
 });
