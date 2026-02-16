@@ -59,7 +59,7 @@ test.describe('Create job tests', () => {
   test('should create job and then delete it', async({ page }) => {
     await createJobWithPipeline(page, 'pipeline/Clinical_annotation', 'input-vcf-file.vcf');
 
-    const lastJobId = await page.locator('.job-name').evaluate(el => el.textContent);
+    const lastJobId = await page.locator('app-jobs-table').locator('.job-name').evaluate(el => el.textContent);
     await expect(page.getByText(lastJobId)).toBeVisible();
 
     await page.locator('.delete-icon').nth(0).click();
