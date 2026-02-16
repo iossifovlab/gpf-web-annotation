@@ -10,6 +10,7 @@ test.describe('Pipeline tests', () => {
     await utils.registerUser(page, email, password);
 
     await utils.loginUser(page, email, password);
+    await page.waitForSelector('.loaded-editor', { state: 'visible' }); // wait for default pipeline to load
   });
 
   test('should create new pipeline and save it', async({ page }) => {
