@@ -156,7 +156,7 @@ export class NewAnnotatorComponent implements OnInit {
       filtered,
       this.selectedAttributes
     ).pipe(take(1)).subscribe(res => {
-      this.dialogRef.close(res);
+      this.dialogRef.close('\n' + res);
     });
   }
 

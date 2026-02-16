@@ -168,7 +168,7 @@ describe('NewAnnotatorComponent', () => {
       [new AnnotatorAttribute('attribute1', 'string', 'source1', false)]
     );
 
-    expect(closeModalSpy).toHaveBeenCalledWith(ymlResponse);
+    expect(closeModalSpy).toHaveBeenCalledWith('\n' + ymlResponse);
   });
 
   it('should clear annotator value in form', () => {
