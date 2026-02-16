@@ -31,11 +31,15 @@ test.describe('Pipeline tests', () => {
     await page.keyboard.press('Tab');
     await utils.typeInPipelineEditor(page, 'resource_id: hg38/scores/CADD_v1.4');
 
+    await page.waitForSelector('.loaded-editor', { state: 'visible' });
+
     await page.getByRole('button', { name: 'Save as' }).click();
 
     await expect(page.locator('#name-modal')).toBeVisible();
     await page.locator('#name-modal input').fill('My Pipeline');
     await page.locator('#name-modal').getByRole('button', { name: 'Save' }).click();
+
+    await page.waitForSelector('.loaded-editor', { state: 'visible' });
 
     await expect(page.locator('#pipelines-input')).toHaveValue('My Pipeline');
 
