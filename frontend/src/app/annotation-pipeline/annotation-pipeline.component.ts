@@ -288,7 +288,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
       id: 'newAnnotator',
       data: this.selectedPipeline?.id || this.currentTemporaryPipelineId,
       height: '60vh',
-      width: '60vw',
+      width: '70vw',
       maxWidth: '1000px',
       minWidth: '500px'
     });

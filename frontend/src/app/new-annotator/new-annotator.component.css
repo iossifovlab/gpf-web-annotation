@@ -118,6 +118,13 @@ input[type="text"] {
   text-align: end;
 }
 
+.field-value {
+  max-width: 60%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
 .resource-input {
   width: 100%;
 }
@@ -192,7 +199,7 @@ input[type="checkbox"]:checked {
 }
 
 .summary-content {
-  width: 40%;
+  width: 20%;
   height: fit-content;
   background-color: #f4f7fb;
   border-radius: 10px;
@@ -201,7 +208,7 @@ input[type="checkbox"]:checked {
 }
 
 .left-content {
-  width: 70%;
+  width: 90%;
 }
 
 #attributes-list {
