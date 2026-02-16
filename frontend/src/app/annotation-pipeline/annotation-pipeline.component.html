@@ -63,7 +63,7 @@
 
 <div id="pipeline-actions">
   <div>
-    <button (click)="openAnnotatorFormModal()" id="add-annotator-button"
+    <button (click)="openAnnotatorFormModal()" id="add-annotator-button" [disabled]="configError"
       ><span class="material-symbols-outlined add-annotator-icon">add</span>New annotator</button
     >
     <button (click)="clearPipeline()" id="new-pipeline-button"

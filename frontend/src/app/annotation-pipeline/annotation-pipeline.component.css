@@ -157,7 +157,8 @@
 }
 
 #save-as-button:disabled,
-#save-button:disabled {
+#save-button:disabled,
+#add-annotator-button:disabled {
   cursor: initial;
   color: #85a2b9;
 }
