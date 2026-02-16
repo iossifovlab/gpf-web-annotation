@@ -107,7 +107,7 @@ export class NewAnnotatorComponent implements OnInit {
       );
     }
 
-    resourceGroup['inputAnnotatable'] = new FormControl();
+    resourceGroup['input_annotatable'] = new FormControl();
 
     this.resourceStep = new FormGroup(resourceGroup);
     this.setupResourceValueFiltering();
