@@ -131,7 +131,7 @@ test.describe('Add annotator to pipeline tests', () => {
     await utils.registerUser(page, email, password);
 
     await utils.loginUser(page, email, password);
-    await page.locator('#annotation-jobs').click();
+    await page.waitForSelector('.loaded-editor', { state: 'visible' }); // wait for default pipeline to load
   });
 
   test('should append gene set annotator', async({ page }) => {

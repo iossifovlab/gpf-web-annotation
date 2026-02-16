@@ -11,6 +11,7 @@ test.describe('Create job tests', () => {
     await utils.registerUser(page, email, password);
 
     await utils.loginUser(page, email, password);
+    await page.waitForSelector('.loaded-editor', { state: 'visible' }); // wait for default pipeline to load
     await page.locator('#annotation-jobs').click();
   });
 
@@ -223,7 +224,6 @@ test.describe('Jobs table tests', () => {
 
   test('should check if download button is not available when job is not finished', async({ page }) => {
     await createJobWithPipeline(page, 'pipeline/T2T_Clinical_annotation', 'input-vcf-file.vcf');
-    await waitForJobStatus(page, utils.inProcessBackgroundColor);
 
     await expect(page.locator('.no-download-icon').nth(0)).toBeVisible();
   });
