@@ -4,6 +4,7 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  HostListener,
   OnDestroy,
   OnInit,
   Output,
@@ -382,6 +383,15 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
 
   public isPipelineChanged(): boolean {
     return this.selectedPipeline?.content.trim() !== this.currentPipelineText.trim();
+  }
+
+  @HostListener('window:keydown.meta.s', ['$event'])
+  @HostListener('document:keydown.control.s', ['$event'])
+  public onKeydownHandler(event: Event): void {
+    event.preventDefault();
+    if (this.selectedPipeline && this.selectedPipeline.type === 'user' && !this.configError && this.isUserLoggedIn) {
+      this.save();
+    }
   }
 
   public expandTextarea(): void {
