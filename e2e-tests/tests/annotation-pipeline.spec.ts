@@ -44,8 +44,8 @@ test.describe('Pipeline tests', () => {
   });
 
   test('should create new pipeline and use it without saving it', async({ page }) => {
+    await page.waitForSelector('.loaded-editor', { state: 'visible' });
     await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New' }).click();
-
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     await page.evaluate(() => {
@@ -237,6 +237,7 @@ test.describe('Add annotator to pipeline tests', () => {
       '    chain: liftover/hg19_to_T2T\n' +
       '    source_genome: t2t/genomes/t2t-chm13v2.0\n' +
       '    target_genome: hg38/genomes/GRCh38.p14\n' +
+      '\n' +
       '- simple_effect_annotator:\n' +
       '    attributes:\n' +
       '    - internal: false\n' +
@@ -267,8 +268,7 @@ test.describe('Add annotator to pipeline tests', () => {
         '   input_reference_genome: hg38/genomes/GRCh38-hg38\n' +
         'annotators:\n' +
         '- allele_score:\n' +
-        '    resource_id: hg38/scores/CADD_v1.4\n' +
-        '\n'
+        '    resource_id: hg38/scores/CADD_v1.4\n'
       );
     });
 
