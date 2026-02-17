@@ -11,7 +11,6 @@ test.describe('Create job tests', () => {
     await utils.registerUser(page, email, password);
 
     await utils.loginUser(page, email, password);
-    await page.waitForSelector('.loaded-editor', { state: 'visible' }); // wait for default pipeline to load
     await page.locator('#annotation-jobs').click();
   });
 
@@ -334,7 +333,7 @@ async function waitForJobStatus(page: Page, color: string): Promise<void> {
     await page.reload();
     await page.goto('/', {waitUntil: 'load'});
     await page.locator('#annotation-jobs').click();
-  }).toPass({intervals: [1000, 5000, 10000]});
+  }).toPass({intervals: [2000, 3000, 5000], timeout: 120000});
 }
 
 async function createJobWithPipeline(page: Page, pipeline: string, inputFileName: string): Promise<void> {

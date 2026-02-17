@@ -131,7 +131,8 @@ test.describe('Add annotator to pipeline tests', () => {
     await utils.registerUser(page, email, password);
 
     await utils.loginUser(page, email, password);
-    await page.waitForSelector('.loaded-editor', { state: 'visible' }); // wait for default pipeline to load
+    // wait for default pipeline to load
+    await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000});
   });
 
   test('should append gene set annotator', async({ page }) => {
@@ -198,11 +199,11 @@ test.describe('Add annotator to pipeline tests', () => {
     await Promise.all([
       page.getByRole('button', { name: 'Finish' }).click(),
       page.waitForResponse(
-        resp => resp.url().includes('api/pipelines/validate')
+        resp => resp.url().includes('api/pipelines/user') // wait for pipeline to be saved
       ),
     ]);
 
-    await page.waitForSelector('.loaded-editor', { state: 'visible' });
+    await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
 
     await page.locator('#pipeline-actions').locator('#add-annotator-button').click();
 

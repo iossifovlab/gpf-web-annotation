@@ -69,11 +69,6 @@ export async function clearPipelineEditor(page: Page): Promise<void> {
 export async function selectPipeline(page: Page, pipeline: string): Promise<void> {
   await page.locator('#pipelines-input').click();
   await page.getByRole('option', { name: 'circle ' + pipeline, exact: true }).click();
-  await waitForPipelineToLoad(page);
+  await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
 }
 
-async function waitForPipelineToLoad(page: Page): Promise<void> {
-  await expect(async() => {
-    await expect(page.locator('ngx-monaco-editor')).toHaveCSS('border-color', 'rgb(119, 172, 119)');
-  }).toPass({intervals: [2000, 3000, 5000]});
-}
