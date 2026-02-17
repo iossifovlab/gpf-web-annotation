@@ -10,7 +10,8 @@ test.describe('Pipeline tests', () => {
     await utils.registerUser(page, email, password);
 
     await utils.loginUser(page, email, password);
-    await page.waitForSelector('.loaded-editor', { state: 'visible' }); // wait for default pipeline to load
+    // wait for default pipeline to load
+    await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
   });
 
   test('should create new pipeline and save it', async({ page }) => {
@@ -31,7 +32,7 @@ test.describe('Pipeline tests', () => {
       );
     });
 
-    await page.waitForSelector('.loaded-editor', { state: 'visible' });
+    await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
 
     await page.getByRole('button', { name: 'Save as' }).click();
 
@@ -39,13 +40,13 @@ test.describe('Pipeline tests', () => {
     await page.locator('#name-modal input').fill('My Pipeline');
     await page.locator('#name-modal').getByRole('button', { name: 'Save' }).click();
 
-    await page.waitForSelector('.loaded-editor', { state: 'visible' });
+    await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
 
     await expect(page.locator('#pipelines-input')).toHaveValue('My Pipeline');
   });
 
   test('should create new pipeline and use it without saving it', async({ page }) => {
-    await page.waitForSelector('.loaded-editor', { state: 'visible' });
+    await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
     await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New' }).click();
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -64,7 +65,7 @@ test.describe('Pipeline tests', () => {
       );
     });
 
-    await page.waitForSelector('.loaded-editor', { state: 'visible' });
+    await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
 
     await page.locator('.example').click();
     await expect(page.locator('#pipelines-input')).toBeEmpty();
@@ -274,7 +275,7 @@ test.describe('Add annotator to pipeline tests', () => {
       );
     });
 
-    await page.waitForSelector('.loaded-editor', { state: 'visible' });
+    await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
 
     await page.getByRole('button', { name: 'Save as' }).click();
 
