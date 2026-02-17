@@ -97,6 +97,7 @@ def test_annotator_attributes_position_score(
         "name": "pos1",
         "source": "pos1",
         "type": "float",
+        "default": True,
         "internal": False,
     }
 
@@ -120,6 +121,7 @@ def test_annotator_attributes_cnv_collection(
         "name": "count",
         "source": "count",
         "type": "int",
+        "default": True,
         "internal": False,
     }
 
@@ -208,9 +210,11 @@ def test_annotator_creation_workflow(
         "resource_id": {
             "field_type": "resource",
             "resource_type": "position_score",
+            "optional": False,
         },
         "input_annotatable": {
             "field_type": "string",
+            "optional": True,
         },
     }
     assert config["annotator_type"] == "position_score"
@@ -252,6 +256,7 @@ def test_annotator_creation_workflow(
                     "name": "pos1_score",
                     "source": "pos1",
                     "internal": False,
+                    "default": True,
                 }
             ],
         }
@@ -327,6 +332,7 @@ def test_annotator_creation_resource_workflow(
                     "name": "pos1_score",
                     "source": "pos1",
                     "internal": False,
+                    "default": True,
                 }
             ],
         }

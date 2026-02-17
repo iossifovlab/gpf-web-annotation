@@ -49,9 +49,11 @@ class EditorView(AnnotationBaseView):
                 "resource_id": {
                     "field_type": "resource",
                     "resource_type": "position_score",
+                    "optional": False,
                 },
                 "input_annotatable": {
                     "field_type": "string",
+                    "optional": True,
                 },
             }
         if annotator_type == "allele_score":
@@ -60,9 +62,11 @@ class EditorView(AnnotationBaseView):
                 "resource_id": {
                     "field_type": "resource",
                     "resource_type": "allele_score",
+                    "optional": False,
                 },
                 "input_annotatable": {
                     "field_type": "string",
+                    "optional": True,
                 },
             }
         if annotator_type == "gene_score_annotator":
@@ -71,12 +75,15 @@ class EditorView(AnnotationBaseView):
                 "resource_id": {
                     "field_type": "resource",
                     "resource_type": "gene_score",
+                    "optional": False,
                 },
                 "input_gene_list": {
                     "field_type": "string",
+                    "optional": False,
                 },
                 "input_annotatable": {
                     "field_type": "string",
+                    "optional": True,
                 },
             }
         if annotator_type == "gene_set_annotator":
@@ -85,12 +92,15 @@ class EditorView(AnnotationBaseView):
                 "resource_id": {
                     "field_type": "resource",
                     "resource_type": "gene_set_collection",
+                    "optional": False,
                 },
                 "input_gene_list": {
                     "field_type": "string",
+                    "optional": False,
                 },
                 "input_annotatable": {
                     "field_type": "string",
+                    "optional": True,
                 },
             }
         if annotator_type == "cnv_collection":
@@ -99,12 +109,15 @@ class EditorView(AnnotationBaseView):
                 "resource_id": {
                     "field_type": "resource",
                     "resource_type": "cnv_collection",
+                    "optional": False,
                 },
                 "cnv_filter": {
                     "field_type": "string",
+                    "optional": False,
                 },
                 "input_annotatable": {
                     "field_type": "string",
+                    "optional": True,
                 },
             }
         if annotator_type == "effect_annotator":
@@ -113,13 +126,16 @@ class EditorView(AnnotationBaseView):
                 "gene_models": {
                     "field_type": "resource",
                     "resource_type": "gene_models",
+                    "optional": False,
                 },
                 "genome": {
                     "field_type": "resource",
                     "resource_type": "genome",
+                    "optional": True,
                 },
                 "input_annotatable": {
                     "field_type": "string",
+                    "optional": True,
                 },
             }
         if annotator_type == "simple_effect_annotator":
@@ -128,9 +144,11 @@ class EditorView(AnnotationBaseView):
                 "gene_models": {
                     "field_type": "resource",
                     "resource_type": "gene_models",
+                    "optional": False,
                 },
                 "input_annotatable": {
                     "field_type": "string",
+                    "optional": True,
                 },
             }
         if annotator_type == "liftover_annotator":
@@ -139,17 +157,21 @@ class EditorView(AnnotationBaseView):
                 "chain": {
                     "field_type": "resource",
                     "resource_type": "liftover_chain",
+                    "optional": False,
                 },
                 "source_genome": {
                     "field_type": "resource",
                     "resource_type": "genome",
+                    "optional": False,
                 },
                 "target_genome": {
                     "field_type": "resource",
                     "resource_type": "genome",
+                    "optional": False,
                 },
                 "input_annotatable": {
                     "field_type": "string",
+                    "optional": True,
                 },
             }
         if annotator_type == "normalize_allele_annotator":
@@ -158,9 +180,11 @@ class EditorView(AnnotationBaseView):
                 "genome": {
                     "field_type": "resource",
                     "resource_type": "genome",
+                    "optional": False,
                 },
                 "input_annotatable": {
                     "field_type": "string",
+                    "optional": True,
                 },
             }
 
@@ -261,6 +285,7 @@ class AnnotatorAttributes(EditorView):
                 "name": attribute.name,
                 "source": attribute.source,
                 "type": attribute.type,
+                "default": attribute.default,
                 "internal": attribute.internal,
             })
 
@@ -275,9 +300,44 @@ class AnnotatorAttributes(EditorView):
                     "name": attribute_desc.name,
                     "source": attribute_desc.name,
                     "type": attribute_desc.type,
+                    "default": attribute_desc.default,
                     "internal": attribute_desc.internal,
                 })
                 used_attributes.add(attribute_desc.name)
+
+        return Response(result, status=status.HTTP_200_OK)
+
+
+class PipelineAttributes(EditorView):
+    """View for annotator attributes."""
+
+    authentication_classes = [WebAnnotationAuthentication]
+
+    def get(self, request: Request) -> Response:
+        """GET method to get pipeline attributes."""
+        pipeline_id = request.query_params.get("pipeline_id")
+        if pipeline_id is None:
+            return Response(
+                {"error": "pipeline_id is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        attribute_type = request.query_params.get("attribute_type")
+        if attribute_type is None:
+            return Response(
+                {"error": "attribute_type is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if not isinstance(attribute_type, str):
+            return Response(
+                {"error": "attribute_type must be a string"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        pipeline = self.get_pipeline(pipeline_id, request.user)
+
+        attributes = pipeline.get_attributes_by_type(attribute_type)
+        result = [attr.name for attr in attributes]
 
         return Response(result, status=status.HTTP_200_OK)
 
