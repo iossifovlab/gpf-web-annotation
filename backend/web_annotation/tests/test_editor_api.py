@@ -37,9 +37,11 @@ def test_annotator_types(
             "resource_id": {
                 "field_type": "resource",
                 "resource_type": "position_score",
+                "optional": False,
             },
             "input_annotatable": {
                 "field_type": "string",
+                "optional": True,
             },
         },
     ),
@@ -51,12 +53,15 @@ def test_annotator_types(
             "resource_id": {
                 "field_type": "resource",
                 "resource_type": "gene_set_collection",
+                "optional": False,
             },
             "input_gene_list": {
                 "field_type": "string",
+                "optional": False,
             },
             "input_annotatable": {
                 "field_type": "string",
+                "optional": True,
             },
         },
     ),
@@ -256,7 +261,6 @@ def test_annotator_creation_workflow(
                     "name": "pos1_score",
                     "source": "pos1",
                     "internal": False,
-                    "default": True,
                 }
             ],
         }
@@ -332,7 +336,6 @@ def test_annotator_creation_resource_workflow(
                     "name": "pos1_score",
                     "source": "pos1",
                     "internal": False,
-                    "default": True,
                 }
             ],
         }

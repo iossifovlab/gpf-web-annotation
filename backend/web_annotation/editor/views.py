@@ -284,7 +284,7 @@ class AnnotatorAttributes(EditorView):
             result.append({
                 "name": attribute.name,
                 "source": attribute.source,
-                "type": attribute.type,
+                "type": attribute.value_type,
                 "default": attribute.default,
                 "internal": attribute.internal,
             })
