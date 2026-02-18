@@ -53,7 +53,7 @@
                 </div>
 
                 @if(resource.fieldType === 'resource') {
-                <mat-form-field [appearance]="'outline'" class="resource-input">
+                <mat-form-field [appearance]="'outline'" class="resource-input" [attr.id]="resource.key + '-dropdown'">
                   <input
                     type="text"
                     placeholder="Select resource"
@@ -78,7 +78,12 @@
                   </mat-autocomplete>
                 </mat-form-field>
                 } @else if(resource.fieldType === 'string') {
-                <input class="resource-field" type="text" [formControlName]="resource.key" autocomplete="off" />
+                <input
+                  class="resource-field"
+                  type="text"
+                  [formControlName]="resource.key"
+                  autocomplete="off"
+                  [attr.id]="resource.key + '-input'" />
                 } @else if(resource.fieldType === 'bool') {
                 <div>
                   <input type="radio" [formControlName]="resource.key" for="true" />

@@ -143,9 +143,9 @@ test.describe('Add annotator to pipeline tests', () => {
     await page.locator('mat-option').getByText('gene_set_annotator').click();
     await page.getByRole('button', { name: 'Next' }).click();
 
-    await page.getByRole('combobox', { name: 'Select resource' }).click();
+    await page.locator('[id="resource_id-dropdown"]').click();
     await page.locator('mat-option').getByText('gene_properties/gene_sets/spark').click();
-    await page.locator('.resource-field').fill('gene_list');
+    await page.locator('input[id="input_gene_list-input"]').fill('gene_list');
     await page.getByRole('button', { name: 'Next' }).click();
 
     await expect(page.locator('.attribute-group')).toHaveCount(4);
@@ -345,9 +345,9 @@ test.describe('Annonymous user tests', () => {
     await page.locator('mat-option').getByText('gene_set_annotator').click();
     await page.getByRole('button', { name: 'Next' }).click();
 
-    await page.getByRole('combobox', { name: 'Select resource' }).click();
+    await page.locator('[id="resource_id-dropdown"]').click();
     await page.locator('mat-option').getByText('gene_properties/gene_sets/spark').click();
-    await page.locator('.resource-field').fill('gene_list');
+    await page.locator('input[id="input_gene_list-input"]').fill('gene_list');
     await page.getByRole('button', { name: 'Next' }).click();
 
     await expect(page.locator('.attribute-group')).toHaveCount(4);
