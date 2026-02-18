@@ -210,8 +210,7 @@ describe('PipelineEditorService', () => {
       '//localhost:8000/api/editor/annotator_yaml',
       {
         attributes: [
-          // eslint-disable-next-line @stylistic/max-len
-          {name: 'liftover_annotatable', type: 'annotatable', source: 'liftover_annotatable', internal: true, selectedBydefault: true }
+          {name: 'liftover_annotatable', source: 'liftover_annotatable', internal: true,}
         ],
         // eslint-disable-next-line camelcase
         annotator_type: 'liftover_annotator',

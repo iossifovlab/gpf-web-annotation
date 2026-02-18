@@ -94,9 +94,16 @@ export class PipelineEditorService {
     attributes: AnnotatorAttribute[]
   ): Observable<string> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
+
+    const extractedAttributes = attributes.map(({ name, source, internal }) => ({
+      name: name,
+      source: source,
+      internal: internal
+    }));
+
     const body = {
       // eslint-disable-next-line camelcase
-      attributes: attributes,
+      attributes: extractedAttributes,
       // eslint-disable-next-line camelcase
       annotator_type: annotatorType,
     };
