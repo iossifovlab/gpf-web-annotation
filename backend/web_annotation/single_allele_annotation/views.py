@@ -264,7 +264,7 @@ class SingleAnnotation(AnnotationBaseView):
                     attribute_info,
                 )
 
-        if attribute_info.type in ["object", "annotatable"]:
+        if attribute_info.value_type in ["object", "annotatable"]:
             if not isinstance(value, (dict, list)):
                 value = str(value)
         return {
@@ -272,7 +272,7 @@ class SingleAnnotation(AnnotationBaseView):
                     "description": attribute_info.description,
                     "help": annotator_help,
                     "source": attribute_info.source,
-                    "type": attribute_info.type,
+                    "type": attribute_info.value_type,
                     "result": {
                         "value": value,
                         "histogram": histogram_path,
