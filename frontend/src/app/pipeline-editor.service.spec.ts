@@ -154,7 +154,8 @@ describe('PipelineEditorService', () => {
         name: 'fitcons_i6_merged',
         source: 'fc_i6_score',
         type: 'float',
-        internal: false
+        internal: false,
+        default: true
       }
     ]));
 
@@ -174,7 +175,7 @@ describe('PipelineEditorService', () => {
     );
     const res = await lastValueFrom(getResponse.pipe(take(1)));
     expect(res).toStrictEqual([
-      new AnnotatorAttribute('fitcons_i6_merged', 'float', 'fc_i6_score', false)
+      new AnnotatorAttribute('fitcons_i6_merged', 'float', 'fc_i6_score', false, true)
     ]);
   });
 
@@ -202,14 +203,15 @@ describe('PipelineEditorService', () => {
         // eslint-disable-next-line camelcase
         target_genome: 'hg19/genomes/GATK_ResourceBundle_5777_b37_phiX174'
       },
-      [new AnnotatorAttribute('liftover_annotatable', 'annotatable', 'liftover_annotatable', true)]
+      [new AnnotatorAttribute('liftover_annotatable', 'annotatable', 'liftover_annotatable', true, true)]
     );
 
     expect(httpPostSpy).toHaveBeenCalledWith(
       '//localhost:8000/api/editor/annotator_yaml',
       {
         attributes: [
-          {name: 'liftover_annotatable', type: 'annotatable', source: 'liftover_annotatable', internal: true}
+          // eslint-disable-next-line @stylistic/max-len
+          {name: 'liftover_annotatable', type: 'annotatable', source: 'liftover_annotatable', internal: true, selectedBydefault: true }
         ],
         // eslint-disable-next-line camelcase
         annotator_type: 'liftover_annotator',

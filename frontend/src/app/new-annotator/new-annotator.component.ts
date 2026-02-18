@@ -143,7 +143,7 @@ export class NewAnnotatorComponent implements OnInit {
       filtered
     ).pipe(take(1)).subscribe(res => {
       this.annotatorAttributes = res;
-      this.selectedAttributes = res;
+      this.selectedAttributes = res.filter(a => a.selectedByDefault);
       this.stepper.next();
     });
   }

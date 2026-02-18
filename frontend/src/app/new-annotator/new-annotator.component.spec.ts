@@ -39,9 +39,9 @@ const annotatorConfigMock = new AnnotatorConfig(
 );
 
 const attributesMock = [
-  new AnnotatorAttribute('attribute1', 'string', 'source1', false),
-  new AnnotatorAttribute('attribute2', 'bool', 'source2', false),
-  new AnnotatorAttribute('attribute3', 'string', 'source3', true)
+  new AnnotatorAttribute('attribute1', 'string', 'source1', false, true),
+  new AnnotatorAttribute('attribute2', 'bool', 'source2', false, true),
+  new AnnotatorAttribute('attribute3', 'string', 'source3', true, true)
 ];
 
 const ymlResponse = `- gene_set_annotator:\n
@@ -165,7 +165,7 @@ describe('NewAnnotatorComponent', () => {
       'gene_set_annotator',
       // eslint-disable-next-line camelcase
       { resource_id: 'gene_properties/gene_scores/RVIS' },
-      [new AnnotatorAttribute('attribute1', 'string', 'source1', false)]
+      [new AnnotatorAttribute('attribute1', 'string', 'source1', false, true)]
     );
 
     expect(closeModalSpy).toHaveBeenCalledWith('\n' + ymlResponse);
@@ -184,24 +184,24 @@ describe('NewAnnotatorComponent', () => {
   });
 
   it('should select attribute', () => {
-    const attribute1 = new AnnotatorAttribute('attribute1', 'string', 'source1', false);
-    const attribute2 = new AnnotatorAttribute('attribute2', 'bool', 'source2', false);
-    const attribute3 = new AnnotatorAttribute('attribute3', 'string', 'source3', true);
+    const attribute1 = new AnnotatorAttribute('attribute1', 'string', 'source1', false, true);
+    const attribute2 = new AnnotatorAttribute('attribute2', 'bool', 'source2', false, true);
+    const attribute3 = new AnnotatorAttribute('attribute3', 'string', 'source3', true, true);
     component.selectedAttributes = [attribute1, attribute2];
     component.toggleSelectedAttribute(attribute3);
     expect(component.selectedAttributes).toStrictEqual([attribute1, attribute2, attribute3]);
   });
 
   it('should unselect attribute', () => {
-    const attribute1 = new AnnotatorAttribute('attribute1', 'string', 'source1', false);
-    const attribute2 = new AnnotatorAttribute('attribute2', 'bool', 'source2', false);
+    const attribute1 = new AnnotatorAttribute('attribute1', 'string', 'source1', false, true);
+    const attribute2 = new AnnotatorAttribute('attribute2', 'bool', 'source2', false, true);
     component.selectedAttributes = [attribute1, attribute2];
     component.toggleSelectedAttribute(attribute2);
     expect(component.selectedAttributes).toStrictEqual([attribute1]);
   });
 
   it('should toggle internal value of attribute', () => {
-    const attribute = new AnnotatorAttribute('attribute', 'string', 'source1', false);
+    const attribute = new AnnotatorAttribute('attribute', 'string', 'source1', false, true);
     component.selectedAttributes = [attribute];
     component.setAttributeInternal(attribute, true);
     expect(component.selectedAttributes[0].internal).toBe(true);
