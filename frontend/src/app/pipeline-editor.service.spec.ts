@@ -52,10 +52,12 @@ describe('PipelineEditorService', () => {
         annotator_type: 'position_score',
         resource_id: {
           field_type: 'resource',
-          resource_type: 'position_score'
+          resource_type: 'position_score',
+          optional: false
         },
         input_annotatable: {
-          field_type: 'string'
+          field_type: 'string',
+          optional: true
         }
       }
       /* eslint-enable */
@@ -79,14 +81,17 @@ describe('PipelineEditorService', () => {
     const res = await lastValueFrom(getResponse.pipe(take(1)));
     expect(res).toStrictEqual(new AnnotatorConfig(
       'position_score',
-      '',
       [
-        new Resource('resource_id', 'resource', 'position_score', '', [
-          'hg19/scores/FitCons-i6-merged',
-          'hg19/scores/FitCons2_E035',
-          'hg19/scores/FitCons2_E067',
-        ]),
-      ]
+        new Resource(
+          'resource_id', 'resource', 'position_score', '', [
+            'hg19/scores/FitCons-i6-merged',
+            'hg19/scores/FitCons2_E035',
+            'hg19/scores/FitCons2_E067',
+          ],
+          false
+        ),
+        new Resource('input_annotatable', 'string', '', '', null, true),
+      ],
     ));
   });
 
@@ -98,9 +103,11 @@ describe('PipelineEditorService', () => {
         annotator_type: 'gene_set_annotator',
         input_gene_list: {
           field_type: 'string',
+          optional: false
         },
         input_annotatable: {
-          field_type: 'string'
+          field_type: 'string',
+          optional: true
         }
       }
       /* eslint-enable */
@@ -118,9 +125,9 @@ describe('PipelineEditorService', () => {
     const res = await lastValueFrom(getResponse.pipe(take(1)));
     expect(res).toStrictEqual(new AnnotatorConfig(
       'gene_set_annotator',
-      '',
       [
-        new Resource('input_gene_list', 'string', '', '', null),
+        new Resource('input_gene_list', 'string', '', '', null, false),
+        new Resource('input_annotatable', 'string', '', '', null, true),
       ]
     ));
   });

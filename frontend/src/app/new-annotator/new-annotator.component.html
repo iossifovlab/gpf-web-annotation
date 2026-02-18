@@ -43,20 +43,14 @@
         <div class="left-content">
           <form [formGroup]="resourceStep">
             <div>
-              <div class="field">
-                <span class="field-label">input annotatable</span>
-                <input
-                  id="input-annotatable-field"
-                  type="text"
-                  [formControlName]="'input_annotatable'"
-                  autocomplete="off"
-                  #inputAnnotatableValue
-                  [title]="inputAnnotatableValue.value" />
-              </div>
-
               @for (resource of annotatorConfig.resources; track resource) {
               <div class="field">
-                <span class="resource field-label">{{ resource.key }}</span>
+                <div class="labels-wrapper">
+                  <span class="resource field-label"> {{ resource.key }}</span>
+                  @if(resource.optional) {
+                  <span class="optional-label">(optional)</span>
+                  }
+                </div>
 
                 @if(resource.fieldType === 'resource') {
                 <mat-form-field [appearance]="'outline'" class="resource-input">

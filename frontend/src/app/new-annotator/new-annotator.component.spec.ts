@@ -12,28 +12,30 @@ import { FormBuilder, FormControl } from '@angular/forms';
 
 const annotatorConfigMock = new AnnotatorConfig(
   'gene_set_annotator',
-  '',
   [
     new Resource(
       'resource_id',
       'resource',
       'gene_score',
       '',
-      ['gene_properties/gene_scores/LGD', 'gene_properties/gene_scores/RVIS']
+      ['gene_properties/gene_scores/LGD', 'gene_properties/gene_scores/RVIS'],
+      false
     ),
     new Resource(
       'input_gene_list',
       'string',
       '',
       '',
-      null
+      null,
+      false
     ),
     new Resource(
       'source_genome',
       'resource',
       'genome',
       '',
-      ['hg19/genomes/GATK_ResourceBundle_5777_b37_phiX174', 'hg38/genomes/GRCh38-hg38', 'hg38/genomes/GRCh38.p13']
+      ['hg19/genomes/GATK_ResourceBundle_5777_b37_phiX174', 'hg38/genomes/GRCh38-hg38', 'hg38/genomes/GRCh38.p13'],
+      false
     )
   ]
 );

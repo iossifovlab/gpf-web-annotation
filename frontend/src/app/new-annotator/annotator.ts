@@ -1,7 +1,6 @@
 export class AnnotatorConfig {
   public constructor(
     public annotatorType: string,
-    public inputAnnotatable: string,
     public resources: Resource[]
   ) { }
 
@@ -12,15 +11,16 @@ export class AnnotatorConfig {
 
     const resources: Resource[] = [];
     Object.keys(json).forEach(key => {
-      if (!['annotator_type', 'input_annotatable'].includes(key)) {
+      if (key !== 'annotator_type') {
         resources.push(new Resource(
           key,
           /* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access */
           json[key]['field_type'] || '',
           json[key]['resource_type'] || '',
           json[key]['value'] || '',
+          null,
+          json[key]['optional']
           /* eslint-enable */
-          null
         ));
       }
     });
@@ -28,7 +28,6 @@ export class AnnotatorConfig {
 
     return new AnnotatorConfig(
       json['annotator_type'] as string,
-      '',
       resources,
     );
   }
@@ -40,7 +39,8 @@ export class Resource {
     public fieldType: 'resource' | 'string' | 'bool',
     public resourceType: string,
     public defaultValue: string | boolean,
-    public possibleValues: string[]
+    public possibleValues: string[],
+    public optional: boolean
   ) { }
 }
 

@@ -103,7 +103,7 @@ export class NewAnnotatorComponent implements OnInit {
     for (const resource of this.annotatorConfig.resources) {
       resourceGroup[resource.key] = new FormControl(
         resource.defaultValue ?? '',
-        Validators.required
+        resource.optional ? Validators.nullValidator : Validators.required
       );
     }
 
