@@ -268,15 +268,15 @@ class SingleAnnotation(AnnotationBaseView):
             if not isinstance(value, (dict, list)):
                 value = str(value)
         return {
-                    "name": attribute_info.name,
-                    "description": attribute_info.description,
-                    "help": annotator_help,
-                    "source": attribute_info.source,
-                    "type": attribute_info.value_type,
-                    "result": {
-                        "value": value,
-                        "histogram": histogram_path,
-                    },
+            "name": attribute_info.name,
+            "description": attribute_info.description,
+            "help": annotator_help,
+            "source": attribute_info.source,
+            "type": attribute_info.value_type,
+            "result": {
+                "value": value,
+                "histogram": histogram_path,
+            },
         }
 
 
