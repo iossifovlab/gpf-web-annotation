@@ -162,6 +162,12 @@ input[type="text"] {
   margin-right: 10px;
 }
 
+.field-label-attribute {
+  color: #85a2b9;
+  width: 35%;
+  text-align: end;
+}
+
 input[type="radio"]:checked {
   accent-color: #435869;
 }

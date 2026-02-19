@@ -52,7 +52,7 @@
                   }
                 </div>
 
-                @if(resource.fieldType === 'resource') {
+                @if(resource.fieldType === 'resource' || resource.key === 'input_annotatable') {
                 <mat-form-field [appearance]="'outline'" class="resource-input" [attr.id]="resource.key + '-dropdown'">
                   <input
                     type="text"
@@ -121,15 +121,15 @@
             @for (attribute of annotatorAttributes; track attribute) { @if(attribute.selectedByDefault) {
             <div class="attribute-group">
               <div class="attribute">
-                <span class="field-label">name</span>
+                <span class="field-label-attribute">name</span>
                 <span [title]="attribute.name" class="field-value">{{ attribute.name }}</span>
               </div>
               <div class="attribute">
-                <span class="field-label">source</span>
+                <span class="field-label-attribute">source</span>
                 <span class="field-value">{{ attribute.source }}</span>
               </div>
               <div class="attribute">
-                <span class="field-label">internal</span>
+                <span class="field-label-attribute">internal</span>
                 <span class="field-value">{{ attribute.internal }}</span>
               </div>
             </div>

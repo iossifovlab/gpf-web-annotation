@@ -13,6 +13,7 @@ export class PipelineEditorService {
   private getResourcesUrl = `${environment.apiPath}/resources`;
   private getAttributesUrl = `${environment.apiPath}/editor/annotator_attributes`;
   private getAnnotatorYmlUrl = `${environment.apiPath}/editor/annotator_yaml`;
+  private getPipelineAttributesUrl = `${environment.apiPath}/editor/pipeline_attributes`;
 
   public constructor(private http: HttpClient) { }
 
@@ -63,6 +64,17 @@ export class PipelineEditorService {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
     return this.http.get<string[]>(
       `${this.getResourcesUrl}?type=${annotatorType}`,
+      options
+    );
+  }
+
+  public getPipelineAttributes(
+    pipelineId: string,
+    attributeType: string,
+  ): Observable<string[]> {
+    const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
+    return this.http.get<string[]>(
+      `${this.getPipelineAttributesUrl}?pipeline_id=${pipelineId}&attribute_type=${attributeType}`,
       options
     );
   }
