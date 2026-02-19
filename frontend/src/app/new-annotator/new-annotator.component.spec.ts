@@ -19,7 +19,8 @@ const annotatorConfigMock = new AnnotatorConfig(
       'gene_score',
       '',
       ['gene_properties/gene_scores/LGD', 'gene_properties/gene_scores/RVIS'],
-      false
+      false,
+      ''
     ),
     new Resource(
       'input_gene_list',
@@ -27,7 +28,8 @@ const annotatorConfigMock = new AnnotatorConfig(
       '',
       '',
       null,
-      false
+      false,
+      ''
     ),
     new Resource(
       'source_genome',
@@ -35,7 +37,17 @@ const annotatorConfigMock = new AnnotatorConfig(
       'genome',
       '',
       ['hg19/genomes/GATK_ResourceBundle_5777_b37_phiX174', 'hg38/genomes/GRCh38-hg38', 'hg38/genomes/GRCh38.p13'],
-      false
+      false,
+      ''
+    ),
+    new Resource(
+      'input_annotatable',
+      'attribute',
+      '',
+      '',
+      null,
+      true,
+      'annotatable'
     )
   ]
 );
@@ -72,6 +84,11 @@ class PipelineEditorServiceMock {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public getAnnotatorYml(annotator: string, resources: object, attributes: AnnotatorAttribute[]): Observable<string> {
     return of(ymlResponse);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public getPipelineAttributes(pipelineId: string, attributeType: string,): Observable<string[]> {
+    return of(['normalized_allele', 'hg19_annotatable']);
   }
 }
 class MatDialogRefMock {
@@ -130,6 +147,10 @@ describe('NewAnnotatorComponent', () => {
         [
           'source_genome',
           ['hg19/genomes/GATK_ResourceBundle_5777_b37_phiX174', 'hg38/genomes/GRCh38-hg38', 'hg38/genomes/GRCh38.p13']
+        ],
+        [
+          'input_annotatable',
+          ['normalized_allele', 'hg19_annotatable']
         ]
       ]));
     expect(component.resourceStep).toBeDefined();

@@ -145,7 +145,8 @@ test.describe('Add annotator to pipeline tests', () => {
 
     await page.locator('[id="resource_id-dropdown"]').click();
     await page.locator('mat-option').getByText('gene_properties/gene_sets/spark').click();
-    await page.locator('input[id="input_gene_list-input"]').fill('gene_list');
+    await page.locator('[id="input_gene_list-dropdown"]').click();
+    await page.locator('mat-option').getByText('gene_list').click();
     await page.getByRole('button', { name: 'Next' }).click();
 
     await expect(page.locator('.attribute-group')).toHaveCount(4);
@@ -187,13 +188,13 @@ test.describe('Add annotator to pipeline tests', () => {
     await page.locator('mat-option').getByText('liftover_annotator').click();
     await page.getByRole('button', { name: 'Next' }).click();
 
-    await page.getByRole('combobox', { name: 'Select resource' }).nth(0).click();
+    await page.locator('[id="chain-dropdown"]').click();
     await page.locator('mat-option').getByText('liftover/hg19_to_T2T').click();
 
-    await page.getByRole('combobox', { name: 'Select resource' }).nth(0).click();
+    await page.locator('[id="source_genome-dropdown"]').click();
     await page.locator('mat-option').getByText('t2t/genomes/t2t-chm13v2.0').click();
 
-    await page.getByRole('combobox', { name: 'Select resource' }).nth(0).click();
+    await page.locator('[id="target_genome-dropdown"]').click();
     await page.locator('mat-option').getByText('hg38/genomes/GRCh38.p14').click();
     await page.getByRole('button', { name: 'Next' }).click();
 
@@ -212,7 +213,7 @@ test.describe('Add annotator to pipeline tests', () => {
     await page.locator('mat-option').getByText('simple_effect_annotator').click();
     await page.getByRole('button', { name: 'Next' }).click();
 
-    await page.getByRole('combobox', { name: 'Select resource' }).nth(0).click();
+    await page.locator('[id="gene_models-dropdown"]').click();
     await page.locator('mat-option').getByText('hg19/gene_models/ccds_v201309').click();
 
     await page.getByRole('button', { name: 'Next' }).click();
@@ -290,7 +291,7 @@ test.describe('Add annotator to pipeline tests', () => {
     await page.locator('mat-option').getByText('simple_effect_annotator').click();
     await page.getByRole('button', { name: 'Next' }).click();
 
-    await page.getByRole('combobox', { name: 'Select resource' }).nth(0).click();
+    await page.locator('[id="gene_models-dropdown"]').click();
     await page.locator('mat-option').getByText('hg19/gene_models/ccds_v201309').click();
 
     await page.getByRole('button', { name: 'Next' }).click();
@@ -347,7 +348,8 @@ test.describe('Annonymous user tests', () => {
 
     await page.locator('[id="resource_id-dropdown"]').click();
     await page.locator('mat-option').getByText('gene_properties/gene_sets/spark').click();
-    await page.locator('input[id="input_gene_list-input"]').fill('gene_list');
+    await page.locator('[id="input_gene_list-dropdown"]').click();
+    await page.locator('mat-option').getByText('gene_list').click();
     await page.getByRole('button', { name: 'Next' }).click();
 
     await expect(page.locator('.attribute-group')).toHaveCount(4);

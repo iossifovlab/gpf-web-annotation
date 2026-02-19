@@ -52,11 +52,11 @@
                   }
                 </div>
 
-                @if(resource.fieldType === 'resource' || resource.key === 'input_annotatable') {
+                @if(resource.fieldType === 'resource' || resource.fieldType === 'attribute') {
                 <mat-form-field [appearance]="'outline'" class="resource-input" [attr.id]="resource.key + '-dropdown'">
                   <input
                     type="text"
-                    placeholder="Select resource"
+                    placeholder="Select or search"
                     autocomplete="off"
                     matInput
                     [formControlName]="resource.key"

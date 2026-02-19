@@ -8,7 +8,7 @@ import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { CdkStepperModule, STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { PipelineEditorService } from '../pipeline-editor.service';
-import { map, Observable, of, switchMap, take } from 'rxjs';
+import { map, Observable, of, switchMap, take, forkJoin } from 'rxjs';
 import { AnnotatorAttribute, AnnotatorConfig, Resource } from './annotator';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { KeyValueDisplayPipe } from '../key-value-display.pipe';
@@ -79,31 +79,40 @@ export class NewAnnotatorComponent implements OnInit {
     });
   }
 
-  private getInputAnnotatableValues(config: AnnotatorConfig): Observable<AnnotatorConfig> {
-    const i = config.resources.findIndex(a => a.key === 'input_annotatable');
-    if (i !== -1) {
-      return this.editorService.getPipelineAttributes(this.pipelineId, 'annotatable').pipe(
+  private getPipelineAttributes(config: AnnotatorConfig): Observable<AnnotatorConfig> {
+    const attributeResources = config.resources.filter(r => r.fieldType === 'attribute');
+
+    if (attributeResources.length === 0) {
+      return of(config);
+    }
+
+    const observables = attributeResources.map(resource =>
+      this.editorService.getPipelineAttributes(this.pipelineId, resource.attributeType).pipe(
         take(1),
         map(res => {
-          config.resources[i] = new Resource(
-            config.resources[i].key,
-            config.resources[i].fieldType,
-            config.resources[i].resourceType,
-            config.resources[i].defaultValue,
-            res,
-            config.resources[i].optional
-          );
-          return config;
+          const resourceIndex = config.resources.findIndex(r => r.key === resource.key);
+          if (resourceIndex !== -1) {
+            config.resources[resourceIndex] = new Resource(
+              resource.key,
+              resource.fieldType,
+              resource.resourceType,
+              resource.defaultValue,
+              res,
+              resource.optional,
+              resource.attributeType
+            );
+          }
         })
-      );
-    }
-    return of(config);
+      )
+    );
+
+    return forkJoin(observables).pipe(map(() => config));
   }
 
   public requestResources(): void {
     this.editorService.getAnnotatorConfig(this.annotatorStep.value.annotator).pipe(
       take(1),
-      switchMap(config => this.getInputAnnotatableValues(config))
+      switchMap(config => this.getPipelineAttributes(config))
     ).subscribe(res => {
       this.annotatorConfig = res;
       this.initializeFilteredResourceValues();
@@ -115,7 +124,7 @@ export class NewAnnotatorComponent implements OnInit {
   private initializeFilteredResourceValues(): void {
     this.filteredResourceValues = new Map<string, string[]>();
     for (const resource of this.annotatorConfig.resources) {
-      if (resource.fieldType === 'resource' || resource.key === 'input_annotatable') {
+      if (resource.fieldType === 'resource' || resource.fieldType === 'attribute') {
         this.filteredResourceValues.set(resource.key, resource.possibleValues);
       }
     }
@@ -137,7 +146,7 @@ export class NewAnnotatorComponent implements OnInit {
 
   private setupResourceValueFiltering(): void {
     // eslint-disable-next-line @stylistic/max-len
-    this.annotatorConfig.resources.filter(r => r.fieldType === 'resource' || r.key === 'input_annotatable').forEach(resource => {
+    this.annotatorConfig.resources.filter(r => r.fieldType === 'resource' || r.fieldType === 'attribute').forEach(resource => {
       this.resourceStep.get(resource.key).valueChanges.pipe(
         map((value: string) => this.filterDropdownContent(value, resource.possibleValues))
       ).subscribe(filtered => {

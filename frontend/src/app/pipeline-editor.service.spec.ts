@@ -56,8 +56,9 @@ describe('PipelineEditorService', () => {
           optional: false
         },
         input_annotatable: {
-          field_type: 'string',
-          optional: true
+          field_type: 'attribute',
+          optional: true,
+          attribute_type: 'annotatable'
         }
       }
       /* eslint-enable */
@@ -88,9 +89,10 @@ describe('PipelineEditorService', () => {
             'hg19/scores/FitCons2_E035',
             'hg19/scores/FitCons2_E067',
           ],
-          false
+          false,
+          ''
         ),
-        new Resource('input_annotatable', 'string', '', '', null, true),
+        new Resource('input_annotatable', 'attribute', '', '', null, true, 'annotatable'),
       ],
     ));
   });
@@ -106,8 +108,9 @@ describe('PipelineEditorService', () => {
           optional: false
         },
         input_annotatable: {
-          field_type: 'string',
-          optional: true
+          field_type: 'attribute',
+          optional: true,
+          attribute_type: 'annotatable'
         }
       }
       /* eslint-enable */
@@ -126,8 +129,8 @@ describe('PipelineEditorService', () => {
     expect(res).toStrictEqual(new AnnotatorConfig(
       'gene_set_annotator',
       [
-        new Resource('input_gene_list', 'string', '', '', null, false),
-        new Resource('input_annotatable', 'string', '', '', null, true),
+        new Resource('input_gene_list', 'string', '', '', null, false, ''),
+        new Resource('input_annotatable', 'attribute', '', '', null, true, 'annotatable'),
       ]
     ));
   });
@@ -154,7 +157,7 @@ describe('PipelineEditorService', () => {
     ]);
   });
 
-  it('should get atrtibutes', async() => {
+  it('should get attributes of annotator type', async() => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of([
       {
@@ -184,6 +187,24 @@ describe('PipelineEditorService', () => {
     expect(res).toStrictEqual([
       new AnnotatorAttribute('fitcons_i6_merged', 'float', 'fc_i6_score', false, true)
     ]);
+  });
+
+  it('should get attributes of pipeline', async() => {
+    const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
+    httpGetSpy.mockReturnValue(of(['normalized_allele', 'hg19_annotatable']));
+
+    const options = { headers: {'X-CSRFToken': ''}, withCredentials: true };
+    const getResponse = service.getPipelineAttributes(
+      'pipelineId',
+      'input_annotatable',
+    );
+
+    expect(httpGetSpy).toHaveBeenCalledWith(
+      '//localhost:8000/api/editor/pipeline_attributes?pipeline_id=pipelineId&attribute_type=input_annotatable',
+      options
+    );
+    const res = await lastValueFrom(getResponse.pipe(take(1)));
+    expect(res).toStrictEqual(['normalized_allele', 'hg19_annotatable']);
   });
 
   it('should get yml config text', async() => {

@@ -19,7 +19,8 @@ export class AnnotatorConfig {
           json[key]['resource_type'] || '',
           json[key]['value'] || '',
           null,
-          json[key]['optional']
+          json[key]['optional'],
+          json[key]['attribute_type'] || ''
           /* eslint-enable */
         ));
       }
@@ -36,11 +37,12 @@ export class AnnotatorConfig {
 export class Resource {
   public constructor(
     public key: string,
-    public fieldType: 'resource' | 'string' | 'bool',
+    public fieldType: 'resource' | 'string' | 'bool' | 'attribute',
     public resourceType: string,
     public defaultValue: string | boolean,
     public possibleValues: string[],
-    public optional: boolean
+    public optional: boolean,
+    public attributeType: string,
   ) { }
 }
 
