@@ -52,7 +52,8 @@ class EditorView(AnnotationBaseView):
                     "optional": False,
                 },
                 "input_annotatable": {
-                    "field_type": "string",
+                    "field_type": "attribute",
+                    "attribute_type": "annotatable",
                     "optional": True,
                 },
             }
@@ -65,7 +66,8 @@ class EditorView(AnnotationBaseView):
                     "optional": False,
                 },
                 "input_annotatable": {
-                    "field_type": "string",
+                    "field_type": "attribute",
+                    "attribute_type": "annotatable",
                     "optional": True,
                 },
             }
@@ -78,11 +80,13 @@ class EditorView(AnnotationBaseView):
                     "optional": False,
                 },
                 "input_gene_list": {
-                    "field_type": "string",
+                    "field_type": "attribute",
+                    "attribute_type": "gene_list",
                     "optional": False,
                 },
                 "input_annotatable": {
-                    "field_type": "string",
+                    "field_type": "attribute",
+                    "attribute_type": "annotatable",
                     "optional": True,
                 },
             }
@@ -95,11 +99,13 @@ class EditorView(AnnotationBaseView):
                     "optional": False,
                 },
                 "input_gene_list": {
-                    "field_type": "string",
+                    "field_type": "attribute",
+                    "attribute_type": "gene_list",
                     "optional": False,
                 },
                 "input_annotatable": {
-                    "field_type": "string",
+                    "field_type": "attribute",
+                    "attribute_type": "annotatable",
                     "optional": True,
                 },
             }
@@ -116,7 +122,8 @@ class EditorView(AnnotationBaseView):
                     "optional": False,
                 },
                 "input_annotatable": {
-                    "field_type": "string",
+                    "field_type": "attribute",
+                    "attribute_type": "annotatable",
                     "optional": True,
                 },
             }
@@ -134,7 +141,8 @@ class EditorView(AnnotationBaseView):
                     "optional": True,
                 },
                 "input_annotatable": {
-                    "field_type": "string",
+                    "field_type": "attribute",
+                    "attribute_type": "annotatable",
                     "optional": True,
                 },
             }
@@ -147,7 +155,8 @@ class EditorView(AnnotationBaseView):
                     "optional": False,
                 },
                 "input_annotatable": {
-                    "field_type": "string",
+                    "field_type": "attribute",
+                    "attribute_type": "annotatable",
                     "optional": True,
                 },
             }
@@ -170,7 +179,8 @@ class EditorView(AnnotationBaseView):
                     "optional": False,
                 },
                 "input_annotatable": {
-                    "field_type": "string",
+                    "field_type": "attribute",
+                    "attribute_type": "annotatable",
                     "optional": True,
                 },
             }
@@ -183,7 +193,8 @@ class EditorView(AnnotationBaseView):
                     "optional": False,
                 },
                 "input_annotatable": {
-                    "field_type": "string",
+                    "field_type": "attribute",
+                    "attribute_type": "annotatable",
                     "optional": True,
                 },
             }

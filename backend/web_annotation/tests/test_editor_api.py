@@ -40,7 +40,8 @@ def test_annotator_types(
                 "optional": False,
             },
             "input_annotatable": {
-                "field_type": "string",
+                "field_type": "attribute",
+                "attribute_type": "annotatable",
                 "optional": True,
             },
         },
@@ -56,11 +57,13 @@ def test_annotator_types(
                 "optional": False,
             },
             "input_gene_list": {
-                "field_type": "string",
+                "field_type": "attribute",
+                "attribute_type": "gene_list",
                 "optional": False,
             },
             "input_annotatable": {
-                "field_type": "string",
+                "field_type": "attribute",
+                "attribute_type": "annotatable",
                 "optional": True,
             },
         },
@@ -218,7 +221,8 @@ def test_annotator_creation_workflow(
             "optional": False,
         },
         "input_annotatable": {
-            "field_type": "string",
+            "field_type": "attribute",
+            "attribute_type": "annotatable",
             "optional": True,
         },
     }
