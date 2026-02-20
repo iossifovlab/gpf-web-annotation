@@ -1,0 +1,40 @@
+##fileformat=VCFv4.1
+##FILTER=<ID=PASS,Description="All filters passed">
+##reference=GRCh38-hg38
+##contig=<ID=chr1>
+##pipeline_annotation_tool=GPF variant annotation.
+##INFO=<ID=dbSNP_RS,Number=A,Type=String,Description="dbSNP ID (i.e. rs number)">
+##INFO=<ID=gnomad_v4_exome_ALL_af,Number=A,Type=String,Description="Alternate allele frequency">
+##INFO=<ID=gnomad_v4_genome_ALL_af,Number=A,Type=String,Description="Alternate allele frequency">
+##INFO=<ID=CLNSIG,Number=A,Type=String,Description="Aggregate germline classification for this single variant; multiple values are separated by a vertical bar">
+##INFO=<ID=CLNDN,Number=A,Type=String,Description="ClinVar's preferred disease name for the concept specified by disease identifiers in CLNDISDB">
+##INFO=<ID=cadd_raw,Number=A,Type=String,Description="CADD raw score for functional prediction of a SNP. The larger the score  the more likely the SNP has damaging effect">
+##INFO=<ID=cadd_phred,Number=A,Type=String,Description="CADD phred-like score. This is phred-like rank score based on whole genome CADD raw scores. The larger the score the more likely the SNP has damaging effect.">
+##INFO=<ID=am_pathogenicity,Number=A,Type=String,Description="AlphaMissense Pathogenicity score is a deleteriousness score for missense variants">
+##INFO=<ID=mpc,Number=A,Type=String,Description="Missense badness, PolyPhen-2, and Constraint. A deleteriousness prediction score for missense variants\"">
+##INFO=<ID=worst_effect_GENCODE_48,Number=A,Type=String,Description="Worst effect accross all transcripts.">
+##INFO=<ID=effect_details_GENCODE_48,Number=A,Type=String,Description="Effect details for each affected transcript. Format: `< transcript 1 >:<gene 1>:<effect 1>:<details 1>|...`">
+##INFO=<ID=gene_effects_GENCODE_48,Number=A,Type=String,Description="`<gene_1>:<effect_1>|...` A gene can be repeated.">
+##INFO=<ID=worst_effect_MANE_1.3,Number=A,Type=String,Description="Worst effect accross all transcripts.">
+##INFO=<ID=effect_details_MANE_1.3,Number=A,Type=String,Description="Effect details for each affected transcript. Format: `< transcript 1 >:<gene 1>:<effect 1>:<details 1>|...`">
+##INFO=<ID=gene_effects_MANE_1.3,Number=A,Type=String,Description="`<gene_1>:<effect_1>|...` A gene can be repeated.">
+##INFO=<ID=pLI_rank_all,Number=A,Type=String,Description="Gene rank after sorting by pLI intolerance score">
+##INFO=<ID=pLI_rank_min,Number=A,Type=String,Description="Gene rank after sorting by pLI intolerance score">
+##INFO=<ID=LOEUF_rank_all,Number=A,Type=String,Description="Gene ranks after sorting by LOEUF scores">
+##INFO=<ID=LOEUF_rank_min,Number=A,Type=String,Description="Gene ranks after sorting by LOEUF scores">
+##INFO=<ID=worst_effect,Number=A,Type=String,Description="Worst effect accross all transcripts.">
+##INFO=<ID=gene_effects,Number=A,Type=String,Description="`<gene_1>:<effect_1>|...` A gene can be repeated.">
+##INFO=<ID=effect_details,Number=A,Type=String,Description="Effect details for each affected transcript. Format: `< transcript 1 >:<gene 1>:<effect 1>:<details 1>|...`">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+chr1	1287138	.	C	A	.	.	worst_effect=5'UTR-intron;gene_effects=GNB1:5'UTR-intron;effect_details=NM_001282538.2:GNB1:5'UTR-intron:1/9[13511]|NM_001282539.2:GNB1:5'UTR-intron:1/10[27251]|NM_002074.5:GNB1:5'UTR-intron:1/11[13511]
+chr1	3602485	.	AC	A	.	.	worst_effect=intergenic;gene_effects=intergenic:intergenic;effect_details=intergenic:intergenic:intergenic:intergenic
+chr1	12115730	.	G	A	.	.	worst_effect=intron;gene_effects=DHRS3:intron;effect_details=NM_001324370.2:DHRS3:intron:5/5[1129]|NM_001319225.2:DHRS3:intron:5/5[1129]|NM_004753.7:DHRS3:intron:5/5[1129]
+chr1	15929267	.	G	GA	.	.	worst_effect=non-coding-intron;gene_effects=CROCCP3:non-coding-intron;effect_details=NR_023386.1:CROCCP3:non-coding-intron:None/None[None]
+chr1	20639952	.	C	T	.	.	worst_effect=intron;gene_effects=EIF4G3:intron;effect_details=NM_001391906.1:EIF4G3:intron:34/36[38]|NM_001198801.2:EIF4G3:intron:32/34[38]|NM_001391907.1:EIF4G3:intron:34/36[38]|NM_001198802.2:EIF4G3:intron:32/34[38]|NM_001391902.1:EIF4G3:intron:32/34[38]|NM_001391898.1:EIF4G3:intron:32/33[38]|NM_001391897.1:EIF4G3:intron:32/34[38]|NM_001391901.1:EIF4G3:intron:32/34[38]|NM_001391904.1:EIF4G3:intron:32/34[38]|NM_001391892.1:EIF4G3:intron:31/33[38]|NM_001391900.1:EIF4G3:intron:31/33[38]|NM_001391896.1:EIF4G3:intron:31/32[38]|NM_001391905.1:EIF4G3:intron:33/35[38]|NM_001391894.1:EIF4G3:intron:31/33[38]|NM_001391903.1:EIF4G3:intron:31/33[38]|NM_001391893.1:EIF4G3:intron:29/31[38]|NM_001391899.1:EIF4G3:intron:29/31[38]|NM_003760.4:EIF4G3:intron:29/31[38]
+chr1	21257524	.	C	T	.	.	cadd_raw=0.339;cadd_phred=5.92;worst_effect_GENCODE_48=intergenic;effect_details_GENCODE_48=intergenic:intergenic:intergenic:intergenic;gene_effects_GENCODE_48=intergenic:intergenic;worst_effect_MANE_1.3=intergenic;effect_details_MANE_1.3=intergenic:intergenic:intergenic:intergenic;gene_effects_MANE_1.3=intergenic:intergenic;worst_effect=intergenic;gene_effects=intergenic:intergenic;effect_details=intergenic:intergenic:intergenic:intergenic
+chr1	22910448	.	C	T	.	.	cadd_raw=-0.31;cadd_phred=0.136;worst_effect_GENCODE_48=3'UTR;effect_details_GENCODE_48=ENST00000471849.6:LUZP1:3'UTR:4116|ENST00000475164.3:LUZP1:3'UTR:4116|ENST00000706844.2:LUZP1:3'UTR:4116|ENST00000713666.1:LUZP1:3'UTR:4116|ENST00000427154.1:ENSG00000240553:non-coding-intron:None/None[None]|ENST00000302291.9:LUZP1:3'UTR:4116;gene_effects_GENCODE_48=LUZP1:3'UTR|ENSG00000240553:non-coding-intron;worst_effect_MANE_1.3=3'UTR;effect_details_MANE_1.3=ENST00000302291.9:LUZP1:3'UTR:4116;gene_effects_MANE_1.3=LUZP1:3'UTR;pLI_rank_all=LUZP1:6557.0;pLI_rank_min=6.56e+03;LOEUF_rank_all=LUZP1:3599.5;LOEUF_rank_min=3.6e+03;worst_effect=3'UTR;gene_effects=LUZP1:3'UTR;effect_details=NM_033631.5:LUZP1:3'UTR:4116|NM_001395462.1:LUZP1:3'UTR:4116|NM_001142546.4:LUZP1:3'UTR:4116|NM_001395461.1:LUZP1:3'UTR:4116
+chr1	27550357	.	G	GT	.	.	worst_effect=intergenic;gene_effects=intergenic:intergenic;effect_details=intergenic:intergenic:intergenic:intergenic
+chr1	32077257	.	C	T	.	.	cadd_raw=-0.0708;cadd_phred=0.894;worst_effect_GENCODE_48=intron;effect_details_GENCODE_48=ENST00000484490.1:TMEM234:intron:1/2[2001]|ENST00000373593.5:TMEM234:intron:3/3[1777]|ENST00000309777.11:TMEM234:intron:3/4[1777]|ENST00000344461.7:TMEM234:intron:3/5[1777];gene_effects_GENCODE_48=TMEM234:intron;worst_effect_MANE_1.3=intron;effect_details_MANE_1.3=ENST00000309777.11:TMEM234:intron:3/4[1777];gene_effects_MANE_1.3=TMEM234:intron;pLI_rank_all=TMEM234:12189.0;pLI_rank_min=1.22e+04;LOEUF_rank_all=TMEM234:18161.0;LOEUF_rank_min=1.82e+04;worst_effect=intron;gene_effects=TMEM234:intron|TMEM234:non-coding-intron;effect_details=NM_001366191.2:TMEM234:intron:3/5[1777]|NR_133634.2:TMEM234:non-coding-intron:None/None[None]|NR_133636.2:TMEM234:non-coding-intron:None/None[None]|NR_133635.2:TMEM234:non-coding-intron:None/None[None]|NM_019118.5:TMEM234:intron:3/4[1777]
+chr1	34165789	.	CG	C	.	.	worst_effect=intergenic;gene_effects=intergenic:intergenic;effect_details=intergenic:intergenic:intergenic:intergenic
+chr1	40409787	.	T	A	.	.	cadd_raw=2.58;cadd_phred=22.2;am_pathogenicity=0.193;mpc=0.275;worst_effect_GENCODE_48=missense;effect_details_GENCODE_48=ENST00000372699.8:ZNF684:missense:18/378(Thr->Ser)|ENST00000372696.3:ZNF684:missense:18/92(Thr->Ser)|ENST00000372697.7:ZNF684:missense:18/119(Thr->Ser)|ENST00000648542.1:ZNF684:missense:18/378(Thr->Ser);gene_effects_GENCODE_48=ZNF684:missense;worst_effect_MANE_1.3=missense;effect_details_MANE_1.3=ENST00000372699.8:ZNF684:missense:18/378(Thr->Ser);gene_effects_MANE_1.3=ZNF684:missense;pLI_rank_all=ZNF684:11202.0;pLI_rank_min=1.12e+04;LOEUF_rank_all=ZNF684:15365.5;LOEUF_rank_min=1.54e+04;worst_effect=synonymous;gene_effects=ZNF684:synonymous;effect_details=NM_152373.4:ZNF684:synonymous:18/378
+chr1	41583044	.	C	CG	.	.	worst_effect=5'UTR-intron;gene_effects=HIVEP3:5'UTR-intron;effect_details=NM_024503.5:HIVEP3:5'UTR-intron:1/8[11508]|NM_001127714.3:HIVEP3:5'UTR-intron:1/7[83461]

@@ -67,7 +67,8 @@ export async function clearPipelineEditor(page: Page): Promise<void> {
 
 
 export async function selectPipeline(page: Page, pipeline: string): Promise<void> {
-  await page.locator('#pipelines-input').click();
+  await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
+  await page.locator('.dropdown-icon').click();
   await page.getByRole('option', { name: 'circle ' + pipeline, exact: true }).click();
   await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
 }

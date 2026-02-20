@@ -14,7 +14,7 @@ test.describe('Create job tests', () => {
     await page.locator('#annotation-jobs').click();
   });
 
-  test('should be able to create job with pipeline and input file', async({ page }) => {
+  test('should create job with vcf file', async({ page }) => {
     await utils.selectPipeline(page, 'pipeline/Autism_annotation');
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-vcf-file.vcf');
     await page.locator('#create-button').click();
@@ -66,7 +66,7 @@ test.describe('Create job tests', () => {
     await expect(page.getByText(lastJobId)).not.toBeVisible();
   });
 
-  test('should upload tsv file and specify columns', async({ page }) => {
+  test('should create job with tsv file and columns selected by default', async({ page }) => {
     await utils.selectPipeline(page, 'pipeline/GPF-SFARI_annotation');
 
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-tsv-file.tsv');
@@ -77,7 +77,7 @@ test.describe('Create job tests', () => {
     await waitForJobStatus(page, utils.successBackgroundColor);
   });
 
-  test('should upload csv file and specify columns', async({ page }) => {
+  test('should create job with csv file and columns selected by default', async({ page }) => {
     await utils.selectPipeline(page, 'pipeline/GPF-SFARI_annotation');
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-csv-file.csv');
     await page.waitForSelector('#table');
@@ -206,7 +206,7 @@ test.describe('Jobs table tests', () => {
     await expect(page.locator('.actions').nth(0)).not.toBeEmpty();
   });
 
-  test('should check if download button is visible when annotation is success', async({ page }) => {
+  test('should download from table when annotation is success', async({ page }) => {
     await createJobWithPipeline(page, 'pipeline/GPF-SFARI_annotation', 'input-vcf-file.vcf');
     await waitForJobStatus(page, utils.successBackgroundColor);
 
