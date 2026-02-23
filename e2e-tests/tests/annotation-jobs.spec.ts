@@ -351,6 +351,9 @@ async function createJobWithPipeline(page: Page, pipeline: string, inputFileName
 
 
 async function customDefaultPipeline(page: Page): Promise<void> {
+  await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New', exact: true }).click();
+  await expect(page.locator('#pipelines-input')).toBeEmpty();
+  await expect(page.locator('.monaco-editor').nth(0)).toBeEmpty();
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   await page.evaluate(() => {
     // eslint-disable-next-line max-len
