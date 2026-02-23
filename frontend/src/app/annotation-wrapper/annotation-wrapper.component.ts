@@ -30,7 +30,7 @@ import { AnnotationPipelineService } from '../annotation-pipeline.service';
 export class AnnotationWrapperComponent implements OnInit, OnDestroy {
   public file: File = null;
   public fileSeparator: string = null;
-  public fileHeader = new Map<string, string>();
+  public fileHeader: Map<string, string> = null;
   public pipelineId = '';
   public isConfigValid = true;
   public creationError = '';
@@ -204,6 +204,7 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
     this.currentJob = null;
     this.downloadLink = '';
     this.file = null;
+    this.fileHeader = null;
   }
 
   public setPipeline(newPipeline: string): void {
