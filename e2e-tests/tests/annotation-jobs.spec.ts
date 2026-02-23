@@ -67,7 +67,7 @@ test.describe('Create job tests', () => {
   });
 
   test('should create job with tsv file and columns selected by default', async({ page }) => {
-    await utils.selectPipeline(page, 'pipeline/GPF-SFARI_annotation');
+    await customDefaultPipeline(page);
 
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-tsv-file.tsv');
 
@@ -78,7 +78,8 @@ test.describe('Create job tests', () => {
   });
 
   test('should create job with csv file and columns selected by default', async({ page }) => {
-    await utils.selectPipeline(page, 'pipeline/GPF-SFARI_annotation');
+    await customDefaultPipeline(page);
+
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-csv-file.csv');
     await page.waitForSelector('#table');
 
@@ -118,7 +119,10 @@ test.describe('Job details tests', () => {
   });
 
   test('should download uploaded file from job details modal', async({ page }) => {
-    await createJobWithPipeline(page, 'pipeline/Autism_annotation', 'input-vcf-file.vcf');
+    await customDefaultPipeline(page);
+    await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-vcf-file.vcf');
+    await page.locator('#create-button').click();
+
     await waitForJobStatus(page, utils.successBackgroundColor);
 
     await page.locator('.job-name').getByText('info').nth(0).click();
@@ -135,7 +139,9 @@ test.describe('Job details tests', () => {
   });
 
   test('should download pipeline config file', async({ page }) => {
-    await createJobWithPipeline(page, 'pipeline/Autism_annotation', 'input-vcf-file.vcf');
+    await customDefaultPipeline(page);
+    await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-vcf-file.vcf');
+    await page.locator('#create-button').click();
     await waitForJobStatus(page, utils.successBackgroundColor);
 
     await page.locator('.job-name').getByText('info').nth(0).click();
@@ -144,15 +150,17 @@ test.describe('Job details tests', () => {
     await page.locator('app-job-details').locator('#download-config').click();
     const downloadedFile = await downloadPromise;
 
-    const fixtureData = scanCSV(await downloadedFile.path());
-    const downloadData = scanCSV('./fixtures/autism-annotation-pipeline.yaml');
+    const downloadData = scanCSV(await downloadedFile.path());
+    const fixtureData = scanCSV('./fixtures/custom-pipeline.yaml');
     const fixtureFrame = await fixtureData.collect();
     const downloadFrame = await downloadData.collect();
     expect(fixtureFrame.toString()).toEqual(downloadFrame.toString());
   });
 
   test('should download annotated file', async({ page }) => {
-    await createJobWithPipeline(page, 'pipeline/Autism_annotation', 'input-vcf-file.vcf');
+    await customDefaultPipeline(page);
+    await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-vcf-file.vcf');
+    await page.locator('#create-button').click();
     await waitForJobStatus(page, utils.successBackgroundColor);
 
     await page.locator('.job-name').getByText('info').nth(0).click();
@@ -339,4 +347,26 @@ async function createJobWithPipeline(page: Page, pipeline: string, inputFileName
   await utils.selectPipeline(page, pipeline);
   await page.locator('input[id="file-upload"]').setInputFiles(`./fixtures/${inputFileName}`);
   await page.locator('#create-button').click();
+}
+
+
+async function customDefaultPipeline(page: Page): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  await page.evaluate(() => {
+    // eslint-disable-next-line max-len
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
+    (window as any).monaco.editor.getModels()[0].setValue(
+      '- effect_annotator:\n' +
+      '   gene_models: hg38/gene_models/GENCODE/48/basic/ALL\n' +
+      '   genome: hg38/genomes/GRCh38.p13\n' +
+      '   attributes:\n' +
+      '   - worst_effect\n' +
+      '   - gene_effects\n' +
+      '   - effect_details\n' +
+      '   - name: gene_list \n' +
+      '     internal: true\n'
+    );
+  });
+
+  await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
 }
