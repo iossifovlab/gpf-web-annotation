@@ -85,24 +85,20 @@ test.describe('Pipeline tests', () => {
   });
 
   test('should edit public pipeline and annotate with it', async({ page }) => {
+    await utils.selectPipeline(page, 'pipeline/Clinical_annotation');
+    /* eslint-disable */
     await page.evaluate(() => {
-      // eslint-disable-next-line max-len
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
       const monaco = (window as any).monaco;
-      // eslint-disable-next-line max-len
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
       const model = monaco.editor.getModels()[0];
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
       model.applyEdits([
         {
-          // eslint-disable-next-line max-len
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-          range: new monaco.Range(15, 1, 135, 1), // clear from line 15 col 1 to line 135 col 1
+          range: new monaco.Range(16, 1, 86, 1), // clear from line 15 col 1 to line 135 col 1
           text: ''
         }
       ]);
     });
+    /* eslint-enable */
 
     await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
     await expect(page.locator('#pipelines-input')).toBeEmpty();
