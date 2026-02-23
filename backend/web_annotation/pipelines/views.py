@@ -265,10 +265,6 @@ class PipelineValidation(AnnotationBaseView):
 
         result = {"errors": ""}
 
-        if content.strip() == "":
-            result = {"errors": "Configuration is empty."}
-            return Response(result, status=views.status.HTTP_200_OK)
-
         try:
             AnnotationConfigParser.parse_str(content, grr=self.grr)
             load_pipeline_from_yaml(content, self.grr)
