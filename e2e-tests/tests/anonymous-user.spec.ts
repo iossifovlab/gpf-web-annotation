@@ -5,6 +5,8 @@ import * as utils from '../utils';
 test.describe('Anonymous user tests', () => {
   test.beforeEach(async({ page }) => {
     await page.goto('/', {waitUntil: 'load'});
+    // wait for default pipeline to load
+    await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
   });
 
   test('should check if delete and save pipelines buttons are hidden', async({ page }) => {
@@ -89,7 +91,10 @@ test.describe('Anonymous user tests', () => {
       );
     });
 
+    await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
+
     await page.locator('.example').click();
+    await page.waitForSelector('#report', {timeout: 120000});
     await expect(page.locator('#report')).toBeVisible();
 
     await expect(page.locator('#history-table')).not.toBeVisible();
@@ -101,6 +106,7 @@ test.describe('Anonymous user tests', () => {
 
     await page.getByPlaceholder('Type variant...').fill('chr1 1265232 G A');
     await page.getByRole('button', {name: 'Go'}).click();
+    await page.waitForSelector('#report', {timeout: 120000});
     await expect(page.locator('#report')).toBeVisible();
   });
 

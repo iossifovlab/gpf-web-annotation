@@ -314,9 +314,8 @@ test.describe('Jobs validation tests', () => {
   test('should expect error message when no columns are specified', async({ page }) => {
     await utils.selectPipeline(page, 'pipeline/Autism_annotation');
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/wrongly-separated-row.csv');
-
-    await page.locator('#create-button').click();
     await expect(page.getByText('No columns selected!')).toBeVisible();
+    await expect(page.locator('#create-button')).toBeDisabled();
   });
 
   test.skip('should upload file with more than 1000 variants', async({ page }) => {
