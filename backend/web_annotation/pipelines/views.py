@@ -100,11 +100,7 @@ class UserPipeline(AnnotationBaseView):
         config_filename = f'{pipeline_name}.yaml'
 
         if pipeline_id:  # Update
-            user_pipelines = request.user.pipeline_class.objects.filter(
-                owner=request.user,
-                pk=int(pipeline_id),
-            )
-            pipeline = user_pipelines[0]
+            pipeline = request.user.get_pipeline(pipeline_id)
             config_path = Path(str(pipeline.config_path))
         else:  # Create
             assert pipeline_name is not None
@@ -268,10 +264,6 @@ class PipelineValidation(AnnotationBaseView):
         assert isinstance(content, str)
 
         result = {"errors": ""}
-
-        if content.strip() == "":
-            result = {"errors": "Configuration is empty."}
-            return Response(result, status=views.status.HTTP_200_OK)
 
         try:
             AnnotationConfigParser.parse_str(content, grr=self.grr)
