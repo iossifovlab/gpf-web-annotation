@@ -376,5 +376,9 @@ async function customDefaultPipeline(page: Page): Promise<void> {
     );
   });
 
+  await page.waitForResponse(
+    resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
+  );
+
   await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
 }

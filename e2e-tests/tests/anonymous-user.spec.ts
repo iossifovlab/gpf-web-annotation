@@ -170,6 +170,10 @@ test.describe('Anonymous user tests', () => {
       );
     });
 
+    await page.waitForResponse(
+      resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
+    );
+
     await page.locator('#annotation-jobs').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-vcf-file.vcf');
     await page.locator('#create-button').click();
@@ -247,6 +251,10 @@ async function customDefaultPipeline(page: Page): Promise<void> {
       '     internal: true\n'
     );
   });
+
+  await page.waitForResponse(
+    resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
+  );
 
   await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
 }

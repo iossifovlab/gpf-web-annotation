@@ -32,6 +32,10 @@ test.describe('Pipeline tests', () => {
       );
     });
 
+    await page.waitForResponse(
+      resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
+    );
+
     await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
 
     await page.getByRole('button', { name: 'Save as' }).click();
@@ -68,7 +72,6 @@ test.describe('Pipeline tests', () => {
     await page.waitForResponse(
       resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
     );
-
 
     await page.locator('.example').click();
     await expect(page.locator('#pipelines-input')).toBeEmpty();
@@ -129,6 +132,10 @@ test.describe('Pipeline tests', () => {
       );
     });
 
+    await page.waitForResponse(
+      resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
+    );
+
     await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
 
     await page.getByRole('button', { name: 'Save as' }).click();
@@ -187,6 +194,10 @@ test.describe('Pipeline tests', () => {
       );
     });
 
+    await page.waitForResponse(
+      resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
+    );
+
     await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
 
     await page.getByRole('button', { name: 'Save as' }).click();
@@ -240,6 +251,10 @@ test.describe('Pipeline tests', () => {
         '    resource_id: hg38/scores/CADD_v1.4\n'
       );
     });
+
+    await page.waitForResponse(
+      resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
+    );
 
     await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
 
@@ -483,6 +498,10 @@ test.describe('Add annotator to pipeline tests', () => {
         '    resource_id: hg38/scores/CADD_v1.4\n'
       );
     });
+
+    await page.waitForResponse(
+      resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
+    );
 
     await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
 
