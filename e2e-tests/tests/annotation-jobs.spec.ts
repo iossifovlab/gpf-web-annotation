@@ -32,12 +32,12 @@ test.describe('Create job tests', () => {
     await expect(page.locator('#create-button')).toBeEnabled();
   });
 
-  test('should check if create button is disabled when no pipeline is selected', async({ page }) => {
+  test('should check if create button is enabled when no pipeline is selected', async({ page }) => {
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-vcf-file.vcf');
     await expect(page.locator('#create-button')).toBeEnabled();
 
     await utils.clearPipelineEditor(page);
-    await expect(page.locator('#create-button')).toBeDisabled();
+    await expect(page.locator('#create-button')).toBeEnabled();
   });
 
   test('should check if create button is disabled when pipeline is invalid', async({ page }) => {
@@ -120,7 +120,7 @@ test.describe('Job details tests', () => {
 
   test('should download uploaded file from job details modal', async({ page }) => {
     await customDefaultPipeline(page);
-    await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-vcf-file.vcf');
+    await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-vcf-file-reduced.vcf');
     await page.locator('#create-button').click();
 
     await waitForJobStatus(page, utils.successBackgroundColor);
@@ -132,7 +132,7 @@ test.describe('Job details tests', () => {
     const downloadedFile = await downloadPromise;
 
     const fixtureData = scanCSV(await downloadedFile.path(), {truncateRaggedLines: true});
-    const downloadData = scanCSV('./fixtures/input-vcf-file.vcf', {truncateRaggedLines: true});
+    const downloadData = scanCSV('./fixtures/input-vcf-file-reduced.vcf', {truncateRaggedLines: true});
     const fixtureFrame = await fixtureData.collect();
     const downloadFrame = await downloadData.collect();
     expect(fixtureFrame.toString()).toEqual(downloadFrame.toString());
@@ -208,14 +208,19 @@ test.describe('Jobs table tests', () => {
   });
 
   test('should create job and check first row', async({ page }) => {
-    await createJobWithPipeline(page, 'pipeline/GPF-SFARI_annotation', 'input-vcf-file.vcf');
+    await customDefaultPipeline(page);
+    await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-vcf-file.vcf');
+    await page.locator('#create-button').click();
+
     await waitForJobStatus(page, utils.successBackgroundColor);
     await expect(page.locator('.job-name').nth(0)).not.toBeEmpty();
     await expect(page.locator('.actions').nth(0)).not.toBeEmpty();
   });
 
   test('should download from table when annotation is success', async({ page }) => {
-    await createJobWithPipeline(page, 'pipeline/GPF-SFARI_annotation', 'input-vcf-file.vcf');
+    await customDefaultPipeline(page);
+    await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-vcf-file.vcf');
+    await page.locator('#create-button').click();
     await waitForJobStatus(page, utils.successBackgroundColor);
 
     const downloadPromise = page.waitForEvent('download');

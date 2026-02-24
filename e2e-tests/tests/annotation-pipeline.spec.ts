@@ -489,6 +489,7 @@ test.describe('Add annotator to pipeline tests', () => {
     await page.locator('#name-modal input').fill('My Pipeline');
     await page.locator('#name-modal').getByRole('button', { name: 'Save' }).click();
 
+    await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
     // append new annotator
     await page.locator('#pipeline-actions').locator('#add-annotator-button').click();
 

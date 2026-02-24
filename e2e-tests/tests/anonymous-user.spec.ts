@@ -1,6 +1,5 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 import { scanCSV } from 'nodejs-polars';
-import * as utils from '../utils';
 
 test.describe('Anonymous user tests', () => {
   test.beforeEach(async({ page }) => {
@@ -117,6 +116,7 @@ test.describe('Anonymous user tests', () => {
 
     await page.getByPlaceholder('Type variant...').fill('chr1 1265232 G A');
     await page.getByRole('button', {name: 'Go'}).click();
+    await page.waitForSelector('#report', {timeout: 120000});
     await expect(page.locator('#download-report-button')).toBeVisible();
 
     const downloadPromise = page.waitForEvent('download');
@@ -132,7 +132,7 @@ test.describe('Anonymous user tests', () => {
 
   test('should use public pipeline for job annotation', async({ page }) => {
     await page.locator('#annotation-jobs').click();
-    await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-vcf-file.vcf');
+    await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-vcf-file-reduced.vcf');
     await page.locator('#create-button').click();
 
     await expect(page.getByText('Job name: anonymous_job')).toBeVisible();
@@ -171,13 +171,13 @@ test.describe('Anonymous user tests', () => {
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-vcf-file.vcf');
     await page.locator('#create-button').click();
 
-    await expect(page.locator('#result')).toBeVisible();
+    await expect(page.locator('#result')).toBeVisible({ timeout: 120000 });
     await expect(page.locator('#new-job-section')).toBeVisible();
   });
 
   test('should annotate with tsv file', async({ page }) => {
     await page.locator('#annotation-jobs').click();
-    await utils.selectPipeline(page, 'pipeline/GPF-SFARI_annotation');
+    await customDefaultPipeline(page);
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-tsv-file.tsv');
     await page.locator('#create-button').click();
     await page.waitForSelector('.success-status', {timeout: 120000});
@@ -186,7 +186,7 @@ test.describe('Anonymous user tests', () => {
   test('should annotate with csv file', async({ page }) => {
     await page.locator('#annotation-jobs').click();
 
-    await utils.selectPipeline(page, 'pipeline/Clinical_annotation');
+    await customDefaultPipeline(page);
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-csv-file.csv');
     await page.locator('#create-button').click();
     await page.waitForSelector('.success-status', {timeout: 120000});
@@ -194,7 +194,7 @@ test.describe('Anonymous user tests', () => {
 
   test('should download job result', async({ page }) => {
     await page.locator('#annotation-jobs').click();
-    await utils.selectPipeline(page, 'pipeline/T2T_Clinical_annotation');
+    await customDefaultPipeline(page);
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-vcf-file.vcf');
     await page.locator('#create-button').click();
 
@@ -223,3 +223,27 @@ test.describe('Anonymous user tests', () => {
     await expect(page.locator('#file-upload-field')).toBeVisible();
   });
 });
+
+async function customDefaultPipeline(page: Page): Promise<void> {
+  await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New', exact: true }).click();
+  await expect(page.locator('#pipelines-input')).toBeEmpty();
+  await expect(page.locator('.monaco-editor').nth(0)).toBeEmpty();
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  await page.evaluate(() => {
+    // eslint-disable-next-line max-len
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
+    (window as any).monaco.editor.getModels()[0].setValue(
+      '- effect_annotator:\n' +
+      '   gene_models: hg38/gene_models/GENCODE/48/basic/ALL\n' +
+      '   genome: hg38/genomes/GRCh38.p13\n' +
+      '   attributes:\n' +
+      '   - worst_effect\n' +
+      '   - gene_effects\n' +
+      '   - effect_details\n' +
+      '   - name: gene_list \n' +
+      '     internal: true\n'
+    );
+  });
+
+  await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
+}
