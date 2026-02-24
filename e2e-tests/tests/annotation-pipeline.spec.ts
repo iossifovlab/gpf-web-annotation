@@ -65,7 +65,10 @@ test.describe('Pipeline tests', () => {
       );
     });
 
-    await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
+    await page.waitForResponse(
+      resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
+    );
+
 
     await page.locator('.example').click();
     await expect(page.locator('#pipelines-input')).toBeEmpty();
