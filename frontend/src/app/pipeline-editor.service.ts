@@ -14,6 +14,7 @@ export class PipelineEditorService {
   private getAttributesUrl = `${environment.apiPath}/editor/annotator_attributes`;
   private getAnnotatorYmlUrl = `${environment.apiPath}/editor/annotator_yaml`;
   private getPipelineAttributesUrl = `${environment.apiPath}/editor/pipeline_attributes`;
+  private getResourceTypesUrl = `${environment.apiPath}/resources/types`;
 
   public constructor(private http: HttpClient) { }
 
@@ -124,5 +125,13 @@ export class PipelineEditorService {
       Object.assign(body, resources),
       options
     );
+  }
+
+  public getResourceTypes(): Observable<string[]> {
+    return this.http.get<string[]>(this.getResourceTypesUrl);
+  }
+
+  public getResourcesBySearch(value: string, type: string): Observable<string[]> {
+    return this.http.get<string[]>(`${this.getResourcesUrl}?type=${type}&search=${value}`);
   }
 }

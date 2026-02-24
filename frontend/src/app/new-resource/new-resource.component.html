@@ -1,0 +1,38 @@
+<div id="modal-header">New resource</div>
+<div style="height: 100%">
+  <mat-stepper #stepper [linear]="true" class="custom-stepper">
+    <mat-step label="Select resource" [editable]="false" [stepControl]="resourceStep">
+      <form [formGroup]="resourceStep" id="resource-input-form">
+        <mat-form-field [appearance]="'outline'">
+          <mat-select matNativeControl [value]="selectedType" formControlName="type">
+            @for (type of resourceTypes; track type) {
+            <mat-option [value]="type" [title]="type" (click)="selectedType = type">{{ type }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <input
+          autocomplete="off"
+          matInput
+          formControlName="resourceInput"
+          [matAutocomplete]="resourceIdsDropdown"
+          #resourceInput="matAutocompleteTrigger"
+          #resourceInputValue
+          [title]="resourceInputValue.value" />
+        <mat-autocomplete #resourceIdsDropdown="matAutocomplete">
+          @for (id of resourceIds; track id) {
+          <mat-option class="annotator-option" [value]="id" [title]="id">{{ id }}</mat-option>
+          }
+        </mat-autocomplete>
+
+        <div>
+          <button matButton [disabled]="resourceStep.invalid" class="next-button">Next</button>
+        </div>
+      </form>
+    </mat-step>
+
+    <mat-step label="Select annotator" [editable]="false" [stepControl]="resourceStep"></mat-step>
+    <mat-step label="Attributes" [editable]="false"></mat-step>
+    <mat-step label="Modify attributes" [editable]="false" [optional]="true"></mat-step>
+  </mat-stepper>
+</div>
