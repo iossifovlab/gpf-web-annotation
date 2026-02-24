@@ -114,7 +114,7 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
   }
 
   public autoSavePipeline(): void {
-    if (!this.pipelinesComponent.currentPipelineText || !this.isConfigValid) {
+    if (!this.isConfigValid) {
       return;
     }
     if (this.pipelinesComponent.isPipelineChanged()) {

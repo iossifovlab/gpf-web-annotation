@@ -301,11 +301,15 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   }
 
   public clearPipeline(): void {
+    if (!this.currentPipelineText && !this.selectedPipeline) {
+      return;
+    }
     this.selectedPipeline = null;
     this.currentPipelineText = '';
     this.emitPipelineId.emit(null);
     this.clearPipelineInput();
     this.clearTemporaryPipeline();
+    this.isConfigValid();
   }
 
   public saveAs(): void {
