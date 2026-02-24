@@ -278,12 +278,12 @@ describe('AnnotationWrapperComponent', () => {
     expect(component.pipelineId).toBe('temp');
   });
 
-  it('should not trigger auto save pipeline when editor is empty', () => {
+  it('should trigger auto save pipeline when editor is empty', () => {
     const pipelinesComponentSpy = jest.spyOn(component.pipelinesComponent, 'autoSave');
     component.pipelinesComponent.currentPipelineText = '';
 
     component.autoSavePipeline();
-    expect(pipelinesComponentSpy).not.toHaveBeenCalledWith();
+    expect(pipelinesComponentSpy).toHaveBeenCalledWith();
   });
 
   it('should create job with vcf file and auto save pipeline', () => {
