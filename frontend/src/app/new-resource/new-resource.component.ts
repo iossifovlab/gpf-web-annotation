@@ -9,7 +9,7 @@ import { MatStepperModule } from '@angular/material/stepper';
 import { CdkStepperModule, STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
 import { PipelineEditorService } from '../pipeline-editor.service';
 import { MatSelect } from '@angular/material/select';
-import { switchMap } from 'rxjs';
+import { distinctUntilChanged, map, switchMap, take } from 'rxjs';
 
 @Component({
   selector: 'app-new-resource',
@@ -24,7 +24,7 @@ import { switchMap } from 'rxjs';
     CdkStepperModule,
     MatAutocompleteModule,
     MatSelect
-],
+  ],
   providers: [
     {
       provide: STEPPER_GLOBAL_OPTIONS,
@@ -35,7 +35,7 @@ import { switchMap } from 'rxjs';
   styleUrl: './new-resource.component.css',
 })
 export class NewResourceComponent implements OnInit {
-  public resourceStep: FormGroup<{ type: FormControl<string>, resourceInput: FormControl<string> }>;
+  public resourceStep: FormGroup<{ resourceType: FormControl<string>, resourceInput: FormControl<string> }>;
   public resourceTypes: string[];
   public resourceIds: string[];
   public selectedType = '';
@@ -48,11 +48,11 @@ export class NewResourceComponent implements OnInit {
 
   public ngOnInit(): void {
     this.resourceStep = this.formBuilder.group({
-      type: ['', Validators.required],
+      resourceType: ['', Validators.required],
       resourceInput: ['', Validators.required],
     });
 
-    this.editorService.getResourceTypes().subscribe(res => {
+    this.editorService.getResourceTypes().pipe(take(1)).subscribe(res => {
       this.resourceTypes = res;
       this.selectedType = this.resourceTypes[0];
       this.setupResourceSearching();
@@ -61,13 +61,24 @@ export class NewResourceComponent implements OnInit {
 
   private setupResourceSearching(): void {
     this.resourceStep.get('resourceInput').valueChanges.pipe(
-      switchMap((value: string) => this.editorService.getResourcesBySearch(value, this.selectedType))
+      distinctUntilChanged(),
+      map(value => this.normalizeString(value)),
+      switchMap((value: string) => this.editorService.getResourcesBySearch(value, this.selectedType)),
     ).subscribe(resources => {
       this.resourceIds = resources;
 
-      if (!this.resourceIds.length || !this.resourceIds.includes(this.resourceStep.get('resourceInput').value)) {
+      // eslint-disable-next-line @stylistic/max-len
+      if (!resources.length || !this.resourceIds.includes(this.normalizeString(this.resourceStep.get('resourceInput').value))) {
         this.resourceStep.get('resourceInput').setErrors({ invalidOption: true });
       }
     });
+  }
+
+  public normalizeString(value: string): string {
+    return value === null ? '' : value.trim();
+  }
+
+  public clearResource(): void {
+    this.resourceStep.get('resourceInput').setValue(null);
   }
 }
