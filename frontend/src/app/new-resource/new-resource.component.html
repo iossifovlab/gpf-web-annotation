@@ -43,7 +43,9 @@
     <mat-step label="Select annotator" [editable]="false" [stepControl]="annotatorStep">
       <ng-template matStepContent>
         <div class="summary-content">
-          <div class="resources-display-text">{{ resourceTypeStep.value | keyValueDisplay }}</div>
+          <div class="resource-type-display-text" [title]="resourceTypeStep.value | keyValueDisplay">{{
+            resourceTypeStep.get('resourceType').value + '\n' + resourceTypeStep.get('resourceId').value
+          }}</div>
         </div>
         <div class="left-content">
           <form [formGroup]="annotatorStep" id="annotator-input-form">
@@ -53,7 +55,7 @@
                 placeholder="Select annotator"
                 autocomplete="off"
                 matInput
-                formControlName="annotatorType"
+                formControlName="annotator"
                 [matAutocomplete]="annotatorsDropdown"
                 #annotatorInput="matAutocompleteTrigger"
                 #annotatorInputValue
@@ -87,8 +89,8 @@
     <mat-step label="Select resources" [editable]="false" [stepControl]="resourceStep">
       <ng-template matStepContent>
         <div class="summary-content">
-          <div class="resources-display-text" [title]="resourceTypeStep.value | keyValueDisplay">{{
-            resourceTypeStep.value | keyValueDisplay
+          <div class="resource-type-display-text" [title]="resourceTypeStep.value | keyValueDisplay">{{
+            resourceTypeStep.get('resourceType').value + '\n' + resourceTypeStep.get('resourceId').value
           }}</div>
           <div class="annotator-display-text">{{ annotatorStep.value | keyValueDisplay }}</div>
         </div>
@@ -162,7 +164,7 @@
       <ng-template matStepContent>
         <div class="summary-content">
           <div class="resource-type-display-text" [title]="resourceTypeStep.value | keyValueDisplay">{{
-            resourceTypeStep.value | keyValueDisplay
+            resourceTypeStep.get('resourceType').value + ': ' + resourceTypeStep.get('resourceId').value
           }}</div>
           <div class="annotator-display-text" [title]="annotatorStep.value | keyValueDisplay">{{
             annotatorStep.value | keyValueDisplay
@@ -192,12 +194,78 @@
             } }
           </div>
           <div>
-            <button matButton class="finish-button">Finish</button>
+            <button matButton class="finish-button" (click)="onFinish()">Finish</button>
             <button matButton matStepperNext class="next-button">Next</button>
           </div>
         </div>
       </ng-template>
     </mat-step>
-    <mat-step label="Modify attributes" [editable]="false" [optional]="true"></mat-step>
+    <mat-step label="Modify attributes" [editable]="false" [optional]="true">
+      <ng-template matStepContent>
+        <div class="summary-content">
+          <div class="resource-type-display-text" [title]="resourceTypeStep.value | keyValueDisplay">{{
+            resourceTypeStep.value | keyValueDisplay
+          }}</div>
+          <div class="annotator-display-text" [title]="annotatorStep.value | keyValueDisplay">{{
+            annotatorStep.value | keyValueDisplay
+          }}</div>
+          <div class="resources-display-text" [title]="annotatorStep.value | keyValueDisplay">{{
+            resourceStep.value | keyValueDisplay
+          }}</div>
+        </div>
+
+        <div class="left-content">
+          <div id="attributes-list">
+            @for (attribute of annotatorAttributes; track attribute) {
+            <div class="attribute-group modify-view-group">
+              <input
+                type="checkbox"
+                [checked]="selectedAttributes.includes(attribute)"
+                (change)="toggleSelectedAttribute(attribute)" />
+              <div style="width: 100%">
+                <div class="attribute modify-view-attribute">
+                  <span class="field-label">name</span>
+                  <input
+                    class="editable-name"
+                    type="text"
+                    [title]="attribute.name"
+                    [value]="attribute.name"
+                    [(ngModel)]="attribute.name" />
+                </div>
+                <div class="attribute modify-view-attribute">
+                  <span class="field-label">source</span>
+                  <span>{{ attribute.source }}</span>
+                </div>
+                <div class="attribute modify-view-attribute">
+                  <span class="field-label">internal</span>
+                  <div>
+                    <input
+                      type="radio"
+                      [id]="attribute.name + '-internal-true'"
+                      [name]="attribute.name + 'is-internal'"
+                      [value]="attribute.name + '-internal-true'"
+                      [checked]="attribute.internal === true"
+                      (click)="setAttributeInternal(attribute, true)" />
+                    <label [for]="attribute.name + '-internal-true'" class="internal-value">True</label>
+                    <input
+                      type="radio"
+                      [id]="attribute.name + '-internal-false'"
+                      [name]="attribute.name + 'is-internal'"
+                      [value]="attribute.name + '-internal-false'"
+                      [checked]="attribute.internal === false"
+                      (click)="setAttributeInternal(attribute, false)" />
+                    <label [for]="attribute.name + '-internal-false'" class="internal-value">False</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+            }
+          </div>
+          <div>
+            <button matButton (click)="onFinish()" class="finish-button">Finish</button>
+          </div>
+        </div>
+      </ng-template>
+    </mat-step>
   </mat-stepper>
 </div>
