@@ -1,15 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatStepperModule } from '@angular/material/stepper';
+import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { CdkStepperModule, STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
 import { PipelineEditorService } from '../pipeline-editor.service';
 import { MatSelect } from '@angular/material/select';
 import { distinctUntilChanged, map, switchMap, take } from 'rxjs';
+import { KeyValueDisplayPipe } from '../key-value-display.pipe';
 
 @Component({
   selector: 'app-new-resource',
@@ -23,7 +24,8 @@ import { distinctUntilChanged, map, switchMap, take } from 'rxjs';
     CommonModule,
     CdkStepperModule,
     MatAutocompleteModule,
-    MatSelect
+    MatSelect,
+    KeyValueDisplayPipe
   ],
   providers: [
     {
@@ -34,11 +36,16 @@ import { distinctUntilChanged, map, switchMap, take } from 'rxjs';
   templateUrl: './new-resource.component.html',
   styleUrl: './new-resource.component.css',
 })
+
 export class NewResourceComponent implements OnInit {
-  public resourceStep: FormGroup<{ resourceType: FormControl<string>, resourceInput: FormControl<string> }>;
+  public resourceStep: FormGroup<{ resourceType: FormControl<string>, resourceId: FormControl<string> }>;
   public resourceTypes: string[];
   public resourceIds: string[];
   public selectedType = '';
+  public annotatorStep: FormGroup<{ annotatorType: FormControl<string> }>;
+  public annotatorTypes: string[];
+  public filteredAnnotatorTypes: string[];
+  @ViewChild('stepper', { static: true }) public stepper: MatStepper;
 
   public constructor(
     private editorService: PipelineEditorService,
@@ -49,7 +56,11 @@ export class NewResourceComponent implements OnInit {
   public ngOnInit(): void {
     this.resourceStep = this.formBuilder.group({
       resourceType: ['', Validators.required],
-      resourceInput: ['', Validators.required],
+      resourceId: ['', Validators.required],
+    });
+
+    this.annotatorStep = this.formBuilder.group({
+      annotatorType: ['', Validators.required],
     });
 
     this.editorService.getResourceTypes().pipe(take(1)).subscribe(res => {
@@ -60,7 +71,7 @@ export class NewResourceComponent implements OnInit {
   }
 
   private setupResourceSearching(): void {
-    this.resourceStep.get('resourceInput').valueChanges.pipe(
+    this.resourceStep.get('resourceId').valueChanges.pipe(
       distinctUntilChanged(),
       map(value => this.normalizeString(value)),
       switchMap((value: string) => this.editorService.getResourcesBySearch(value, this.selectedType)),
@@ -68,8 +79,8 @@ export class NewResourceComponent implements OnInit {
       this.resourceIds = resources;
 
       // eslint-disable-next-line @stylistic/max-len
-      if (!resources.length || !this.resourceIds.includes(this.normalizeString(this.resourceStep.get('resourceInput').value))) {
-        this.resourceStep.get('resourceInput').setErrors({ invalidOption: true });
+      if (!resources.length || !this.resourceIds.includes(this.normalizeString(this.resourceStep.get('resourceId').value))) {
+        this.resourceStep.get('resourceId').setErrors({ invalidOption: true });
       }
     });
   }
@@ -79,6 +90,41 @@ export class NewResourceComponent implements OnInit {
   }
 
   public clearResource(): void {
-    this.resourceStep.get('resourceInput').setValue(null);
+    this.resourceStep.get('resourceId').setValue(null);
+  }
+
+  public requestAnnotators(): void {
+    this.editorService.getResourceAnnotators(this.resourceStep.value.resourceId.trim()).pipe(
+      take(1),
+    ).subscribe(res => {
+      this.annotatorTypes = res;
+      this.filteredAnnotatorTypes = res;
+
+      this.setupAnnotatorValueFiltering();
+      this.stepper.next();
+    });
+  }
+
+  private setupAnnotatorValueFiltering(): void {
+    this.annotatorStep.get('annotatorType').valueChanges.pipe(
+      map((value: string) => this.filterDropdownContent(value, this.annotatorTypes))
+    ).subscribe(filtered => {
+      this.filteredAnnotatorTypes = filtered;
+      if (!filtered.length || !filtered.includes(this.normalizeString(this.annotatorStep.get('annotatorType').value))) {
+        this.annotatorStep.get('annotatorType').setErrors({ invalidOption: true });
+      }
+    });
+  }
+
+  private filterDropdownContent(value: string, options: string[]): string[] {
+    if (!value) {
+      return options;
+    }
+    const filterValue = value.toLowerCase().replace(/\s/g, '');
+    return options.filter(p => p.toLowerCase().replace(/\s/g, '').includes(filterValue));
+  }
+
+  public clearAnnotator(): void {
+    this.annotatorStep.get('annotatorType').setValue(null);
   }
 }
