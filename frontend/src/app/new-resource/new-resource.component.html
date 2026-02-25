@@ -1,8 +1,8 @@
 <div id="modal-header">New resource</div>
 <div style="height: 100%">
   <mat-stepper #stepper [linear]="true" class="custom-stepper">
-    <mat-step label="Select resource" [editable]="false" [stepControl]="resourceStep">
-      <form [formGroup]="resourceStep" id="resource-input-form">
+    <mat-step label="Select resource type" [editable]="false" [stepControl]="resourceTypeStep">
+      <form [formGroup]="resourceTypeStep" id="resource-input-form">
         <div class="forms-wrapper">
           <mat-form-field [appearance]="'outline'">
             <mat-select matNativeControl [value]="selectedType" formControlName="resourceType">
@@ -33,7 +33,7 @@
         </div>
 
         <div>
-          <button matButton [disabled]="resourceStep.invalid" class="next-button" (click)="requestAnnotators()"
+          <button matButton [disabled]="resourceTypeStep.invalid" class="next-button" (click)="requestAnnotators()"
             >Next</button
           >
         </div>
@@ -43,7 +43,7 @@
     <mat-step label="Select annotator" [editable]="false" [stepControl]="annotatorStep">
       <ng-template matStepContent>
         <div class="summary-content">
-          <div class="resources-display-text">{{ resourceStep.value | keyValueDisplay }}</div>
+          <div class="resources-display-text">{{ resourceTypeStep.value | keyValueDisplay }}</div>
         </div>
         <div class="left-content">
           <form [formGroup]="annotatorStep" id="annotator-input-form">
@@ -75,7 +75,81 @@
             </mat-form-field>
 
             <div>
-              <button matButton [disabled]="annotatorStep.invalid" class="next-button" (click)="requestAttributes()"
+              <button matButton [disabled]="annotatorStep.invalid" class="next-button" (click)="requestResources()"
+                >Next</button
+              >
+            </div>
+          </form>
+        </div>
+      </ng-template>
+    </mat-step>
+
+    <mat-step label="Select resources" [editable]="false" [stepControl]="resourceStep">
+      <ng-template matStepContent>
+        <div class="summary-content">
+          <div class="resources-display-text" [title]="resourceTypeStep.value | keyValueDisplay">{{
+            resourceTypeStep.value | keyValueDisplay
+          }}</div>
+          <div class="annotator-display-text">{{ annotatorStep.value | keyValueDisplay }}</div>
+        </div>
+
+        <div class="left-content">
+          <form [formGroup]="resourceStep">
+            <div>
+              @for (resource of annotatorConfig.resources; track resource) {
+              <div class="field">
+                <div class="labels-wrapper">
+                  <span class="resource field-label"> {{ resource.key }}</span>
+                  @if(resource.optional) {
+                  <span class="optional-label">(optional)</span>
+                  }
+                </div>
+
+                @if(resource.fieldType === 'resource' || resource.fieldType === 'attribute') {
+                <mat-form-field [appearance]="'outline'" class="resource-input" [attr.id]="resource.key + '-dropdown'">
+                  <input
+                    type="text"
+                    placeholder="Select or search"
+                    autocomplete="off"
+                    matInput
+                    [formControlName]="resource.key"
+                    [matAutocomplete]="resourcesDropdown"
+                    #resourceInput="matAutocompleteTrigger"
+                    #resourceInputValue
+                    [title]="resourceInputValue.value"
+                    (click)="clearResource(resource.key)" />
+                  <span
+                    (click)="resourceInput.openPanel(); clearResource(resource.key)"
+                    class="material-symbols-outlined dropdown-icon"
+                    >keyboard_arrow_down</span
+                  >
+
+                  <mat-autocomplete #resourcesDropdown="matAutocomplete">
+                    @for (r of filteredResourceValues.get(resource.key); track $index) {
+                    <mat-option class="resource-option" [value]="r" [title]="r">{{ r }}</mat-option>
+                    }
+                  </mat-autocomplete>
+                </mat-form-field>
+                } @else if(resource.fieldType === 'string') {
+                <input
+                  class="resource-field"
+                  type="text"
+                  [formControlName]="resource.key"
+                  autocomplete="off"
+                  [attr.id]="resource.key + '-input'" />
+                } @else if(resource.fieldType === 'bool') {
+                <div>
+                  <input type="radio" [formControlName]="resource.key" for="true" />
+                  <label name="true">True</label>
+                  <input type="radio" [formControlName]="resource.key" for="false" />
+                  <label name="false">False</label>
+                </div>
+                }
+              </div>
+              }
+            </div>
+            <div>
+              <button matButton [disabled]="resourceStep.invalid" (click)="requestAttributes()" class="next-button"
                 >Next</button
               >
             </div>

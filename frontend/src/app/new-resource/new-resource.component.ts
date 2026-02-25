@@ -9,10 +9,10 @@ import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { CdkStepperModule, STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
 import { PipelineEditorService } from '../pipeline-editor.service';
 import { MatSelect } from '@angular/material/select';
-import { distinctUntilChanged, map, switchMap, take } from 'rxjs';
+import { distinctUntilChanged, forkJoin, map, Observable, of, switchMap, take } from 'rxjs';
 import { KeyValueDisplayPipe } from '../key-value-display.pipe';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { AnnotatorAttribute, Resource, ResourceAnnotator } from '../new-annotator/annotator';
+import { AnnotatorAttribute, AnnotatorConfig, Resource, ResourceAnnotator } from '../new-annotator/annotator';
 
 @Component({
   selector: 'app-new-resource',
@@ -40,13 +40,16 @@ import { AnnotatorAttribute, Resource, ResourceAnnotator } from '../new-annotato
 })
 
 export class NewResourceComponent implements OnInit {
-  public resourceStep: FormGroup<{ resourceType: FormControl<string>, resourceId: FormControl<string> }>;
+  public resourceTypeStep: FormGroup<{ resourceType: FormControl<string>, resourceId: FormControl<string> }>;
   public resourceTypes: string[];
   public resourceIds: string[];
   public selectedType = '';
   public annotatorStep: FormGroup<{ annotatorType: FormControl<string> }>;
   public annotatorTypes: string[];
   public filteredAnnotatorTypes: string[];
+  public resourceStep: FormGroup = new FormGroup({});
+  public filteredResourceValues: Map<string, string[]>;
+  public annotatorConfig: AnnotatorConfig;
   public resourceAnnotators: ResourceAnnotator[];
   public annotatorAttributes: AnnotatorAttribute[];
   public selectedAttributes: AnnotatorAttribute[];
@@ -60,7 +63,7 @@ export class NewResourceComponent implements OnInit {
   }
 
   public ngOnInit(): void {
-    this.resourceStep = this.formBuilder.group({
+    this.resourceTypeStep = this.formBuilder.group({
       resourceType: ['', Validators.required],
       resourceId: ['', Validators.required],
     });
@@ -77,7 +80,7 @@ export class NewResourceComponent implements OnInit {
   }
 
   private setupResourceSearching(): void {
-    this.resourceStep.get('resourceId').valueChanges.pipe(
+    this.resourceTypeStep.get('resourceId').valueChanges.pipe(
       distinctUntilChanged(),
       map(value => this.normalizeString(value)),
       switchMap((value: string) => this.editorService.getResourcesBySearch(value, this.selectedType)),
@@ -85,8 +88,8 @@ export class NewResourceComponent implements OnInit {
       this.resourceIds = resources;
 
       // eslint-disable-next-line @stylistic/max-len
-      if (!resources.length || !this.resourceIds.includes(this.normalizeString(this.resourceStep.get('resourceId').value))) {
-        this.resourceStep.get('resourceId').setErrors({ invalidOption: true });
+      if (!resources.length || !this.resourceIds.includes(this.normalizeString(this.resourceTypeStep.get('resourceId').value))) {
+        this.resourceTypeStep.get('resourceId').setErrors({ invalidOption: true });
       }
     });
   }
@@ -95,12 +98,16 @@ export class NewResourceComponent implements OnInit {
     return value === null ? '' : value.trim();
   }
 
-  public clearResource(): void {
-    this.resourceStep.get('resourceId').setValue(null);
+  public clearResource(inputField?: string): void {
+    if (inputField) {
+      this.resourceStep.get(inputField).setValue(null);
+      return;
+    }
+    this.resourceTypeStep.get('resourceId').setValue(null);
   }
 
   public requestAnnotators(): void {
-    this.editorService.getResourceAnnotators(this.resourceStep.value.resourceId.trim()).pipe(
+    this.editorService.getResourceAnnotators(this.resourceTypeStep.value.resourceId.trim()).pipe(
       take(1),
     ).subscribe(res => {
       this.annotatorTypes = res.map(r => r.annotatorType);
@@ -135,27 +142,86 @@ export class NewResourceComponent implements OnInit {
     this.annotatorStep.get('annotatorType').setValue(null);
   }
 
-  public requestAttributes(): void {
-    this.editorService.getAnnotatorConfigForResource(
-      this.annotatorStep.get('annotatorType').value,
-      this.resourceAnnotators.find(a => a.annotatorType === this.annotatorStep.get('annotatorType').value).resourceJson
-    )
-      .pipe(
-        switchMap(config => this.editorService.getAttributes(
-          this.pipelineId,
-          config.annotatorType,
-          this.getResourcesWithValuesAsObject(config.resources)
-        ))).subscribe(res => {
-        this.annotatorAttributes = res;
-        this.selectedAttributes = res.filter(a => a.selectedByDefault);
-        this.stepper.next();
-      });
+  private getPipelineAttributes(config: AnnotatorConfig): Observable<AnnotatorConfig> {
+    const attributeResources = config.resources.filter(r => r.fieldType === 'attribute');
+
+    if (attributeResources.length === 0) {
+      return of(config);
+    }
+
+    const observables = attributeResources.map(resource =>
+      this.editorService.getPipelineAttributes(this.pipelineId, resource.attributeType).pipe(
+        take(1),
+        map(res => {
+          const resourceIndex = config.resources.findIndex(r => r.key === resource.key);
+          if (resourceIndex !== -1) {
+            config.resources[resourceIndex] = new Resource(
+              resource.key,
+              resource.fieldType,
+              resource.resourceType,
+              resource.defaultValue,
+              res,
+              resource.optional,
+              resource.attributeType
+            );
+          }
+        })
+      )
+    );
+
+    return forkJoin(observables).pipe(map(() => config));
   }
 
-  private getResourcesWithValuesAsObject(resources: Resource[]): object {
-    return Object.assign(
-      {},
-      ...resources.filter(r => r.defaultValue).map(r => ({ [r.key]: r.defaultValue}))
-    ) as object;
+  public requestResources(): void {
+    this.editorService.getAnnotatorConfig(
+      this.annotatorStep.get('annotatorType').value,
+      this.resourceAnnotators.find(a => a.annotatorType === this.annotatorStep.get('annotatorType').value).resourceJson
+    ).pipe(
+      take(1),
+      switchMap(config => this.getPipelineAttributes(config))
+    ).subscribe(res => {
+      this.annotatorConfig = res;
+      this.initializeFilteredResourceValues();
+      this.setupResourceControls();
+      this.stepper.next();
+    });
   }
+
+  private initializeFilteredResourceValues(): void {
+    this.filteredResourceValues = new Map<string, string[]>();
+    for (const resource of this.annotatorConfig.resources) {
+      if (resource.fieldType === 'resource' || resource.fieldType === 'attribute') {
+        this.filteredResourceValues.set(resource.key, resource.possibleValues);
+      }
+    }
+  }
+
+  private setupResourceControls(): void {
+    const resourceGroup: Record<string, FormControl> = {};
+
+    for (const resource of this.annotatorConfig.resources) {
+      resourceGroup[resource.key] = new FormControl(
+        resource.defaultValue ?? '',
+        resource.optional ? Validators.nullValidator : Validators.required
+      );
+    }
+
+    this.resourceStep = new FormGroup(resourceGroup);
+    this.setupResourceValueFiltering();
+  }
+
+  private setupResourceValueFiltering(): void {
+    // eslint-disable-next-line @stylistic/max-len
+    this.annotatorConfig.resources.filter(r => r.fieldType === 'resource' || r.fieldType === 'attribute').forEach(resource => {
+      this.resourceStep.get(resource.key).valueChanges.pipe(
+        map((value: string) => this.filterDropdownContent(value, resource.possibleValues))
+      ).subscribe(filtered => {
+        this.filteredResourceValues.set(resource.key, filtered);
+        if (!filtered.length) {
+          this.resourceStep.get(resource.key).setErrors({ invalidOption: true });
+        }
+      });
+    });
+  }
+
 }
