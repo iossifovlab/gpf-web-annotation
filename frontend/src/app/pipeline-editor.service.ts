@@ -33,12 +33,17 @@ export class PipelineEditorService {
     return this.http.get<string[]>(this.getAnnotatorsUrl);
   }
 
-  public getAnnotatorConfig(annotator: string): Observable<AnnotatorConfig> {
+  public getAnnotatorConfig(annotator: string, resourcesJsonString?: string): Observable<AnnotatorConfig> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
+    // eslint-disable-next-line camelcase
+    const body = { annotator_type: annotator };
+    if (resourcesJsonString) {
+      Object.assign(body, JSON.parse(resourcesJsonString));
+    }
+
     return this.http.post(
       this.getAnnotatorConfigUrl,
-      // eslint-disable-next-line camelcase
-      { annotator_type: annotator },
+      body,
       options
     ).pipe(
       map((response: object) => AnnotatorConfig.fromJson(response)),
