@@ -45,6 +45,7 @@ export class NewResourceComponent implements OnInit {
   public annotatorStep: FormGroup<{ annotatorType: FormControl<string> }>;
   public annotatorTypes: string[];
   public filteredAnnotatorTypes: string[];
+  public resourceAnnotators: ResourceAnnotator[];
   @ViewChild('stepper', { static: true }) public stepper: MatStepper;
 
   public constructor(
@@ -97,8 +98,9 @@ export class NewResourceComponent implements OnInit {
     this.editorService.getResourceAnnotators(this.resourceStep.value.resourceId.trim()).pipe(
       take(1),
     ).subscribe(res => {
-      this.annotatorTypes = res;
-      this.filteredAnnotatorTypes = res;
+      this.annotatorTypes = res.map(r => r.annotatorType);
+      this.filteredAnnotatorTypes = res.map(r => r.annotatorType);
+      this.resourceAnnotators = res;
 
       this.setupAnnotatorValueFiltering();
       this.stepper.next();

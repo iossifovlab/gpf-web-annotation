@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { forkJoin, map, Observable, of, switchMap, tap } from 'rxjs';
-import { AnnotatorAttribute, AnnotatorConfig } from './new-annotator/annotator';
+import { AnnotatorAttribute, AnnotatorConfig, ResourceAnnotator } from './new-annotator/annotator';
 
 @Injectable({
   providedIn: 'root',
@@ -136,8 +136,8 @@ export class PipelineEditorService {
     return this.http.get<string[]>(`${this.getResourcesUrl}?type=${type}&search=${value}`);
   }
 
-  public getResourceAnnotators(resourceId: string): Observable<string[]> {
-    return this.http.get<object[]>(`${this.getResourceAnnotatorsUrl}?resource_id=${resourceId}`)
-      .pipe(map((response) => response.map<string>(a => a['annotator_type'] as string)));
+  public getResourceAnnotators(resourceId: string): Observable<ResourceAnnotator[]> {
+    return this.http.get<ResourceAnnotator[]>(`${this.getResourceAnnotatorsUrl}?resource_id=${resourceId}`)
+      .pipe(map((response) => ResourceAnnotator.fromJsonArray(response)));
   }
 }

@@ -77,3 +77,32 @@ export class AnnotatorAttribute {
     );
   }
 }
+
+export class ResourceAnnotator {
+  public constructor(
+    public annotatorType: string,
+    public resourceJson: string,
+  ) { }
+
+  public static fromJsonArray(jsonArray: object[]): ResourceAnnotator[] {
+    if (!jsonArray) {
+      return undefined;
+    }
+    return jsonArray.map((json) => ResourceAnnotator.fromJson(json));
+  }
+
+  public static fromJson(json: object): ResourceAnnotator {
+    if (!json) {
+      return undefined;
+    }
+
+    const jsonString = JSON.stringify(json, (key: string, value: string) =>
+      key === 'annotator_type' ? undefined : value
+    );
+
+    return new ResourceAnnotator(
+      json['annotator_type'] as string,
+      jsonString
+    );
+  }
+}
