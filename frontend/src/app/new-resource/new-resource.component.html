@@ -3,27 +3,34 @@
   <mat-stepper #stepper [linear]="true" class="custom-stepper">
     <mat-step label="Select resource" [editable]="false" [stepControl]="resourceStep">
       <form [formGroup]="resourceStep" id="resource-input-form">
-        <mat-form-field [appearance]="'outline'">
-          <mat-select matNativeControl [value]="selectedType" formControlName="type">
-            @for (type of resourceTypes; track type) {
-            <mat-option [value]="type" [title]="type" (click)="selectedType = type">{{ type }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+        <div class="forms-wrapper">
+          <mat-form-field [appearance]="'outline'">
+            <mat-select matNativeControl [value]="selectedType" formControlName="resourceType">
+              @for (type of resourceTypes; track type) {
+              <mat-option [value]="type" [title]="type" (click)="selectedType = type" (click)="clearResource()">{{
+                type
+              }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
 
-        <input
-          autocomplete="off"
-          matInput
-          formControlName="resourceInput"
-          [matAutocomplete]="resourceIdsDropdown"
-          #resourceInput="matAutocompleteTrigger"
-          #resourceInputValue
-          [title]="resourceInputValue.value" />
-        <mat-autocomplete #resourceIdsDropdown="matAutocomplete">
-          @for (id of resourceIds; track id) {
-          <mat-option class="annotator-option" [value]="id" [title]="id">{{ id }}</mat-option>
-          }
-        </mat-autocomplete>
+          <input
+            type="text"
+            autocomplete="off"
+            matInput
+            id="resource-input"
+            formControlName="resourceInput"
+            [matAutocomplete]="resourceIdsDropdown"
+            #resourceInput="matAutocompleteTrigger"
+            #resourceInputValue
+            [title]="resourceInputValue.value"
+            (click)="clearResource()" />
+          <mat-autocomplete #resourceIdsDropdown="matAutocomplete">
+            @for (id of resourceIds; track id) {
+            <mat-option class="resource-option" [value]="id" [title]="id">{{ id }}</mat-option>
+            }
+          </mat-autocomplete>
+        </div>
 
         <div>
           <button matButton [disabled]="resourceStep.invalid" class="next-button">Next</button>
