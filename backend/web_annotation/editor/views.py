@@ -3,10 +3,14 @@ from typing import Any
 import yaml
 from rest_framework.views import Request, Response, status
 
-from dae.annotation.annotation_config import AnnotationConfigParser, \
-    AnnotatorInfo
+from dae.annotation.annotation_config import (
+    AnnotationConfigParser,
+    AnnotationConfigurationError,
+    AnnotatorInfo,
+)
 from dae.annotation.annotation_factory import (
-    get_annotator_factory, get_available_annotator_types,
+    check_for_repeated_attributes_in_pipeline, get_annotator_factory, get_available_annotator_types,
+    build_pipeline_annotator,
 )
 from dae.annotation.effect_annotator import EffectAnnotatorAdapter
 
@@ -102,11 +106,6 @@ class EditorView(AnnotationBaseView):
                     "field_type": "attribute",
                     "attribute_type": "gene_list",
                     "optional": False,
-                },
-                "input_annotatable": {
-                    "field_type": "attribute",
-                    "attribute_type": "annotatable",
-                    "optional": True,
                 },
             }
         if annotator_type == "cnv_collection":
@@ -333,22 +332,21 @@ class PipelineAttributes(EditorView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        attribute_type = request.query_params.get("attribute_type")
-        if attribute_type is None:
-            return Response(
-                {"error": "attribute_type is required"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        if not isinstance(attribute_type, str):
-            return Response(
-                {"error": "attribute_type must be a string"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
         pipeline = self.get_pipeline(pipeline_id, request.user)
 
-        attributes = pipeline.get_attributes_by_type(attribute_type)
-        result = [attr.name for attr in attributes]
+        attribute_type = request.query_params.get("attribute_type")
+        if attribute_type is not None:
+            if not isinstance(attribute_type, str):
+                return Response(
+                    {"error": "attribute_type must be a string"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            attributes = pipeline.get_attributes_by_type(attribute_type)
+            result = [attr.name for attr in attributes]
+        else:
+            attributes = pipeline.get_attributes()
+            result = [attr.name for attr in attributes]
 
         return Response(result, status=status.HTTP_200_OK)
 
@@ -364,6 +362,20 @@ class AnnotatorYAML(EditorView):
                 {"error": "annotator_type is required"},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        if "pipeline_id" not in data:
+            return Response(
+                {"error": "pipeline_id is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        pipeline_id = data.pop("pipeline_id")
+        if not isinstance(pipeline_id, str):
+            return Response(
+                {"error": "pipeline_id must be a string"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        pipeline = self.get_pipeline(pipeline_id, request.user)
 
         annotator_type = data.pop("annotator_type")
 
@@ -385,8 +397,23 @@ class AnnotatorYAML(EditorView):
         assert len(annotator_configs) == 1
         annotator_config = annotator_configs[0]
 
+        try:
+            annotator = build_pipeline_annotator(pipeline, annotator_config)
+            check_for_repeated_attributes_in_pipeline(
+                pipeline, annotator_config=annotator_config,
+            )
+        except AnnotationConfigurationError as e:
+            return Response(
+                {"error": f"Invalid annotator configuration: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         return Response(
-            yaml.safe_dump([annotator_config.to_dict()]),
+            yaml.safe_dump(
+                [annotator_config.to_dict()],
+                sort_keys=False,
+                default_flow_style=False,
+            ),
             status=status.HTTP_200_OK,
         )
 
@@ -437,3 +464,34 @@ class ResourceAnnotators(EditorView):
             configs.append(config)
 
         return Response(configs, status=status.HTTP_200_OK)
+
+
+class PipelineStatus(EditorView):
+
+    def get(self, request: Request) -> Response:
+        """GET method to retrieve pipeline status."""
+        pipeline_id = request.query_params.get("pipeline_id")
+        if pipeline_id is None:
+            return Response(
+                {"error": "pipeline_id is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        pipeline = self.get_pipeline(pipeline_id, request.user)
+
+        attributes_count = len(pipeline.get_attributes())
+
+        status_info = {
+            "attributes_count": attributes_count,
+            "annotators_count": len(pipeline.annotators),
+            "annotatables": [
+                attr.name for attr in
+                pipeline.get_attributes_by_type("annotatable")
+            ],
+            "gene_lists": [
+                attr.name for attr in
+                pipeline.get_attributes_by_type("gene_list")
+            ],
+        }
+
+        return Response(status_info, status=status.HTTP_200_OK)
