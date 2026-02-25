@@ -75,13 +75,51 @@
             </mat-form-field>
 
             <div>
-              <button matButton [disabled]="annotatorStep.invalid" class="next-button">Next</button>
+              <button matButton [disabled]="annotatorStep.invalid" class="next-button" (click)="requestAttributes()"
+                >Next</button
+              >
             </div>
           </form>
         </div>
       </ng-template>
     </mat-step>
-    <mat-step label="Attributes" [editable]="false"></mat-step>
+    <mat-step label="Attributes" [editable]="false">
+      <ng-template matStepContent>
+        <div class="summary-content">
+          <div class="resources-display-text" [title]="resourceStep.value | keyValueDisplay">{{
+            resourceStep.value | keyValueDisplay
+          }}</div>
+          <div class="annotator-display-text" [title]="annotatorStep.value | keyValueDisplay">{{
+            annotatorStep.value | keyValueDisplay
+          }}</div>
+        </div>
+
+        <div class="left-content">
+          <div id="attributes-list">
+            @for (attribute of annotatorAttributes; track attribute) { @if(attribute.selectedByDefault) {
+            <div class="attribute-group">
+              <div class="attribute">
+                <span class="field-label-attribute">name</span>
+                <span [title]="attribute.name" class="field-value">{{ attribute.name }}</span>
+              </div>
+              <div class="attribute">
+                <span class="field-label-attribute">source</span>
+                <span class="field-value">{{ attribute.source }}</span>
+              </div>
+              <div class="attribute">
+                <span class="field-label-attribute">internal</span>
+                <span class="field-value">{{ attribute.internal }}</span>
+              </div>
+            </div>
+            } }
+          </div>
+          <div>
+            <button matButton class="finish-button">Finish</button>
+            <button matButton matStepperNext class="next-button">Next</button>
+          </div>
+        </div>
+      </ng-template>
+    </mat-step>
     <mat-step label="Modify attributes" [editable]="false" [optional]="true"></mat-step>
   </mat-stepper>
 </div>

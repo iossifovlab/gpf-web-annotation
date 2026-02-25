@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,6 +11,8 @@ import { PipelineEditorService } from '../pipeline-editor.service';
 import { MatSelect } from '@angular/material/select';
 import { distinctUntilChanged, map, switchMap, take } from 'rxjs';
 import { KeyValueDisplayPipe } from '../key-value-display.pipe';
+import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { AnnotatorAttribute, Resource, ResourceAnnotator } from '../new-annotator/annotator';
 
 @Component({
   selector: 'app-new-resource',
@@ -46,11 +48,14 @@ export class NewResourceComponent implements OnInit {
   public annotatorTypes: string[];
   public filteredAnnotatorTypes: string[];
   public resourceAnnotators: ResourceAnnotator[];
+  public annotatorAttributes: AnnotatorAttribute[];
+  public selectedAttributes: AnnotatorAttribute[];
   @ViewChild('stepper', { static: true }) public stepper: MatStepper;
 
   public constructor(
     private editorService: PipelineEditorService,
     private formBuilder: FormBuilder,
+    @Inject(MAT_DIALOG_DATA) public pipelineId: string,
   ) {
   }
 
@@ -128,5 +133,29 @@ export class NewResourceComponent implements OnInit {
 
   public clearAnnotator(): void {
     this.annotatorStep.get('annotatorType').setValue(null);
+  }
+
+  public requestAttributes(): void {
+    this.editorService.getAnnotatorConfigForResource(
+      this.annotatorStep.get('annotatorType').value,
+      this.resourceAnnotators.find(a => a.annotatorType === this.annotatorStep.get('annotatorType').value).resourceJson
+    )
+      .pipe(
+        switchMap(config => this.editorService.getAttributes(
+          this.pipelineId,
+          config.annotatorType,
+          this.getResourcesWithValuesAsObject(config.resources)
+        ))).subscribe(res => {
+        this.annotatorAttributes = res;
+        this.selectedAttributes = res.filter(a => a.selectedByDefault);
+        this.stepper.next();
+      });
+  }
+
+  private getResourcesWithValuesAsObject(resources: Resource[]): object {
+    return Object.assign(
+      {},
+      ...resources.filter(r => r.defaultValue).map(r => ({ [r.key]: r.defaultValue}))
+    ) as object;
   }
 }

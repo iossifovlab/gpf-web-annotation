@@ -304,6 +304,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   public openResourceFormModal(): void {
     const newResourceModal = this.dialog.open(NewResourceComponent, {
       id: 'newResourceFrom',
+      data: this.selectedPipeline?.id || this.currentTemporaryPipelineId,
       height: '60vh',
       width: '70vw',
       maxWidth: '1000px',
