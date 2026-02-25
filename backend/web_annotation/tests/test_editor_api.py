@@ -62,11 +62,6 @@ def test_annotator_types(
                 "attribute_type": "gene_list",
                 "optional": False,
             },
-            "input_annotatable": {
-                "field_type": "attribute",
-                "attribute_type": "annotatable",
-                "optional": True,
-            },
         },
     ),
 ])
@@ -314,7 +309,14 @@ def test_annotator_creation_workflow(
         "pipeline_id": "pipeline/test_pipeline",
         "annotator_type": "position_score",
         "resource_id": "scores/pos1",
-        "attributes": attributes,
+        "attributes": [
+            {
+                "name": attr["name"],
+                "source": attr["source"],
+                "internal": attr["internal"],
+            }
+            for attr in attributes
+        ],
     }, content_type="application/json")
     assert response.status_code == 200
     yaml_output = response.json()
@@ -390,7 +392,14 @@ def test_annotator_creation_resource_workflow(
         "pipeline_id": "pipeline/test_pipeline",
         "annotator_type": "position_score",
         "resource_id": "scores/pos1",
-        "attributes": attributes,
+        "attributes": [
+            {
+                "name": attr["name"],
+                "source": attr["source"],
+                "internal": attr["internal"],
+            }
+            for attr in attributes
+        ],
     }, content_type="application/json")
     assert response.status_code == 200
     yaml_output = response.json()
