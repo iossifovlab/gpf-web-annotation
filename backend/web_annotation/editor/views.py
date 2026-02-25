@@ -398,7 +398,7 @@ class AnnotatorYAML(EditorView):
         annotator_config = annotator_configs[0]
 
         try:
-            annotator = build_pipeline_annotator(pipeline, annotator_config)
+            build_pipeline_annotator(pipeline, annotator_config)
             check_for_repeated_attributes_in_pipeline(
                 pipeline, annotator_config=annotator_config,
             )
@@ -467,6 +467,7 @@ class ResourceAnnotators(EditorView):
 
 
 class PipelineStatus(EditorView):
+    """View for pipeline status and statistics."""
 
     def get(self, request: Request) -> Response:
         """GET method to retrieve pipeline status."""
