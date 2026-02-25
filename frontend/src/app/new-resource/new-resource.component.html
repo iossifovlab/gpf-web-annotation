@@ -157,14 +157,18 @@
         </div>
       </ng-template>
     </mat-step>
+
     <mat-step label="Attributes" [editable]="false">
       <ng-template matStepContent>
         <div class="summary-content">
-          <div class="resources-display-text" [title]="resourceStep.value | keyValueDisplay">{{
-            resourceStep.value | keyValueDisplay
+          <div class="resource-type-display-text" [title]="resourceTypeStep.value | keyValueDisplay">{{
+            resourceTypeStep.value | keyValueDisplay
           }}</div>
           <div class="annotator-display-text" [title]="annotatorStep.value | keyValueDisplay">{{
             annotatorStep.value | keyValueDisplay
+          }}</div>
+          <div class="resources-display-text" [title]="annotatorStep.value | keyValueDisplay">{{
+            resourceStep.value | keyValueDisplay
           }}</div>
         </div>
 

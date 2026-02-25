@@ -224,4 +224,23 @@ export class NewResourceComponent implements OnInit {
     });
   }
 
+  public requestAttributes(): void {
+    const filtered = this.getPopulatedResourceValues();
+
+    this.editorService.getAttributes(
+      this.pipelineId,
+      this.annotatorStep.value.annotatorType,
+      filtered
+    ).pipe(take(1)).subscribe(res => {
+      this.annotatorAttributes = res;
+      this.selectedAttributes = res.filter(a => a.selectedByDefault);
+      this.stepper.next();
+    });
+  }
+
+  private getPopulatedResourceValues(): object {
+    return Object.fromEntries(
+      Object.entries(this.resourceStep.value as object).filter(([, v]) => v !== null && v !== '')
+    );
+  }
 }

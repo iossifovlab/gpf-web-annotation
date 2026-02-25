@@ -144,7 +144,8 @@ mat-form-field {
   padding: 10px;
 }
 
-.annotator-display-text {
+.annotator-display-text,
+.resource-type-display-text {
   padding: 0 8px;
   font-size: 12px;
   color: #252e34;
