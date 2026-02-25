@@ -1,4 +1,5 @@
 # pylint: disable=W0621,C0114,C0116,W0212,W0613
+import textwrap
 from typing import Any
 import yaml
 from django.test import Client
@@ -60,11 +61,6 @@ def test_annotator_types(
                 "field_type": "attribute",
                 "attribute_type": "gene_list",
                 "optional": False,
-            },
-            "input_annotatable": {
-                "field_type": "attribute",
-                "attribute_type": "annotatable",
-                "optional": True,
             },
         },
     ),
@@ -166,6 +162,7 @@ def test_annotator_yaml_position_score(
     client = clients[current_client]
 
     response = client.post("/api/editor/annotator_yaml", data={
+        "pipeline_id": "pipeline/test_pipeline",
         "annotator_type": "position_score",
         "resource_id": "scores/pos1",
         "attributes": [
@@ -193,6 +190,66 @@ def test_annotator_yaml_position_score(
             ],
         }
     }]
+
+
+@pytest.mark.parametrize("current_client", ["admin", "user", "anonymous"])
+def test_annotator_yaml_position_score_exact_format(
+    current_client: str, clients: dict[str, Client],
+) -> None:
+    client = clients[current_client]
+
+    response = client.post("/api/editor/annotator_yaml", data={
+        "pipeline_id": "pipeline/test_pipeline",
+        "annotator_type": "position_score",
+        "resource_id": "scores/pos1",
+        "attributes": [
+            {
+                "name": "pos1",
+                "source": "pos1",
+                "internal": False,
+            }
+        ]
+    }, content_type="application/json")
+
+    assert response.status_code == 200
+    yaml_output = response.json()
+
+    assert yaml_output.strip() == textwrap.dedent("""
+    - position_score:
+        resource_id: scores/pos1
+        attributes:
+        - name: pos1
+          source: pos1
+          internal: false
+    """).strip()
+
+
+@pytest.mark.parametrize("current_client", ["admin", "user", "anonymous"])
+def test_annotator_yaml_position_score_errors_on_name_clash(
+    current_client: str, clients: dict[str, Client],
+) -> None:
+    client = clients[current_client]
+
+    response = client.post("/api/editor/annotator_yaml", data={
+        "pipeline_id": "pipeline/test_pipeline",
+        "annotator_type": "position_score",
+        "resource_id": "scores/pos1",
+        "attributes": [
+            {
+                "name": "position_1",
+                "source": "pos1",
+                "internal": False,
+            }
+        ]
+    }, content_type="application/json")
+
+    assert response.status_code == 400
+    error = response.json()["error"]
+
+    assert error == (
+        "Invalid annotator configuration: "
+        "Repeated attributes in pipeline were found - {'position_1': ['A0']}"
+    )
 
 
 @pytest.mark.parametrize("current_client", ["admin", "user", "anonymous"])
@@ -249,9 +306,17 @@ def test_annotator_creation_workflow(
 
     # Step 5: Get annotator YAML
     response = client.post("/api/editor/annotator_yaml", data={
+        "pipeline_id": "pipeline/test_pipeline",
         "annotator_type": "position_score",
         "resource_id": "scores/pos1",
-        "attributes": attributes,
+        "attributes": [
+            {
+                "name": attr["name"],
+                "source": attr["source"],
+                "internal": attr["internal"],
+            }
+            for attr in attributes
+        ],
     }, content_type="application/json")
     assert response.status_code == 200
     yaml_output = response.json()
@@ -324,9 +389,17 @@ def test_annotator_creation_resource_workflow(
 
     # Step 6: Get annotator YAML
     response = client.post("/api/editor/annotator_yaml", data={
+        "pipeline_id": "pipeline/test_pipeline",
         "annotator_type": "position_score",
         "resource_id": "scores/pos1",
-        "attributes": attributes,
+        "attributes": [
+            {
+                "name": attr["name"],
+                "source": attr["source"],
+                "internal": attr["internal"],
+            }
+            for attr in attributes
+        ],
     }, content_type="application/json")
     assert response.status_code == 200
     yaml_output = response.json()
@@ -345,3 +418,87 @@ def test_annotator_creation_resource_workflow(
         }
     }]
     assert output == expected
+
+
+@pytest.mark.parametrize("current_client", ["admin", "user", "anonymous"])
+def test_pipeline_status(
+    current_client: str, clients: dict[str, Client],
+) -> None:
+    client = clients[current_client]
+    response = client.get(
+        "/api/editor/pipeline_status?pipeline_id=pipeline/test_pipeline",
+    )
+    assert response.status_code == 200
+
+    assert response.json() == {
+        "attributes_count": 1,
+        "annotators_count": 1,
+        "annotatables": [],
+        "gene_lists": [],
+    }
+
+
+@pytest.mark.parametrize("current_client", ["admin", "user", "anonymous"])
+def test_pipeline_attributes(
+    current_client: str, clients: dict[str, Client],
+) -> None:
+    client = clients[current_client]
+    response = client.get(
+        "/api/editor/pipeline_attributes?pipeline_id=pipeline/test_pipeline"
+        "&attribute_type=attribute",
+    )
+    assert response.status_code == 200
+
+    assert response.json() == ["position_1"]
+
+    response = client.get(
+        "/api/editor/pipeline_attributes?pipeline_id=pipeline/test_pipeline",
+    )
+    assert response.status_code == 200
+
+    assert response.json() == ["position_1"]
+
+
+@pytest.mark.parametrize("current_client", ["admin", "user", "anonymous"])
+def test_pipeline_status_t4c8(
+    current_client: str, clients: dict[str, Client],
+) -> None:
+    client = clients[current_client]
+    response = client.get(
+        "/api/editor/pipeline_status?pipeline_id=t4c8/t4c8_pipeline"
+    )
+    assert response.status_code == 200
+
+    assert response.json() == {
+        "attributes_count": 5,
+        "annotators_count": 2,
+        "annotatables": [],
+        "gene_lists": ["gene_list"],
+    }
+
+
+@pytest.mark.parametrize("current_client", ["admin", "user", "anonymous"])
+def test_pipeline_attributes_t4c8(
+    current_client: str, clients: dict[str, Client],
+) -> None:
+    client = clients[current_client]
+    response = client.get(
+        "/api/editor/pipeline_attributes?pipeline_id=t4c8/t4c8_pipeline"
+        "&attribute_type=gene_list",
+    )
+    assert response.status_code == 200
+
+    assert response.json() == ["gene_list"]
+
+    response = client.get(
+        "/api/editor/pipeline_attributes?pipeline_id=t4c8/t4c8_pipeline",
+    )
+    assert response.status_code == 200
+
+    assert response.json() == [
+        "worst_effect",
+        "gene_effects",
+        "effect_details",
+        "gene_list",
+        "t4c8_score",
+    ]
