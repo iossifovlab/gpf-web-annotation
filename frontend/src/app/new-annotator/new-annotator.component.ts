@@ -46,6 +46,7 @@ export class NewAnnotatorComponent implements OnInit {
   public annotatorConfig: AnnotatorConfig;
   public annotatorAttributes: AnnotatorAttribute[];
   public selectedAttributes: AnnotatorAttribute[];
+  public duplicateAttributeNames: string[] = [];
   @ViewChild('stepper', { static: true }) public stepper: MatStepper;
 
   public constructor(
@@ -181,7 +182,20 @@ export class NewAnnotatorComponent implements OnInit {
       this.annotatorAttributes = res;
       this.selectedAttributes = res.filter(a => a.selectedByDefault);
       this.stepper.next();
+      this.validateAttributes();
     });
+  }
+
+  private validateAttributes(): void {
+    this.editorService.getPipelineAttributesNames(this.pipelineId).pipe(take(1)).subscribe(names => {
+      this.duplicateAttributeNames = this.annotatorAttributes.filter(a => names.includes(a.name)).map(a => a.name);
+    });
+  }
+
+  public disableFinish(): boolean {
+    return this.annotatorAttributes.some(
+      a => this.selectedAttributes.includes(a) && this.duplicateAttributeNames.includes(a.name)
+    );
   }
 
   public onFinish(): void {
