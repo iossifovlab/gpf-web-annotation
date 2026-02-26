@@ -19,6 +19,10 @@ test.describe('Pipeline tests', () => {
     await expect(page.locator('#pipelines-input')).toBeEmpty();
     await expect(page.locator('.monaco-editor').nth(0)).toBeEmpty();
 
+    const saveResponse = page.waitForResponse(
+      resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
+    );
+
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     await page.evaluate(() => {
       // eslint-disable-next-line max-len
@@ -32,9 +36,7 @@ test.describe('Pipeline tests', () => {
       );
     });
 
-    await page.waitForResponse(
-      resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
-    );
+    await saveResponse;
 
     await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
 
@@ -53,6 +55,10 @@ test.describe('Pipeline tests', () => {
     await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
     await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New' }).click();
 
+    const saveResponse = page.waitForResponse(
+      resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
+    );
+
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     await page.evaluate(() => {
       // eslint-disable-next-line max-len
@@ -69,9 +75,7 @@ test.describe('Pipeline tests', () => {
       );
     });
 
-    await page.waitForResponse(
-      resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
-    );
+    await saveResponse;
 
     await page.locator('.example').click();
     await expect(page.locator('#pipelines-input')).toBeEmpty();
@@ -119,6 +123,10 @@ test.describe('Pipeline tests', () => {
     await expect(page.locator('#pipelines-input')).toBeEmpty();
     await expect(page.locator('.monaco-editor').nth(0)).toBeEmpty();
 
+    const saveResponse = page.waitForResponse(
+      resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
+    );
+
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     await page.evaluate(() => {
       // eslint-disable-next-line max-len
@@ -132,9 +140,7 @@ test.describe('Pipeline tests', () => {
       );
     });
 
-    await page.waitForResponse(
-      resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
-    );
+    await saveResponse;
 
     await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
 
@@ -181,6 +187,10 @@ test.describe('Pipeline tests', () => {
     await expect(page.locator('#pipelines-input')).toBeEmpty();
     await expect(page.locator('.monaco-editor').nth(0)).toBeEmpty();
 
+    const saveResponse = page.waitForResponse(
+      resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
+    );
+
     // // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     await page.evaluate(() => {
       // eslint-disable-next-line max-len
@@ -194,9 +204,7 @@ test.describe('Pipeline tests', () => {
       );
     });
 
-    await page.waitForResponse(
-      resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
-    );
+    await saveResponse;
 
     await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
 
@@ -239,6 +247,10 @@ test.describe('Pipeline tests', () => {
     await expect(page.locator('#pipelines-input')).toBeEmpty();
     await expect(page.locator('.monaco-editor').nth(0)).toBeEmpty();
 
+    const saveResponse = page.waitForResponse(
+      resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
+    );
+
     // // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     await page.evaluate(() => {
       // eslint-disable-next-line max-len
@@ -252,9 +264,7 @@ test.describe('Pipeline tests', () => {
       );
     });
 
-    await page.waitForResponse(
-      resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
-    );
+    await saveResponse;
 
     await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
 
@@ -486,6 +496,10 @@ test.describe('Add annotator to pipeline tests', () => {
     await expect(page.locator('#pipelines-input')).toBeEmpty();
     await expect(page.locator('.monaco-editor').nth(0)).toBeEmpty();
 
+    const saveResponse = page.waitForResponse(
+      resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
+    );
+
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     await page.evaluate(() => {
       // eslint-disable-next-line max-len
@@ -499,9 +513,7 @@ test.describe('Add annotator to pipeline tests', () => {
       );
     });
 
-    await page.waitForResponse(
-      resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
-    );
+    await saveResponse;
 
     await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
 

@@ -64,6 +64,10 @@ test.describe('Anonymous user tests', () => {
     await expect(page.locator('#pipelines-input')).toBeEmpty();
     await expect(page.locator('.monaco-editor').nth(0)).toBeEmpty();
 
+    const saveResponse = page.waitForResponse(
+      resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
+    );
+
     await page.evaluate(() => {
       // eslint-disable-next-line max-len
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
@@ -91,9 +95,7 @@ test.describe('Anonymous user tests', () => {
     });
 
 
-    await page.waitForResponse(
-      resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
-    );
+    await saveResponse;
 
     await page.locator('.example').click();
     await page.waitForSelector('#report', {timeout: 120000});
@@ -150,6 +152,11 @@ test.describe('Anonymous user tests', () => {
     await expect(page.locator('#pipelines-input')).toBeEmpty();
     await expect(page.locator('.monaco-editor').nth(0)).toBeEmpty();
 
+
+    const saveResponse = page.waitForResponse(
+      resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
+    );
+
     await page.evaluate(() => {
       // eslint-disable-next-line max-len
       // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
@@ -170,9 +177,7 @@ test.describe('Anonymous user tests', () => {
       );
     });
 
-    await page.waitForResponse(
-      resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
-    );
+    await saveResponse;
 
     await page.locator('#annotation-jobs').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-vcf-file.vcf');
@@ -235,6 +240,11 @@ async function customDefaultPipeline(page: Page): Promise<void> {
   await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New', exact: true }).click();
   await expect(page.locator('#pipelines-input')).toBeEmpty();
   await expect(page.locator('.monaco-editor').nth(0)).toBeEmpty();
+
+  const saveResponse = page.waitForResponse(
+    resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
+  );
+
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   await page.evaluate(() => {
     // eslint-disable-next-line max-len
@@ -252,9 +262,7 @@ async function customDefaultPipeline(page: Page): Promise<void> {
     );
   });
 
-  await page.waitForResponse(
-    resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
-  );
+  await saveResponse;
 
   await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
 }

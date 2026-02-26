@@ -359,6 +359,11 @@ async function customDefaultPipeline(page: Page): Promise<void> {
   await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New', exact: true }).click();
   await expect(page.locator('#pipelines-input')).toBeEmpty();
   await expect(page.locator('.monaco-editor').nth(0)).toBeEmpty();
+
+  const saveResponse = page.waitForResponse(
+    resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
+  );
+
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   await page.evaluate(() => {
     // eslint-disable-next-line max-len
@@ -376,9 +381,7 @@ async function customDefaultPipeline(page: Page): Promise<void> {
     );
   });
 
-  await page.waitForResponse(
-    resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
-  );
+  await saveResponse;
 
   await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
 }
