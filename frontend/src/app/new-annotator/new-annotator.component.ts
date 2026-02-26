@@ -73,10 +73,14 @@ export class NewAnnotatorComponent implements OnInit {
       map((value: string) => this.filterDropdownContent(value, this.annotators))
     ).subscribe(filtered => {
       this.filteredAnnotators = filtered;
-      if (!filtered.length) {
+      if (!filtered.includes(this.normalizeString(this.annotatorStep.get('annotator').value))) {
         this.annotatorStep.get('annotator').setErrors({ invalidOption: true });
       }
     });
+  }
+
+  public normalizeString(value: string): string {
+    return value === null ? '' : value.trim();
   }
 
   private getPipelineAttributes(config: AnnotatorConfig): Observable<AnnotatorConfig> {
@@ -110,7 +114,7 @@ export class NewAnnotatorComponent implements OnInit {
   }
 
   public requestResources(): void {
-    this.editorService.getAnnotatorConfig(this.annotatorStep.value.annotator).pipe(
+    this.editorService.getAnnotatorConfig(this.normalizeString(this.annotatorStep.value.annotator)).pipe(
       take(1),
       switchMap(config => this.getPipelineAttributes(config))
     ).subscribe(res => {
@@ -217,7 +221,7 @@ export class NewAnnotatorComponent implements OnInit {
   public setAttributeInternal(attribute: AnnotatorAttribute, value: boolean): void {
     const index = this.selectedAttributes.findIndex(a => a.name === attribute.name);
     if (index !== -1) {
-      this.selectedAttributes[index] = { ...this.selectedAttributes[index], internal: value };
+      this.selectedAttributes[index].internal = value;
     }
   }
 }
