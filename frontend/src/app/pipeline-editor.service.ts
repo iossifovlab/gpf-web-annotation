@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { forkJoin, map, Observable, of, switchMap, tap } from 'rxjs';
-import { AnnotatorAttribute, AnnotatorConfig } from './new-annotator/annotator';
+import { AnnotatorAttribute, AnnotatorConfig, ResourceAnnotator } from './new-annotator/annotator';
 
 @Injectable({
   providedIn: 'root',
@@ -14,6 +14,8 @@ export class PipelineEditorService {
   private getAttributesUrl = `${environment.apiPath}/editor/annotator_attributes`;
   private getAnnotatorYmlUrl = `${environment.apiPath}/editor/annotator_yaml`;
   private getPipelineAttributesUrl = `${environment.apiPath}/editor/pipeline_attributes`;
+  private getResourceTypesUrl = `${environment.apiPath}/resources/types`;
+  private getResourceAnnotatorsUrl = `${environment.apiPath}/editor/resource_annotators`;
 
   public constructor(private http: HttpClient) { }
 
@@ -31,12 +33,17 @@ export class PipelineEditorService {
     return this.http.get<string[]>(this.getAnnotatorsUrl);
   }
 
-  public getAnnotatorConfig(annotator: string): Observable<AnnotatorConfig> {
+  public getAnnotatorConfig(annotator: string, resourcesJsonString?: string): Observable<AnnotatorConfig> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
+    // eslint-disable-next-line camelcase
+    const body = { annotator_type: annotator };
+    if (resourcesJsonString) {
+      Object.assign(body, JSON.parse(resourcesJsonString));
+    }
+
     return this.http.post(
       this.getAnnotatorConfigUrl,
-      // eslint-disable-next-line camelcase
-      { annotator_type: annotator },
+      body,
       options
     ).pipe(
       map((response: object) => AnnotatorConfig.fromJson(response)),
@@ -101,9 +108,10 @@ export class PipelineEditorService {
   }
 
   public getAnnotatorYml(
+    pipelineId: string,
     annotatorType: string,
     resources: object,
-    attributes: AnnotatorAttribute[]
+    attributes: AnnotatorAttribute[],
   ): Observable<string> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
 
@@ -115,6 +123,8 @@ export class PipelineEditorService {
 
     const body = {
       // eslint-disable-next-line camelcase
+      pipeline_id: pipelineId,
+      // eslint-disable-next-line camelcase
       attributes: extractedAttributes,
       // eslint-disable-next-line camelcase
       annotator_type: annotatorType,
@@ -124,5 +134,18 @@ export class PipelineEditorService {
       Object.assign(body, resources),
       options
     );
+  }
+
+  public getResourceTypes(): Observable<string[]> {
+    return this.http.get<string[]>(this.getResourceTypesUrl);
+  }
+
+  public getResourcesBySearch(value: string, type: string): Observable<string[]> {
+    return this.http.get<string[]>(`${this.getResourcesUrl}?type=${type}&search=${value}`);
+  }
+
+  public getResourceAnnotators(resourceId: string): Observable<ResourceAnnotator[]> {
+    return this.http.get<ResourceAnnotator[]>(`${this.getResourceAnnotatorsUrl}?resource_id=${resourceId}`)
+      .pipe(map((response) => ResourceAnnotator.fromJsonArray(response)));
   }
 }

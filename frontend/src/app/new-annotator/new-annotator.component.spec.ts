@@ -81,8 +81,8 @@ class PipelineEditorServiceMock {
     return of(attributesMock);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getAnnotatorYml(annotator: string, resources: object, attributes: AnnotatorAttribute[]): Observable<string> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, @stylistic/max-len
+  public getAnnotatorYml(pipelineId: string, annotator: string, resources: object, attributes: AnnotatorAttribute[]): Observable<string> {
     return of(ymlResponse);
   }
 
@@ -185,6 +185,7 @@ describe('NewAnnotatorComponent', () => {
 
     component.onFinish();
     expect(getAnnotatorYmlSpy).toHaveBeenCalledWith(
+      'pipelineId',
       'gene_set_annotator',
       // eslint-disable-next-line camelcase
       { resource_id: 'gene_properties/gene_scores/RVIS' },

@@ -223,6 +223,7 @@ describe('PipelineEditorService', () => {
 
     const options = { headers: {'X-CSRFToken': ''}, withCredentials: true };
     const getResponse = service.getAnnotatorYml(
+      'pipelineId',
       'liftover_annotator',
       {
         chain: 'liftover/T2T_to_hg38',
@@ -237,6 +238,8 @@ describe('PipelineEditorService', () => {
     expect(httpPostSpy).toHaveBeenCalledWith(
       '//localhost:8000/api/editor/annotator_yaml',
       {
+        // eslint-disable-next-line camelcase
+        pipeline_id: 'pipelineId',
         attributes: [
           {name: 'liftover_annotatable', source: 'liftover_annotatable', internal: true,}
         ],

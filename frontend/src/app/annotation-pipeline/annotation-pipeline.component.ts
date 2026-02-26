@@ -25,6 +25,7 @@ import { UsersService } from '../users.service';
 import { SocketNotificationsService } from '../socket-notifications/socket-notifications.service';
 import { PipelineNotification, PipelineStatus } from '../socket-notifications/socket-notifications';
 import { NewAnnotatorComponent } from '../new-annotator/new-annotator.component';
+import { NewResourceComponent } from '../new-resource/new-resource.component';
 
 @Component({
   selector: 'app-annotation-pipeline',
@@ -294,6 +295,23 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     });
 
     newAnnotatorModal.afterClosed().subscribe((result: string) => {
+      if (result) {
+        this.currentPipelineText += result;
+      }
+    });
+  }
+
+  public openResourceFormModal(): void {
+    const newResourceModal = this.dialog.open(NewResourceComponent, {
+      id: 'newResourceFrom',
+      data: this.selectedPipeline?.id || this.currentTemporaryPipelineId,
+      height: '60vh',
+      width: '70vw',
+      maxWidth: '1000px',
+      minWidth: '500px'
+    });
+
+    newResourceModal.afterClosed().subscribe((result: string) => {
       if (result) {
         this.currentPipelineText += result;
       }
