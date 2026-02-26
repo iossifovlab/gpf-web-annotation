@@ -127,13 +127,21 @@ export class NewResourceComponent implements OnInit {
     this.editorService.getResourceAnnotators(this.resourceTypeStep.value.resourceId.trim()).pipe(
       take(1),
     ).subscribe(res => {
-      this.annotatorTypes = res.map(r => r.annotatorType);
-      this.filteredAnnotatorTypes = res.map(r => r.annotatorType);
       this.resourceAnnotators = res;
-
-      this.setupAnnotatorValueFiltering();
+      if (this.resourceAnnotators.length === 1) {
+        this.autoSelectAnnotator();
+      } else {
+        this.annotatorTypes = res.map(r => r.annotatorType);
+        this.filteredAnnotatorTypes = res.map(r => r.annotatorType);
+        this.setupAnnotatorValueFiltering();
+      }
       this.stepper.next();
     });
+  }
+
+  private autoSelectAnnotator(): void {
+    this.annotatorStep.get('annotator').setValue(this.resourceAnnotators[0].annotatorType);
+    this.requestResources();
   }
 
   private setupAnnotatorValueFiltering(): void {
