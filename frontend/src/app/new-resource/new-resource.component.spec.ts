@@ -79,8 +79,8 @@ class PipelineEditorServiceMock {
     return of(attributesMock);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getAnnotatorYml(annotator: string, resources: object, attributes: AnnotatorAttribute[]): Observable<string> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, @stylistic/max-len
+  public getAnnotatorYml(pipelineId: string, annotator: string, resources: object, attributes: AnnotatorAttribute[]): Observable<string> {
     return of(ymlResponse);
   }
 
@@ -319,6 +319,7 @@ describe('NewResourceComponent', () => {
 
     component.onFinish();
     expect(getAnnotatorYmlSpy).toHaveBeenCalledWith(
+      'pipelineId',
       'effect_annotator',
       // eslint-disable-next-line camelcase
       { gene_models: 'hg19/gene_models/ccds_v201309', genome: 't2t/genomes/t2t-chm13v2.0'},

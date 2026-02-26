@@ -108,9 +108,10 @@ export class PipelineEditorService {
   }
 
   public getAnnotatorYml(
+    pipelineId: string,
     annotatorType: string,
     resources: object,
-    attributes: AnnotatorAttribute[]
+    attributes: AnnotatorAttribute[],
   ): Observable<string> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
 
@@ -121,6 +122,8 @@ export class PipelineEditorService {
     }));
 
     const body = {
+      // eslint-disable-next-line camelcase
+      pipeline_id: pipelineId,
       // eslint-disable-next-line camelcase
       attributes: extractedAttributes,
       // eslint-disable-next-line camelcase

@@ -287,6 +287,7 @@ export class NewResourceComponent implements OnInit {
     const filtered = this.getPopulatedResourceValues();
 
     this.editorService.getAnnotatorYml(
+      this.pipelineId,
       this.annotatorStep.value.annotator,
       filtered,
       this.selectedAttributes
