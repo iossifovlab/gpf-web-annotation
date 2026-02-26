@@ -9,7 +9,7 @@ import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { CdkStepperModule, STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
 import { PipelineEditorService } from '../pipeline-editor.service';
 import { MatSelect } from '@angular/material/select';
-import { distinctUntilChanged, forkJoin, map, Observable, of, switchMap, take } from 'rxjs';
+import { distinctUntilChanged, forkJoin, map, Observable, of, Subject, switchMap, take, tap } from 'rxjs';
 import { KeyValueDisplayPipe } from '../key-value-display.pipe';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { AnnotatorAttribute, AnnotatorConfig, Resource, ResourceAnnotator } from '../new-annotator/annotator';
@@ -54,6 +54,7 @@ export class NewResourceComponent implements OnInit {
   public annotatorAttributes: AnnotatorAttribute[];
   public selectedAttributes: AnnotatorAttribute[];
   @ViewChild('stepper', { static: true }) public stepper: MatStepper;
+  private searchSubject = new Subject<{ value: string; type: string }>();
 
   public constructor(
     private editorService: PipelineEditorService,
@@ -76,22 +77,37 @@ export class NewResourceComponent implements OnInit {
     this.editorService.getResourceTypes().pipe(take(1)).subscribe(res => {
       this.resourceTypes = res;
       this.selectedType = this.resourceTypes[0];
+      this.resourceTypeStep.get('resourceType').setValue(this.selectedType, { emitEvent: false });
       this.setupResourceSearching();
     });
   }
 
   private setupResourceSearching(): void {
-    this.resourceTypeStep.get('resourceId').valueChanges.pipe(
-      distinctUntilChanged(),
-      map(value => this.normalizeString(value)),
-      switchMap((value: string) => this.editorService.getResourcesBySearch(value, this.selectedType)),
+    // Set up the search subject to handle API calls
+    this.searchSubject.pipe(
+      distinctUntilChanged((prev, curr) => prev.value === curr.value && prev.type === curr.type),
+      switchMap(({ value, type }) => this.editorService.getResourcesBySearch(value, type)),
     ).subscribe(resources => {
       this.resourceIds = resources;
 
-      // eslint-disable-next-line @stylistic/max-len
-      if (!resources.length || !this.resourceIds.includes(this.normalizeString(this.resourceTypeStep.get('resourceId').value))) {
+      if (!this.resourceIds.includes(this.normalizeString(this.resourceTypeStep.get('resourceId').value))) {
         this.resourceTypeStep.get('resourceId').setErrors({ invalidOption: true });
+      } else {
+        this.resourceTypeStep.get('resourceId').setErrors(null);
       }
+    });
+
+    // Trigger search on resourceId value changes
+    this.resourceTypeStep.get('resourceId').valueChanges.pipe(
+      tap(() => this.resourceTypeStep.get('resourceId').setErrors({ invalidOption: true })),
+      map(value => ({ value: this.normalizeString(value), type: this.selectedType })),
+    ).subscribe(obj => this.searchSubject.next(obj));
+
+    // Trigger search when resourceType changes
+    this.resourceTypeStep.get('resourceType').valueChanges.subscribe(type => {
+      this.selectedType = type;
+      const currentValue = this.normalizeString(this.resourceTypeStep.get('resourceId').value);
+      this.searchSubject.next({ value: currentValue, type: type });
     });
   }
 
@@ -256,7 +272,7 @@ export class NewResourceComponent implements OnInit {
   public setAttributeInternal(attribute: AnnotatorAttribute, value: boolean): void {
     const index = this.selectedAttributes.findIndex(a => a.name === attribute.name);
     if (index !== -1) {
-      this.selectedAttributes[index] = { ...this.selectedAttributes[index], internal: value };
+      this.selectedAttributes[index].internal = value;
     }
   }
 
