@@ -353,6 +353,9 @@ class PipelineAttributes(EditorView):
 
 class AnnotatorYAML(EditorView):
     """View for annotator configuration in YAML format."""
+
+    authentication_classes = [WebAnnotationAuthentication]
+
     def post(self, request: Request) -> Response:
         """POST method to get annotator config in YAML format."""
         assert isinstance(request.data, dict)
