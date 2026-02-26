@@ -106,8 +106,7 @@ export class NewResourceComponent implements OnInit {
     // Trigger search when resourceType changes
     this.resourceTypeStep.get('resourceType').valueChanges.subscribe(type => {
       this.selectedType = type;
-      const currentValue = this.normalizeString(this.resourceTypeStep.get('resourceId').value);
-      this.searchSubject.next({ value: currentValue, type: type });
+      this.searchSubject.next({ value: '', type: type });
     });
   }
 
