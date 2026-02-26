@@ -238,6 +238,8 @@ form,
 
 mat-form-field {
   align-self: center;
+
+  --mat-form-field-filled-error-caret-color: black !important;
 }
 
 ::ng-deep .mat-horizontal-stepper-wrapper,

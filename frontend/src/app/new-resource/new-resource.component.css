@@ -3,6 +3,10 @@
   gap: 20px;
 }
 
+#resource-type {
+  width: 30%;
+}
+
 input[type="text"] {
   white-space: nowrap;
   overflow: hidden;
@@ -14,16 +18,15 @@ input[type="text"] {
 }
 
 #resource-input {
-  padding: 10px;
   border: 1px solid #cfd8df;
   border-radius: 5px;
   color: #252e34;
   font-size: 16px;
+  width: 100%;
 }
 
 #resource-input:focus {
-  border: 2px solid #85a2b9;
-  outline: 0;
+  outline-color: #85a2b9;
 }
 
 ::ng-deep .mat-mdc-option.mat-mdc-option-active.mdc-list-item,
@@ -112,6 +115,8 @@ form {
 
 mat-form-field {
   align-self: center;
+
+  --mat-form-field-filled-error-caret-color: black !important;
 }
 
 ::ng-deep .mat-horizontal-stepper-wrapper,
@@ -153,6 +158,10 @@ mat-form-field {
   margin-top: 10px;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.resource-type-display-text {
+  margin-top: 0;
 }
 
 .left-content {

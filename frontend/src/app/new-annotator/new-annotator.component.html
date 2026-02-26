@@ -14,7 +14,8 @@
             #annotatorInput="matAutocompleteTrigger"
             #annotatorInputValue
             [title]="annotatorInputValue.value"
-            (click)="clearAnnotator()" />
+            (click)="clearAnnotator()"
+            (keydown.enter)="annotatorInput.closePanel()" />
           <span (click)="annotatorInput.openPanel(); clearAnnotator()" class="material-symbols-outlined dropdown-icon"
             >keyboard_arrow_down</span
           >
