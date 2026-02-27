@@ -53,9 +53,9 @@ const annotatorConfigMock = new AnnotatorConfig(
 );
 
 const attributesMock = [
-  new AnnotatorAttribute('attribute1', 'string', 'source1', false, true),
-  new AnnotatorAttribute('attribute2', 'bool', 'source2', false, true),
-  new AnnotatorAttribute('attribute3', 'string', 'source3', true, true)
+  new AnnotatorAttribute('mpc', 'string', 'mpc', false, true),
+  new AnnotatorAttribute('effect_details', 'bool', 'effect_details', false, true),
+  new AnnotatorAttribute('dbSNP_RS', 'string', 'dbSNP_RS', true, true)
 ];
 
 const ymlResponse = `- gene_set_annotator:\n
@@ -89,6 +89,18 @@ class PipelineEditorServiceMock {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public getPipelineAttributes(pipelineId: string, attributeType: string,): Observable<string[]> {
     return of(['normalized_allele', 'hg19_annotatable']);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public getPipelineAttributesNames(pipelineId: string): Observable<string[]> {
+    return of([
+      'normalized_allele',
+      'dbSNP_RS',
+      'CLNSIG',
+      'CLNDN',
+      'mpc',
+      'worst_effect'
+    ]);
   }
 }
 class MatDialogRefMock {
@@ -189,7 +201,7 @@ describe('NewAnnotatorComponent', () => {
       'gene_set_annotator',
       // eslint-disable-next-line camelcase
       { resource_id: 'gene_properties/gene_scores/RVIS' },
-      [new AnnotatorAttribute('attribute1', 'string', 'source1', false, true)]
+      [new AnnotatorAttribute('mpc', 'string', 'mpc', false, true)]
     );
 
     expect(closeModalSpy).toHaveBeenCalledWith('\n' + ymlResponse);
@@ -274,5 +286,22 @@ describe('NewAnnotatorComponent', () => {
 
     expect(component.filteredResourceValues.get('resource_id')).toStrictEqual([]);
     expect(component.resourceStep.get('resource_id').errors).toStrictEqual({invalidOption: true});
+  });
+
+  it('should store attribute names which already exists in config', () => {
+    component.requestAttributes();
+    expect(component.duplicateAttributeNames).toStrictEqual(['mpc', 'dbSNP_RS']);
+  });
+
+  it('should disable finish button if there is any selected attribute with duplicate name', () => {
+    component.requestAttributes();
+    expect(component.disableFinish()).toBe(true);
+  });
+
+  it('should not disable finish button if there is unselected attribute with exisitng name', () => {
+    component.requestAttributes();
+    component.selectedAttributes = [new AnnotatorAttribute('effect_details', 'bool', 'effect_details', false, true)];
+    expect(component.duplicateAttributeNames).toStrictEqual(['mpc', 'dbSNP_RS']);
+    expect(component.disableFinish()).toBe(false);
   });
 });
