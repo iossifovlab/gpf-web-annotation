@@ -4,6 +4,7 @@ set -e
 
 
 a2enmod headers
+a2enmod remoteip
 
 echo "enabling apache site: localhost..."
 a2ensite localhost
