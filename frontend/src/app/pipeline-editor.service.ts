@@ -148,4 +148,20 @@ export class PipelineEditorService {
     return this.http.get<ResourceAnnotator[]>(`${this.getResourceAnnotatorsUrl}?resource_id=${resourceId}`)
       .pipe(map((response) => ResourceAnnotator.fromJsonArray(response)));
   }
+
+  public getPipelineAttributesNames(
+    pipelineId: string,
+    attributeType?: string,
+  ): Observable<string[]> {
+    const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
+
+    let url = `${this.getPipelineAttributesUrl}?pipeline_id=${pipelineId}`;
+    if (attributeType) {
+      url += `&attribute_type=${attributeType}`;
+    }
+    return this.http.get<string[]>(
+      url,
+      options
+    );
+  }
 }

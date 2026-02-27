@@ -123,7 +123,12 @@
             <div class="attribute-group">
               <div class="attribute">
                 <span class="field-label-attribute">name</span>
-                <span [title]="attribute.name" class="field-value">{{ attribute.name }}</span>
+                <span
+                  [title]="attribute.name"
+                  class="field-value"
+                  [ngClass]="duplicateAttributeNames.includes(attribute.name) ? 'duplicate-name' : ''"
+                  >{{ attribute.name }}</span
+                >
               </div>
               <div class="attribute">
                 <span class="field-label-attribute">source</span>
@@ -136,14 +141,18 @@
             </div>
             } }
           </div>
-          <div>
+          <div class="modal-footer">
+            @if(duplicateAttributeNames.length) {
+            <div class="duplicate-name">Attribute with this name already exists</div>
+            }@if(!duplicateAttributeNames.length) {
             <button matButton (click)="onFinish()" class="finish-button">Finish</button>
+            }
             <button matButton matStepperNext class="next-button">Next</button>
           </div>
         </div>
       </ng-template>
     </mat-step>
-    <mat-step label="Modify attributes" [editable]="false" [optional]="true">
+    <mat-step label="Modify attributes" [editable]="false" [optional]="!duplicateAttributeNames.length">
       <ng-template matStepContent>
         <div class="summary-content">
           <div class="annotator-display-text" [title]="annotatorStep.value | keyValueDisplay">{{
@@ -170,7 +179,8 @@
                     type="text"
                     [title]="attribute.name"
                     [value]="attribute.name"
-                    [(ngModel)]="attribute.name" />
+                    [(ngModel)]="attribute.name"
+                    [ngClass]="duplicateAttributeNames.includes(attribute.name) ? 'duplicate-name-input' : ''" />
                 </div>
                 <div class="attribute modify-view-attribute">
                   <span class="field-label">source</span>
@@ -201,8 +211,11 @@
             </div>
             }
           </div>
-          <div>
-            <button matButton (click)="onFinish()" class="finish-button">Finish</button>
+          <div class="modal-footer">
+            @if(disableFinish()) {
+            <div class="duplicate-name">Attribute with this name already exists</div>
+            }
+            <button [disabled]="disableFinish()" matButton (click)="onFinish()" class="finish-button">Finish</button>
           </div>
         </div>
       </ng-template>

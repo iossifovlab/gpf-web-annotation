@@ -264,8 +264,28 @@ mat-form-field {
   margin-left: 10px;
 }
 
+.finish-button:disabled {
+  background-color: #85a2b9 !important;
+}
+
 #modal-header {
   margin: 20px 30px;
   font-size: 18px;
   color: #85a2b9;
+}
+
+.duplicate-name {
+  color: #d74b59;
+}
+
+.duplicate-name-input {
+  border-color: #d74b59;
+  outline-color: #d74b59;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 20px;
 }
