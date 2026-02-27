@@ -52,7 +52,7 @@ class Resources(ResourcesAPIView):
                 resources,
             )
 
-        output = [resource.resource_id for resource in resources]
+        output = {resource.resource_id for resource in resources}
 
         return Response(output, status=status.HTTP_200_OK)
 
