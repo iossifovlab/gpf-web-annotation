@@ -55,6 +55,7 @@ export class NewResourceComponent implements OnInit {
   public selectedAttributes: AnnotatorAttribute[];
   @ViewChild('stepper', { static: true }) public stepper: MatStepper;
   private searchSubject = new Subject<{ value: string; type: string }>();
+  public duplicateAttributeNames: string[] = [];
 
   public constructor(
     private editorService: PipelineEditorService,
@@ -259,7 +260,20 @@ export class NewResourceComponent implements OnInit {
       this.annotatorAttributes = res;
       this.selectedAttributes = res.filter(a => a.selectedByDefault);
       this.stepper.next();
+      this.validateAttributes();
     });
+  }
+
+  private validateAttributes(): void {
+    this.editorService.getPipelineAttributesNames(this.pipelineId).pipe(take(1)).subscribe(names => {
+      this.duplicateAttributeNames = this.annotatorAttributes.filter(a => names.includes(a.name)).map(a => a.name);
+    });
+  }
+
+  public disableFinish(): boolean {
+    return this.annotatorAttributes.some(
+      a => this.selectedAttributes.includes(a) && this.duplicateAttributeNames.includes(a.name)
+    );
   }
 
   private getPopulatedResourceValues(): object {

@@ -275,10 +275,17 @@ mat-form-field {
 }
 
 .duplicate-name {
-  color: red;
+  color: #d74b59;
 }
 
 .duplicate-name-input {
-  border-color: red;
-  outline-color: red;
+  border-color: #d74b59;
+  outline-color: #d74b59;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 20px;
 }

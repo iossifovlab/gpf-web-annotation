@@ -141,8 +141,10 @@
             </div>
             } }
           </div>
-          <div>
-            @if(!duplicateAttributeNames.length) {
+          <div class="modal-footer">
+            @if(duplicateAttributeNames.length) {
+            <div class="duplicate-name">Attribute with this name already exists</div>
+            }@if(!duplicateAttributeNames.length) {
             <button matButton (click)="onFinish()" class="finish-button">Finish</button>
             }
             <button matButton matStepperNext class="next-button">Next</button>
@@ -209,7 +211,10 @@
             </div>
             }
           </div>
-          <div>
+          <div class="modal-footer">
+            @if(disableFinish()) {
+            <div class="duplicate-name">Attribute with this name already exists</div>
+            }
             <button [disabled]="disableFinish()" matButton (click)="onFinish()" class="finish-button">Finish</button>
           </div>
         </div>
