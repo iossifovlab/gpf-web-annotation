@@ -204,10 +204,11 @@
           <div class="modal-footer">
             @if(duplicateAttributeNames.length) {
             <div class="duplicate-name">Attribute with this name already exists</div>
-            }@if(!duplicateAttributeNames.length) {
-            <button matButton (click)="onFinish()" class="finish-button">Finish</button>
             }
             <button matButton matStepperNext class="next-button">Next</button>
+            @if(!duplicateAttributeNames.length) {
+            <button matButton (click)="onFinish()" class="finish-button">Finish</button>
+            }
           </div>
         </div>
       </ng-template>

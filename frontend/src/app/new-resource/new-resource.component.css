@@ -305,7 +305,6 @@ form,
   color: white !important;
   background-color: #435869;
   border-radius: 5px;
-  margin-left: 10px;
 }
 
 .finish-button:disabled {
@@ -325,5 +324,5 @@ form,
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 20px;
+  gap: 15px;
 }
