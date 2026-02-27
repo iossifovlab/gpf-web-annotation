@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Any
 
 import yaml
@@ -9,7 +10,9 @@ from dae.annotation.annotation_config import (
     AnnotatorInfo,
 )
 from dae.annotation.annotation_factory import (
-    check_for_repeated_attributes_in_pipeline, get_annotator_factory, get_available_annotator_types,
+    check_for_repeated_attributes_in_pipeline,
+    get_annotator_factory,
+    get_available_annotator_types,
     build_pipeline_annotator,
 )
 from dae.annotation.effect_annotator import EffectAnnotatorAdapter
@@ -401,7 +404,9 @@ class AnnotatorYAML(EditorView):
         annotator_config = annotator_configs[0]
 
         try:
-            build_pipeline_annotator(pipeline, annotator_config)
+            build_pipeline_annotator(
+                pipeline, annotator_config, Path("./work"),
+            )
             check_for_repeated_attributes_in_pipeline(
                 pipeline, annotator_config=annotator_config,
             )
