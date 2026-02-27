@@ -103,7 +103,7 @@ test.describe('Pipeline tests', () => {
 
       model.applyEdits([
         {
-          range: new monaco.Range(16, 1, 86, 1), // clear from line 15 col 1 to line 135 col 1
+          range: new monaco.Range(19, 1, 88, 1), // clear from line 19 col 1 to line 88 col 1
           text: ''
         }
       ]);
@@ -307,9 +307,11 @@ test.describe('Pipeline tests', () => {
 
   test('should search and select pipeline from dropdown', async({ page }) => {
     await page.locator('#pipelines-input').fill('clini');
-    await expect(page.locator('mat-option')).toHaveCount(2);
+    await expect(page.locator('mat-option')).toHaveCount(4);
     await expect(page.getByTitle('pipeline/Clinical_annotation')).toBeVisible();
     await expect(page.getByTitle('pipeline/T2T_Clinical_annotation')).toBeVisible();
+    await expect(page.getByTitle('pipeline/hg38_Clinical_annotation')).toBeVisible();
+    await expect(page.getByTitle('pipeline/hg19_Clinical_annotation')).toBeVisible();
   });
 
   test('should search for nonexistent pipeline in dropdown', async({ page }) => {
@@ -351,7 +353,7 @@ test.describe('Pipeline validation tests', () => {
     await expect(page.locator('.error-message').nth(0)).toContainText(
       'Invalid configuration, reason: The A0 annotator configuration is incorrect:  ' +
       'The AnnotatorInfo(annotator_id=\'A0\', type=\'allele_score\', attributes=[], ' +
-      'parameters={\'work_dir\': PosixPath(\'work\')}, documentation=\'\', resources=[]) ' +
+      'parameters={\'work_dir\': \'work/A0_allele_score\'}, documentation=\'\', resources=[]) ' +
       'has not \'resource_id\' parameters');
   });
 });
@@ -405,12 +407,12 @@ test.describe('Add annotator to pipeline tests', () => {
 
     expect(value).toContain(
       '- gene_set_annotator:\n'+
-      '    attributes:\n'+
-      '    - internal: false\n'+
-      '      name: SPARK Gene list ALL 2016,2017\n'+
-      '      source: SPARK Gene list ALL 2016,2017\n'+
+      '    resource_id: gene_properties/gene_sets/spark\n' +
       '    input_gene_list: gene_list\n'+
-      '    resource_id: gene_properties/gene_sets/spark\n'
+      '    attributes:\n'+
+      '    - name: SPARK Gene list ALL 2016,2017\n'+
+      '      source: SPARK Gene list ALL 2016,2017\n' +
+      '      internal: false\n'
     );
   });
 
@@ -443,11 +445,11 @@ test.describe('Add annotator to pipeline tests', () => {
     await page.locator('#pipeline-actions').locator('#add-annotator-button').click();
 
     await page.getByRole('combobox', { name: 'Select annotator' }).click();
-    await page.locator('mat-option').getByText('simple_effect_annotator').click();
+    await page.locator('mat-option').getByText('position_score').click();
     await page.getByRole('button', { name: 'Next' }).click();
 
-    await page.locator('[id="gene_models-dropdown"]').click();
-    await page.locator('mat-option').getByText('hg19/gene_models/ccds_v201309').click();
+    await page.locator('[id="resource_id-dropdown"]').click();
+    await page.locator('mat-option').getByText('hg19/scores/fitCons2/E050').click();
 
     await page.getByRole('button', { name: 'Next' }).click();
 
@@ -467,26 +469,20 @@ test.describe('Add annotator to pipeline tests', () => {
 
     expect(value).toContain(
       '- liftover_annotator:\n' +
-      '    attributes:\n' +
-      '    - internal: true\n' +
-      '      name: liftover_annotatable\n' +
-      '      source: liftover_annotatable\n' +
       '    chain: liftover/hg19_to_T2T\n' +
       '    source_genome: t2t/genomes/t2t-chm13v2.0\n' +
       '    target_genome: hg38/genomes/GRCh38.p14\n' +
-      '\n' +
-      '- simple_effect_annotator:\n' +
       '    attributes:\n' +
-      '    - internal: false\n' +
-      '      name: worst_effect\n' +
-      '      source: worst_effect\n' +
-      '    - internal: false\n' +
-      '      name: worst_effect_genes\n' +
-      '      source: worst_effect_genes\n' +
-      '    - internal: true\n' +
-      '      name: gene_list\n' +
-      '      source: gene_list\n' +
-      '    gene_models: hg19/gene_models/ccds_v201309\n'
+      '    - name: liftover_annotatable\n' +
+      '      source: liftover_annotatable\n' +
+      '      internal: true\n' +
+      '\n' +
+      '- position_score:\n' +
+      '    resource_id: hg19/scores/fitCons2/E050\n' +
+      '    attributes:\n' +
+      '    - name: FitCons2_E050\n' +
+      '      source: FitCons2_E050\n' +
+      '      internal: false'
     );
   });
 
@@ -559,17 +555,17 @@ test.describe('Add annotator to pipeline tests', () => {
       '    resource_id: hg38/scores/CADD_v1.4\n' +
       '\n' +
       '- simple_effect_annotator:\n' +
+      '    gene_models: hg19/gene_models/ccds_v201309\n' +
       '    attributes:\n' +
-      '    - internal: false\n' +
-      '      name: worst_effect\n' +
+      '    - name: worst_effect\n' +
       '      source: worst_effect\n' +
-      '    - internal: false\n' +
-      '      name: worst_effect_genes\n' +
+      '      internal: false\n' +
+      '    - name: worst_effect_genes\n' +
       '      source: worst_effect_genes\n' +
-      '    - internal: true\n' +
-      '      name: gene_list\n' +
+      '      internal: false\n' +
+      '    - name: gene_list\n' +
       '      source: gene_list\n' +
-      '    gene_models: hg19/gene_models/ccds_v201309\n'
+      '      internal: true\n'
     );
   });
 });

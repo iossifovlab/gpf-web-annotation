@@ -50,12 +50,12 @@ test.describe('Anonymous user tests', () => {
 
     expect(value).toContain(
       '- gene_set_annotator:\n'+
-      '    attributes:\n'+
-      '    - internal: false\n'+
-      '      name: SPARK Gene list ALL 2016,2017\n'+
-      '      source: SPARK Gene list ALL 2016,2017\n'+
+      '    resource_id: gene_properties/gene_sets/spark\n' +
       '    input_gene_list: gene_list\n'+
-      '    resource_id: gene_properties/gene_sets/spark\n'
+      '    attributes:\n'+
+      '    - name: SPARK Gene list ALL 2016,2017\n'+
+      '      source: SPARK Gene list ALL 2016,2017\n'+
+      '      internal: false\n'
     );
   });
 
