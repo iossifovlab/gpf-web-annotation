@@ -416,9 +416,14 @@ class AnnotatorYAML(EditorView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        config_dict = annotator_config.to_dict()
+
+        if "work_dir" in config_dict[annotator_type]:
+            del config_dict[annotator_type]["work_dir"]
+
         return Response(
             yaml.safe_dump(
-                [annotator_config.to_dict()],
+                [config_dict],
                 sort_keys=False,
                 default_flow_style=False,
             ),
