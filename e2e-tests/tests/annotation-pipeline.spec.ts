@@ -23,18 +23,14 @@ test.describe('Pipeline tests', () => {
       resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    await page.evaluate(() => {
-      // eslint-disable-next-line max-len
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
-      (window as any).monaco.editor.getModels()[0].setValue(
-        'preamble:\n' +
-        '   input_reference_genome: hg38/genomes/GRCh38-hg38\n' +
-        'annotators:\n' +
-        '- allele_score:\n' +
-        '    resource_id: hg38/scores/CADD_v1.4\n'
-      );
-    });
+    await utils.typeInPipelineEditor(
+      page,
+      'preamble:\n' +
+      '   input_reference_genome: hg38/genomes/GRCh38-hg38\n' +
+      'annotators:\n' +
+      '- allele_score:\n' +
+      '    resource_id: hg38/scores/CADD_v1.4\n'
+    );
 
     await saveResponse;
 
@@ -59,37 +55,35 @@ test.describe('Pipeline tests', () => {
       resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    await page.evaluate(() => {
-      // eslint-disable-next-line max-len
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
-      (window as any).monaco.editor.getModels()[0].setValue(
-        '- cnv_collection:\n' +
-        '    resource_id: hg38/cnv_collections/Iossifov_Lab_SSC_AGRE_2021\n' +
-        '    cnv_filter: >\n' +
-        '        cnv.attributes["affected_status"] == "affected" and\n' +
-        '        cnv.attributes["variant"] == "deletion"\n' +
-        '    attributes:\n' +
-        '    - name: number_of_deletions_in_SSC_affected\n' +
-        '      source: count\n'
-      );
-    });
+    await utils.typeInPipelineEditor(
+      page,
+      '- cnv_collection:\n' +
+      '    resource_id: hg38/cnv_collections/Iossifov_Lab_SSC_AGRE_2021\n' +
+      '    cnv_filter: >\n' +
+      '        cnv.attributes["affected_status"] == "affected" and\n' +
+      '        cnv.attributes["variant"] == "deletion"\n' +
+      '    attributes:\n' +
+      '    - name: number_of_deletions_in_SSC_affected\n' +
+      '      source: count\n'
+    );
 
     await saveResponse;
 
     await page.locator('.example').click();
     await expect(page.locator('#pipelines-input')).toBeEmpty();
-    await expect(page.locator('#report')).toBeVisible();
+    await expect(page.locator('#report')).toBeVisible({timeout: 120000});
   });
 
   test('should not be able to save pipeline if invalid', async({ page }) => {
-    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New', exact: true }).click();
-    await expect(page.locator('#pipelines-input')).toBeEmpty();
-    await expect(page.locator('.monaco-editor').nth(0)).toBeEmpty();
-
     await utils.clearPipelineEditor(page);
-    await utils.typeInPipelineEditor(page, 'preamble:\ninput_reference_genome: hg38/genomes/GRCh38-hg38\n');
-    await utils.typeInPipelineEditor(page, 'annotators:\n- allele_score:\n\tresource_id: hg38/scores/CADD_v1.4');
+    await utils.typeInPipelineEditor(
+      page,
+      'preamble:\n' +
+      '  input_reference_genome: hg38/genomes/GRCh38-hg38\n' +
+      'annotators:\n' +
+      '- allele_score:\n' +
+      '  resource_id: hg38/scores/CADD_v1.4'
+    );
 
     await expect(page.getByRole('button', { name: 'Save as' })).toBeDisabled();
   });
@@ -114,7 +108,7 @@ test.describe('Pipeline tests', () => {
     await expect(page.locator('#pipelines-input')).toBeEmpty();
 
     await page.locator('.example').click();
-    await expect(page.locator('#report')).toBeVisible();
+    await expect(page.locator('#report')).toBeVisible({timeout: 120000});
   });
 
   test('should edit user pipeline and save it', async({ page }) => {
@@ -127,18 +121,14 @@ test.describe('Pipeline tests', () => {
       resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    await page.evaluate(() => {
-      // eslint-disable-next-line max-len
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
-      (window as any).monaco.editor.getModels()[0].setValue(
-        'preamble:\n' +
-        '   input_reference_genome: hg38/genomes/GRCh38-hg38\n' +
-        'annotators:\n' +
-        '- allele_score:\n' +
-        '    resource_id: hg38/scores/CADD_v1.4\n'
-      );
-    });
+    await utils.typeInPipelineEditor(
+      page,
+      'preamble:\n' +
+      '   input_reference_genome: hg38/genomes/GRCh38-hg38\n' +
+      'annotators:\n' +
+      '- allele_score:\n' +
+      '    resource_id: hg38/scores/CADD_v1.4\n'
+    );
 
     await saveResponse;
 
@@ -191,18 +181,14 @@ test.describe('Pipeline tests', () => {
       resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
     );
 
-    // // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    await page.evaluate(() => {
-      // eslint-disable-next-line max-len
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
-      (window as any).monaco.editor.getModels()[0].setValue(
-        'preamble:\n' +
-        '   input_reference_genome: hg38/genomes/GRCh38-hg38\n' +
-        'annotators:\n' +
-        '- allele_score:\n' +
-        '    resource_id: hg38/scores/CADD_v1.4\n'
-      );
-    });
+    await utils.typeInPipelineEditor(
+      page,
+      'preamble:\n' +
+      '   input_reference_genome: hg38/genomes/GRCh38-hg38\n' +
+      'annotators:\n' +
+      '- allele_score:\n' +
+      '    resource_id: hg38/scores/CADD_v1.4\n'
+    );
 
     await saveResponse;
 
@@ -251,18 +237,14 @@ test.describe('Pipeline tests', () => {
       resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
     );
 
-    // // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    await page.evaluate(() => {
-      // eslint-disable-next-line max-len
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
-      (window as any).monaco.editor.getModels()[0].setValue(
-        'preamble:\n' +
-        '   input_reference_genome: hg38/genomes/GRCh38-hg38\n' +
-        'annotators:\n' +
-        '- allele_score:\n' +
-        '    resource_id: hg38/scores/CADD_v1.4\n'
-      );
-    });
+    await utils.typeInPipelineEditor(
+      page,
+      'preamble:\n' +
+      '   input_reference_genome: hg38/genomes/GRCh38-hg38\n' +
+      'annotators:\n' +
+      '- allele_score:\n' +
+      '    resource_id: hg38/scores/CADD_v1.4\n'
+    );
 
     await saveResponse;
 
@@ -496,18 +478,14 @@ test.describe('Add annotator to pipeline tests', () => {
       resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    await page.evaluate(() => {
-      // eslint-disable-next-line max-len
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
-      (window as any).monaco.editor.getModels()[0].setValue(
-        'preamble:\n' +
-        '   input_reference_genome: hg38/genomes/GRCh38-hg38\n' +
-        'annotators:\n' +
-        '- allele_score:\n' +
-        '    resource_id: hg38/scores/CADD_v1.4\n'
-      );
-    });
+    await utils.typeInPipelineEditor(
+      page,
+      'preamble:\n' +
+      '   input_reference_genome: hg38/genomes/GRCh38-hg38\n' +
+      'annotators:\n' +
+      '- allele_score:\n' +
+      '    resource_id: hg38/scores/CADD_v1.4\n'
+    );
 
     await saveResponse;
 

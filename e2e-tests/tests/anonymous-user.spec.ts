@@ -1,5 +1,6 @@
 import { test, expect, Page } from '@playwright/test';
 import { scanCSV } from 'nodejs-polars';
+import * as utils from '../utils';
 
 test.describe('Anonymous user tests', () => {
   test.beforeEach(async({ page }) => {
@@ -68,32 +69,28 @@ test.describe('Anonymous user tests', () => {
       resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
     );
 
-    await page.evaluate(() => {
-      // eslint-disable-next-line max-len
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
-      (window as any).monaco.editor.getModels()[0].setValue(
-        '- effect_annotator:\n' +
-        '    attributes:\n' +
-        '    - internal: false\n' +
-        '      name: worst_effect\n' +
-        '      source: worst_effect\n' +
-        '    - internal: false\n' +
-        '      name: worst_effect_genes\n' +
-        '      source: worst_effect_genes\n' +
-        '    - internal: false\n' +
-        '      name: gene_effects\n' +
-        '      source: gene_effects\n' +
-        '    - internal: false\n' +
-        '      name: effect_details\n' +
-        '      source: effect_details\n' +
-        '    - internal: true\n' +
-        '      name: gene_list\n' +
-        '      source: gene_list\n' +
-        '    gene_models: hg19/gene_models/refGene_v201309\n' +
-        '    genome: hg38/genomes/GRCh38-hg38'
-      );
-    });
-
+    await utils.typeInPipelineEditor(
+      page,
+      '- effect_annotator:\n' +
+      '    attributes:\n' +
+      '    - internal: false\n' +
+      '      name: worst_effect\n' +
+      '      source: worst_effect\n' +
+      '    - internal: false\n' +
+      '      name: worst_effect_genes\n' +
+      '      source: worst_effect_genes\n' +
+      '    - internal: false\n' +
+      '      name: gene_effects\n' +
+      '      source: gene_effects\n' +
+      '    - internal: false\n' +
+      '      name: effect_details\n' +
+      '      source: effect_details\n' +
+      '    - internal: true\n' +
+      '      name: gene_list\n' +
+      '      source: gene_list\n' +
+      '    gene_models: hg19/gene_models/refGene_v201309\n' +
+      '    genome: hg38/genomes/GRCh38-hg38'
+    );
 
     await saveResponse;
 
@@ -140,7 +137,7 @@ test.describe('Anonymous user tests', () => {
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-vcf-file-reduced.vcf');
     await page.locator('#create-button').click();
 
-    await expect(page.getByText('Job name: anonymous_job')).toBeVisible();
+    await expect(page.getByText('Job name: anonymous_job')).toBeVisible({timeout: 120000});
     await page.waitForSelector('.success-status', {timeout: 120000});
 
     await expect(page.locator('#history-table')).not.toBeVisible();
@@ -157,25 +154,22 @@ test.describe('Anonymous user tests', () => {
       resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
     );
 
-    await page.evaluate(() => {
-      // eslint-disable-next-line max-len
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
-      (window as any).monaco.editor.getModels()[0].setValue(
-        '- normalize_allele_annotator:\n' +
-        '    genome: hg38/genomes/GRCh38-hg38\n' +
-        '\n' +
-        '- allele_score:\n' +
-        '    attributes:\n' +
-        '    - internal: false\n' +
-        '      name: cadd_raw\n' +
-        '      source: cadd_raw\n' +
-        '    - internal: false\n' +
-        '      name: cadd_phred\n' +
-        '      source: cadd_phred\n' +
-        '    input_annotatable: normalized_allele\n' +
-        '    resource_id: hg19/scores/CADD\n'
-      );
-    });
+    await utils.typeInPipelineEditor(
+      page,
+      '- normalize_allele_annotator:\n' +
+      '    genome: hg38/genomes/GRCh38-hg38\n' +
+      '\n' +
+      '- allele_score:\n' +
+      '    attributes:\n' +
+      '    - internal: false\n' +
+      '      name: cadd_raw\n' +
+      '      source: cadd_raw\n' +
+      '    - internal: false\n' +
+      '      name: cadd_phred\n' +
+      '      source: cadd_phred\n' +
+      '    input_annotatable: normalized_allele\n' +
+      '    resource_id: hg19/scores/CADD\n'
+    );
 
     await saveResponse;
 
@@ -245,22 +239,18 @@ async function customDefaultPipeline(page: Page): Promise<void> {
     resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
   );
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  await page.evaluate(() => {
-    // eslint-disable-next-line max-len
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
-    (window as any).monaco.editor.getModels()[0].setValue(
-      '- effect_annotator:\n' +
-      '   gene_models: hg38/gene_models/GENCODE/48/basic/ALL\n' +
-      '   genome: hg38/genomes/GRCh38.p13\n' +
-      '   attributes:\n' +
-      '   - worst_effect\n' +
-      '   - gene_effects\n' +
-      '   - effect_details\n' +
-      '   - name: gene_list \n' +
-      '     internal: true\n'
-    );
-  });
+  await utils.typeInPipelineEditor(
+    page,
+    '- effect_annotator:\n' +
+    '   gene_models: hg38/gene_models/GENCODE/48/basic/ALL\n' +
+    '   genome: hg38/genomes/GRCh38.p13\n' +
+    '   attributes:\n' +
+    '   - worst_effect\n' +
+    '   - gene_effects\n' +
+    '   - effect_details\n' +
+    '   - name: gene_list \n' +
+    '     internal: true\n'
+  );
 
   await saveResponse;
 

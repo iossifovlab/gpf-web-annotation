@@ -53,9 +53,19 @@ export async function loginUser(page: Page, email: string, password: string): Pr
 }
 
 export async function typeInPipelineEditor(page: Page, input: string): Promise<void> {
-  const monacoEditor = page.locator('.monaco-editor').nth(0);
-  await monacoEditor.click();
-  await page.keyboard.insertText(input);
+  /* eslint-disable
+  @typescript-eslint/no-unsafe-assignment,
+  @typescript-eslint/no-unsafe-member-access,
+  @typescript-eslint/no-unsafe-call,
+  @typescript-eslint/no-explicit-any */
+  await page.waitForFunction(() => {
+    return (window as any).monaco?.editor?.getModels()?.length > 0;
+  });
+  await page.evaluate((value) => {
+    const model = (window as any).monaco.editor.getModels()[0];
+    model.setValue(value);
+  }, input);
+  /* eslint-enable */
 }
 
 export async function clearPipelineEditor(page: Page): Promise<void> {
