@@ -50,6 +50,7 @@ export class NewAnnotatorComponent implements OnInit {
   public unselectedAttributes: string[];
   public unselectedFilteredAttributes: string[];
   public duplicateAttributeNames: string[] = [];
+  public areAttributesValid: boolean;
   @ViewChild('stepper', { static: true }) public stepper: MatStepper;
 
   public constructor(
@@ -187,8 +188,8 @@ export class NewAnnotatorComponent implements OnInit {
       this.unselectedAttributes = res.filter(a => !a.selectedByDefault).map(a => `${a.name} - ${a.description}`);
       this.unselectedFilteredAttributes = this.unselectedAttributes;
       this.setupAttributeValueFiltering();
+      this.getPipelineAttributesNames();
       this.stepper.next();
-      this.validateAttributes();
     });
   }
 
@@ -204,14 +205,15 @@ export class NewAnnotatorComponent implements OnInit {
     });
   }
 
-  private validateAttributes(): void {
+  private getPipelineAttributesNames(): void {
     this.editorService.getPipelineAttributesNames(this.pipelineId).pipe(take(1)).subscribe(names => {
       this.duplicateAttributeNames = this.annotatorAttributes.filter(a => names.includes(a.name)).map(a => a.name);
+      this.validateAttributes();
     });
   }
 
-  public disableFinish(): boolean {
-    return this.annotatorAttributes.some(
+  public validateAttributes(): void {
+    this.areAttributesValid = !this.annotatorAttributes.some(
       a => this.selectedAttributes.includes(a) && this.duplicateAttributeNames.includes(a.name)
     );
   }
@@ -268,10 +270,12 @@ export class NewAnnotatorComponent implements OnInit {
     this.selectedAttributes.push(this.annotatorAttributes.find(a => a.name === attributeName));
     this.unselectedAttributes = this.unselectedAttributes.filter(a => a !== stringAttribute);
     this.clearAttributeInput();
+    this.validateAttributes();
   }
 
   public removeSelectedAttribute(attribute: AnnotatorAttribute): void {
     this.selectedAttributes = this.selectedAttributes.filter(a => a !== attribute);
     this.unselectedAttributes.push(`${attribute.name} - ${attribute.description}`);
+    this.validateAttributes();
   }
 }

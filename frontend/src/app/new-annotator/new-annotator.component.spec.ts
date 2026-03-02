@@ -300,9 +300,10 @@ describe('NewAnnotatorComponent', () => {
     expect(component.duplicateAttributeNames).toStrictEqual(['mpc', 'dbSNP_RS']);
   });
 
-  it('should disable finish button if there is any selected attribute with duplicate name', () => {
+  it('should disable finish button if there is selected attribute with duplicate name', () => {
     component.requestAttributes();
-    expect(component.disableFinish()).toBe(true);
+    component.validateAttributes();
+    expect(component.areAttributesValid).toBe(false);
   });
 
   it('should not disable finish button if there is unselected attribute with exisitng name', () => {
@@ -317,7 +318,8 @@ describe('NewAnnotatorComponent', () => {
         'Effect details for each affected transcript'
       )
     ];
+    component.validateAttributes();
     expect(component.duplicateAttributeNames).toStrictEqual(['mpc', 'dbSNP_RS']);
-    expect(component.disableFinish()).toBe(false);
+    expect(component.areAttributesValid).toBe(true);
   });
 });

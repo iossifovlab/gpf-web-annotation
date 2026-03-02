@@ -175,18 +175,18 @@
             </form>
           </div>
           <div class="modal-footer">
-            @if(duplicateAttributeNames.length) {
+            @if(!areAttributesValid) {
             <div class="duplicate-name">Attribute with this name already exists</div>
             }
             <button matButton matStepperNext class="next-button">Next</button>
-            @if(!duplicateAttributeNames.length) {
+            @if(areAttributesValid) {
             <button matButton (click)="onFinish()" class="finish-button">Finish</button>
             }
           </div>
         </div>
       </ng-template>
     </mat-step>
-    <mat-step label="Modify attributes" [editable]="false" [optional]="!duplicateAttributeNames.length">
+    <mat-step label="Modify attributes" [editable]="false" [optional]="areAttributesValid">
       <ng-template matStepContent>
         <div class="summary-content">
           <div class="annotator-display-text" [title]="annotatorStep.value | keyValueDisplay">{{
@@ -214,6 +214,7 @@
                     [title]="attribute.name"
                     [value]="attribute.name"
                     [(ngModel)]="attribute.name"
+                    (ngModelChange)="validateAttributes()"
                     [ngClass]="duplicateAttributeNames.includes(attribute.name) ? 'duplicate-name-input' : ''" />
                 </div>
                 <div class="attribute modify-view-attribute">
@@ -246,10 +247,12 @@
             }
           </div>
           <div class="modal-footer">
-            @if(disableFinish()) {
+            @if(!areAttributesValid) {
             <div class="duplicate-name">Attribute with this name already exists</div>
             }
-            <button [disabled]="disableFinish()" matButton (click)="onFinish()" class="finish-button">Finish</button>
+            <button [disabled]="!areAttributesValid" matButton (click)="onFinish()" class="finish-button"
+              >Finish</button
+            >
           </div>
         </div>
       </ng-template>
