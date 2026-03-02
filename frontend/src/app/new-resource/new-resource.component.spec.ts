@@ -46,9 +46,16 @@ const annotatorConfigMock = new AnnotatorConfig(
 );
 
 const attributesMock = [
-  new AnnotatorAttribute('mpc', 'string', 'mpc', false, true),
-  new AnnotatorAttribute('effect_details', 'bool', 'effect_details', false, true),
-  new AnnotatorAttribute('dbSNP_RS', 'string', 'dbSNP_RS', true, true)
+  new AnnotatorAttribute('mpc', 'string', 'mpc', false, true, 'Missense badness, PolyPhen-2, and Constraint.'),
+  new AnnotatorAttribute(
+    'effect_details',
+    'bool',
+    'effect_details',
+    false,
+    true,
+    'Effect details for each affected transcript'
+  ),
+  new AnnotatorAttribute('dbSNP_RS', 'string', 'dbSNP_RS', true, true, 'dbSNP ID (i.e. rs number)')
 ];
 
 const ymlResponse = `
@@ -335,7 +342,7 @@ describe('NewResourceComponent', () => {
       'effect_annotator',
       // eslint-disable-next-line camelcase
       { gene_models: 'hg19/gene_models/ccds_v201309', genome: 't2t/genomes/t2t-chm13v2.0'},
-      [new AnnotatorAttribute('mpc', 'string', 'mpc', false, true)]
+      [new AnnotatorAttribute('mpc', 'string', 'mpc', false, true, 'Missense badness, PolyPhen-2, and Constraint.')]
     );
 
     expect(closeModalSpy).toHaveBeenCalledWith('\n' + ymlResponse);
@@ -360,24 +367,24 @@ describe('NewResourceComponent', () => {
   });
 
   it('should select attribute', () => {
-    const attribute1 = new AnnotatorAttribute('attribute1', 'string', 'source1', false, true);
-    const attribute2 = new AnnotatorAttribute('attribute2', 'bool', 'source2', false, true);
-    const attribute3 = new AnnotatorAttribute('attribute3', 'string', 'source3', true, true);
+    const attribute1 = new AnnotatorAttribute('attribute1', 'string', 'source1', false, true, 'desc');
+    const attribute2 = new AnnotatorAttribute('attribute2', 'bool', 'source2', false, true, 'desc');
+    const attribute3 = new AnnotatorAttribute('attribute3', 'string', 'source3', true, true, 'desc');
     component.selectedAttributes = [attribute1, attribute2];
     component.toggleSelectedAttribute(attribute3);
     expect(component.selectedAttributes).toStrictEqual([attribute1, attribute2, attribute3]);
   });
 
   it('should unselect attribute', () => {
-    const attribute1 = new AnnotatorAttribute('attribute1', 'string', 'source1', false, true);
-    const attribute2 = new AnnotatorAttribute('attribute2', 'bool', 'source2', false, true);
+    const attribute1 = new AnnotatorAttribute('attribute1', 'string', 'source1', false, true, 'desc');
+    const attribute2 = new AnnotatorAttribute('attribute2', 'bool', 'source2', false, true, 'desc');
     component.selectedAttributes = [attribute1, attribute2];
     component.toggleSelectedAttribute(attribute2);
     expect(component.selectedAttributes).toStrictEqual([attribute1]);
   });
 
   it('should toggle internal value of attribute', () => {
-    const attribute = new AnnotatorAttribute('attribute', 'string', 'source1', false, true);
+    const attribute = new AnnotatorAttribute('attribute', 'string', 'source1', false, true, 'desc');
     component.selectedAttributes = [attribute];
     component.setAttributeInternal(attribute, true);
     expect(component.selectedAttributes[0].internal).toBe(true);
@@ -395,7 +402,16 @@ describe('NewResourceComponent', () => {
 
   it('should not disable finish button if there is unselected attribute with exisitng name', () => {
     component.requestAttributes();
-    component.selectedAttributes = [new AnnotatorAttribute('effect_details', 'bool', 'effect_details', false, true)];
+    component.selectedAttributes = [
+      new AnnotatorAttribute(
+        'effect_details',
+        'bool',
+        'effect_details',
+        false,
+        true,
+        'Effect details for each affected transcript'
+      )
+    ];
     expect(component.duplicateAttributeNames).toStrictEqual(['mpc', 'dbSNP_RS']);
     expect(component.disableFinish()).toBe(false);
   });

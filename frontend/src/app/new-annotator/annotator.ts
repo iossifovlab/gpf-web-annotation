@@ -54,6 +54,7 @@ export class AnnotatorAttribute {
     public source: string,
     public internal: boolean,
     public selectedByDefault: boolean,
+    public description: string,
   ) { }
 
   public static fromJsonArray(jsonArray: object[]): AnnotatorAttribute[] {
@@ -73,7 +74,8 @@ export class AnnotatorAttribute {
       json['type'] as string,
       json['source'] as string,
       json['internal'] as boolean,
-      json['default'] as boolean
+      json['default'] as boolean,
+      json['description'] as string,
     );
   }
 }
