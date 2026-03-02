@@ -44,8 +44,11 @@ export class NewAnnotatorComponent implements OnInit {
   public annotatorStep: FormGroup<{ annotator: FormControl<string> }>;
   public resourceStep: FormGroup = new FormGroup({});
   public annotatorConfig: AnnotatorConfig;
+  public attributeStep: FormGroup<{ attribute: FormControl<string> }>;
   public annotatorAttributes: AnnotatorAttribute[];
   public selectedAttributes: AnnotatorAttribute[];
+  public unselectedAttributes: string[];
+  public unselectedFilteredAttributes: string[];
   public duplicateAttributeNames: string[] = [];
   @ViewChild('stepper', { static: true }) public stepper: MatStepper;
 
@@ -181,8 +184,23 @@ export class NewAnnotatorComponent implements OnInit {
     ).pipe(take(1)).subscribe(res => {
       this.annotatorAttributes = res;
       this.selectedAttributes = res.filter(a => a.selectedByDefault);
+      this.unselectedAttributes = res.filter(a => !a.selectedByDefault).map(a => `${a.name} - ${a.description}`);
+      this.unselectedFilteredAttributes = this.unselectedAttributes;
+      this.setupAttributeValueFiltering();
       this.stepper.next();
       this.validateAttributes();
+    });
+  }
+
+  private setupAttributeValueFiltering(): void {
+    this.attributeStep = this.formBuilder.group({
+      attribute: [''],
+    });
+
+    this.attributeStep.get('attribute').valueChanges.pipe(
+      map((value: string) => this.filterDropdownContent(value, this.unselectedAttributes))
+    ).subscribe(filtered => {
+      this.unselectedFilteredAttributes = filtered;
     });
   }
 
@@ -221,6 +239,11 @@ export class NewAnnotatorComponent implements OnInit {
     this.annotatorStep.get('annotator').setValue(null);
   }
 
+  public clearAttributeInput(): void {
+    this.attributeStep.get('attribute').setValue(null);
+  }
+
+
   public clearResource(resource: string): void {
     this.resourceStep.get(resource).setValue(null);
   }
@@ -238,5 +261,17 @@ export class NewAnnotatorComponent implements OnInit {
     if (index !== -1) {
       this.selectedAttributes[index].internal = value;
     }
+  }
+
+  public onSelectAttribute(stringAttribute: string): void {
+    const attributeName = stringAttribute.split(' - ')[0];
+    this.selectedAttributes.push(this.annotatorAttributes.find(a => a.name === attributeName));
+    this.unselectedAttributes = this.unselectedAttributes.filter(a => a !== stringAttribute);
+    this.clearAttributeInput();
+  }
+
+  public removeSelectedAttribute(attribute: AnnotatorAttribute): void {
+    this.selectedAttributes = this.selectedAttributes.filter(a => a !== attribute);
+    this.unselectedAttributes.push(`${attribute.name} - ${attribute.description}`);
   }
 }

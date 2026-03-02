@@ -23,6 +23,11 @@ input[type="text"] {
   text-overflow: ellipsis;
 }
 
+::ng-deep .mat-mdc-option {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+}
+
 ::ng-deep .mat-mdc-option.mat-mdc-option-active.mdc-list-item,
 ::ng-deep .mat-mdc-option:hover {
   background-color: #f4f7fb !important;
@@ -107,11 +112,17 @@ input[type="text"] {
   color: #85a2b9;
 }
 
-.field-value {
-  max-width: 60%;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
+.attribute-desciption {
+  color: initial;
+}
+
+.remove-attribute {
+  color: #d74b59;
+}
+
+.remove-attribute:hover {
+  color: #ee828d;
+  cursor: pointer;
 }
 
 .optional-label {
@@ -127,7 +138,8 @@ input[type="text"] {
   text-align: end;
 }
 
-.resource-input {
+.resource-input,
+.attribute-input {
   width: 100%;
 }
 
@@ -145,6 +157,18 @@ input[type="text"] {
   text-align: end;
   margin-bottom: 5px;
   align-items: center;
+}
+
+#attributes-dropdown {
+  margin-bottom: 20px;
+}
+
+.selected-attribute {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: center;
+  font-size: 14px;
 }
 
 .modify-view-attribute {
