@@ -226,23 +226,6 @@ describe('NewAnnotatorComponent', () => {
     expect(component.resourceStep.get('resource_id').value).toBeNull();
   });
 
-  it('should select attribute', () => {
-    const attribute1 = new AnnotatorAttribute('attribute1', 'string', 'source1', false, true, 'desc');
-    const attribute2 = new AnnotatorAttribute('attribute2', 'bool', 'source2', false, true, 'desc');
-    const attribute3 = new AnnotatorAttribute('attribute3', 'string', 'source3', true, true, 'desc');
-    component.selectedAttributes = [attribute1, attribute2];
-    component.toggleSelectedAttribute(attribute3);
-    expect(component.selectedAttributes).toStrictEqual([attribute1, attribute2, attribute3]);
-  });
-
-  it('should unselect attribute', () => {
-    const attribute1 = new AnnotatorAttribute('attribute1', 'string', 'source1', false, true, 'desc');
-    const attribute2 = new AnnotatorAttribute('attribute2', 'bool', 'source2', false, true, 'desc');
-    component.selectedAttributes = [attribute1, attribute2];
-    component.toggleSelectedAttribute(attribute2);
-    expect(component.selectedAttributes).toStrictEqual([attribute1]);
-  });
-
   it('should toggle internal value of attribute', () => {
     const attribute = new AnnotatorAttribute('attribute', 'string', 'source1', false, true, 'desc');
     component.selectedAttributes = [attribute];

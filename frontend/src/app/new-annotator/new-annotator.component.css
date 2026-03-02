@@ -196,19 +196,6 @@ input[type="radio"]:checked {
   accent-color: #435869;
 }
 
-input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-}
-
-input[type="checkbox"]:hover {
-  cursor: pointer;
-}
-
-input[type="checkbox"]:checked {
-  accent-color: #435869;
-}
-
 .attribute-group {
   border-bottom: 1px solid #e6e6de;
   padding: 10px 0;

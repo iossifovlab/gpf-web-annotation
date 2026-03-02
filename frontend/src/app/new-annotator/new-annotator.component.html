@@ -199,12 +199,8 @@
 
         <div class="left-content">
           <div id="attributes-list">
-            @for (attribute of annotatorAttributes; track attribute) {
+            @for (attribute of selectedAttributes; track attribute) {
             <div class="attribute-group modify-view-group">
-              <input
-                type="checkbox"
-                [checked]="selectedAttributes.includes(attribute)"
-                (change)="toggleSelectedAttribute(attribute)" />
               <div style="width: 100%">
                 <div class="attribute modify-view-attribute">
                   <span class="field-label">name</span>

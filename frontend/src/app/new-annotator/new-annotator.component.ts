@@ -250,14 +250,6 @@ export class NewAnnotatorComponent implements OnInit {
     this.resourceStep.get(resource).setValue(null);
   }
 
-  public toggleSelectedAttribute(attribute: AnnotatorAttribute): void {
-    if (this.selectedAttributes.includes(attribute)) {
-      this.selectedAttributes = this.selectedAttributes.filter(a => a !== attribute);
-    } else {
-      this.selectedAttributes.push(attribute);
-    }
-  }
-
   public setAttributeInternal(attribute: AnnotatorAttribute, value: boolean): void {
     const index = this.selectedAttributes.findIndex(a => a.name === attribute.name);
     if (index !== -1) {
