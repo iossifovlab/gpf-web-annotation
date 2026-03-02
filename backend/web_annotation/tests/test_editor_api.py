@@ -101,6 +101,7 @@ def test_annotator_attributes_position_score(
         "name": "pos1",
         "source": "pos1",
         "type": "float",
+        "description": "test position score",
         "default": True,
         "internal": False,
     }
@@ -125,6 +126,7 @@ def test_annotator_attributes_cnv_collection(
         "name": "count",
         "source": "count",
         "type": "int",
+        "description": "The number of CNVs overlapping with the annotatable.",
         "default": True,
         "internal": False,
     }

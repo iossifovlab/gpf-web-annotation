@@ -298,6 +298,7 @@ class AnnotatorAttributes(EditorView):
                 "name": attribute.name,
                 "source": attribute.source,
                 "type": attribute.value_type,
+                "description": attribute.description,
                 "default": attribute.default,
                 "internal": attribute.internal,
             })
@@ -313,6 +314,7 @@ class AnnotatorAttributes(EditorView):
                     "name": attribute_desc.name,
                     "source": attribute_desc.name,
                     "type": attribute_desc.type,
+                    "description": attribute.description,
                     "default": attribute_desc.default,
                     "internal": attribute_desc.internal,
                 })
