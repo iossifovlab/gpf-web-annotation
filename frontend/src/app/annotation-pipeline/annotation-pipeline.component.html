@@ -66,7 +66,7 @@
     <button (click)="openAnnotatorFormModal()" id="add-annotator-button" [disabled]="configError"
       ><span class="material-symbols-outlined add-annotator-icon">add</span>New annotator</button
     >
-    <button (click)="openResourceFormModal()" id="add-resource-button" [disabled]="configError"
+    <button (click)="openAnnotatorFormModal(true)" id="add-resource-button" [disabled]="configError"
       ><span class="material-symbols-outlined add-resource-icon">add</span>New resource</button
     >
     <button (click)="clearPipeline()" id="new-pipeline-button"

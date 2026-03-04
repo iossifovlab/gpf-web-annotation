@@ -1,17 +1,18 @@
 import { CommonModule } from '@angular/common';
 import { Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { CdkStepperModule, STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { PipelineEditorService } from '../pipeline-editor.service';
-import { map, Observable, of, switchMap, take, forkJoin } from 'rxjs';
-import { AnnotatorAttribute, AnnotatorConfig, Resource } from './annotator';
+import { map, Observable, of, switchMap, take, forkJoin, Subject, distinctUntilChanged, tap } from 'rxjs';
+import { AnnotatorAttribute, AnnotatorConfig, Resource, ResourceAnnotator } from './annotator';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { KeyValueDisplayPipe } from '../key-value-display.pipe';
+import { MatSelect } from '@angular/material/select';
 
 @Component({
   selector: 'app-new-annotator',
@@ -25,6 +26,7 @@ import { KeyValueDisplayPipe } from '../key-value-display.pipe';
     CommonModule,
     CdkStepperModule,
     MatAutocompleteModule,
+    MatSelect,
     KeyValueDisplayPipe
   ],
   providers: [
@@ -37,26 +39,32 @@ import { KeyValueDisplayPipe } from '../key-value-display.pipe';
   styleUrl: './new-annotator.component.css',
 })
 export class NewAnnotatorComponent implements OnInit {
-  public selectedStepIndex = 0;
-  public annotators: string[] = [];
-  public filteredAnnotators: string[];
-  public filteredResourceValues: Map<string, string[]>;
+  public resourceTypeStep: FormGroup<{ resourceType: FormControl<string>, resourceId: FormControl<string> }>;
+  public resourceTypes: string[];
+  public resourceIds: string[];
+  public selectedResourceType = '';
+  private searchSubject = new Subject<{ value: string; type: string }>();
+  public resourceAnnotators: ResourceAnnotator[];
+
   public annotatorStep: FormGroup<{ annotator: FormControl<string> }>;
+  public annotatorTypes: string[] = [];
+  public filteredAnnotatorTypes: string[];
   public resourceStep: FormGroup = new FormGroup({});
+  public filteredResourceValues: Map<string, string[]>;
   public annotatorConfig: AnnotatorConfig;
   public attributeStep: FormGroup<{ attribute: FormControl<string> }>;
   public annotatorAttributes: AnnotatorAttribute[];
   public selectedAttributes: AnnotatorAttribute[];
   public unselectedAttributes: string[];
   public unselectedFilteredAttributes: string[];
-  public duplicateAttributeNames: string[] = [];
   public areAttributesValid: boolean;
   @ViewChild('stepper', { static: true }) public stepper: MatStepper;
+  public duplicateAttributeNames: string[] = [];
 
   public constructor(
     private editorService: PipelineEditorService,
     private formBuilder: FormBuilder,
-    @Inject(MAT_DIALOG_DATA) public pipelineId: string,
+    @Inject(MAT_DIALOG_DATA) public data: {pipelineId: string, isResourceWorkflow: boolean},
     private dialogRef: MatDialogRef<NewAnnotatorComponent>
   ) {
   }
@@ -66,18 +74,86 @@ export class NewAnnotatorComponent implements OnInit {
       annotator: ['', Validators.required],
     });
 
+    if (this.data.isResourceWorkflow) {
+      this.resourceTypeStep = this.formBuilder.group({
+        resourceType: ['', Validators.required],
+        resourceId: ['', Validators.required],
+      });
+
+      this.editorService.getResourceTypes().pipe(take(1)).subscribe(res => {
+        this.resourceTypes = res;
+        this.selectedResourceType = this.resourceTypes[0];
+        this.resourceTypeStep.get('resourceType').setValue(this.selectedResourceType, { emitEvent: false });
+        this.setupResourceSearching();
+      });
+    } else {
+      this.requestAnnotators();
+    }
+  }
+
+  private setupResourceSearching(): void {
+    // Set up the search subject to handle API calls
+    this.searchSubject.pipe(
+      distinctUntilChanged((prev, curr) => prev.value === curr.value && prev.type === curr.type),
+      switchMap(({ value, type }) => this.editorService.getResourcesBySearch(value, type)),
+    ).subscribe(resources => {
+      this.resourceIds = resources;
+
+      if (!this.resourceIds.includes(this.normalizeString(this.resourceTypeStep.get('resourceId').value))) {
+        this.resourceTypeStep.get('resourceId').setErrors({ invalidOption: true });
+      } else {
+        this.resourceTypeStep.get('resourceId').setErrors(null);
+      }
+    });
+
+    // Trigger search on resourceId value changes
+    this.resourceTypeStep.get('resourceId').valueChanges.pipe(
+      tap(() => this.resourceTypeStep.get('resourceId').setErrors({ invalidOption: true })),
+      map(value => ({ value: this.normalizeString(value), type: this.selectedResourceType })),
+    ).subscribe(obj => this.searchSubject.next(obj));
+
+    // Trigger search when resourceType changes
+    this.resourceTypeStep.get('resourceType').valueChanges.subscribe(type => {
+      this.selectedResourceType = type;
+      this.searchSubject.next({ value: '', type: type });
+    });
+  }
+
+
+  private requestAnnotators(): void {
     this.editorService.getAnnotators().subscribe(res => {
-      this.annotators = res;
-      this.filteredAnnotators = res;
+      this.annotatorTypes = res;
+      this.filteredAnnotatorTypes = res;
       this.setupAnnotatorValueFiltering();
     });
   }
 
+  public requestResourceAnnotators(): void {
+    this.editorService.getResourceAnnotators(this.resourceTypeStep.value.resourceId.trim()).pipe(
+      take(1),
+    ).subscribe(res => {
+      this.resourceAnnotators = res;
+      if (this.resourceAnnotators.length === 1) {
+        this.autoSelectAnnotator();
+      } else {
+        this.annotatorTypes = res.map(r => r.annotatorType);
+        this.filteredAnnotatorTypes = res.map(r => r.annotatorType);
+        this.setupAnnotatorValueFiltering();
+      }
+      this.stepper.next();
+    });
+  }
+
+  private autoSelectAnnotator(): void {
+    this.annotatorStep.get('annotator').setValue(this.resourceAnnotators[0].annotatorType);
+    this.requestResources();
+  }
+
   private setupAnnotatorValueFiltering(): void {
     this.annotatorStep.get('annotator').valueChanges.pipe(
-      map((value: string) => this.filterDropdownContent(value, this.annotators))
+      map((value: string) => this.filterDropdownContent(value, this.annotatorTypes))
     ).subscribe(filtered => {
-      this.filteredAnnotators = filtered;
+      this.filteredAnnotatorTypes = filtered;
       if (!filtered.includes(this.normalizeString(this.annotatorStep.get('annotator').value))) {
         this.annotatorStep.get('annotator').setErrors({ invalidOption: true });
       }
@@ -96,7 +172,7 @@ export class NewAnnotatorComponent implements OnInit {
     }
 
     const observables = attributeResources.map(resource =>
-      this.editorService.getPipelineAttributes(this.pipelineId, resource.attributeType).pipe(
+      this.editorService.getPipelineAttributes(this.data.pipelineId, resource.attributeType).pipe(
         take(1),
         map(res => {
           const resourceIndex = config.resources.findIndex(r => r.key === resource.key);
@@ -119,7 +195,17 @@ export class NewAnnotatorComponent implements OnInit {
   }
 
   public requestResources(): void {
-    this.editorService.getAnnotatorConfig(this.normalizeString(this.annotatorStep.value.annotator)).pipe(
+    let annotatorConfigObservable = this.editorService.getAnnotatorConfig(
+      this.normalizeString(this.annotatorStep.value.annotator));
+
+    if (this.data.isResourceWorkflow) {
+      annotatorConfigObservable = this.editorService.getAnnotatorConfig(
+        this.annotatorStep.get('annotator').value,
+        this.resourceAnnotators.find(a => a.annotatorType === this.annotatorStep.get('annotator').value).resourceJson
+      );
+    }
+
+    annotatorConfigObservable.pipe(
       take(1),
       switchMap(config => this.getPipelineAttributes(config))
     ).subscribe(res => {
@@ -179,7 +265,7 @@ export class NewAnnotatorComponent implements OnInit {
     const filtered = this.getPopulatedResourceValues();
 
     this.editorService.getAttributes(
-      this.pipelineId,
+      this.data.pipelineId,
       this.annotatorStep.value.annotator,
       filtered
     ).pipe(take(1)).subscribe(res => {
@@ -206,7 +292,7 @@ export class NewAnnotatorComponent implements OnInit {
   }
 
   private getPipelineAttributesNames(): void {
-    this.editorService.getPipelineAttributesNames(this.pipelineId).pipe(take(1)).subscribe(names => {
+    this.editorService.getPipelineAttributesNames(this.data.pipelineId).pipe(take(1)).subscribe(names => {
       this.duplicateAttributeNames = this.annotatorAttributes.filter(a => names.includes(a.name)).map(a => a.name);
       this.validateAttributes();
     });
@@ -222,7 +308,7 @@ export class NewAnnotatorComponent implements OnInit {
     const filtered = this.getPopulatedResourceValues();
 
     this.editorService.getAnnotatorYml(
-      this.pipelineId,
+      this.data.pipelineId,
       this.annotatorStep.value.annotator,
       filtered,
       this.selectedAttributes
@@ -245,9 +331,12 @@ export class NewAnnotatorComponent implements OnInit {
     this.attributeStep.get('attribute').setValue(null);
   }
 
-
-  public clearResource(resource: string): void {
-    this.resourceStep.get(resource).setValue(null);
+  public clearResource(inputField?: string): void {
+    if (inputField) {
+      this.resourceStep.get(inputField).setValue(null);
+      return;
+    }
+    this.resourceTypeStep.get('resourceId').setValue(null);
   }
 
   public setAttributeInternal(attribute: AnnotatorAttribute, value: boolean): void {

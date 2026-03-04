@@ -6,38 +6,33 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Observable, of } from 'rxjs';
 import { PipelineEditorService } from '../pipeline-editor.service';
-import { AnnotatorAttribute, AnnotatorConfig, Resource } from './annotator';
+import { AnnotatorAttribute, AnnotatorConfig, Resource, ResourceAnnotator } from './annotator';
 import { FormBuilder, FormControl } from '@angular/forms';
 
 
 const annotatorConfigMock = new AnnotatorConfig(
-  'gene_set_annotator',
+  'effect_annotator',
   [
     new Resource(
-      'resource_id',
+      'gene_models',
       'resource',
-      'gene_score',
-      '',
-      ['gene_properties/gene_scores/LGD', 'gene_properties/gene_scores/RVIS'],
+      'gene_models',
+      'hg19/gene_models/ccds_v201309',
+      [
+        'hg19/gene_models/refGene_v20190211',
+        'hg38/gene_models/GENCODE/34/basic/ALL',
+        'hg38/gene_models/GENCODE/34/basic/CHR'
+      ],
       false,
       ''
     ),
     new Resource(
-      'input_gene_list',
-      'string',
-      '',
-      '',
-      null,
-      false,
-      ''
-    ),
-    new Resource(
-      'source_genome',
+      'genome',
       'resource',
       'genome',
       '',
-      ['hg19/genomes/GATK_ResourceBundle_5777_b37_phiX174', 'hg38/genomes/GRCh38-hg38', 'hg38/genomes/GRCh38.p13'],
-      false,
+      ['hg38/genomes/GRCh38.p14', 't2t/genomes/t2t-chm13v2.0'],
+      true,
       ''
     ),
     new Resource(
@@ -45,7 +40,7 @@ const annotatorConfigMock = new AnnotatorConfig(
       'attribute',
       '',
       '',
-      null,
+      ['normalized_allele', 'hg19_annotatable'],
       true,
       'annotatable'
     )
@@ -99,6 +94,29 @@ class PipelineEditorServiceMock {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public getResourceTypes(): Observable<string[]> {
+    return of(['gene_set_collection', 'position_score', 'genome']);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public getResourcesBySearch(value: string, type: string): Observable<string[]> {
+    return of([
+      'hg19/scores/phyloP46_primates',
+      'hg19/scores/phyloP46_vertebrates',
+      'hg38/scores/phastCons100way',
+      'hg38/scores/phastCons20way'
+    ].filter(r => r.includes(value)));
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public getResourceAnnotators(resourceId: string): Observable<ResourceAnnotator[]> {
+    return of([
+      new ResourceAnnotator('effect_annotator', 'gene_models: hg19/gene_models/ccds_v201309'),
+      new ResourceAnnotator('simple_effect_annotator', 'gene_models: hg19/gene_models/ccds_v201309')
+    ]);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public getPipelineAttributesNames(pipelineId: string): Observable<string[]> {
     return of([
       'normalized_allele',
@@ -125,7 +143,7 @@ describe('NewAnnotatorComponent', () => {
     await TestBed.configureTestingModule({
       imports: [NewAnnotatorComponent],
       providers: [
-        { provide: MAT_DIALOG_DATA, useValue: 'pipelineId' },
+        { provide: MAT_DIALOG_DATA, useValue: { pipelineId: 'pipelineId', isResourceWorkflow: false }},
         { provide: MatDialogRef, useValue: mockMatDialogRef },
         { provide: PipelineEditorService, useValue: pipelineEditorServiceMock },
         provideHttpClient(),
@@ -143,12 +161,18 @@ describe('NewAnnotatorComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should get attribute types on component initialization', () => {
+  it('should normalize strings', () => {
+    expect(component.normalizeString('aaaa     ')).toBe('aaaa');
+    expect(component.normalizeString('   aaaa     ')).toBe('aaaa');
+    expect(component.normalizeString(null)).toBe('');
+  });
+
+  it('should get annotator types on component initialization', () => {
     component.ngOnInit();
-    expect(component.annotators).toStrictEqual(
+    expect(component.annotatorTypes).toStrictEqual(
       ['effect_annotator', 'liftover_annotator', 'gene_set_annotator']
     );
-    expect(component.filteredAnnotators).toStrictEqual(
+    expect(component.filteredAnnotatorTypes).toStrictEqual(
       ['effect_annotator', 'liftover_annotator', 'gene_set_annotator']
     );
     expect(component.annotatorStep).toBeDefined();
@@ -160,12 +184,16 @@ describe('NewAnnotatorComponent', () => {
     expect(component.filteredResourceValues).toStrictEqual(
       new Map<string, string[]>([
         [
-          'resource_id',
-          ['gene_properties/gene_scores/LGD', 'gene_properties/gene_scores/RVIS']
+          'gene_models',
+          [
+            'hg19/gene_models/refGene_v20190211',
+            'hg38/gene_models/GENCODE/34/basic/ALL',
+            'hg38/gene_models/GENCODE/34/basic/CHR'
+          ]
         ],
         [
-          'source_genome',
-          ['hg19/genomes/GATK_ResourceBundle_5777_b37_phiX174', 'hg38/genomes/GRCh38-hg38', 'hg38/genomes/GRCh38.p13']
+          'genome',
+          ['hg38/genomes/GRCh38.p14', 't2t/genomes/t2t-chm13v2.0']
         ],
         [
           'input_annotatable',
@@ -173,6 +201,39 @@ describe('NewAnnotatorComponent', () => {
         ]
       ]));
     expect(component.resourceStep).toBeDefined();
+  });
+
+  it('should get resources of an annotator and set default values', () => {
+    component.resourceAnnotators = [
+      new ResourceAnnotator('effect_annotator', 'gene_models: hg19/gene_models/ccds_v201309'),
+      new ResourceAnnotator('simple_effect_annotator', 'gene_models: hg19/gene_models/ccds_v201309')
+    ];
+    component.annotatorStep.setControl('annotator', new FormControl('effect_annotator'));
+    component.requestResources();
+    expect(component.annotatorConfig).toStrictEqual(annotatorConfigMock);
+    expect(component.filteredResourceValues).toStrictEqual(
+      new Map<string, string[]>([
+        [
+          'gene_models',
+          [
+            'hg19/gene_models/refGene_v20190211',
+            'hg38/gene_models/GENCODE/34/basic/ALL',
+            'hg38/gene_models/GENCODE/34/basic/CHR'
+          ]
+        ],
+        [
+          'genome',
+          ['hg38/genomes/GRCh38.p14', 't2t/genomes/t2t-chm13v2.0']
+        ],
+        [
+          'input_annotatable',
+          ['normalized_allele', 'hg19_annotatable']
+        ]
+      ]));
+    expect(component.resourceStep).toBeDefined();
+    expect(component.resourceStep.get('gene_models').value).toBe('hg19/gene_models/ccds_v201309');
+    expect(component.resourceStep.get('genome').value).toBe('');
+    expect(component.resourceStep.get('input_annotatable').value).toBe('');
   });
 
   it('should get attributes', () => {
@@ -240,48 +301,36 @@ describe('NewAnnotatorComponent', () => {
   });
 
   it('should change annotator input value and filter dropdown content', () => {
-    component.annotators = ['effect_annotator', 'liftover_annotator', 'gene_set_annotator'];
-    component.filteredAnnotators = ['effect_annotator', 'liftover_annotator', 'gene_set_annotator'];
+    component.annotatorTypes = ['effect_annotator', 'liftover_annotator', 'gene_set_annotator'];
+    component.filteredAnnotatorTypes = ['effect_annotator', 'liftover_annotator', 'gene_set_annotator'];
     component.annotatorStep.get('annotator').setValue('LiFt  ');
-    expect(component.filteredAnnotators).toStrictEqual(['liftover_annotator']);
+    expect(component.filteredAnnotatorTypes).toStrictEqual(['liftover_annotator']);
   });
 
   it('should change annotator input value to invalid one and set error', () => {
-    component.annotators = ['effect_annotator', 'liftover_annotator', 'gene_set_annotator'];
-    component.filteredAnnotators = ['effect_annotator', 'liftover_annotator', 'gene_set_annotator'];
+    component.annotatorTypes = ['effect_annotator', 'liftover_annotator', 'gene_set_annotator'];
+    component.filteredAnnotatorTypes = ['effect_annotator', 'liftover_annotator', 'gene_set_annotator'];
     component.annotatorStep.get('annotator').setValue('ewew');
-    expect(component.filteredAnnotators).toStrictEqual([]);
+    expect(component.filteredAnnotatorTypes).toStrictEqual([]);
     expect(component.annotatorStep.get('annotator').errors).toStrictEqual({invalidOption: true});
   });
 
   it('should change resource input value and filter dropdown content', () => {
-    component.filteredResourceValues = new Map<string, string[]>([
-      [
-        'source_genome',
-        ['hg19/genomes/GATK_ResourceBundle_5777_b37_phiX174', 'hg38/genomes/GRCh38-hg38', 'hg38/genomes/GRCh38.p13']
-      ]
-    ]);
     component.requestResources(); // trigger setup of resource form controls and filtering
-    component.resourceStep.get('source_genome').setValue('grc');
+    component.resourceStep.get('gene_models').setValue('code');
 
-    expect(component.filteredResourceValues.get('source_genome')).toStrictEqual(
-      ['hg38/genomes/GRCh38-hg38', 'hg38/genomes/GRCh38.p13']
+    expect(component.filteredResourceValues.get('gene_models')).toStrictEqual(
+      ['hg38/gene_models/GENCODE/34/basic/ALL', 'hg38/gene_models/GENCODE/34/basic/CHR']
     );
-    expect(component.resourceStep.get('source_genome').errors).toBeNull();
+    expect(component.resourceStep.get('gene_models').errors).toBeNull();
   });
 
   it('should change resource input value to invalid one and set error', () => {
-    component.filteredResourceValues = new Map<string, string[]>([
-      [
-        'resource_id',
-        ['gene_properties/gene_scores/LGD', 'gene_properties/gene_scores/RVIS']
-      ]
-    ]);
     component.requestResources(); // trigger setup of resource form controls and filtering
-    component.resourceStep.get('resource_id').setValue('ewew');
+    component.resourceStep.get('gene_models').setValue('ewew');
 
-    expect(component.filteredResourceValues.get('resource_id')).toStrictEqual([]);
-    expect(component.resourceStep.get('resource_id').errors).toStrictEqual({invalidOption: true});
+    expect(component.filteredResourceValues.get('gene_models')).toStrictEqual([]);
+    expect(component.resourceStep.get('gene_models').errors).toStrictEqual({invalidOption: true});
   });
 
   it('should store attribute names which already exists in config', () => {
@@ -368,5 +417,82 @@ describe('NewAnnotatorComponent', () => {
 
     component.attributeStep.get('attribute').setValue('LGD');
     expect(component.unselectedFilteredAttributes).toStrictEqual([]);
+  });
+});
+
+describe('Annotator created by resource', () => {
+  let component: NewAnnotatorComponent;
+  let fixture: ComponentFixture<NewAnnotatorComponent>;
+  const mockMatDialogRef = new MatDialogRefMock();
+  const pipelineEditorServiceMock = new PipelineEditorServiceMock();
+
+  beforeEach(async() => {
+    await TestBed.configureTestingModule({
+      imports: [NewAnnotatorComponent],
+      providers: [
+        { provide: MAT_DIALOG_DATA, useValue: { pipelineId: 'pipelineId', isResourceWorkflow: true }},
+        { provide: MatDialogRef, useValue: mockMatDialogRef },
+        { provide: PipelineEditorService, useValue: pipelineEditorServiceMock },
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        FormBuilder
+      ]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(NewAnnotatorComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should get resource types on component initialization', () => {
+    expect(component.resourceTypes).toStrictEqual(['gene_set_collection', 'position_score', 'genome']);
+    expect(component.selectedResourceType).toBe('gene_set_collection');
+    expect(component.resourceTypeStep.get('resourceType').value).toBe('gene_set_collection');
+  });
+
+  it('should trigger search on resource type change', () => {
+    const searchSpy = jest.spyOn(pipelineEditorServiceMock, 'getResourcesBySearch');
+    component.resourceTypeStep.get('resourceType').setValue('genome', { emitEvent: true });
+    expect(searchSpy).toHaveBeenCalledWith('', 'genome');
+    expect(component.resourceIds).toStrictEqual([
+      'hg19/scores/phyloP46_primates',
+      'hg19/scores/phyloP46_vertebrates',
+      'hg38/scores/phastCons100way',
+      'hg38/scores/phastCons20way'
+    ]);
+    expect(component.resourceTypeStep.get('resourceId').errors).toStrictEqual({invalidOption: true});
+  });
+
+  it('should trigger search on resource input change', () => {
+    const searchSpy = jest.spyOn(pipelineEditorServiceMock, 'getResourcesBySearch');
+    const normalizeStringSpy = jest.spyOn(component, 'normalizeString');
+    component.resourceTypeStep.get('resourceId').setValue('hg38  ', { emitEvent: true });
+    expect(normalizeStringSpy).toHaveBeenCalledWith('hg38  ');
+    expect(searchSpy).toHaveBeenCalledWith('hg38', 'gene_set_collection');
+    expect(component.resourceIds).toStrictEqual(['hg38/scores/phastCons100way', 'hg38/scores/phastCons20way']);
+    expect(component.resourceTypeStep.get('resourceId').errors).toStrictEqual({invalidOption: true});
+  });
+
+  it('should make resource id form valid if the typed resource exists', () => {
+    const searchSpy = jest.spyOn(pipelineEditorServiceMock, 'getResourcesBySearch');
+    const normalizeStringSpy = jest.spyOn(component, 'normalizeString');
+    component.resourceTypeStep.get('resourceId').setValue('hg38/scores/phastCons20way', { emitEvent: true });
+    expect(normalizeStringSpy).toHaveBeenCalledWith('hg38/scores/phastCons20way');
+    expect(searchSpy).toHaveBeenCalledWith('hg38/scores/phastCons20way', 'gene_set_collection');
+    expect(component.resourceIds).toStrictEqual(['hg38/scores/phastCons20way']);
+    expect(component.resourceTypeStep.get('resourceId').errors).toBeNull();
+  });
+
+  it('should not trigger resource search when the search value has not changed', () => {
+    jest.clearAllMocks(); // clear search method calls from previous tests
+    const searchSpy = jest.spyOn(pipelineEditorServiceMock, 'getResourcesBySearch');
+    component.resourceTypeStep.get('resourceId').setValue('hg38  ', { emitEvent: true });
+    expect(searchSpy).toHaveBeenCalledTimes(1);
+    component.resourceTypeStep.get('resourceId').setValue('hg38', { emitEvent: true });
+    expect(searchSpy).toHaveBeenCalledTimes(1);
   });
 });
