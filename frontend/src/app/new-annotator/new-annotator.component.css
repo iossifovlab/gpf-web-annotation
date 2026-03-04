@@ -2,10 +2,23 @@
   position: relative;
 }
 
+.forms-wrapper {
+  display: flex;
+  gap: 20px;
+}
+
 input[type="text"] {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+#resource-type {
+  width: 30%;
+}
+
+#resource-input-form {
+  width: 100%;
 }
 
 /* stylelint-disable-next-line selector-class-pattern */
@@ -50,6 +63,7 @@ input[type="text"] {
   --mat-form-field-outlined-error-outline-color: #cfd8df;
   --mat-form-field-outlined-error-focus-outline-color: #85a2b9;
   --mat-form-field-outlined-error-hover-outline-color: #cfd8df;
+  --mat-form-field-outlined-error-caret-color: black;
   --mat-stepper-header-hover-state-layer-color: white;
   --mat-stepper-header-focus-state-layer-color: white;
   --mat-stepper-header-icon-background-color: white;
@@ -89,7 +103,7 @@ input[type="text"] {
 ::ng-deep .mat-horizontal-stepper-content.mat-horizontal-stepper-content-current {
   display: flex;
   justify-content: space-between;
-  gap: 60px;
+  gap: 20px;
 }
 
 form,
@@ -137,6 +151,7 @@ mat-form-field {
 }
 
 .annotator-display-text,
+.resource-type-display-text,
 .resources-display-text {
   padding: 0 8px;
   font-size: 12px;
@@ -146,7 +161,7 @@ mat-form-field {
   text-overflow: ellipsis;
 }
 
-.annotator-display-text {
+.resource-type-display-text {
   margin-top: 0;
 }
 
