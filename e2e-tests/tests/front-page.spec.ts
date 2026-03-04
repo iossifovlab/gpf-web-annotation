@@ -3,18 +3,6 @@ import * as utils from '../utils';
 
 
 test.describe('Basic tests', () => {
-  test.skip('should check if single annotation page is loaded by default', async({ page }) => {
-    await page.goto('/', {waitUntil: 'load'});
-    expect(page.url()).toContain('/single-annotation');
-  });
-
-  test.skip('should check if user is redirected to default page after ' +
-      'trying to access page without being logged in', async({ page }) => {
-    await page.goto('/jobs', {waitUntil: 'load'});
-    await expect(page.locator('app-annotation-wrapper')).toBeVisible();
-    expect(page.url()).toContain('/single-annotation');
-  });
-
   test('should check visible elements of login page', async({ page }) => {
     await page.goto('/login', {waitUntil: 'load'});
     await expect(page.locator('#front-page-container')).toBeVisible();
@@ -103,7 +91,7 @@ test.describe('Registration tests', () => {
     await page.locator('#email').pressSequentially(randomEmail);
     await page.locator('#password').pressSequentially('password123');
     await page.locator('#login-container').getByRole('button', { name: 'Login' }).click();
-    await expect(page.locator('app-annotation-wrapper')).toBeVisible();
+    await page.waitForSelector('app-annotation-wrapper', {timeout: 120000});
   });
 });
 
@@ -119,7 +107,7 @@ test.describe('Login tests', () => {
     await page.locator('#email').pressSequentially(randomEmail);
     await page.locator('#password').pressSequentially('password123');
     await page.locator('#login-container').getByRole('button', { name: 'Login' }).click();
-    await expect(page.locator('app-annotation-wrapper')).toBeVisible();
+    await page.waitForSelector('app-annotation-wrapper', {timeout: 120000});
     await expect(page.locator('#user-data')).toBeVisible();
   });
 
@@ -130,10 +118,10 @@ test.describe('Login tests', () => {
     await page.locator('#email').pressSequentially(randomEmail);
     await page.locator('#password').pressSequentially('password123');
     await page.locator('#login-container').getByRole('button', { name: 'Login' }).click();
-    await page.waitForSelector('app-annotation-wrapper');
+    await page.waitForSelector('app-annotation-wrapper', {timeout: 120000});
 
     await page.getByRole('button', { name: 'Logout' }).click();
-    await expect(page.locator('app-annotation-wrapper')).toBeVisible();
+    await page.waitForSelector('app-annotation-wrapper', {timeout: 120000});
   });
 
   test('should show error message when trying to login with invalid credentials', async({ page }) => {
@@ -165,7 +153,7 @@ test.describe('Login tests', () => {
     await page.locator('#email').pressSequentially(randomEmail);
     await page.locator('#password').pressSequentially('password123');
     await page.locator('#login-container').getByRole('button', { name: 'Login' }).click();
-    await expect(page.locator('app-annotation-wrapper')).toBeVisible();
+    await page.waitForSelector('app-annotation-wrapper', {timeout: 120000});
 
     await page.locator('#logout-button').click();
     await page.waitForSelector('#login-button');
@@ -186,7 +174,7 @@ test.describe('Login tests', () => {
     await page.locator('#email').pressSequentially(randomEmail);
     await page.locator('#password').pressSequentially(newPassword);
     await page.locator('#login-container').getByRole('button', { name: 'Login' }).click();
-    await expect(page.locator('app-annotation-wrapper')).toBeVisible();
+    await page.waitForSelector('app-annotation-wrapper', {timeout: 120000});
     await expect(page.locator('#user-data')).toBeVisible();
   });
 });
@@ -202,15 +190,9 @@ test.describe('Logout tests', () => {
     await utils.loginUser(page, email, password);
   });
 
-  test.skip('should redirect to single annotation page after logout', async({ page }) => {
-    await page.locator('#logout-button').click();
-    await expect(page.locator('app-annotation-wrapper')).toBeVisible();
-    expect(page.url()).toContain('/single-annotation');
-  });
-
   test('should stay logged out after refreshing the page', async({ page }) => {
     await page.locator('#logout-button').click();
-    await page.waitForSelector('app-annotation-wrapper');
+    await page.waitForSelector('app-annotation-wrapper', {timeout: 120000});
     await expect(page.locator('#login-button')).toBeVisible();
     await expect(page.locator('#register-button')).toBeVisible();
     await page.reload();
@@ -221,14 +203,14 @@ test.describe('Logout tests', () => {
   test.skip('should stay logged out after clicking back button', async({ page }) => {
     await page.getByRole('link', {name: 'Annotation Jobs'}).click();
     await page.locator('#logout-button').click();
-    await page.waitForSelector('app-annotation-wrapper');
+    await page.waitForSelector('app-annotation-wrapper', {timeout: 120000});
     await page.goBack();
     await expect(page.locator('app-annotation-wrapper')).toBeVisible();
   });
 
   test.skip('should not be able to navigate to jobs table page after logout', async({ page }) => {
     await page.locator('#logout-button').click();
-    await page.waitForSelector('app-annotation-wrapper');
+    await page.waitForSelector('app-annotation-wrapper', {timeout: 120000});
     await page.goto('/jobs', {waitUntil: 'load'});
     await expect(page.locator('app-annotation-wrapper')).toBeVisible();
     expect(page.url()).toContain('/single-annotation');

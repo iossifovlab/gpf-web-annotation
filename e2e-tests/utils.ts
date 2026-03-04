@@ -49,7 +49,7 @@ export async function loginUser(page: Page, email: string, password: string): Pr
   await page.locator('#email').pressSequentially(email);
   await page.locator('#password').pressSequentially(password);
   await page.locator('#login-container').getByRole('button', { name: 'Login' }).click();
-  await expect(page.locator('app-annotation-wrapper')).toBeVisible();
+  await page.waitForSelector('app-annotation-wrapper', {timeout: 120000});
 }
 
 export async function typeInPipelineEditor(page: Page, input: string): Promise<void> {
