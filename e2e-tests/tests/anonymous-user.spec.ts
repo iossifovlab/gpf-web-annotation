@@ -28,12 +28,7 @@ test.describe('Anonymous user tests', () => {
     await page.locator('mat-option').getByText('gene_list').click();
     await page.getByRole('button', { name: 'Next' }).click();
 
-    await expect(page.locator('.attribute-group')).toHaveCount(4);
-    await page.getByRole('button', { name: 'Next' }).click();
-
-    await page.getByRole('checkbox').nth(1).uncheck();
-    await page.getByRole('checkbox').nth(2).uncheck();
-    await page.getByRole('checkbox').nth(3).uncheck();
+    await expect(page.locator('.selected-attribute')).toHaveCount(4);
 
     await Promise.all([
       page.getByRole('button', { name: 'Finish' }).click(),
