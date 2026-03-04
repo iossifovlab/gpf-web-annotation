@@ -59,7 +59,7 @@ const attributesMock = [
     'bool',
     'effect_details',
     false,
-    true,
+    false,
     'Effect details for each affected transcript'
   ),
   new AnnotatorAttribute('dbSNP_RS', 'string', 'dbSNP_RS', true, true, 'dbSNP ID (i.e. rs number)')
@@ -190,7 +190,13 @@ describe('NewAnnotatorComponent', () => {
       { resource_id: 'gene_properties/gene_scores/RVIS' }
     );
     expect(component.annotatorAttributes).toStrictEqual(attributesMock);
-    expect(component.selectedAttributes).toStrictEqual(attributesMock);
+    expect(component.selectedAttributes).toStrictEqual([attributesMock[0], attributesMock[2]]);
+    expect(component.unselectedAttributes).toStrictEqual([
+      'effect_details - Effect details for each affected transcript',
+    ]);
+    expect(component.unselectedFilteredAttributes).toStrictEqual([
+      'effect_details - Effect details for each affected transcript',
+    ]);
     expect(nextStepSpy).toHaveBeenCalledWith();
   });
 
@@ -304,5 +310,63 @@ describe('NewAnnotatorComponent', () => {
     component.validateAttributes();
     expect(component.duplicateAttributeNames).toStrictEqual(['mpc', 'dbSNP_RS']);
     expect(component.areAttributesValid).toBe(true);
+  });
+
+  it('should select attribute and remove it from dropdown content', () => {
+    component.requestAttributes();
+    component.selectedAttributes = [attributesMock[1], attributesMock[2]];
+    component.unselectedAttributes = [`${attributesMock[0].name} - ${attributesMock[0].description}`];
+    component.onSelectAttribute('mpc - Missense badness, PolyPhen-2, and Constraint.');
+    expect(component.selectedAttributes).toStrictEqual([attributesMock[1], attributesMock[2], attributesMock[0]]);
+    expect(component.unselectedAttributes).toStrictEqual([]);
+  });
+
+  it('should select attribute, clean input and validate attributes', () => {
+    component.requestAttributes();
+    component.selectedAttributes = [attributesMock[1], attributesMock[2]];
+    component.unselectedAttributes = [`${attributesMock[0].name} - ${attributesMock[0].description}`];
+    component.attributeStep.setControl(
+      'attribute',
+      new FormControl('mpc - Missense badness, PolyPhen-2, and Constraint.')
+    );
+    component.onSelectAttribute('mpc - Missense badness, PolyPhen-2, and Constraint.');
+    expect(component.attributeStep.get('attribute').value).toBeNull();
+    expect(component.areAttributesValid).toBe(false);
+  });
+
+  it('should remove selected attribute and validate attributes', () => {
+    component.requestAttributes();
+    component.selectedAttributes = attributesMock;
+    component.unselectedAttributes = [];
+
+    component.removeSelectedAttribute(attributesMock[1]);
+    expect(component.selectedAttributes).toStrictEqual([attributesMock[0], attributesMock[2]]);
+    expect(component.unselectedAttributes).toStrictEqual([
+      `${attributesMock[1].name} - ${attributesMock[1].description}`
+    ]);
+  });
+
+  it('should filter attributes in dropdown on search', () => {
+    component.requestAttributes();
+    component.unselectedAttributes = [
+      `${attributesMock[0].name} - ${attributesMock[0].description}`,
+      `${attributesMock[1].name} - ${attributesMock[1].description}`,
+      `${attributesMock[2].name} - ${attributesMock[2].description}`
+    ];
+    component.attributeStep.get('attribute').setValue('M');
+    expect(component.unselectedFilteredAttributes).toStrictEqual([
+      `${attributesMock[0].name} - ${attributesMock[0].description}`,
+      `${attributesMock[2].name} - ${attributesMock[2].description}`
+    ]);
+
+    component.attributeStep.get('attribute').setValue('');
+    expect(component.unselectedFilteredAttributes).toStrictEqual([
+      `${attributesMock[0].name} - ${attributesMock[0].description}`,
+      `${attributesMock[1].name} - ${attributesMock[1].description}`,
+      `${attributesMock[2].name} - ${attributesMock[2].description}`
+    ]);
+
+    component.attributeStep.get('attribute').setValue('LGD');
+    expect(component.unselectedFilteredAttributes).toStrictEqual([]);
   });
 });
