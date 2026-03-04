@@ -53,9 +53,16 @@ const annotatorConfigMock = new AnnotatorConfig(
 );
 
 const attributesMock = [
-  new AnnotatorAttribute('mpc', 'string', 'mpc', false, true),
-  new AnnotatorAttribute('effect_details', 'bool', 'effect_details', false, true),
-  new AnnotatorAttribute('dbSNP_RS', 'string', 'dbSNP_RS', true, true)
+  new AnnotatorAttribute('mpc', 'string', 'mpc', false, true, 'Missense badness, PolyPhen-2, and Constraint.'),
+  new AnnotatorAttribute(
+    'effect_details',
+    'bool',
+    'effect_details',
+    false,
+    false,
+    'Effect details for each affected transcript'
+  ),
+  new AnnotatorAttribute('dbSNP_RS', 'string', 'dbSNP_RS', true, true, 'dbSNP ID (i.e. rs number)')
 ];
 
 const ymlResponse = `- gene_set_annotator:\n
@@ -183,7 +190,13 @@ describe('NewAnnotatorComponent', () => {
       { resource_id: 'gene_properties/gene_scores/RVIS' }
     );
     expect(component.annotatorAttributes).toStrictEqual(attributesMock);
-    expect(component.selectedAttributes).toStrictEqual(attributesMock);
+    expect(component.selectedAttributes).toStrictEqual([attributesMock[0], attributesMock[2]]);
+    expect(component.unselectedAttributes).toStrictEqual([
+      'effect_details - Effect details for each affected transcript',
+    ]);
+    expect(component.unselectedFilteredAttributes).toStrictEqual([
+      'effect_details - Effect details for each affected transcript',
+    ]);
     expect(nextStepSpy).toHaveBeenCalledWith();
   });
 
@@ -201,7 +214,7 @@ describe('NewAnnotatorComponent', () => {
       'gene_set_annotator',
       // eslint-disable-next-line camelcase
       { resource_id: 'gene_properties/gene_scores/RVIS' },
-      [new AnnotatorAttribute('mpc', 'string', 'mpc', false, true)]
+      [new AnnotatorAttribute('mpc', 'string', 'mpc', false, true, 'Missense badness, PolyPhen-2, and Constraint.')]
     );
 
     expect(closeModalSpy).toHaveBeenCalledWith('\n' + ymlResponse);
@@ -219,25 +232,8 @@ describe('NewAnnotatorComponent', () => {
     expect(component.resourceStep.get('resource_id').value).toBeNull();
   });
 
-  it('should select attribute', () => {
-    const attribute1 = new AnnotatorAttribute('attribute1', 'string', 'source1', false, true);
-    const attribute2 = new AnnotatorAttribute('attribute2', 'bool', 'source2', false, true);
-    const attribute3 = new AnnotatorAttribute('attribute3', 'string', 'source3', true, true);
-    component.selectedAttributes = [attribute1, attribute2];
-    component.toggleSelectedAttribute(attribute3);
-    expect(component.selectedAttributes).toStrictEqual([attribute1, attribute2, attribute3]);
-  });
-
-  it('should unselect attribute', () => {
-    const attribute1 = new AnnotatorAttribute('attribute1', 'string', 'source1', false, true);
-    const attribute2 = new AnnotatorAttribute('attribute2', 'bool', 'source2', false, true);
-    component.selectedAttributes = [attribute1, attribute2];
-    component.toggleSelectedAttribute(attribute2);
-    expect(component.selectedAttributes).toStrictEqual([attribute1]);
-  });
-
   it('should toggle internal value of attribute', () => {
-    const attribute = new AnnotatorAttribute('attribute', 'string', 'source1', false, true);
+    const attribute = new AnnotatorAttribute('attribute', 'string', 'source1', false, true, 'desc');
     component.selectedAttributes = [attribute];
     component.setAttributeInternal(attribute, true);
     expect(component.selectedAttributes[0].internal).toBe(true);
@@ -293,15 +289,84 @@ describe('NewAnnotatorComponent', () => {
     expect(component.duplicateAttributeNames).toStrictEqual(['mpc', 'dbSNP_RS']);
   });
 
-  it('should disable finish button if there is any selected attribute with duplicate name', () => {
+  it('should disable finish button if there is selected attribute with duplicate name', () => {
     component.requestAttributes();
-    expect(component.disableFinish()).toBe(true);
+    component.validateAttributes();
+    expect(component.areAttributesValid).toBe(false);
   });
 
   it('should not disable finish button if there is unselected attribute with exisitng name', () => {
     component.requestAttributes();
-    component.selectedAttributes = [new AnnotatorAttribute('effect_details', 'bool', 'effect_details', false, true)];
+    component.selectedAttributes = [
+      new AnnotatorAttribute(
+        'effect_details',
+        'bool',
+        'effect_details',
+        false,
+        true,
+        'Effect details for each affected transcript'
+      )
+    ];
+    component.validateAttributes();
     expect(component.duplicateAttributeNames).toStrictEqual(['mpc', 'dbSNP_RS']);
-    expect(component.disableFinish()).toBe(false);
+    expect(component.areAttributesValid).toBe(true);
+  });
+
+  it('should select attribute and remove it from dropdown content', () => {
+    component.requestAttributes();
+    component.selectedAttributes = [attributesMock[1], attributesMock[2]];
+    component.unselectedAttributes = [`${attributesMock[0].name} - ${attributesMock[0].description}`];
+    component.onSelectAttribute('mpc - Missense badness, PolyPhen-2, and Constraint.');
+    expect(component.selectedAttributes).toStrictEqual([attributesMock[1], attributesMock[2], attributesMock[0]]);
+    expect(component.unselectedAttributes).toStrictEqual([]);
+  });
+
+  it('should select attribute, clean input and validate attributes', () => {
+    component.requestAttributes();
+    component.selectedAttributes = [attributesMock[1], attributesMock[2]];
+    component.unselectedAttributes = [`${attributesMock[0].name} - ${attributesMock[0].description}`];
+    component.attributeStep.setControl(
+      'attribute',
+      new FormControl('mpc - Missense badness, PolyPhen-2, and Constraint.')
+    );
+    component.onSelectAttribute('mpc - Missense badness, PolyPhen-2, and Constraint.');
+    expect(component.attributeStep.get('attribute').value).toBeNull();
+    expect(component.areAttributesValid).toBe(false);
+  });
+
+  it('should remove selected attribute and validate attributes', () => {
+    component.requestAttributes();
+    component.selectedAttributes = attributesMock;
+    component.unselectedAttributes = [];
+
+    component.removeSelectedAttribute(attributesMock[1]);
+    expect(component.selectedAttributes).toStrictEqual([attributesMock[0], attributesMock[2]]);
+    expect(component.unselectedAttributes).toStrictEqual([
+      `${attributesMock[1].name} - ${attributesMock[1].description}`
+    ]);
+  });
+
+  it('should filter attributes in dropdown on search', () => {
+    component.requestAttributes();
+    component.unselectedAttributes = [
+      `${attributesMock[0].name} - ${attributesMock[0].description}`,
+      `${attributesMock[1].name} - ${attributesMock[1].description}`,
+      `${attributesMock[2].name} - ${attributesMock[2].description}`
+    ];
+    component.attributeStep.get('attribute').setValue('M');
+    expect(component.unselectedFilteredAttributes).toStrictEqual([
+      `${attributesMock[0].name} - ${attributesMock[0].description}`,
+      `${attributesMock[2].name} - ${attributesMock[2].description}`
+    ]);
+
+    component.attributeStep.get('attribute').setValue('');
+    expect(component.unselectedFilteredAttributes).toStrictEqual([
+      `${attributesMock[0].name} - ${attributesMock[0].description}`,
+      `${attributesMock[1].name} - ${attributesMock[1].description}`,
+      `${attributesMock[2].name} - ${attributesMock[2].description}`
+    ]);
+
+    component.attributeStep.get('attribute').setValue('LGD');
+    expect(component.unselectedFilteredAttributes).toStrictEqual([]);
   });
 });

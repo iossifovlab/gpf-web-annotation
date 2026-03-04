@@ -79,12 +79,13 @@ test.describe('Pipeline tests', () => {
     await utils.typeInPipelineEditor(
       page,
       'preamble:\n' +
-      '  input_reference_genome: hg38/genomes/GRCh38-hg38\n' +
+      'input_reference_genome: hg38/genomes/GRCh38-hg38\n' +
       'annotators:\n' +
       '- allele_score:\n' +
-      '  resource_id: hg38/scores/CADD_v1.4'
+      'resource_id: hg38/scores/CADD_v1.4'
     );
-
+    await page.waitForSelector('.invalid-config', { state: 'visible', timeout: 120000 });
+    await expect(page.getByText('Invalid configuration')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Save as' })).toBeDisabled();
   });
 
@@ -145,6 +146,8 @@ test.describe('Pipeline tests', () => {
         resp => resp.url().includes('api/pipelines/load') // wait for pipeline to be saved and loaded
       ),
     ]);
+
+    await expect(page.locator('#pipelines-input')).toHaveValue('My pipeline');
 
     // edit pipeline
     /* eslint-disable */
@@ -366,12 +369,7 @@ test.describe('Add annotator to pipeline tests', () => {
     await page.locator('mat-option').getByText('gene_list').click();
     await page.getByRole('button', { name: 'Next' }).click();
 
-    await expect(page.locator('.attribute-group')).toHaveCount(4);
-    await page.getByRole('button', { name: 'Next' }).click();
-
-    await page.getByRole('checkbox').nth(1).uncheck();
-    await page.getByRole('checkbox').nth(2).uncheck();
-    await page.getByRole('checkbox').nth(3).uncheck();
+    await expect(page.locator('.selected-attribute')).toHaveCount(4);
 
     await Promise.all([
       page.getByRole('button', { name: 'Finish' }).click(),
@@ -417,6 +415,9 @@ test.describe('Add annotator to pipeline tests', () => {
 
     await Promise.all([
       page.getByRole('button', { name: 'Finish' }).click(),
+      page.waitForResponse(
+        resp => resp.url().includes('api/pipelines/validate')
+      ),
       page.waitForResponse(
         resp => resp.url().includes('api/pipelines/user') // wait for pipeline to be saved
       ),

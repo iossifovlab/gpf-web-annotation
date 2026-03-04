@@ -165,7 +165,8 @@ describe('PipelineEditorService', () => {
         source: 'fc_i6_score',
         type: 'float',
         internal: false,
-        default: true
+        default: true,
+        description: 'probability that a point mutation at each position in a genome will influence fitness'
       }
     ]));
 
@@ -185,7 +186,14 @@ describe('PipelineEditorService', () => {
     );
     const res = await lastValueFrom(getResponse.pipe(take(1)));
     expect(res).toStrictEqual([
-      new AnnotatorAttribute('fitcons_i6_merged', 'float', 'fc_i6_score', false, true)
+      new AnnotatorAttribute(
+        'fitcons_i6_merged',
+        'float',
+        'fc_i6_score',
+        false,
+        true,
+        'probability that a point mutation at each position in a genome will influence fitness'
+      )
     ]);
   });
 
@@ -232,7 +240,16 @@ describe('PipelineEditorService', () => {
         // eslint-disable-next-line camelcase
         target_genome: 'hg19/genomes/GATK_ResourceBundle_5777_b37_phiX174'
       },
-      [new AnnotatorAttribute('liftover_annotatable', 'annotatable', 'liftover_annotatable', true, true)]
+      [
+        new AnnotatorAttribute(
+          'liftover_annotatable',
+          'annotatable',
+          'liftover_annotatable',
+          true,
+          true,
+          'The lifted over annotatable'
+        )
+      ]
     );
 
     expect(httpPostSpy).toHaveBeenCalledWith(
