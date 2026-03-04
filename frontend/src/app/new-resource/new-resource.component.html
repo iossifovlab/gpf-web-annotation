@@ -163,57 +163,87 @@
       </ng-template>
     </mat-step>
 
-    <mat-step label="Attributes" [editable]="false">
+    <mat-step label="Select attributes" [editable]="false" [stepControl]="attributeStep">
       <ng-template matStepContent>
         <div class="summary-content">
-          <div class="resource-type-display-text" [title]="resourceTypeStep.value | keyValueDisplay">{{
-            resourceTypeStep.get('resourceType').value + ': ' + resourceTypeStep.get('resourceId').value
-          }}</div>
           <div class="annotator-display-text" [title]="annotatorStep.value | keyValueDisplay">{{
             annotatorStep.value | keyValueDisplay
           }}</div>
-          <div class="resources-display-text" [title]="annotatorStep.value | keyValueDisplay">{{
+          <div class="resources-display-text" [title]="resourceStep.value | keyValueDisplay">{{
             resourceStep.value | keyValueDisplay
           }}</div>
         </div>
 
         <div class="left-content">
-          <div id="attributes-list">
-            @for (attribute of annotatorAttributes; track attribute) { @if(attribute.selectedByDefault) {
-            <div class="attribute-group">
-              <div class="attribute">
-                <span class="field-label-attribute">name</span>
+          <div>
+            <form [formGroup]="attributeStep" id="attribute-form">
+              <mat-form-field [appearance]="'outline'" class="attribute-input" id="attributes-dropdown">
+                <input
+                  type="text"
+                  placeholder="Select attribute"
+                  autocomplete="off"
+                  matInput
+                  [formControlName]="'attribute'"
+                  [matAutocomplete]="attributesDropdown"
+                  #attributeInput="matAutocompleteTrigger"
+                  #attributeInputValue
+                  [title]="attributeInputValue.value"
+                  (click)="clearAttributeInput()"
+                  (keydown.enter)="attributeInput.closePanel()" />
                 <span
-                  [title]="attribute.name"
-                  class="field-value"
-                  [ngClass]="duplicateAttributeNames.includes(attribute.name) ? 'duplicate-name' : ''"
-                  >{{ attribute.name }}</span
+                  (click)="attributeInput.openPanel(); clearAttributeInput()"
+                  class="material-symbols-outlined dropdown-icon"
+                  >keyboard_arrow_down</span
                 >
+
+                <mat-autocomplete #attributesDropdown="matAutocomplete">
+                  @for (stringAttribute of unselectedFilteredAttributes; track stringAttribute) {
+                  <mat-option
+                    (click)="onSelectAttribute(stringAttribute)"
+                    class="attribute-option"
+                    [value]="stringAttribute"
+                    [title]="stringAttribute"
+                    >{{ stringAttribute }}</mat-option
+                  >
+                  }
+                </mat-autocomplete>
+              </mat-form-field>
+              <div id="attributes-list">
+                @for (selectedAttribute of selectedAttributes; track selectedAttribute) {
+                <div class="selected-attribute">
+                  <span
+                    [attr.id]="selectedAttribute.name + '-remove-button'"
+                    class="material-symbols-outlined remove-attribute"
+                    (click)="removeSelectedAttribute(selectedAttribute)"
+                    >close</span
+                  >
+                  <span
+                    [title]="selectedAttribute.name"
+                    class="attribute-name"
+                    [ngClass]="duplicateAttributeNames.includes(selectedAttribute.name) ? 'duplicate-name' : ''"
+                    >{{ selectedAttribute.name
+                    }}<span [title]="selectedAttribute.description" class="attribute-desciption">{{
+                      ' - ' + selectedAttribute.description
+                    }}</span></span
+                  >
+                </div>
+                }
               </div>
-              <div class="attribute">
-                <span class="field-label-attribute">source</span>
-                <span class="field-value">{{ attribute.source }}</span>
-              </div>
-              <div class="attribute">
-                <span class="field-label-attribute">internal</span>
-                <span class="field-value">{{ attribute.internal }}</span>
-              </div>
-            </div>
-            } }
+            </form>
           </div>
           <div class="modal-footer">
-            @if(duplicateAttributeNames.length) {
+            @if(!areAttributesValid) {
             <div class="duplicate-name">Attribute with this name already exists</div>
             }
             <button matButton matStepperNext class="next-button">Next</button>
-            @if(!duplicateAttributeNames.length) {
+            @if(areAttributesValid) {
             <button matButton (click)="onFinish()" class="finish-button">Finish</button>
             }
           </div>
         </div>
       </ng-template>
     </mat-step>
-    <mat-step label="Modify attributes" [editable]="false" [optional]="!duplicateAttributeNames.length">
+    <mat-step label="Modify attributes" [editable]="false" [optional]="areAttributesValid">
       <ng-template matStepContent>
         <div class="summary-content">
           <div class="resource-type-display-text" [title]="resourceTypeStep.value | keyValueDisplay">{{
@@ -229,12 +259,8 @@
 
         <div class="left-content">
           <div id="attributes-list">
-            @for (attribute of annotatorAttributes; track attribute) {
+            @for (attribute of selectedAttributes; track attribute) {
             <div class="attribute-group modify-view-group">
-              <input
-                type="checkbox"
-                [checked]="selectedAttributes.includes(attribute)"
-                (change)="toggleSelectedAttribute(attribute)" />
               <div style="width: 100%">
                 <div class="attribute modify-view-attribute">
                   <span class="field-label">name</span>
@@ -244,6 +270,7 @@
                     [title]="attribute.name"
                     [value]="attribute.name"
                     [(ngModel)]="attribute.name"
+                    (ngModelChange)="validateAttributes()"
                     [ngClass]="duplicateAttributeNames.includes(attribute.name) ? 'duplicate-name-input' : ''" />
                 </div>
                 <div class="attribute modify-view-attribute">
@@ -277,10 +304,12 @@
           </div>
 
           <div class="modal-footer">
-            @if(disableFinish()) {
+            @if(!areAttributesValid) {
             <div class="duplicate-name">Attribute with this name already exists</div>
             }
-            <button [disabled]="disableFinish()" matButton (click)="onFinish()" class="finish-button">Finish</button>
+            <button [disabled]="!areAttributesValid" matButton (click)="onFinish()" class="finish-button"
+              >Finish</button
+            >
           </div>
         </div>
       </ng-template>

@@ -50,9 +50,13 @@ export class NewResourceComponent implements OnInit {
   public resourceStep: FormGroup = new FormGroup({});
   public filteredResourceValues: Map<string, string[]>;
   public annotatorConfig: AnnotatorConfig;
+  public attributeStep: FormGroup<{ attribute: FormControl<string> }>;
   public resourceAnnotators: ResourceAnnotator[];
   public annotatorAttributes: AnnotatorAttribute[];
   public selectedAttributes: AnnotatorAttribute[];
+  public unselectedAttributes: string[];
+  public unselectedFilteredAttributes: string[];
+  public areAttributesValid: boolean;
   @ViewChild('stepper', { static: true }) public stepper: MatStepper;
   private searchSubject = new Subject<{ value: string; type: string }>();
   public duplicateAttributeNames: string[] = [];
@@ -258,20 +262,37 @@ export class NewResourceComponent implements OnInit {
       filtered
     ).pipe(take(1)).subscribe(res => {
       this.annotatorAttributes = res;
+      this.annotatorAttributes = res;
       this.selectedAttributes = res.filter(a => a.selectedByDefault);
+      this.unselectedAttributes = res.filter(a => !a.selectedByDefault).map(a => `${a.name} - ${a.description}`);
+      this.unselectedFilteredAttributes = this.unselectedAttributes;
+      this.setupAttributeValueFiltering();
+      this.getPipelineAttributesNames();
       this.stepper.next();
+    });
+  }
+
+  private setupAttributeValueFiltering(): void {
+    this.attributeStep = this.formBuilder.group({
+      attribute: [''],
+    });
+
+    this.attributeStep.get('attribute').valueChanges.pipe(
+      map((value: string) => this.filterDropdownContent(value, this.unselectedAttributes))
+    ).subscribe(filtered => {
+      this.unselectedFilteredAttributes = filtered;
+    });
+  }
+
+  private getPipelineAttributesNames(): void {
+    this.editorService.getPipelineAttributesNames(this.pipelineId).pipe(take(1)).subscribe(names => {
+      this.duplicateAttributeNames = this.annotatorAttributes.filter(a => names.includes(a.name)).map(a => a.name);
       this.validateAttributes();
     });
   }
 
-  private validateAttributes(): void {
-    this.editorService.getPipelineAttributesNames(this.pipelineId).pipe(take(1)).subscribe(names => {
-      this.duplicateAttributeNames = this.annotatorAttributes.filter(a => names.includes(a.name)).map(a => a.name);
-    });
-  }
-
-  public disableFinish(): boolean {
-    return this.annotatorAttributes.some(
+  public validateAttributes(): void {
+    this.areAttributesValid = !this.annotatorAttributes.some(
       a => this.selectedAttributes.includes(a) && this.duplicateAttributeNames.includes(a.name)
     );
   }
@@ -282,12 +303,22 @@ export class NewResourceComponent implements OnInit {
     );
   }
 
-  public toggleSelectedAttribute(attribute: AnnotatorAttribute): void {
-    if (this.selectedAttributes.includes(attribute)) {
-      this.selectedAttributes = this.selectedAttributes.filter(a => a !== attribute);
-    } else {
-      this.selectedAttributes.push(attribute);
-    }
+  public clearAttributeInput(): void {
+    this.attributeStep.get('attribute').setValue(null);
+  }
+
+  public onSelectAttribute(stringAttribute: string): void {
+    const attributeName = stringAttribute.split(' - ')[0];
+    this.selectedAttributes.push(this.annotatorAttributes.find(a => a.name === attributeName));
+    this.unselectedAttributes = this.unselectedAttributes.filter(a => a !== stringAttribute);
+    this.clearAttributeInput();
+    this.validateAttributes();
+  }
+
+  public removeSelectedAttribute(attribute: AnnotatorAttribute): void {
+    this.selectedAttributes = this.selectedAttributes.filter(a => a !== attribute);
+    this.unselectedAttributes.push(`${attribute.name} - ${attribute.description}`);
+    this.validateAttributes();
   }
 
   public setAttributeInternal(attribute: AnnotatorAttribute, value: boolean): void {
