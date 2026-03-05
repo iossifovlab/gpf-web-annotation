@@ -119,7 +119,7 @@ class UserPipeline(AnnotationBaseView):
                             "Pipeline with name "
                             f"{pipeline_name} already exists!"
                         ),
-                    })
+                    }, status=views.status.HTTP_400_BAD_REQUEST)
             pipeline = request.user.pipeline_class(
                 name=pipeline_name,
                 config_path=config_path,
