@@ -2,12 +2,14 @@ import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
+import { PipelineInfo } from './annotation-pipeline';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AnnotationPipelineService {
   private readonly pipelineUrl = `${environment.apiPath}/pipelines/user`;
+  private readonly getPipelineStatus = `${environment.apiPath}/editor/pipeline_status`;
 
   public constructor(private http: HttpClient) { }
 
@@ -52,6 +54,16 @@ export class AnnotationPipelineService {
       `${environment.apiPath}/pipelines/load`,
       {id: id},
       options
+    );
+  }
+
+  public getPipelineInfo(id: string): Observable<PipelineInfo> {
+    const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
+    return this.http.get<PipelineInfo>(
+      `${this.getPipelineStatus}?pipeline_id=${id}`,
+      options
+    ).pipe(
+      map(response => PipelineInfo.fromJson(response))
     );
   }
 }

@@ -25,7 +25,6 @@
       <mat-option
         *ngIf="pipeline.type === group"
         class="pipeline-option"
-        (click)="onPipelineClick(pipeline)"
         [title]="pipeline.name"
         [value]="pipeline.name">
         <span id="socket-notification">
@@ -120,3 +119,24 @@
     </div>
   </div>
 </ng-template>
+
+@if(pipelineInfo) {
+<div id="pipeline-info">
+  <div>
+    <span class="info-label">attributes count: </span>
+    <span class="info-value">{{ pipelineInfo.attributesCount }}</span>
+  </div>
+  <div>
+    <span class="info-label">annotators count: </span>
+    <span class="info-value">{{ pipelineInfo.annotatorsCount }}</span>
+  </div>
+  <div>
+    <span class="info-label">annotatables: </span>
+    <span class="info-value">{{ pipelineInfo.annotatables.join(', ') }}</span>
+  </div>
+  <div>
+    <span class="info-label">gene lists: </span>
+    <span class="info-value">{{ pipelineInfo.geneLists.join(', ') }}</span>
+  </div>
+</div>
+}

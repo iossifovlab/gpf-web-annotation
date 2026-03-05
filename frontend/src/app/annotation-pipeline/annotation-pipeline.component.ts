@@ -25,6 +25,7 @@ import { UsersService } from '../users.service';
 import { SocketNotificationsService } from '../socket-notifications/socket-notifications.service';
 import { PipelineNotification, PipelineStatus } from '../socket-notifications/socket-notifications';
 import { NewAnnotatorComponent } from '../new-annotator/new-annotator.component';
+import { PipelineInfo } from '../annotation-pipeline';
 
 @Component({
   selector: 'app-annotation-pipeline',
@@ -64,6 +65,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   public isUserLoggedIn = false;
   public showConfimDeletePopup = false;
   public socketNotificationSubscription: Subscription = new Subscription();
+  public pipelineInfo: PipelineInfo;
 
   public constructor(
     private jobsService: JobsService,
@@ -256,6 +258,21 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     this.emitPipelineId.emit(this.selectedPipeline.id);
     this.dropdownControl.setValue(this.selectedPipeline.name);
     this.clearTemporaryPipeline();
+
+    this.getPiplineInfo();
+  }
+
+  private getPiplineInfo(): void {
+    this.annotationPipelineService.getPipelineInfo(this.selectedPipeline.id).pipe(
+      take(1)
+    ).subscribe({
+      next: res => {
+        this.pipelineInfo = res;
+      },
+      error: () => {
+        this.pipelineInfo = null;
+      }
+    });
   }
 
   public selectPipelineByName(pipelineName: string): void {

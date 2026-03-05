@@ -306,3 +306,16 @@
   border-color: #49272700 #435869 #435869 transparent;
   border-bottom-right-radius: 11px;
 }
+
+#pipeline-info {
+  margin-top: 30px;
+}
+
+.info-label {
+  color: #85a2b9;
+  margin-right: 5px;
+}
+
+.info-value {
+  color: #252e34;
+}

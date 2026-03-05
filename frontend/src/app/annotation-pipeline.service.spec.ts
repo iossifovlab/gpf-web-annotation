@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { AnnotationPipelineService } from './annotation-pipeline.service';
 import { HttpClient, provideHttpClient } from '@angular/common/http';
 import { lastValueFrom, of, take } from 'rxjs';
+import { PipelineInfo } from './annotation-pipeline';
 
 describe('AnnotationPipelineService', () => {
   let service: AnnotationPipelineService;
@@ -116,5 +117,26 @@ describe('AnnotationPipelineService', () => {
       {id: '1'},
       options
     );
+  });
+
+  it('should get pipeline status', async() => {
+    const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
+    httpGetSpy.mockReturnValue(of({
+      /* eslint-disable camelcase */
+      annotators_count: 20,
+      annotatables: ['hg19_annotatable'],
+      attributes_count: 15,
+      gene_lists: ['gene_list']
+      /* eslint-enable */
+    }));
+    const options = { headers: {'X-CSRFToken': 'token1'}, withCredentials: true };
+    const getResponse = service.getPipelineInfo('pipelineId');
+
+    expect(httpGetSpy).toHaveBeenCalledWith(
+      '//localhost:8000/api/editor/pipeline_status?pipeline_id=pipelineId',
+      options
+    );
+    const res = await lastValueFrom(getResponse.pipe(take(1)));
+    expect(res).toStrictEqual(new PipelineInfo(15, 20, ['hg19_annotatable'], ['gene_list']));
   });
 });

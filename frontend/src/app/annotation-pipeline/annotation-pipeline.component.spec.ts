@@ -15,6 +15,7 @@ import { provideMonacoEditor } from 'ngx-monaco-editor-v2';
 import { By } from '@angular/platform-browser';
 import { SocketNotificationsService } from '../socket-notifications/socket-notifications.service';
 import { PipelineNotification } from '../socket-notifications/socket-notifications';
+import { PipelineInfo } from '../annotation-pipeline';
 
 const mockPipelines = [
   new Pipeline('1', 'id1', 'content1', 'default', 'loaded'),
@@ -97,6 +98,11 @@ class AnnotationPipelineServiceMock {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public deletePipeline(id: string): Observable<object> {
     return of({});
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public getPipelineInfo(id: string): Observable<PipelineInfo> {
+    return of(new PipelineInfo(20, 4, ['hg19_annotatable'], ['gene_list']));
   }
 }
 
@@ -346,6 +352,11 @@ describe('AnnotationPipelineComponent', () => {
     component.selectedPipeline = null;
     component.selectPipelineByName('id3');
     expect(component.selectedPipeline).toStrictEqual(new Pipeline('3', 'id3', 'content3', 'user', 'loaded'));
+  });
+
+  it('should get pipeline status after each pipeline select', () => {
+    component.onPipelineClick(new Pipeline('1', 'other pipeline', 'config', 'default', 'loaded'));
+    expect(component.pipelineInfo).toStrictEqual(new PipelineInfo(20, 4, ['hg19_annotatable'], ['gene_list']));
   });
 
   it('should reset component state', () => {
