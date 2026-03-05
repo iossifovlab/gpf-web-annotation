@@ -321,13 +321,14 @@ test.describe('Pipeline validation tests', () => {
   test('should type config without annotators and show error message', async({ page }) => {
     await utils.clearPipelineEditor(page);
     await utils.typeInPipelineEditor(page, 'preamble:\n input_reference_genome: hg38/genomes/GRCh38-hg38');
-
+    await page.waitForSelector('.invalid-config', { state: 'visible', timeout: 120000 });
     await expect(page.getByText('Invalid configuration, reason: \'annotators\'')).toBeVisible();
   });
 
   test('should type config without peamble and show error message', async({ page }) => {
     await utils.clearPipelineEditor(page);
     await utils.typeInPipelineEditor(page, 'annotators:\n - allele_score: hg38/scores/CADD_v1.4');
+    await page.waitForSelector('.invalid-config', { state: 'visible', timeout: 120000 });
     await expect(page.getByText('Invalid configuration, reason: \'preamble\'')).toBeVisible();
   });
 
