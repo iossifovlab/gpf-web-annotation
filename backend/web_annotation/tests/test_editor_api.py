@@ -95,15 +95,18 @@ def test_annotator_attributes_position_score(
     }, content_type="application/json")
 
     assert response.status_code == 200
-    attributes = response.json()
-    assert len(attributes) == 1
-    assert attributes[0] == {
-        "name": "pos1",
-        "source": "pos1",
-        "type": "float",
-        "description": "test position score",
-        "default": True,
-        "internal": False,
+    assert response.json() == {
+        "page": 0,
+        "total_pages": 1,
+        "total_attributes": 1,
+        "attributes": [{
+            "name": "pos1",
+            "source": "pos1",
+            "type": "float",
+            "description": "test position score",
+            "default": True,
+            "internal": False,
+        }]
     }
 
 
@@ -120,13 +123,18 @@ def test_annotator_attributes_cnv_collection(
     }, content_type="application/json")
 
     assert response.status_code == 200
-    attributes = response.json()
-    assert len(attributes) == 1
-    assert attributes[0] == {
+    json = response.json()
+
+    assert json["page"] == 0
+    assert json["total_pages"] == 1
+    assert json["total_attributes"] == 4
+    assert json["attributes"][0] == {
         "name": "count",
         "source": "count",
         "type": "int",
-        "description": "The number of CNVs overlapping with the annotatable.",
+        "description": (
+            "The number of CNVs overlapping with the annotatable."
+        ),
         "default": True,
         "internal": False,
     }
@@ -147,14 +155,58 @@ def test_effect_annotator_attributes(
 
     assert response.status_code == 200
     response_data = response.json()
-    assert len(response_data) == 61
-    attr_names = [attr["name"] for attr in response_data]
+    assert response_data["page"] == 0
+    assert response_data["total_pages"] == 2
+    assert response_data["total_attributes"] == 61
+    assert len(response_data["attributes"]) == 50
+    attr_names = [attr["name"] for attr in response_data["attributes"]]
 
     assert "worst_effect" in attr_names
     assert "worst_effect_genes" in attr_names
     assert "gene_effects" in attr_names
     assert "effect_details" in attr_names
     assert "gene_list" in attr_names
+
+
+@pytest.mark.parametrize("current_client", ["admin", "user", "anonymous"])
+def test_attributes_search(
+    current_client: str, clients: dict[str, Client],
+) -> None:
+    client = clients[current_client]
+
+    response = client.post("/api/editor/annotator_attributes", data={
+        "annotator_type": "effect_annotator",
+        "genome": "t4c8/t4c8_genome",
+        "gene_models": "t4c8/t4c8_genes",
+        "pipeline_id": "pipeline/test_pipeline",
+        "search": "worst_effect",
+    }, content_type="application/json")
+
+    assert response.status_code == 200
+    response_data = response.json()
+    assert response_data["page"] == 0
+    assert response_data["total_pages"] == 1
+    assert response_data["total_attributes"] == 3
+    assert len(response_data["attributes"]) == 3
+    assert response_data["attributes"][0]["name"] == "worst_effect"
+    assert response_data["attributes"][1]["name"] == "worst_effect_genes"
+    assert response_data["attributes"][2]["name"] == "worst_effect_gene_list"
+
+    response = client.post("/api/editor/annotator_attributes", data={
+        "annotator_type": "effect_annotator",
+        "genome": "t4c8/t4c8_genome",
+        "gene_models": "t4c8/t4c8_genes",
+        "pipeline_id": "pipeline/test_pipeline",
+        "search": "all transcripts",
+    }, content_type="application/json")
+
+    assert response.status_code == 200
+    response_data = response.json()
+    assert response_data["page"] == 0
+    assert response_data["total_pages"] == 1
+    assert response_data["total_attributes"] == 1
+    assert len(response_data["attributes"]) == 1
+    assert response_data["attributes"][0]["name"] == "worst_effect"
 
 
 @pytest.mark.parametrize("current_client", ["admin", "user", "anonymous"])
@@ -301,10 +353,10 @@ def test_annotator_creation_workflow(
         "pipeline_id": "pipeline/test_pipeline",
     }, content_type="application/json")
     assert response.status_code == 200
-    attributes = response.json()
-    assert len(attributes) == 1
-    assert attributes[0]["name"] == "pos1"
-    attributes[0]["name"] = "pos1_score"
+    json = response.json()
+    assert len(json["attributes"]) == 1
+    assert json["attributes"][0]["name"] == "pos1"
+    json["attributes"][0]["name"] = "pos1_score"
 
     # Step 5: Get annotator YAML
     response = client.post("/api/editor/annotator_yaml", data={
@@ -317,7 +369,7 @@ def test_annotator_creation_workflow(
                 "source": attr["source"],
                 "internal": attr["internal"],
             }
-            for attr in attributes
+            for attr in json["attributes"]
         ],
     }, content_type="application/json")
     assert response.status_code == 200
@@ -384,10 +436,10 @@ def test_annotator_creation_resource_workflow(
         "pipeline_id": "pipeline/test_pipeline",
     }, content_type="application/json")
     assert response.status_code == 200
-    attributes = response.json()
-    assert len(attributes) == 1
-    assert attributes[0]["name"] == "pos1"
-    attributes[0]["name"] = "pos1_score"
+    json = response.json()
+    assert len(json["attributes"]) == 1
+    assert json["attributes"][0]["name"] == "pos1"
+    json["attributes"][0]["name"] = "pos1_score"
 
     # Step 6: Get annotator YAML
     response = client.post("/api/editor/annotator_yaml", data={
@@ -400,7 +452,7 @@ def test_annotator_creation_resource_workflow(
                 "source": attr["source"],
                 "internal": attr["internal"],
             }
-            for attr in attributes
+            for attr in json["attributes"]
         ],
     }, content_type="application/json")
     assert response.status_code == 200
