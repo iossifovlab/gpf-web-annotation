@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from itertools import islice
 from rest_framework.views import Request, Response, status
 
 from dae.annotation.annotation_config import (
@@ -15,7 +16,6 @@ from dae.annotation.annotation_factory import (
     get_available_annotator_types,
     build_pipeline_annotator,
 )
-from dae.annotation.effect_annotator import EffectAnnotatorAdapter
 
 from web_annotation.annotation_base_view import AnnotationBaseView
 from web_annotation.authentication import WebAnnotationAuthentication
@@ -244,6 +244,8 @@ class AnnotatorTypes(EditorView):
 class AnnotatorAttributes(EditorView):
     """View for annotator attributes."""
 
+    ATTRIBUTE_PAGE_SIZE = 50
+
     authentication_classes = [WebAnnotationAuthentication]
 
     def post(self, request: Request) -> Response:
@@ -271,6 +273,13 @@ class AnnotatorAttributes(EditorView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        page = data.pop("page", 0)
+
+        assert isinstance(page, int) and page >= 0, \
+            "Page must be a non-negative integer"
+
+        search_term = data.pop("search", None)
+
         pipeline = self.get_pipeline(pipeline_id, request.user)
 
         data["work_dir"] = "/tmp"
@@ -287,40 +296,51 @@ class AnnotatorAttributes(EditorView):
         annotator = factory(pipeline, annotator_config)
         annotator_info = annotator.get_info()
         annotator_type = annotator_info.type
-        attributes = annotator_info.attributes
-        result = []
+        if search_term is None:
+            attribute_descs: Any = \
+                annotator.get_all_attribute_descriptions().values()
+        else:
+            if not isinstance(search_term, str):
+                return Response(
+                    {"error": "Search term must be a string"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            attribute_descs = list(filter(
+                lambda desc: search_term.lower() in desc.name.lower() or
+                search_term.lower() in desc.description.lower(),
+                annotator.get_all_attribute_descriptions().values(),
+            ))
+        total_attribute_count = len(attribute_descs)
+        page_attributes = islice(
+            attribute_descs,
+            page * self.ATTRIBUTE_PAGE_SIZE,
+            (page + 1) * self.ATTRIBUTE_PAGE_SIZE
+        )
+        attributes_result = []
         used_attributes = set()
-        for attribute in attributes:
-            used_attributes.add(attribute.source)
+        for attribute in page_attributes:
+            used_attributes.add(attribute.name)
             if attribute.internal is None:
                 attribute.internal = False
-            result.append({
+            attributes_result.append({
                 "name": attribute.name,
-                "source": attribute.source,
-                "type": attribute.value_type,
+                "source": attribute.name,
+                "type": attribute.type,
                 "description": attribute.description,
                 "default": attribute.default,
                 "internal": attribute.internal,
             })
 
-        if annotator_type == "effect_annotator":
-            assert isinstance(annotator, EffectAnnotatorAdapter)
-            for attribute_desc in (
-                annotator.attribute_descriptions.values()
-            ):
-                if attribute_desc.name in used_attributes:
-                    continue
-                result.append({
-                    "name": attribute_desc.name,
-                    "source": attribute_desc.name,
-                    "type": attribute_desc.type,
-                    "description": attribute_desc.description,
-                    "default": attribute_desc.default,
-                    "internal": attribute_desc.internal,
-                })
-                used_attributes.add(attribute_desc.name)
-
-        return Response(result, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "page": page,
+                "total_pages": (
+                    total_attribute_count // self.ATTRIBUTE_PAGE_SIZE) + 1,
+                "total_attributes": total_attribute_count,
+                "attributes": attributes_result,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class PipelineAttributes(EditorView):
@@ -483,6 +503,8 @@ class ResourceAnnotators(EditorView):
 
 class PipelineStatus(EditorView):
     """View for pipeline status and statistics."""
+
+    authentication_classes = [WebAnnotationAuthentication]
 
     def get(self, request: Request) -> Response:
         """GET method to retrieve pipeline status."""
