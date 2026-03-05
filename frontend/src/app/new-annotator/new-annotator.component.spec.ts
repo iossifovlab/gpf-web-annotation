@@ -6,7 +6,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Observable, of } from 'rxjs';
 import { PipelineEditorService } from '../pipeline-editor.service';
-import { AnnotatorAttribute, AnnotatorConfig, Resource, ResourceAnnotator } from './annotator';
+import { AnnotatorConfig, AttributeData, AttributePage, Resource, ResourceAnnotator } from './annotator';
 import { FormBuilder, FormControl } from '@angular/forms';
 
 
@@ -48,8 +48,8 @@ const annotatorConfigMock = new AnnotatorConfig(
 );
 
 const attributesMock = [
-  new AnnotatorAttribute('mpc', 'string', 'mpc', false, true, 'Missense badness, PolyPhen-2, and Constraint.'),
-  new AnnotatorAttribute(
+  new AttributeData('mpc', 'string', 'mpc', false, true, 'Missense badness, PolyPhen-2, and Constraint.'),
+  new AttributeData(
     'effect_details',
     'bool',
     'effect_details',
@@ -57,8 +57,10 @@ const attributesMock = [
     false,
     'Effect details for each affected transcript'
   ),
-  new AnnotatorAttribute('dbSNP_RS', 'string', 'dbSNP_RS', true, true, 'dbSNP ID (i.e. rs number)')
+  new AttributeData('dbSNP_RS', 'string', 'dbSNP_RS', true, true, 'dbSNP ID (i.e. rs number)')
 ];
+
+const attributePageMock = new AttributePage(attributesMock, 0, 1, 3);
 
 const ymlResponse = `- gene_set_annotator:\n
   resource_id: gene_properties/gene_sets/autism\n
@@ -79,12 +81,12 @@ class PipelineEditorServiceMock {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getAttributes(pipelineId: string, annotator: string, resources: object): Observable<AnnotatorAttribute[]> {
-    return of(attributesMock);
+  public getAttributes(pipelineId: string, annotator: string, resources: object): Observable<AttributePage> {
+    return of(attributePageMock);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, @stylistic/max-len
-  public getAnnotatorYml(pipelineId: string, annotator: string, resources: object, attributes: AnnotatorAttribute[]): Observable<string> {
+  public getAnnotatorYml(pipelineId: string, annotator: string, resources: object, attributes: AttributeData[]): Observable<string> {
     return of(ymlResponse);
   }
 
@@ -250,7 +252,7 @@ describe('NewAnnotatorComponent', () => {
       // eslint-disable-next-line camelcase
       { resource_id: 'gene_properties/gene_scores/RVIS' }
     );
-    expect(component.annotatorAttributes).toStrictEqual(attributesMock);
+    expect(component.attributePage).toStrictEqual(attributePageMock);
     expect(component.selectedAttributes).toStrictEqual([attributesMock[0], attributesMock[2]]);
     expect(component.unselectedAttributes).toStrictEqual([
       'effect_details - Effect details for each affected transcript',
@@ -275,7 +277,7 @@ describe('NewAnnotatorComponent', () => {
       'gene_set_annotator',
       // eslint-disable-next-line camelcase
       { resource_id: 'gene_properties/gene_scores/RVIS' },
-      [new AnnotatorAttribute('mpc', 'string', 'mpc', false, true, 'Missense badness, PolyPhen-2, and Constraint.')]
+      [new AttributeData('mpc', 'string', 'mpc', false, true, 'Missense badness, PolyPhen-2, and Constraint.')]
     );
 
     expect(closeModalSpy).toHaveBeenCalledWith('\n' + ymlResponse);
@@ -294,7 +296,7 @@ describe('NewAnnotatorComponent', () => {
   });
 
   it('should toggle internal value of attribute', () => {
-    const attribute = new AnnotatorAttribute('attribute', 'string', 'source1', false, true, 'desc');
+    const attribute = new AttributeData('attribute', 'string', 'source1', false, true, 'desc');
     component.selectedAttributes = [attribute];
     component.setAttributeInternal(attribute, true);
     expect(component.selectedAttributes[0].internal).toBe(true);
@@ -347,7 +349,7 @@ describe('NewAnnotatorComponent', () => {
   it('should not disable finish button if there is unselected attribute with exisitng name', () => {
     component.requestAttributes();
     component.selectedAttributes = [
-      new AnnotatorAttribute(
+      new AttributeData(
         'effect_details',
         'bool',
         'effect_details',

@@ -9,7 +9,7 @@ import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { CdkStepperModule, STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
 import { PipelineEditorService } from '../pipeline-editor.service';
 import { map, Observable, of, switchMap, take, forkJoin, Subject, distinctUntilChanged, tap } from 'rxjs';
-import { AnnotatorAttribute, AnnotatorConfig, Resource, ResourceAnnotator } from './annotator';
+import { AnnotatorConfig, AttributeData, AttributePage, Resource, ResourceAnnotator } from './annotator';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { KeyValueDisplayPipe } from '../key-value-display.pipe';
 import { MatSelect } from '@angular/material/select';
@@ -53,8 +53,8 @@ export class NewAnnotatorComponent implements OnInit {
   public filteredResourceValues: Map<string, string[]>;
   public annotatorConfig: AnnotatorConfig;
   public attributeStep: FormGroup<{ attribute: FormControl<string> }>;
-  public annotatorAttributes: AnnotatorAttribute[];
-  public selectedAttributes: AnnotatorAttribute[];
+  public attributePage: AttributePage;
+  public selectedAttributes: AttributeData[];
   public unselectedAttributes: string[];
   public unselectedFilteredAttributes: string[];
   public areAttributesValid: boolean;
@@ -268,9 +268,10 @@ export class NewAnnotatorComponent implements OnInit {
       this.annotatorStep.value.annotator,
       filtered
     ).pipe(take(1)).subscribe(res => {
-      this.annotatorAttributes = res;
-      this.selectedAttributes = res.filter(a => a.selectedByDefault);
-      this.unselectedAttributes = res.filter(a => !a.selectedByDefault).map(a => `${a.name} - ${a.description}`);
+      this.attributePage = res;
+      this.selectedAttributes = res.attributes.filter(a => a.selectedByDefault);
+      this.unselectedAttributes =
+      res.attributes.filter(a => !a.selectedByDefault).map(a => `${a.name} - ${a.description}`);
       this.unselectedFilteredAttributes = this.unselectedAttributes;
       this.setupAttributeValueFiltering();
       this.getPipelineAttributesNames();
@@ -292,13 +293,13 @@ export class NewAnnotatorComponent implements OnInit {
 
   private getPipelineAttributesNames(): void {
     this.editorService.getPipelineAttributesNames(this.data.pipelineId).pipe(take(1)).subscribe(names => {
-      this.duplicateAttributeNames = this.annotatorAttributes.filter(a => names.includes(a.name)).map(a => a.name);
+      this.duplicateAttributeNames = this.attributePage.attributes.filter(a => names.includes(a.name)).map(a => a.name);
       this.validateAttributes();
     });
   }
 
   public validateAttributes(): void {
-    this.areAttributesValid = !this.annotatorAttributes.some(
+    this.areAttributesValid = !this.attributePage.attributes.some(
       a => this.selectedAttributes.includes(a) && this.duplicateAttributeNames.includes(a.name)
     );
   }
@@ -338,7 +339,7 @@ export class NewAnnotatorComponent implements OnInit {
     this.resourceTypeStep.get('resourceId').setValue(null);
   }
 
-  public setAttributeInternal(attribute: AnnotatorAttribute, value: boolean): void {
+  public setAttributeInternal(attribute: AttributeData, value: boolean): void {
     const index = this.selectedAttributes.findIndex(a => a.name === attribute.name);
     if (index !== -1) {
       this.selectedAttributes[index].internal = value;
@@ -347,13 +348,13 @@ export class NewAnnotatorComponent implements OnInit {
 
   public onSelectAttribute(stringAttribute: string): void {
     const attributeName = stringAttribute.split(' - ')[0];
-    this.selectedAttributes.push(this.annotatorAttributes.find(a => a.name === attributeName));
+    this.selectedAttributes.push(this.attributePage.attributes.find(a => a.name === attributeName));
     this.unselectedAttributes = this.unselectedAttributes.filter(a => a !== stringAttribute);
     this.clearAttributeInput();
     this.validateAttributes();
   }
 
-  public removeSelectedAttribute(attribute: AnnotatorAttribute): void {
+  public removeSelectedAttribute(attribute: AttributeData): void {
     this.selectedAttributes = this.selectedAttributes.filter(a => a !== attribute);
     this.unselectedAttributes.push(`${attribute.name} - ${attribute.description}`);
     this.validateAttributes();

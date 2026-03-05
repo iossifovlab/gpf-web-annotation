@@ -4,7 +4,7 @@ import { PipelineEditorService } from './pipeline-editor.service';
 import { HttpClient, provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { of, lastValueFrom, take } from 'rxjs';
-import { AnnotatorAttribute, AnnotatorConfig, Resource } from './new-annotator/annotator';
+import { AnnotatorConfig, AttributeData, AttributePage, Resource } from './new-annotator/annotator';
 
 describe('PipelineEditorService', () => {
   let service: PipelineEditorService;
@@ -159,16 +159,21 @@ describe('PipelineEditorService', () => {
 
   it('should get attributes of annotator type', async() => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
-    httpPostSpy.mockReturnValue(of([
-      {
+    httpPostSpy.mockReturnValue(of({
+      attributes: [{
         name: 'fitcons_i6_merged',
         source: 'fc_i6_score',
         type: 'float',
         internal: false,
         default: true,
         description: 'probability that a point mutation at each position in a genome will influence fitness'
-      }
-    ]));
+      }],
+      page: 0,
+      // eslint-disable-next-line camelcase
+      total_pages: 1,
+      // eslint-disable-next-line camelcase
+      total_attributes: 1,
+    }));
 
     const options = { headers: {'X-CSRFToken': ''}, withCredentials: true };
     const getResponse = service.getAttributes(
@@ -185,16 +190,23 @@ describe('PipelineEditorService', () => {
       options
     );
     const res = await lastValueFrom(getResponse.pipe(take(1)));
-    expect(res).toStrictEqual([
-      new AnnotatorAttribute(
-        'fitcons_i6_merged',
-        'float',
-        'fc_i6_score',
-        false,
-        true,
-        'probability that a point mutation at each position in a genome will influence fitness'
+    expect(res).toStrictEqual(
+      new AttributePage(
+        [
+          new AttributeData(
+            'fitcons_i6_merged',
+            'float',
+            'fc_i6_score',
+            false,
+            true,
+            'probability that a point mutation at each position in a genome will influence fitness'
+          ),
+        ],
+        0,
+        1,
+        1
       )
-    ]);
+    );
   });
 
   it('should get attributes of pipeline', async() => {
@@ -241,7 +253,7 @@ describe('PipelineEditorService', () => {
         target_genome: 'hg19/genomes/GATK_ResourceBundle_5777_b37_phiX174'
       },
       [
-        new AnnotatorAttribute(
+        new AttributeData(
           'liftover_annotatable',
           'annotatable',
           'liftover_annotatable',

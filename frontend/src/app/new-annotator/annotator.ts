@@ -46,8 +46,7 @@ export class Resource {
   ) { }
 }
 
-
-export class AnnotatorAttribute {
+export class AttributeData {
   public constructor(
     public name: string,
     public type: string,
@@ -55,27 +54,49 @@ export class AnnotatorAttribute {
     public internal: boolean,
     public selectedByDefault: boolean,
     public description: string,
-  ) { }
+  ) {}
 
-  public static fromJsonArray(jsonArray: object[]): AnnotatorAttribute[] {
+  public static fromJsonArray(jsonArray: object[]): AttributeData[] {
     if (!jsonArray) {
       return undefined;
     }
-    return jsonArray.map((json) => AnnotatorAttribute.fromJson(json));
+    return jsonArray.map((json) => AttributeData.fromJson(json));
   }
 
-  public static fromJson(json: object): AnnotatorAttribute {
+  public static fromJson(json: object): AttributeData {
     if (!json) {
       return undefined;
     }
 
-    return new AnnotatorAttribute(
+    return new AttributeData(
       json['name'] as string,
       json['type'] as string,
       json['source'] as string,
       json['internal'] as boolean,
       json['default'] as boolean,
       json['description'] as string,
+    );
+  }
+}
+
+export class AttributePage {
+  public constructor(
+    public attributes: AttributeData[],
+    public page: number,
+    public totalPages: number,
+    public totalAttributes: number,
+  ) { }
+
+  public static fromJson(json: object): AttributePage {
+    if (!json) {
+      return undefined;
+    }
+
+    return new AttributePage(
+      AttributeData.fromJsonArray(json['attributes'] as object[]),
+      json['page'] as number,
+      json['total_pages'] as number,
+      json['total_attributes'] as number,
     );
   }
 }
