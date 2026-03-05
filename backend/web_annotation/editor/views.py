@@ -484,6 +484,8 @@ class ResourceAnnotators(EditorView):
 class PipelineStatus(EditorView):
     """View for pipeline status and statistics."""
 
+    authentication_classes = [WebAnnotationAuthentication]
+
     def get(self, request: Request) -> Response:
         """GET method to retrieve pipeline status."""
         pipeline_id = request.query_params.get("pipeline_id")
