@@ -133,12 +133,11 @@ export class NewAnnotatorComponent implements OnInit {
       take(1),
     ).subscribe(res => {
       this.resourceAnnotators = res;
+      this.annotatorTypes = res.map(r => r.annotatorType);
+      this.filteredAnnotatorTypes = res.map(r => r.annotatorType);
+      this.setupAnnotatorValueFiltering();
       if (this.resourceAnnotators.length === 1) {
         this.autoSelectAnnotator();
-      } else {
-        this.annotatorTypes = res.map(r => r.annotatorType);
-        this.filteredAnnotatorTypes = res.map(r => r.annotatorType);
-        this.setupAnnotatorValueFiltering();
       }
       this.stepper.next();
     });

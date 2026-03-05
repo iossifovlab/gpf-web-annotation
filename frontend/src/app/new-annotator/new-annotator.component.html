@@ -2,7 +2,7 @@
 <div style="height: 100%">
   <mat-stepper #stepper [linear]="true" class="custom-stepper">
     @if(data.isResourceWorkflow) {
-    <mat-step label="Select resource type" [editable]="false" [stepControl]="resourceTypeStep">
+    <mat-step label="Select resource type" [stepControl]="resourceTypeStep">
       <form [formGroup]="resourceTypeStep" id="resource-input-form">
         <div class="forms-wrapper">
           <mat-form-field [appearance]="'outline'" id="resource-type">
@@ -49,7 +49,7 @@
     </mat-step>
     }
 
-    <mat-step label="Select annotator" [editable]="false" [stepControl]="annotatorStep">
+    <mat-step label="Select annotator" [stepControl]="annotatorStep">
       <ng-template matStepContent>
         @if(data.isResourceWorkflow) {
         <div class="summary-content">
@@ -92,13 +92,16 @@
               <button matButton [disabled]="annotatorStep.invalid" class="next-button" (click)="requestResources()"
                 >Next</button
               >
+              @if(data.isResourceWorkflow) {
+              <button mat-button matStepperPrevious>Back</button>
+              }
             </div>
           </form>
         </div>
       </ng-template>
     </mat-step>
 
-    <mat-step label="Select resources" [editable]="false" [stepControl]="resourceStep">
+    <mat-step label="Select resources" [stepControl]="resourceStep">
       <ng-template matStepContent>
         <div class="summary-content">
           @if(data.isResourceWorkflow) {
@@ -112,7 +115,7 @@
         <div class="left-content">
           <form [formGroup]="resourceStep">
             <div>
-              @for (resource of annotatorConfig.resources; track resource) {
+              @for (resource of annotatorConfig.resources; track resource.key) {
               <div class="field">
                 <div class="labels-wrapper">
                   <span class="resource field-label"> {{ resource.key }}</span>
@@ -168,13 +171,14 @@
               <button matButton [disabled]="resourceStep.invalid" (click)="requestAttributes()" class="next-button"
                 >Next</button
               >
+              <button mat-button matStepperPrevious>Back</button>
             </div>
           </form>
         </div>
       </ng-template>
     </mat-step>
 
-    <mat-step label="Select attributes" [editable]="false" [stepControl]="attributeStep">
+    <mat-step label="Select attributes" [stepControl]="attributeStep">
       <ng-template matStepContent>
         <div class="summary-content">
           @if(data.isResourceWorkflow) {
@@ -251,6 +255,7 @@
             @if(!areAttributesValid) {
             <div class="duplicate-name">Attribute with this name already exists</div>
             }
+            <button mat-button matStepperPrevious>Back</button>
             <button matButton matStepperNext class="next-button">Next</button>
             @if(areAttributesValid) {
             <button matButton (click)="onFinish()" class="finish-button">Finish</button>
@@ -259,7 +264,7 @@
         </div>
       </ng-template>
     </mat-step>
-    <mat-step label="Modify attributes" [editable]="false" [optional]="areAttributesValid">
+    <mat-step label="Modify attributes" [optional]="areAttributesValid">
       <ng-template matStepContent>
         <div class="summary-content">
           @if(data.isResourceWorkflow) {
@@ -324,6 +329,7 @@
             @if(!areAttributesValid) {
             <div class="duplicate-name">Attribute with this name already exists</div>
             }
+            <button mat-button matStepperPrevious>Back</button>
             <button [disabled]="!areAttributesValid" matButton (click)="onFinish()" class="finish-button"
               >Finish</button
             >
@@ -331,5 +337,9 @@
         </div>
       </ng-template>
     </mat-step>
+
+    <ng-template matStepperIcon="edit" let-index="index">
+      {{ index + 1 }}
+    </ng-template>
   </mat-stepper>
 </div>

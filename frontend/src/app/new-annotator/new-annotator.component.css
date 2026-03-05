@@ -1,3 +1,7 @@
+::ng-deep .mat-step-header {
+  pointer-events: none;
+}
+
 .stepper-wrapper {
   position: relative;
 }
@@ -67,6 +71,7 @@ input[type="text"] {
   --mat-stepper-header-hover-state-layer-color: white;
   --mat-stepper-header-focus-state-layer-color: white;
   --mat-stepper-header-icon-background-color: white;
+  --mat-stepper-header-edit-state-icon-background-color: #85a2b9;
 
   height: 100%;
 }
