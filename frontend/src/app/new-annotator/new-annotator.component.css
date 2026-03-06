@@ -132,11 +132,13 @@ mat-form-field {
   height: 100% !important;
 }
 
-.next-button {
+.next-button,
+.back-button {
   color: #435869 !important;
 }
 
-.next-button:disabled {
+.next-button:disabled,
+.back-button:disabled {
   color: #b8c2ca !important;
 }
 
@@ -147,7 +149,7 @@ mat-form-field {
 }
 
 .summary-content {
-  width: 20%;
+  width: 30%;
   height: fit-content;
   background-color: #f4f7fb;
   border-radius: 10px;
@@ -283,7 +285,7 @@ input[type="radio"]:checked {
 }
 
 .left-content {
-  width: 90%;
+  width: 100%;
 }
 
 #attributes-list {

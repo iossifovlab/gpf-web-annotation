@@ -93,7 +93,7 @@
                 >Next</button
               >
               @if(data.isResourceWorkflow) {
-              <button mat-button matStepperPrevious>Back</button>
+              <button mat-button matStepperPrevious class="back-button">Back</button>
               }
             </div>
           </form>
@@ -171,7 +171,7 @@
               <button matButton [disabled]="resourceStep.invalid" (click)="requestAttributes()" class="next-button"
                 >Next</button
               >
-              <button mat-button matStepperPrevious>Back</button>
+              <button mat-button matStepperPrevious class="back-button">Back</button>
             </div>
           </form>
         </div>
@@ -255,7 +255,7 @@
             @if(!areAttributesValid) {
             <div class="duplicate-name">Attribute with this name already exists</div>
             }
-            <button mat-button matStepperPrevious>Back</button>
+            <button mat-button matStepperPrevious class="back-button">Back</button>
             <button matButton matStepperNext class="next-button">Next</button>
             @if(areAttributesValid) {
             <button matButton (click)="onFinish()" class="finish-button">Finish</button>
@@ -284,7 +284,7 @@
           <div id="attributes-list">
             @for (attribute of selectedAttributes; track attribute) {
             <div class="attribute-group modify-view-group">
-              <div style="width: 100%">
+              <div style="width: 100%; margin-left: 20px">
                 <div class="attribute modify-view-attribute">
                   <span class="field-label">name</span>
                   <input
@@ -329,7 +329,7 @@
             @if(!areAttributesValid) {
             <div class="duplicate-name">Attribute with this name already exists</div>
             }
-            <button mat-button matStepperPrevious>Back</button>
+            <button mat-button matStepperPrevious class="back-button">Back</button>
             <button [disabled]="!areAttributesValid" matButton (click)="onFinish()" class="finish-button"
               >Finish</button
             >
