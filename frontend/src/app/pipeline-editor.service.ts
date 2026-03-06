@@ -89,7 +89,8 @@ export class PipelineEditorService {
   public getAttributes(
     pipelineId: string,
     annotatorType: string,
-    resources: object
+    resources: object,
+    searchValue?: string
   ): Observable<AttributePage> {
     const options = { headers: {'X-CSRFToken': this.getCSRFToken()}, withCredentials: true };
 
@@ -98,6 +99,7 @@ export class PipelineEditorService {
       pipeline_id: pipelineId,
       // eslint-disable-next-line camelcase
       annotator_type: annotatorType,
+      search: searchValue
     };
 
     return this.http.post<AttributePage>(

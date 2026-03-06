@@ -266,7 +266,7 @@ export class NewAnnotatorComponent implements OnInit {
     this.editorService.getAttributes(
       this.data.pipelineId,
       this.annotatorStep.value.annotator,
-      filtered
+      filtered,
     ).pipe(take(1)).subscribe(res => {
       this.attributePage = res;
       this.selectedAttributes = res.attributes.filter(a => a.selectedByDefault);
@@ -281,13 +281,28 @@ export class NewAnnotatorComponent implements OnInit {
 
   private setupAttributeValueFiltering(): void {
     this.attributeStep = this.formBuilder.group({
-      attribute: [''],
+      attribute: [null],
     });
 
+
     this.attributeStep.get('attribute').valueChanges.pipe(
-      map((value: string) => this.filterDropdownContent(value, this.unselectedAttributes))
-    ).subscribe(filtered => {
-      this.unselectedFilteredAttributes = filtered;
+      distinctUntilChanged()
+    ).subscribe(value => {
+      if (this.attributePage.totalPages === 1) {
+        this.unselectedFilteredAttributes = this.filterDropdownContent(value, this.unselectedAttributes);
+      } else {
+        this.editorService.getAttributes(
+          this.data.pipelineId,
+          this.annotatorStep.value.annotator,
+          this.getPopulatedResourceValues(),
+          value
+        ).pipe(take(1)).subscribe(res => {
+          const selectedKeys = new Set(this.selectedAttributes.map(s => `${s.name}-${s.description}`));
+          const unselectedNewAttributes = res.attributes.filter(a => !selectedKeys.has(`${a.name}-${a.description}`));
+          this.unselectedAttributes = unselectedNewAttributes.map(a => `${a.name} - ${a.description}`);
+          this.unselectedFilteredAttributes = this.unselectedAttributes;
+        });
+      }
     });
   }
 
@@ -356,7 +371,9 @@ export class NewAnnotatorComponent implements OnInit {
 
   public removeSelectedAttribute(attribute: AttributeData): void {
     this.selectedAttributes = this.selectedAttributes.filter(a => a !== attribute);
-    this.unselectedAttributes.push(`${attribute.name} - ${attribute.description}`);
+    if (this.attributePage.totalPages === 1) {
+      this.unselectedAttributes.push(`${attribute.name} - ${attribute.description}`);
+    }
     this.validateAttributes();
   }
 }

@@ -397,6 +397,18 @@ describe('NewAnnotatorComponent', () => {
     ]);
   });
 
+  it('should remove selected attribute and don\'t put back attribute in dropdown when attributes are more', () => {
+    jest.spyOn(pipelineEditorServiceMock, 'getAttributes')
+      .mockReturnValueOnce(of(new AttributePage(attributesMock, 0, 10, 1500)));
+    component.requestAttributes();
+    component.selectedAttributes = attributesMock;
+    component.unselectedAttributes = [];
+
+    component.removeSelectedAttribute(attributesMock[1]);
+    expect(component.selectedAttributes).toStrictEqual([attributesMock[0], attributesMock[2]]);
+    expect(component.unselectedAttributes).toStrictEqual([]);
+  });
+
   it('should filter attributes in dropdown on search', () => {
     component.requestAttributes();
     component.unselectedAttributes = [
@@ -419,6 +431,55 @@ describe('NewAnnotatorComponent', () => {
 
     component.attributeStep.get('attribute').setValue('LGD');
     expect(component.unselectedFilteredAttributes).toStrictEqual([]);
+  });
+
+  it('should trigger search request for attributes', () => {
+    component.resourceStep.setControl('gene_models', new FormControl('hg38/gene_models/GENCODE/48'));
+    component.annotatorStep.setControl('annotator', new FormControl('effect_annotator'));
+    const getAttributesSpy = jest.spyOn(pipelineEditorServiceMock, 'getAttributes')
+      .mockReturnValueOnce(of(new AttributePage(attributesMock, 0, 10, 1500)));
+
+    component.requestAttributes();
+
+    component.selectedAttributes = [
+      new AttributeData(
+        '3\'UTR_gene_list', 'object',
+        '3\'UTR_gene_list',
+        false,
+        false,
+        'List of all 3\'UTR genes'
+      ),
+      new AttributeData(
+        'worst_effect',
+        'string',
+        'worst_effect',
+        false,
+        false,
+        'Worst effect accross all transcripts.'
+      ),
+    ];
+
+    getAttributesSpy.mockReturnValue(of(new AttributePage([
+      new AttributeData('3\'UTR_gene_list', 'object', '3\'UTR_gene_list', false, true, 'List of all 3\'UTR genes'),
+      new AttributeData('5\'UTR_gene_list', 'object', '5\'UTR_gene_list', false, true, 'List of all 5\'UTR genes'),
+    ], 0, 10, 1500)));
+    component.attributeStep.get('attribute').setValue('UTR');
+
+    expect(getAttributesSpy).toHaveBeenCalledWith(
+      'pipelineId',
+      'effect_annotator',
+      // eslint-disable-next-line camelcase
+      { gene_models: 'hg38/gene_models/GENCODE/48' },
+      'UTR'
+    );
+
+    expect(component.unselectedAttributes).toStrictEqual([
+      '5\'UTR_gene_list - List of all 5\'UTR genes'
+    ]);
+
+    expect(component.unselectedFilteredAttributes).toStrictEqual([
+      '5\'UTR_gene_list - List of all 5\'UTR genes'
+    ]);
   });
 });
 
