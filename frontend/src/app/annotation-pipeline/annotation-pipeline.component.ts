@@ -26,6 +26,7 @@ import { SocketNotificationsService } from '../socket-notifications/socket-notif
 import { PipelineNotification, PipelineStatus } from '../socket-notifications/socket-notifications';
 import { NewAnnotatorComponent } from '../new-annotator/new-annotator.component';
 import { PipelineInfo } from '../annotation-pipeline';
+import type * as Monaco from 'monaco-editor';
 
 @Component({
   selector: 'app-annotation-pipeline',
@@ -316,7 +317,15 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     newAnnotatorModal.afterClosed().subscribe((result: string) => {
       if (result) {
         this.currentPipelineText += result;
+        this.autoScroll();
       }
+    });
+  }
+
+  private autoScroll(): void {
+    const editor = this.pipelineEditorRef['_editor'] as Monaco.editor.IStandaloneCodeEditor;
+    editor.onDidChangeModelContent(() => {
+      editor.revealLine(editor.getModel().getLineCount(), 1);
     });
   }
 
