@@ -219,7 +219,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
         this.emitIsConfigValid.emit(true);
         if (this.isPipelineChanged()) {
           // Save pipeline as temporary when valid
-          this.autoSave().subscribe();
+          this.autoSave().subscribe(() => this.getPiplineInfo());
         }
       } else {
         this.emitIsConfigValid.emit(false);
@@ -264,7 +264,8 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   }
 
   private getPiplineInfo(): void {
-    this.annotationPipelineService.getPipelineInfo(this.selectedPipeline.id).pipe(
+    this.pipelineInfo = null;
+    this.annotationPipelineService.getPipelineInfo(this.currentTemporaryPipelineId || this.selectedPipeline.id).pipe(
       take(1)
     ).subscribe({
       next: res => {
@@ -333,6 +334,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     if (!this.currentPipelineText && !this.selectedPipeline) {
       return;
     }
+    this.pipelineInfo = null;
     this.selectedPipeline = null;
     this.currentPipelineText = '';
     this.emitPipelineId.emit(null);
