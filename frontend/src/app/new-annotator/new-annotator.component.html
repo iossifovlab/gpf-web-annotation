@@ -128,7 +128,7 @@
                 <mat-form-field [appearance]="'outline'" class="resource-input" [attr.id]="resource.key + '-dropdown'">
                   <input
                     type="text"
-                    placeholder="Select or search"
+                    placeholder="Select or search resource"
                     autocomplete="off"
                     matInput
                     [formControlName]="resource.key"
@@ -200,7 +200,7 @@
               <mat-form-field [appearance]="'outline'" class="attribute-input" id="attributes-dropdown">
                 <input
                   type="text"
-                  placeholder="Select attribute"
+                  placeholder="Select or search attribute"
                   autocomplete="off"
                   matInput
                   [formControlName]="'attribute'"
@@ -228,14 +228,15 @@
                   }
                 </mat-autocomplete>
               </mat-form-field>
+              <span>Selected attributes:</span>
               <div id="attributes-list">
-                @for (selectedAttribute of selectedAttributes; track selectedAttribute) {
+                @for (selectedAttribute of selectedAttributes; track selectedAttribute.source) {
                 <div class="selected-attribute">
                   <span
                     [attr.id]="selectedAttribute.name + '-remove-button'"
                     class="material-symbols-outlined remove-attribute"
                     (click)="removeSelectedAttribute(selectedAttribute)"
-                    >close</span
+                    >delete</span
                   >
                   <span
                     [title]="selectedAttribute.name"
@@ -282,7 +283,7 @@
 
         <div class="left-content">
           <div id="attributes-list">
-            @for (attribute of selectedAttributes; track attribute) {
+            @for (attribute of selectedAttributes; track attribute.source) {
             <div class="attribute-group modify-view-group">
               <div style="width: 100%; margin-left: 20px">
                 <div class="attribute modify-view-attribute">
