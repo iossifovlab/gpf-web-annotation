@@ -370,7 +370,7 @@ test.describe('Add annotator to pipeline tests', () => {
     await page.locator('mat-option').getByText('gene_list').click();
     await page.getByRole('button', { name: 'Next' }).click();
 
-    await expect(page.locator('.selected-attribute')).toHaveCount(4);
+    await expect(page.locator('.selected-attribute')).toHaveCount(1);
 
     await Promise.all([
       page.getByRole('button', { name: 'Finish' }).click(),
@@ -391,8 +391,8 @@ test.describe('Add annotator to pipeline tests', () => {
       '    resource_id: gene_properties/gene_sets/spark\n' +
       '    input_gene_list: gene_list\n'+
       '    attributes:\n'+
-      '    - name: SPARK Gene list ALL 2016,2017\n'+
-      '      source: SPARK Gene list ALL 2016,2017\n' +
+      '    - name: in_sets\n'+
+      '      source: in_sets\n' +
       '      internal: false\n'
     );
   });
