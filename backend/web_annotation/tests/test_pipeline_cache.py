@@ -8,18 +8,15 @@ from dae.annotation.annotatable import VCFAllele
 from dae.annotation.annotation_factory import load_pipeline_from_yaml
 from dae.annotation.annotation_pipeline import AnnotationPipeline
 from dae.genomic_resources.repository import GenomicResourceRepo
-from web_annotation.executor import SequentialTaskExecutor, ThreadedTaskExecutor
-from web_annotation.annotation_base_view import AnnotationBaseView
-from web_annotation.models import (
-    AnonymousPipeline,
-    Pipeline,
-    User,
-    WebAnnotationAnonymousUser,
+from web_annotation.executor import (
+    SequentialTaskExecutor,
+    ThreadedTaskExecutor,
 )
 from web_annotation.pipeline_cache import (
     LRUPipelineCache,
     ThreadSafePipeline,
 )
+
 
 @pytest.fixture
 def sample_pipeline_factory(
@@ -97,7 +94,7 @@ def test_lru_pipeline_cache_uses_executor(
     assert len(lru_cache._cache) == 0  # pylint: disable=protected-access
 
     lru_cache.put_pipeline(
-        ("sample", "pipeline1"), "- position_score: scores/pos1")
+        "pipeline1", "- position_score: scores/pos1")
     assert len(lru_cache._cache) == 1  # pylint: disable=protected-access
     assert len(execute_spy.call_args_list) == 1
     call_args = execute_spy.call_args_list[0]
@@ -116,33 +113,33 @@ def test_lru_pipeline_cache_basic_sources(
     assert len(lru_cache._cache) == 0  # pylint: disable=protected-access
 
     lru_cache.put_pipeline(
-        ("sample", "pipeline1"), "- position_score: scores/pos1")
+        "pipeline1", "- position_score: scores/pos1")
     assert len(lru_cache._cache) == 1  # pylint: disable=protected-access
     pipeline_ids = set(
         lru_cache._cache.keys())  # pylint: disable=protected-access
-    assert pipeline_ids == {("sample", "pipeline1")}
+    assert pipeline_ids == {"pipeline1"}
 
     lru_cache.put_pipeline(
-        ("sample", "pipeline2"), "- position_score: scores/pos1")
+        "pipeline2", "- position_score: scores/pos1")
     assert len(lru_cache._cache) == 2  # pylint: disable=protected-access
     pipeline_ids = set(
         lru_cache._cache.keys())  # pylint: disable=protected-access
-    assert pipeline_ids == {("sample", "pipeline1"), ("sample", "pipeline2")}
+    assert pipeline_ids == {"pipeline1", "pipeline2"}
 
     lru_cache.put_pipeline(
-        ("sample", "pipeline3"), "- position_score: scores/pos1")
+        "pipeline3", "- position_score: scores/pos1")
     assert len(lru_cache._cache) == 2  # pylint: disable=protected-access
     pipeline_ids = set(
         lru_cache._cache.keys())  # pylint: disable=protected-access
-    assert pipeline_ids == {("sample", "pipeline2"), ("sample", "pipeline3")}
+    assert pipeline_ids == {"pipeline2", "pipeline3"}
 
-    lru_cache.get_pipeline(("sample", "pipeline2"))
+    lru_cache.get_pipeline("pipeline2")
     lru_cache.put_pipeline(
-        ("sample", "pipeline4"), "- position_score: scores/pos1")
+        "pipeline4", "- position_score: scores/pos1")
     assert len(lru_cache._cache) == 2  # pylint: disable=protected-access
     pipeline_ids = set(
         lru_cache._cache.keys())  # pylint: disable=protected-access
-    assert pipeline_ids == {("sample", "pipeline2"), ("sample", "pipeline4")}
+    assert pipeline_ids == {"pipeline2", "pipeline4"}
 
 
 def test_lru_pipeline_cache_pipeline_loaded_check(
@@ -152,14 +149,14 @@ def test_lru_pipeline_cache_pipeline_loaded_check(
 
     assert len(lru_cache._cache) == 0  # pylint: disable=protected-access
 
-    assert lru_cache.has_pipeline(("sample", "pipeline1")) is False
+    assert lru_cache.has_pipeline("pipeline1") is False
     lru_cache.put_pipeline(
-        ("sample", "pipeline1"), "- position_score: scores/pos1")
-    assert lru_cache.has_pipeline(("sample", "pipeline1")) is True
+        "pipeline1", "- position_score: scores/pos1")
+    assert lru_cache.has_pipeline("pipeline1") is True
     assert len(lru_cache._cache) == 1  # pylint: disable=protected-access
     pipeline_ids = set(
         lru_cache._cache.keys())  # pylint: disable=protected-access
-    assert pipeline_ids == {("sample", "pipeline1")}
+    assert pipeline_ids == {"pipeline1"}
 
 
 def test_lru_pipeline_cache_callbacks(
@@ -176,66 +173,18 @@ def test_lru_pipeline_cache_callbacks(
         deleted_pipelines.append(pipeline)
 
     lru_cache.put_pipeline(
-        ("sample", "pipeline1"),
+        "pipeline1",
         "- position_score: scores/pos1",
         delete_callback=delete_callback,
     )
     assert len(lru_cache._cache) == 1  # pylint: disable=protected-access
 
     lru_cache.put_pipeline(
-        ("sample", "pipeline2"),
+        "pipeline2",
         "- position_score: scores/pos1",
         delete_callback=delete_callback,
     )
     assert len(lru_cache._cache) == 1  # pylint: disable=protected-access
 
     assert len(deleted_pipelines) == 1
-    assert deleted_pipelines[0].pipeline_id == ("sample", "pipeline1")
-
-
-@pytest.mark.django_db
-def test_writing_same_id_pipelines_to_cache(
-    mocker: MockerFixture,
-    test_grr: GenomicResourceRepo,
-) -> None:
-    base_view = AnnotationBaseView()
-    lru_cache = LRUPipelineCache(test_grr, 16)
-
-    pipeline_config = "- position_score: scores/pos1"
-    mocker.patch.object(
-        base_view, "_get_user_pipeline_yaml", return_value=pipeline_config)
-    mocker.patch.object(
-        base_view, "lru_cache", new=lru_cache)
-    anonymous_user = WebAnnotationAnonymousUser(ip="test", session_id="sess1")
-    anonymous_pipeline = AnonymousPipeline(
-        owner=anonymous_user.as_owner, config_path="", is_temporary=True,
-        pk=100,
-    )
-    anonymous_pipeline.save()
-    test_user = User(email="test@test.com")
-    test_user.save()
-    user_pipeline = Pipeline(
-        owner=test_user, config_path="",
-        pk=100,
-    )
-    user_pipeline.save()
-
-    assert len(
-        base_view.lru_cache._cache) == 0  # pylint: disable=protected-access
-
-    base_view.put_pipeline(("anonymous", "100"), user=anonymous_user)
-
-    assert len(
-        base_view.lru_cache._cache) == 1  # pylint: disable=protected-access
-
-    base_view.put_pipeline(("user", "100"), user=test_user)
-
-    assert len(
-        base_view.lru_cache._cache) == 2  # pylint: disable=protected-access
-
-    assert base_view.lru_cache._cache.keys() == {
-        ("anonymous", "100"),
-        ("user", "100"),
-    }
-    pipeline = base_view.get_pipeline("100", test_user)
-    assert pipeline is not None
+    assert deleted_pipelines[0].pipeline_id == "pipeline1"

@@ -198,17 +198,18 @@ class AnnotationBaseView(views.APIView):
         )
 
     def put_pipeline(
-        self, full_pipeline_id: tuple[str, str],
-        user: BaseUser | WebAnnotationAnonymousUser,
+        self, pipeline_id: str,
+        user: BaseUser,
     ) -> None:
         """Load an annotation pipeline by ID and notify the user channel."""
-        _, pipeline_id = full_pipeline_id
         if pipeline_id in self.grr_pipelines:
             pipeline_config = self.grr_pipelines[pipeline_id]["content"]
             notify_function = self._notify_global_pipeline
         else:
-            user_pipeline = user.get_pipeline(pipeline_id)
-            pipeline_config = self._get_user_pipeline_yaml(user_pipeline)
+            pipeline = user.get_temporary_pipeline(pipeline_id)
+            if pipeline is None:
+                pipeline = user.get_pipeline(pipeline_id)
+            pipeline_config = self._get_user_pipeline_yaml(pipeline)
             notify_function = partial(self._notify_user_pipeline, user)
 
         def begin_load_callback() -> None:
@@ -223,7 +224,7 @@ class AnnotationBaseView(views.APIView):
             notify_function(pipeline_id, "unloaded")
 
         self.lru_cache.put_pipeline(
-            full_pipeline_id,
+            pipeline_id,
             pipeline_config,
             begin_load_callback=begin_load_callback,
             finish_load_callback=finish_load_callback,
@@ -231,23 +232,12 @@ class AnnotationBaseView(views.APIView):
         )
 
     def get_pipeline(
-        self, pipeline_id: str, user: User,
+        self, pipeline_id: str, user: BaseUser,
     ) -> ThreadSafePipeline:
         """Get an annotation pipeline by id."""
-
-        full_pipeline_id = self.get_full_pipeline_id(pipeline_id, user)
-
-        if not self.lru_cache.has_pipeline(full_pipeline_id):
-            self.put_pipeline(full_pipeline_id, user)
-        return self.lru_cache.get_pipeline(full_pipeline_id)
-
-    def get_full_pipeline_id(
-        self, pipeline_id: str, user: User,
-    ) -> tuple[str, str]:
-        if pipeline_id not in self.grr_pipelines:
-            pipeline_model = user.get_pipeline(pipeline_id)
-            return pipeline_model.table_id()
-        return ("grr", pipeline_id)
+        if not self.lru_cache.has_pipeline(pipeline_id):
+            self.put_pipeline(pipeline_id, user)
+        return self.lru_cache.get_pipeline(pipeline_id)
 
     def get_genome(self, data: QueryDict) -> str:
         """Get genome from a request."""

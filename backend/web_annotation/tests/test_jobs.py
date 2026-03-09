@@ -22,8 +22,8 @@ from web_annotation.executor import SequentialTaskExecutor
 from web_annotation.pipeline_cache import LRUPipelineCache
 from web_annotation.models import (
     AnonymousJob,
-    AnonymousPipeline,
     Job,
+    TemporaryPipeline,
     User,
     Pipeline,
     WebAnnotationAnonymousUser,
@@ -1222,7 +1222,7 @@ def test_anonymous_user_create_anonymous_pipeline(
     assert response is not None
     assert response.status_code == 200
     anon_pipeline_id = response.json()["id"]
-    pipeline = AnonymousPipeline.objects.last()
+    pipeline = TemporaryPipeline.objects.last()
     assert pipeline is not None
     assert str(pipeline.pk) == anon_pipeline_id
     assert pipeline.name.startswith("pipeline-")
@@ -1249,10 +1249,10 @@ def test_user_create_anonymous_pipeline(
     assert response is not None
     assert response.status_code == 200
     anon_pipeline_id = response.json()["id"]
-    assert Pipeline.objects.filter(owner=user).count() == 1
-    pipeline = Pipeline.objects.last()
+    assert TemporaryPipeline.objects.filter(
+        session_id=user_client.session.session_key).count() == 1
+    pipeline = TemporaryPipeline.objects.last()
     assert pipeline is not None
-    assert str(pipeline.pk) == anon_pipeline_id
     assert pipeline.name.startswith("pipeline-")
     assert pipeline.name.endswith(".yaml")
     output = pathlib.Path(pipeline.config_path).read_text(encoding="utf-8")
@@ -2271,7 +2271,7 @@ async def test_clean_up_anonymous_jobs(
     second_connected, _ = await second_communicator.connect(timeout=1000)
     assert second_connected
 
-    assert await sync_to_async(AnonymousPipeline.objects.count)() == 0
+    assert await sync_to_async(TemporaryPipeline.objects.count)() == 0
     assert await sync_to_async(user.job_class.objects.count)() == 0
 
     # Create anonymous pipeline and job
@@ -2301,19 +2301,19 @@ async def test_clean_up_anonymous_jobs(
     assert annotate_response.status_code == 200
 
     # Check that pipeline and job are created
-    assert await sync_to_async(AnonymousPipeline.objects.count)() == 1
+    assert await sync_to_async(TemporaryPipeline.objects.count)() == 1
     assert await sync_to_async(user.job_class.objects.count)() == 1
 
     await first_communicator.disconnect(timeout=1000)
 
     # Check that pipeline and job are still present
-    assert await sync_to_async(AnonymousPipeline.objects.count)() == 1
+    assert await sync_to_async(TemporaryPipeline.objects.count)() == 1
     assert await sync_to_async(user.job_class.objects.count)() == 1
 
     await second_communicator.disconnect(timeout=1000)
 
     # Check that pipeline and job are cleaned up after all connections closed
-    assert await sync_to_async(AnonymousPipeline.objects.count)() == 0
+    assert await sync_to_async(TemporaryPipeline.objects.count)() == 0
     assert await sync_to_async(user.job_class.objects.count)() == 0
 
 
