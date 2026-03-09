@@ -39,24 +39,40 @@
     }
   </mat-autocomplete>
 
-  <ngx-monaco-editor
-    #pipelineEditor
-    id="pipeline-editor"
-    [ngClass]="[
-      configError
-        ? 'invalid-config'
-        : selectedPipeline
-        ? selectedPipeline.status + '-editor'
-        : currentTemporaryPipelineStatus
-        ? currentTemporaryPipelineStatus + '-editor'
-        : ''
-    ]"
-    [style.width]="editorWidth()"
-    [style.height]="editorHeight()"
-    [options]="yamlEditorOptions"
-    (onInit)="onEditorInit()"
-    [(ngModel)]="currentPipelineText"
-    (ngModelChange)="isConfigValid()"></ngx-monaco-editor>
+  <div class="editor-wrapper">
+    <ngx-monaco-editor
+      #pipelineEditor
+      id="pipeline-editor"
+      [ngClass]="[
+        configError
+          ? 'invalid-config'
+          : selectedPipeline
+          ? selectedPipeline.status + '-editor'
+          : currentTemporaryPipelineStatus
+          ? currentTemporaryPipelineStatus + '-editor'
+          : ''
+      ]"
+      [style.width]="editorWidth()"
+      [style.height]="editorHeight()"
+      [options]="yamlEditorOptions"
+      (onInit)="onEditorInit()"
+      [(ngModel)]="currentPipelineText"
+      (ngModelChange)="isConfigValid()"></ngx-monaco-editor>
+    <div id="status-bar">
+      <span class="status-item" title="annotators">
+        <span class="material-symbols-outlined">menu</span>{{ pipelineInfo?.annotatorsCount || '?' }}</span
+      >
+      <span class="status-item" title="attributes"
+        ><span class="material-symbols-outlined">menu_open</span>{{ pipelineInfo?.attributesCount || '?' }}</span
+      >
+      <span class="status-item" [title]="pipelineInfo?.annotatables.join('\n') || '?'"
+        ><span class="material-symbols-outlined">edit_note</span>annotatables</span
+      >
+      <span class="status-item" [title]="pipelineInfo?.geneLists.join('\n') || '?'"
+        ><span class="material-symbols-outlined">grain</span>gene list</span
+      >
+    </div>
+  </div>
   <div *ngIf="configError" class="error-message">{{ configError }}</div>
 </div>
 
@@ -119,24 +135,3 @@
     </div>
   </div>
 </ng-template>
-
-@if(pipelineInfo) {
-<div id="pipeline-info">
-  <div>
-    <span class="info-label">attributes count: </span>
-    <span class="info-value">{{ pipelineInfo.attributesCount }}</span>
-  </div>
-  <div>
-    <span class="info-label">annotators count: </span>
-    <span class="info-value">{{ pipelineInfo.annotatorsCount }}</span>
-  </div>
-  <div>
-    <span class="info-label">annotatables: </span>
-    <span class="info-value">{{ pipelineInfo.annotatables.join(', ') }}</span>
-  </div>
-  <div>
-    <span class="info-label">gene lists: </span>
-    <span class="info-value">{{ pipelineInfo.geneLists.join(', ') }}</span>
-  </div>
-</div>
-}

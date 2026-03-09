@@ -105,6 +105,7 @@
 #pipeline-actions {
   display: flex;
   justify-content: space-between;
+  margin-top: 10px;
 }
 
 #add-annotator-button,
@@ -318,4 +319,44 @@
 
 .info-value {
   color: #252e34;
+}
+
+.editor-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+::ng-deep .editor-container {
+  height: calc(98% - 15px) !important;
+}
+
+#status-bar {
+  height: 22px;
+  margin-top: -24px;
+  z-index: 0;
+  background: #c4d2dd;
+  color: #435869;
+  display: flex;
+  gap: 16px;
+  padding: 0 8px;
+  font-size: 12px;
+  border-bottom-right-radius: 13px;
+  border-bottom-left-radius: 13px;
+  margin-left: 2px;
+  margin-right: 2px;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+}
+
+.status-item:hover {
+  cursor: pointer;
+  color: #627686;
+}
+
+.status-item .material-symbols-outlined {
+  font-size: 20px;
 }
