@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 
 import { NewAnnotatorComponent } from './new-annotator.component';
 import { provideHttpClient } from '@angular/common/http';
@@ -126,7 +126,8 @@ class PipelineEditorServiceMock {
       'CLNSIG',
       'CLNDN',
       'mpc',
-      'worst_effect'
+      'worst_effect',
+      '3\'UTR_gene_list'
     ]);
   }
 }
@@ -157,6 +158,7 @@ describe('NewAnnotatorComponent', () => {
     fixture = TestBed.createComponent(NewAnnotatorComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+    jest.clearAllMocks();
   });
 
   it('should create', () => {
@@ -250,15 +252,30 @@ describe('NewAnnotatorComponent', () => {
       'pipelineId',
       'gene_set_annotator',
       // eslint-disable-next-line camelcase
-      { resource_id: 'gene_properties/gene_scores/RVIS' }
+      { resource_id: 'gene_properties/gene_scores/RVIS' },
+      undefined
     );
     expect(component.attributePage).toStrictEqual(attributePageMock);
     expect(component.selectedAttributes).toStrictEqual([attributesMock[0], attributesMock[2]]);
     expect(component.unselectedAttributes).toStrictEqual([
-      'effect_details - Effect details for each affected transcript',
+      new AttributeData(
+        'effect_details',
+        'bool',
+        'effect_details',
+        false,
+        false,
+        'Effect details for each affected transcript'
+      ),
     ]);
     expect(component.unselectedFilteredAttributes).toStrictEqual([
-      'effect_details - Effect details for each affected transcript',
+      new AttributeData(
+        'effect_details',
+        'bool',
+        'effect_details',
+        false,
+        false,
+        'Effect details for each affected transcript'
+      ),
     ]);
     expect(nextStepSpy).toHaveBeenCalledWith();
   });
@@ -337,7 +354,7 @@ describe('NewAnnotatorComponent', () => {
 
   it('should store attribute names which already exists in config', () => {
     component.requestAttributes();
-    expect(component.duplicateAttributeNames).toStrictEqual(['mpc', 'dbSNP_RS']);
+    expect(component.duplicateAttributeNames).toStrictEqual(new Set(['mpc', 'dbSNP_RS']));
   });
 
   it('should disable finish button if there is selected attribute with duplicate name', () => {
@@ -359,28 +376,35 @@ describe('NewAnnotatorComponent', () => {
       )
     ];
     component.validateAttributes();
-    expect(component.duplicateAttributeNames).toStrictEqual(['mpc', 'dbSNP_RS']);
+    expect(component.duplicateAttributeNames).toStrictEqual(new Set(['mpc', 'dbSNP_RS']));
     expect(component.areAttributesValid).toBe(true);
   });
 
   it('should select attribute and remove it from dropdown content', () => {
     component.requestAttributes();
     component.selectedAttributes = [attributesMock[1], attributesMock[2]];
-    component.unselectedAttributes = [`${attributesMock[0].name} - ${attributesMock[0].description}`];
-    component.onSelectAttribute('mpc - Missense badness, PolyPhen-2, and Constraint.');
+    component.unselectedAttributes = [attributesMock[0]];
+    component.onSelectAttribute(attributesMock[0]);
     expect(component.selectedAttributes).toStrictEqual([attributesMock[1], attributesMock[2], attributesMock[0]]);
     expect(component.unselectedAttributes).toStrictEqual([]);
+  });
+
+  it('should not select already selected attribute', () => {
+    component.requestAttributes();
+    component.selectedAttributes = [attributesMock[1], attributesMock[2]];
+    component.onSelectAttribute(attributesMock[1]);
+    expect(component.selectedAttributes).toStrictEqual([attributesMock[1], attributesMock[2]]);
   });
 
   it('should select attribute, clean input and validate attributes', () => {
     component.requestAttributes();
     component.selectedAttributes = [attributesMock[1], attributesMock[2]];
-    component.unselectedAttributes = [`${attributesMock[0].name} - ${attributesMock[0].description}`];
+    component.unselectedAttributes = [attributesMock[0]];
     component.attributeStep.setControl(
       'attribute',
       new FormControl('mpc - Missense badness, PolyPhen-2, and Constraint.')
     );
-    component.onSelectAttribute('mpc - Missense badness, PolyPhen-2, and Constraint.');
+    component.onSelectAttribute(attributesMock[0]);
     expect(component.attributeStep.get('attribute').value).toBeNull();
     expect(component.areAttributesValid).toBe(false);
   });
@@ -392,9 +416,7 @@ describe('NewAnnotatorComponent', () => {
 
     component.removeSelectedAttribute(attributesMock[1]);
     expect(component.selectedAttributes).toStrictEqual([attributesMock[0], attributesMock[2]]);
-    expect(component.unselectedAttributes).toStrictEqual([
-      `${attributesMock[1].name} - ${attributesMock[1].description}`
-    ]);
+    expect(component.unselectedAttributes).toStrictEqual([]);
   });
 
   it('should remove selected attribute and don\'t put back attribute in dropdown when attributes are more', () => {
@@ -409,35 +431,10 @@ describe('NewAnnotatorComponent', () => {
     expect(component.unselectedAttributes).toStrictEqual([]);
   });
 
-  it('should filter attributes in dropdown on search', () => {
-    component.requestAttributes();
-    component.unselectedAttributes = [
-      `${attributesMock[0].name} - ${attributesMock[0].description}`,
-      `${attributesMock[1].name} - ${attributesMock[1].description}`,
-      `${attributesMock[2].name} - ${attributesMock[2].description}`
-    ];
-    component.attributeStep.get('attribute').setValue('M');
-    expect(component.unselectedFilteredAttributes).toStrictEqual([
-      `${attributesMock[0].name} - ${attributesMock[0].description}`,
-      `${attributesMock[2].name} - ${attributesMock[2].description}`
-    ]);
-
-    component.attributeStep.get('attribute').setValue('');
-    expect(component.unselectedFilteredAttributes).toStrictEqual([
-      `${attributesMock[0].name} - ${attributesMock[0].description}`,
-      `${attributesMock[1].name} - ${attributesMock[1].description}`,
-      `${attributesMock[2].name} - ${attributesMock[2].description}`
-    ]);
-
-    component.attributeStep.get('attribute').setValue('LGD');
-    expect(component.unselectedFilteredAttributes).toStrictEqual([]);
-  });
-
-  it('should trigger search request for attributes', () => {
+  it('should trigger search request for attributes', fakeAsync(() => {
     component.resourceStep.setControl('gene_models', new FormControl('hg38/gene_models/GENCODE/48'));
     component.annotatorStep.setControl('annotator', new FormControl('effect_annotator'));
-    const getAttributesSpy = jest.spyOn(pipelineEditorServiceMock, 'getAttributes')
-      .mockReturnValueOnce(of(new AttributePage(attributesMock, 0, 10, 1500)));
+    const getAttributesSpy = jest.spyOn(pipelineEditorServiceMock, 'getAttributes');
 
     component.requestAttributes();
 
@@ -459,11 +456,14 @@ describe('NewAnnotatorComponent', () => {
       ),
     ];
 
-    getAttributesSpy.mockReturnValue(of(new AttributePage([
+    getAttributesSpy.mockReturnValueOnce(of(new AttributePage([
       new AttributeData('3\'UTR_gene_list', 'object', '3\'UTR_gene_list', false, true, 'List of all 3\'UTR genes'),
       new AttributeData('5\'UTR_gene_list', 'object', '5\'UTR_gene_list', false, true, 'List of all 5\'UTR genes'),
     ], 0, 10, 1500)));
+
     component.attributeStep.get('attribute').setValue('UTR');
+
+    tick(300); // Wait for debounceTime
 
     expect(getAttributesSpy).toHaveBeenCalledWith(
       'pipelineId',
@@ -474,12 +474,48 @@ describe('NewAnnotatorComponent', () => {
     );
 
     expect(component.unselectedAttributes).toStrictEqual([
-      '5\'UTR_gene_list - List of all 5\'UTR genes'
+      new AttributeData('5\'UTR_gene_list', 'object', '5\'UTR_gene_list', false, true, 'List of all 5\'UTR genes'),
     ]);
 
     expect(component.unselectedFilteredAttributes).toStrictEqual([
-      '5\'UTR_gene_list - List of all 5\'UTR genes'
+      new AttributeData('5\'UTR_gene_list', 'object', '5\'UTR_gene_list', false, true, 'List of all 5\'UTR genes'),
     ]);
+
+    expect(component.duplicateAttributeNames).toStrictEqual(new Set(['mpc', 'dbSNP_RS', '3\'UTR_gene_list']));
+  })
+  );
+
+  it('should clear attribute input and reset attributes', () => {
+    component.resourceStep.setControl('gene_models', new FormControl('hg38/gene_models/GENCODE/48'));
+    component.annotatorStep.setControl('annotator', new FormControl('effect_annotator'));
+    const getAttributesSpy = jest.spyOn(pipelineEditorServiceMock, 'getAttributes');
+    component.requestAttributes();
+
+    component.attributePage = new AttributePage(
+      [
+        new AttributeData('attr1', 'string', 'source1', true, true, 'desc1'),
+        new AttributeData('attr1', 'string', 'source1', true, true, 'desc1'),
+      ],
+      0,
+      1,
+      2
+    );
+
+    component.attributeStep.get('attribute').setValue('mpc');
+
+    component.selectedAttributes = [attributesMock[0]];
+    component.clearAttributeInput();
+
+    expect(component.attributeStep.get('attribute').value).toBeNull();
+    expect(getAttributesSpy).toHaveBeenCalledWith(
+      'pipelineId',
+      'effect_annotator',
+      // eslint-disable-next-line camelcase
+      { gene_models: 'hg38/gene_models/GENCODE/48' },
+      undefined
+    );
+    expect(component.attributePage).toStrictEqual(attributePageMock);
+    expect(component.unselectedAttributes).toStrictEqual([attributesMock[1], attributesMock[2]]);
   });
 });
 

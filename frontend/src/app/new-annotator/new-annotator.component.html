@@ -216,18 +216,20 @@
                   >keyboard_arrow_down</span
                 >
 
-                <mat-autocomplete #attributesDropdown="matAutocomplete">
-                  @for (stringAttribute of unselectedFilteredAttributes; track stringAttribute) {
+                <mat-autocomplete
+                  #attributesDropdown="matAutocomplete"
+                  (optionSelected)="onSelectAttribute($event.option.value)">
+                  @for (attribute of unselectedFilteredAttributes; track attribute.name) {
                   <mat-option
-                    (click)="onSelectAttribute(stringAttribute)"
                     class="attribute-option"
-                    [value]="stringAttribute"
-                    [title]="stringAttribute"
-                    >{{ stringAttribute }}</mat-option
+                    [value]="attribute"
+                    [title]="attribute.name + ' - ' + attribute.description"
+                    >{{ attribute.name + ' - ' + attribute.description }}</mat-option
                   >
                   }
                 </mat-autocomplete>
               </mat-form-field>
+              @if(selectedAttributes.length){
               <span>Selected attributes:</span>
               <div id="attributes-list">
                 @for (selectedAttribute of selectedAttributes; track selectedAttribute.source) {
@@ -241,7 +243,7 @@
                   <span
                     [title]="selectedAttribute.name"
                     class="attribute-name"
-                    [ngClass]="duplicateAttributeNames.includes(selectedAttribute.name) ? 'duplicate-name' : ''"
+                    [ngClass]="duplicateAttributeNames.has(selectedAttribute.name) ? 'duplicate-name' : ''"
                     >{{ selectedAttribute.name
                     }}<span [title]="selectedAttribute.description" class="attribute-desciption">{{
                       ' - ' + selectedAttribute.description
@@ -250,6 +252,7 @@
                 </div>
                 }
               </div>
+              }
             </form>
           </div>
           <div class="modal-footer">
@@ -295,7 +298,7 @@
                     [value]="attribute.name"
                     [(ngModel)]="attribute.name"
                     (ngModelChange)="validateAttributes()"
-                    [ngClass]="duplicateAttributeNames.includes(attribute.name) ? 'duplicate-name-input' : ''" />
+                    [ngClass]="duplicateAttributeNames.has(attribute.name) ? 'duplicate-name-input' : ''" />
                 </div>
                 <div class="attribute modify-view-attribute">
                   <span class="field-label">source</span>

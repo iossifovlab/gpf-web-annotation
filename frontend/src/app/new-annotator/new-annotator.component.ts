@@ -8,7 +8,20 @@ import { MatInputModule } from '@angular/material/input';
 import { MatStepper, MatStepperModule } from '@angular/material/stepper';
 import { CdkStepperModule, STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
 import { PipelineEditorService } from '../pipeline-editor.service';
-import { map, Observable, of, switchMap, take, forkJoin, Subject, distinctUntilChanged, tap } from 'rxjs';
+import {
+  map,
+  Observable,
+  of,
+  switchMap,
+  take,
+  forkJoin,
+  Subject,
+  distinctUntilChanged,
+  tap,
+  debounceTime,
+  filter,
+  Subscription
+} from 'rxjs';
 import { AnnotatorConfig, AttributeData, AttributePage, Resource, ResourceAnnotator } from './annotator';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { KeyValueDisplayPipe } from '../key-value-display.pipe';
@@ -45,7 +58,6 @@ export class NewAnnotatorComponent implements OnInit {
   public selectedResourceType = '';
   private searchSubject = new Subject<{ value: string; type: string }>();
   public resourceAnnotators: ResourceAnnotator[];
-
   public annotatorStep: FormGroup<{ annotator: FormControl<string> }>;
   public annotatorTypes: string[] = [];
   public filteredAnnotatorTypes: string[];
@@ -54,12 +66,13 @@ export class NewAnnotatorComponent implements OnInit {
   public annotatorConfig: AnnotatorConfig;
   public attributeStep: FormGroup<{ attribute: FormControl<string> }>;
   public attributePage: AttributePage;
-  public selectedAttributes: AttributeData[];
-  public unselectedAttributes: string[];
-  public unselectedFilteredAttributes: string[];
+  public selectedAttributes: AttributeData[] = [];
+  public unselectedAttributes: AttributeData[];
+  public unselectedFilteredAttributes: AttributeData[];
   public areAttributesValid: boolean;
   @ViewChild('stepper', { static: true }) public stepper: MatStepper;
-  public duplicateAttributeNames: string[] = [];
+  public duplicateAttributeNames: Set<string> = new Set();
+  public attributesSubscription = new Subscription();
 
   public constructor(
     private editorService: PipelineEditorService,
@@ -261,17 +274,11 @@ export class NewAnnotatorComponent implements OnInit {
   }
 
   public requestAttributes(): void {
-    const filtered = this.getPopulatedResourceValues();
-
-    this.editorService.getAttributes(
-      this.data.pipelineId,
-      this.annotatorStep.value.annotator,
-      filtered,
-    ).pipe(take(1)).subscribe(res => {
+    this.attributesSubscription.unsubscribe();
+    this.attributesSubscription = this.getAttributesObservable().subscribe(res => {
       this.attributePage = res;
       this.selectedAttributes = res.attributes.filter(a => a.selectedByDefault);
-      this.unselectedAttributes =
-      res.attributes.filter(a => !a.selectedByDefault).map(a => `${a.name} - ${a.description}`);
+      this.unselectedAttributes = res.attributes.filter(a => !a.selectedByDefault);
       this.unselectedFilteredAttributes = this.unselectedAttributes;
       this.setupAttributeValueFiltering();
       this.getPipelineAttributesNames();
@@ -284,38 +291,43 @@ export class NewAnnotatorComponent implements OnInit {
       attribute: [null],
     });
 
-
     this.attributeStep.get('attribute').valueChanges.pipe(
-      distinctUntilChanged()
-    ).subscribe(value => {
-      if (this.attributePage.totalPages === 1) {
-        this.unselectedFilteredAttributes = this.filterDropdownContent(value, this.unselectedAttributes);
-      } else {
-        this.editorService.getAttributes(
-          this.data.pipelineId,
-          this.annotatorStep.value.annotator,
-          this.getPopulatedResourceValues(),
-          value
-        ).pipe(take(1)).subscribe(res => {
-          const selectedKeys = new Set(this.selectedAttributes.map(s => `${s.name}-${s.description}`));
-          const unselectedNewAttributes = res.attributes.filter(a => !selectedKeys.has(`${a.name}-${a.description}`));
-          this.unselectedAttributes = unselectedNewAttributes.map(a => `${a.name} - ${a.description}`);
-          this.unselectedFilteredAttributes = this.unselectedAttributes;
-        });
-      }
+      filter(value => typeof value === 'string'), // trigger search only on typing
+      debounceTime(300),
+      switchMap(value => {
+        this.attributesSubscription.unsubscribe();
+        return this.getAttributesObservable(value);
+      })
+    ).subscribe(res => {
+      this.attributePage = res;
+      this.unselectedAttributes = res.attributes.filter(a => !this.selectedAttributes.some(s => s.name === a.name));
+      this.unselectedFilteredAttributes = this.unselectedAttributes;
+      this.getPipelineAttributesNames();
     });
+  }
+
+  private getAttributesObservable(value?: string): Observable<AttributePage> {
+    return this.editorService.getAttributes(
+      this.data.pipelineId,
+      this.annotatorStep.value.annotator,
+      this.getPopulatedResourceValues(),
+      value || undefined
+    ).pipe(take(1));
   }
 
   private getPipelineAttributesNames(): void {
     this.editorService.getPipelineAttributesNames(this.data.pipelineId).pipe(take(1)).subscribe(names => {
-      this.duplicateAttributeNames = this.attributePage.attributes.filter(a => names.includes(a.name)).map(a => a.name);
+      this.attributePage.attributes
+        .filter(a => names.includes(a.name))
+        .map(a => a.name)
+        .forEach(name => this.duplicateAttributeNames.add(name));
       this.validateAttributes();
     });
   }
 
   public validateAttributes(): void {
-    this.areAttributesValid = !this.attributePage.attributes.some(
-      a => this.selectedAttributes.includes(a) && this.duplicateAttributeNames.includes(a.name)
+    this.areAttributesValid = !this.selectedAttributes.some(
+      a => this.duplicateAttributeNames.has(a.name)
     );
   }
 
@@ -343,7 +355,17 @@ export class NewAnnotatorComponent implements OnInit {
   }
 
   public clearAttributeInput(): void {
+    if (!this.attributeStep.get('attribute').value) {
+      return;
+    }
     this.attributeStep.get('attribute').setValue(null);
+
+    this.attributesSubscription.unsubscribe();
+    this.attributesSubscription = this.getAttributesObservable().subscribe(res => {
+      this.attributePage = res;
+      this.unselectedAttributes = res.attributes.filter(a => !this.selectedAttributes.some(s => s.name === a.name));
+      this.unselectedFilteredAttributes = this.unselectedAttributes;
+    });
   }
 
   public clearResource(inputField?: string): void {
@@ -361,19 +383,18 @@ export class NewAnnotatorComponent implements OnInit {
     }
   }
 
-  public onSelectAttribute(stringAttribute: string): void {
-    const attributeName = stringAttribute.split(' - ')[0];
-    this.selectedAttributes.push(this.attributePage.attributes.find(a => a.name === attributeName));
-    this.unselectedAttributes = this.unselectedAttributes.filter(a => a !== stringAttribute);
+  public onSelectAttribute(attribute: AttributeData): void {
+    if (this.selectedAttributes.includes(attribute)) {
+      return;
+    }
+    this.selectedAttributes.push(this.attributePage.attributes.find(a => a === attribute));
+    this.unselectedAttributes = this.unselectedAttributes.filter(a => a !== attribute);
     this.clearAttributeInput();
     this.validateAttributes();
   }
 
   public removeSelectedAttribute(attribute: AttributeData): void {
     this.selectedAttributes = this.selectedAttributes.filter(a => a !== attribute);
-    if (this.attributePage.totalPages === 1) {
-      this.unselectedAttributes.push(`${attribute.name} - ${attribute.description}`);
-    }
     this.validateAttributes();
   }
 }
