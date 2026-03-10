@@ -517,6 +517,50 @@ describe('NewAnnotatorComponent', () => {
     expect(component.attributePage).toStrictEqual(attributePageMock);
     expect(component.unselectedAttributes).toStrictEqual([attributesMock[1], attributesMock[2]]);
   });
+
+  it('should reset selected attribute names if return to attribute selection step', () => {
+    component.attributePage = attributePageMock;
+    component.selectedAttributes = [
+      new AttributeData('mpc12344', 'string', 'mpc', false, true, 'Missense badness, PolyPhen-2, and Constraint.'),
+    ];
+
+    component.resetAttributeNames();
+    expect(component.selectedAttributes).toStrictEqual([
+      new AttributeData('mpc', 'string', 'mpc', false, true, 'Missense badness, PolyPhen-2, and Constraint.'),
+    ]);
+  });
+
+  it('should make request to get original name of an attribute when return to attribute selection step', () => {
+    component.resourceStep.setControl('gene_models', new FormControl('hg38/gene_models/GENCODE/48'));
+    component.annotatorStep.setControl('annotator', new FormControl('effect_annotator'));
+    const getAttributesSpy = jest.spyOn(pipelineEditorServiceMock, 'getAttributes').mockReturnValueOnce(
+      of(new AttributePage(
+        [
+          new AttributeData('miR-29abcd', 'bool', 'miR-29abcd', false, true, 'miR-29abcd')
+        ],
+        0,
+        1,
+        2
+      ))
+    );
+
+    component.attributePage = attributePageMock;
+    component.selectedAttributes = [
+      new AttributeData('miR-29abcdAAA', 'bool', 'miR-29abcd', false, true, 'miR-29abcd'),
+    ];
+
+    component.resetAttributeNames();
+    expect(getAttributesSpy).toHaveBeenCalledWith(
+      'pipelineId',
+      'effect_annotator',
+      // eslint-disable-next-line camelcase
+      { gene_models: 'hg38/gene_models/GENCODE/48' },
+      'miR-29abcd'
+    );
+    expect(component.selectedAttributes).toStrictEqual([
+      new AttributeData('miR-29abcd', 'bool', 'miR-29abcd', false, true, 'miR-29abcd'),
+    ]);
+  });
 });
 
 describe('Annotator created by resource', () => {

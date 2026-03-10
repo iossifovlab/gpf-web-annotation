@@ -333,7 +333,7 @@
             @if(!areAttributesValid) {
             <div class="duplicate-name">Attribute with this name already exists</div>
             }
-            <button mat-button matStepperPrevious class="back-button">Back</button>
+            <button mat-button matStepperPrevious class="back-button" (click)="resetAttributeNames()">Back</button>
             <button [disabled]="!areAttributesValid" matButton (click)="onFinish()" class="finish-button"
               >Finish</button
             >

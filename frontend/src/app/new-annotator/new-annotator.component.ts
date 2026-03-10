@@ -397,4 +397,18 @@ export class NewAnnotatorComponent implements OnInit {
     this.selectedAttributes = this.selectedAttributes.filter(a => a !== attribute);
     this.validateAttributes();
   }
+
+  public resetAttributeNames(): void {
+    this.selectedAttributes.forEach(a => {
+      const ind = this.attributePage.attributes.findIndex(el => el.source === a.source);
+      if (ind !== -1) {
+        a.name = this.attributePage.attributes[ind].name;
+      } else {
+        this.attributesSubscription.unsubscribe();
+        this.getAttributesObservable(a.description).subscribe(res => {
+          a.name = res.attributes[0].name;
+        });
+      }
+    });
+  }
 }
