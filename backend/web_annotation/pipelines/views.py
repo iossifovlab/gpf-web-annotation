@@ -15,7 +15,13 @@ from rest_framework.request import MultiValueDict
 from rest_framework.views import Request, Response
 from web_annotation.annotation_base_view import AnnotationBaseView
 from web_annotation.authentication import WebAnnotationAuthentication
-from web_annotation.models import User, Pipeline, TemporaryPipeline, WebAnnotationAnonymousUser
+from web_annotation.models import (
+    BaseUser,
+    User,
+    Pipeline,
+    TemporaryPipeline,
+    WebAnnotationAnonymousUser,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -178,9 +184,23 @@ class UserPipeline(AnnotationBaseView):
             pipeline = request.user.get_temporary_pipeline(pipeline_id)
         except TemporaryPipeline.DoesNotExist:
             pipeline = None
+        except ValueError:
+            return Response(
+                {
+                    "reason": (
+                        "Temporary pipeline does not match request session ID"
+                    ),
+                },
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
         try:
             pipeline = request.user.get_pipeline(pipeline_id)
         except Pipeline.DoesNotExist:
+            return Response(
+                {"reason": "Pipeline name not recognized!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+        except ValueError:
             return Response(
                 {"reason": "Pipeline name not recognized!"},
                 status=views.status.HTTP_400_BAD_REQUEST,
@@ -227,10 +247,14 @@ class ListPipelines(AnnotationBaseView):
             for pipeline in self.grr_pipelines.values()
         ]
 
-    def _get_user_pipelines(self, user: User) -> list[dict[str, str]]:
-        pipelines = user.pipeline_class.objects.filter(  # type: ignore
-            owner=user, is_temporary=False,
-        )
+    def _get_user_pipelines(self, user: BaseUser) -> list[dict[str, str]]:
+        pipelines = [
+            *user.get_pipelines(),
+            user.get_temporary_pipeline(),
+        ]
+
+        filtered_pipelines = filter(None, pipelines)
+
         return [
             {
                 "id": str(pipeline.pk),
@@ -240,9 +264,9 @@ class ListPipelines(AnnotationBaseView):
                     pipeline.config_path
                 ).read_text(encoding="utf-8"),
                 "status": "loaded" if super().lru_cache.is_pipeline_loaded(
-                    pipeline.table_id()) else "unloaded",
+                    pipeline.identifier) else "unloaded",
             }
-            for pipeline in pipelines
+            for pipeline in filtered_pipelines
         ]
 
     def get(self, request: Request) -> Response:
@@ -302,7 +326,7 @@ class LoadPipeline(AnnotationBaseView):
             )
 
         self.put_pipeline(
-            self.get_full_pipeline_id(pipeline_id, request.user),
+            pipeline_id,
             request.user,
         )
 

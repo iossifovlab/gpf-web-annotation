@@ -58,8 +58,15 @@ class BaseUser():
         """Delete user pipelines."""
         return
 
+    def as_owner(self) -> User:
+        raise NotImplementedError
+
+    def get_pipelines(self) -> list[BasePipeline]:
+        """Get pipelines for user."""
+        raise NotImplementedError
+
     def get_temporary_pipeline(
-        self, session_id: str | None,
+        self, session_id: str | None = None,
     ) -> BasePipeline | None:
         if session_id is None:
             session_id = self.session_id
@@ -126,6 +133,13 @@ class UserWrapper(BaseUser):
 
         return cast(BasePipeline, pipeline)
 
+    def get_pipelines(self) -> list[BasePipeline]:
+        """Get pipelines for user."""
+        pipelines = Pipeline.objects.filter(  # type: ignore
+            owner=self.user.as_owner,
+        )
+        return list(pipelines)
+
     def delete_pipelines(self) -> None:
         """Delete user pipelines."""
         self.user.delete_pipelines()
@@ -134,9 +148,38 @@ class UserWrapper(BaseUser):
         """Delete user pipelines."""
         self.user.delete_pipeline(pipeline_id)
 
+    @property
     def is_superuser(self) -> bool:
         """Check if user is superuser."""
         return self.user.is_superuser
+
+    @property
+    def is_authenticated(self) -> bool:
+        """Check if user is authenticated."""
+        return self.user.is_authenticated
+
+    def is_owner(self, job: Job) -> bool:
+        return job.owner == self.user
+
+    @property
+    def is_staff(self) -> str:
+        return self.user.is_staff
+
+    @property
+    def pk(self) -> int:
+        return self.user.pk
+
+    @property
+    def email(self) -> str:
+        return self.user.email
+
+    def get_jobs(self) -> list[Job]:
+        """Get user's jobs."""
+        return self.user.get_jobs()
+
+    @property
+    def as_owner(self) -> User:
+        return self.user.as_owner
 
 
 class User(AbstractUser):
@@ -326,6 +369,10 @@ class WebAnnotationAnonymousUser(BaseUser, AnonymousUser):
         raise NotImplementedError(
             "Anonymous users cannot have named pipelines!")
 
+    def get_pipelines(self) -> list[BasePipeline]:
+        """Get pipelines for user."""
+        return []
+
     def delete_pipeline(self, pipeline_id: str) -> BasePipeline:
         raise NotImplementedError(
             "Anonymous users cannot have named pipelines!")
@@ -341,6 +388,7 @@ class BasePipeline(models.Model):
         os.remove(self.config_path)
         self.delete()
 
+    @property
     def identifier(self) -> str:
         """Get a unique identifier for the pipeline."""
         raise NotImplementedError
@@ -363,6 +411,7 @@ class Pipeline(BasePipeline):
 
     )
 
+    @property
     def identifier(self) -> str:
         """Get a unique identifier for the pipeline."""
         return str(self.pk)
@@ -376,6 +425,7 @@ class TemporaryPipeline(BasePipeline):
     """Model for saving anonymous created pipeline configs"""
     session_id = models.CharField(max_length=1024, primary_key=True)
 
+    @property
     def identifier(self) -> str:
         """Get a unique identifier for the pipeline."""
         return str(self.session_id)

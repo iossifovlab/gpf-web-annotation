@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import yaml
 from itertools import islice
@@ -306,8 +306,9 @@ class AnnotatorAttributes(EditorView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
             attribute_descs = list(filter(
-                lambda desc: search_term.lower() in desc.name.lower() or
-                search_term.lower() in desc.description.lower(),
+                lambda desc:
+                    search_term.lower() in cast(str, desc.name).lower() or
+                    search_term.lower() in desc.description.lower(),
                 annotator.get_all_attribute_descriptions().values(),
             ))
         total_attribute_count = len(attribute_descs)

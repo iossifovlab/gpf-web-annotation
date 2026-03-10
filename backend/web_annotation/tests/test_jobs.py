@@ -1489,11 +1489,12 @@ def test_get_pipelines(
     assert response is not None
     assert response.status_code == 200
     assert isinstance(response.json()["id"], str)
-    assert Pipeline.objects.filter(owner=user).count() == 2
+    assert TemporaryPipeline.objects.filter(
+        session_id=user_client.session.session_key).count() == 1
 
     response = user_client.get("/api/pipelines")
     pipelines = response.json()
-    assert len(pipelines) == 3
+    assert len(pipelines) == 4
     assert pipelines[0]["name"] == "pipeline/test_pipeline"
     assert pipelines[0]["status"] == "unloaded"
     assert pipelines[1]["name"] == "t4c8/t4c8_pipeline"
@@ -2277,7 +2278,7 @@ async def test_clean_up_anonymous_jobs(
     # Create anonymous pipeline and job
     pipeline_response = await sync_to_async(anonymous_client.post)(
         "/api/pipelines/user",
-        { "config": ContentFile("- position_score: scores/pos1")},
+        {"config": ContentFile("- position_score: scores/pos1")},
     )
     assert pipeline_response is not None
     assert pipeline_response.status_code == 200
@@ -2313,7 +2314,6 @@ async def test_clean_up_anonymous_jobs(
     await second_communicator.disconnect(timeout=1000)
 
     # Check that pipeline and job are cleaned up after all connections closed
-    assert await sync_to_async(TemporaryPipeline.objects.count)() == 0
     assert await sync_to_async(user.job_class.objects.count)() == 0
 
 
@@ -2327,7 +2327,7 @@ def test_load_annotation_pipeline(
     }
 
     assert mock_lru_cache.has_pipeline(
-        ("grr", "pipeline/test_pipeline"),
+        "pipeline/test_pipeline",
     ) is False
 
     response = user_client.post("/api/pipelines/load", params)
@@ -2335,7 +2335,7 @@ def test_load_annotation_pipeline(
     assert response.status_code == 204
 
     assert mock_lru_cache.has_pipeline(
-        ("grr", "pipeline/test_pipeline"),
+        "pipeline/test_pipeline",
     ) is True
 
 
@@ -2346,7 +2346,7 @@ def test_save_unloads_pipeline(
 ) -> None:
     # Pipeline doesn't exist yet
     assert mock_lru_cache.has_pipeline(
-        ("user", "1"),
+        "1",
     ) is False
 
     # Save pipeline
@@ -2362,7 +2362,7 @@ def test_save_unloads_pipeline(
 
     # Save should not load the pipeline
     assert mock_lru_cache.has_pipeline(
-        ("user", "1"),
+        "1",
     ) is True
 
     # Save again, with updated config
@@ -2378,5 +2378,5 @@ def test_save_unloads_pipeline(
     assert response.status_code == 200
 
     assert mock_lru_cache.has_pipeline(
-        ("user", "1"),
+        "1",
     ) is True
