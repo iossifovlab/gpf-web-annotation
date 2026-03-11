@@ -91,9 +91,23 @@ class UserPipeline(AnnotationBaseView):
         temporary = False
 
         pipeline_name = request.data.get("name")
-        if not pipeline_name:
-            pipeline_name = f'pipeline-{request.user.session_id}.yaml'
+
+        if pipeline_id is not None:
+            try:
+                int(pipeline_id)
+            except ValueError:
+                temporary = True
+                if pipeline_id != request.user.session_id:
+                    return Response(
+                        {"reason": "Pipeline ID does not match session ID!"},
+                        status=views.status.HTTP_400_BAD_REQUEST,
+                    )
+
+        if pipeline_id is None and pipeline_name is None:
             temporary = True
+
+        if temporary:
+            pipeline_name = f'pipeline-{request.user.session_id}.yaml'
 
         if not temporary and pipeline_name in self.grr_pipelines:
             return Response(
@@ -113,9 +127,8 @@ class UserPipeline(AnnotationBaseView):
         config_filename = f'{pipeline_name}.yaml'
 
         if pipeline_id:  # Update
-            if temporary:
-                pipeline = request.user.get_temporary_pipeline(pipeline_id)
-            else:
+            pipeline = request.user.get_temporary_pipeline(pipeline_id)
+            if pipeline is None:
                 pipeline = request.user.get_pipeline(pipeline_id)
             config_path = Path(str(pipeline.config_path))
         else:  # Create
