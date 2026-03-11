@@ -71,7 +71,7 @@ class BaseUser():
         if session_id is None:
             session_id = self.session_id
         pipeline = TemporaryPipeline.objects.filter(  # type: ignore
-            session_id=self.session_id).first()
+            session_id=session_id).first()
         if pipeline is None:
             return None
         if session_id != self.session_id:

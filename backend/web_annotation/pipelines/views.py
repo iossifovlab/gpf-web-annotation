@@ -258,7 +258,7 @@ class ListPipelines(AnnotationBaseView):
                 "name": pipeline["id"],
                 "content": pipeline["content"],
                 "status": "loaded" if super().lru_cache.is_pipeline_loaded(
-                    ("grr", pipeline["id"])) else "unloaded",
+                    pipeline["id"]) else "unloaded",
             }
             for pipeline in self.grr_pipelines.values()
         ]
@@ -266,7 +266,6 @@ class ListPipelines(AnnotationBaseView):
     def _get_user_pipelines(self, user: BaseUser) -> list[dict[str, str]]:
         pipelines = [
             *user.get_pipelines(),
-            user.get_temporary_pipeline(),
         ]
 
         filtered_pipelines = filter(None, pipelines)
