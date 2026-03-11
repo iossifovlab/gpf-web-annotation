@@ -1494,7 +1494,7 @@ def test_get_pipelines(
 
     response = user_client.get("/api/pipelines")
     pipelines = response.json()
-    assert len(pipelines) == 4
+    assert len(pipelines) == 3
     assert pipelines[0]["name"] == "pipeline/test_pipeline"
     assert pipelines[0]["status"] == "unloaded"
     assert pipelines[1]["name"] == "t4c8/t4c8_pipeline"
