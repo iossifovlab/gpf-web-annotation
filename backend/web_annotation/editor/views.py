@@ -307,7 +307,7 @@ class AnnotatorAttributes(EditorView):
                 )
             attribute_descs = list(filter(
                 lambda desc:
-                    search_term.lower() in cast(str, desc.name).lower() or
+                    search_term.lower() in cast(str, desc.source).lower() or
                     search_term.lower() in desc.description.lower(),
                 annotator.get_all_attribute_descriptions().values(),
             ))
@@ -325,7 +325,7 @@ class AnnotatorAttributes(EditorView):
                 attribute.internal = False
             attributes_result.append({
                 "name": attribute.name,
-                "source": attribute.name,
+                "source": attribute.source,
                 "type": attribute.type,
                 "description": attribute.description,
                 "default": attribute.default,
