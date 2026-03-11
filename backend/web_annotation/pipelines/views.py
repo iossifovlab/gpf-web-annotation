@@ -92,7 +92,7 @@ class UserPipeline(AnnotationBaseView):
 
         pipeline_name = request.data.get("name")
 
-        if pipeline_id is not None:
+        if pipeline_id:
             try:
                 int(pipeline_id)
             except ValueError:
