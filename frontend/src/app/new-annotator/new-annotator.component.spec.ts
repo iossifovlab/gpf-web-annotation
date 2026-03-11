@@ -174,10 +174,10 @@ describe('NewAnnotatorComponent', () => {
   it('should get annotator types on component initialization', () => {
     component.ngOnInit();
     expect(component.annotatorTypes).toStrictEqual(
-      ['effect_annotator', 'liftover_annotator', 'gene_set_annotator']
+      ['effect_annotator', 'gene_set_annotator', 'liftover_annotator']
     );
     expect(component.filteredAnnotatorTypes).toStrictEqual(
-      ['effect_annotator', 'liftover_annotator', 'gene_set_annotator']
+      ['effect_annotator', 'gene_set_annotator', 'liftover_annotator']
     );
     expect(component.annotatorStep).toBeDefined();
   });
@@ -592,7 +592,7 @@ describe('Annotator created by resource', () => {
   });
 
   it('should get resource types on component initialization', () => {
-    expect(component.resourceTypes).toStrictEqual(['gene_set_collection', 'position_score', 'genome']);
+    expect(component.resourceTypes).toStrictEqual(['gene_set_collection', 'genome', 'position_score']);
     expect(component.selectedResourceType).toBe('gene_set_collection');
     expect(component.resourceTypeStep.get('resourceType').value).toBe('gene_set_collection');
   });

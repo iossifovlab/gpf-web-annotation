@@ -94,7 +94,7 @@ export class NewAnnotatorComponent implements OnInit {
       });
 
       this.editorService.getResourceTypes().pipe(take(1)).subscribe(res => {
-        this.resourceTypes = res;
+        this.resourceTypes = res.sort();
         this.selectedResourceType = this.resourceTypes[0];
         this.resourceTypeStep.get('resourceType').setValue(this.selectedResourceType, { emitEvent: false });
         this.setupResourceSearching();
@@ -136,7 +136,7 @@ export class NewAnnotatorComponent implements OnInit {
   private requestAnnotators(): void {
     this.editorService.getAnnotators().subscribe(res => {
       this.annotatorTypes = res;
-      this.filteredAnnotatorTypes = res;
+      this.filteredAnnotatorTypes = res.sort();
       this.setupAnnotatorValueFiltering();
     });
   }
