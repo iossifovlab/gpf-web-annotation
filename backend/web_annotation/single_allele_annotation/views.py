@@ -30,7 +30,7 @@ from rest_framework.views import Request, Response
 
 from web_annotation.annotation_base_view import AnnotationBaseView
 from web_annotation.authentication import WebAnnotationAuthentication
-from web_annotation.models import AlleleQuery, User
+from web_annotation.models import AlleleQuery, BaseUser, User
 from web_annotation.serializers import AlleleSerializer
 
 
@@ -213,7 +213,7 @@ class SingleAnnotation(AnnotationBaseView):
         if (
             request.user
             and request.user.is_authenticated
-            and isinstance(request.user, User)
+            and isinstance(request.user, BaseUser)
         ):
             allele = (
                 f"{variant['chrom']} {variant['pos']} "
@@ -221,11 +221,11 @@ class SingleAnnotation(AnnotationBaseView):
             )
             if AlleleQuery.objects.filter(
                 allele=allele,
-                owner=request.user,
+                owner=request.user.as_owner,
             ).first() is None:
                 allele_query = AlleleQuery(
                     allele=allele,
-                    owner=request.user,
+                    owner=request.user.as_owner,
                 )
                 allele_query.save()
 
@@ -319,13 +319,12 @@ class HistogramView(AnnotationBaseView):
 class AlleleHistory(generics.ListAPIView):
     """View for managing a user's allele annotation history."""
 
-
     authentication_classes = [WebAnnotationAuthentication]
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = AlleleSerializer
 
     def get_queryset(self) -> QuerySet:
-        return AlleleQuery.objects.filter(owner=self.request.user)
+        return AlleleQuery.objects.filter(owner=self.request.user.as_owner)
 
     def delete(self, request: Request) -> Response:
         """Delete user allele annotation query from history"""
@@ -338,7 +337,7 @@ class AlleleHistory(generics.ListAPIView):
 
         allele_query = AlleleQuery.objects.filter(
             id=query_id,
-            owner=request.user,
+            owner=request.user.as_owner,
         )
 
         if allele_query.count() == 0:

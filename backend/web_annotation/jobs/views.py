@@ -81,7 +81,7 @@ class JobList(generics.ListAPIView):
     def get_queryset(self) -> QuerySet:
         return Job.objects \
             .order_by("name") \
-            .filter(owner=self.request.user, is_active=True)
+            .filter(owner=self.request.user.as_owner, is_active=True)
 
     serializer_class = JobSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -160,7 +160,7 @@ class JobDetail(AnnotationBaseView):
         except ObjectDoesNotExist:
             return Response(status=views.status.HTTP_404_NOT_FOUND)
 
-        if job.owner != request.user:
+        if job.owner != request.user.as_owner:
             return Response(status=views.status.HTTP_403_FORBIDDEN)
 
         job.deactivate()

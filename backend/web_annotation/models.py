@@ -33,6 +33,11 @@ class BaseUser():
         """Get identifier for user."""
         raise NotImplementedError
 
+    @property
+    def session_id(self) -> str:
+        """Get session ID for user."""
+        raise NotImplementedError
+
     def create_job(self, **kwargs: Any) -> BaseJob:
         """Create a new job for the user."""
         raise NotImplementedError
@@ -45,25 +50,139 @@ class BaseUser():
         """Get socket group for user."""
         raise NotImplementedError
 
-    @property
-    def pipeline_class(self) -> type[BasePipeline]:
-        """Get job class used."""
+    def get_pipeline(self, pipeline_id: str) -> BasePipeline:
+        """Get pipeline from respective table, checking ownership."""
         raise NotImplementedError
+
+    def delete_pipelines(self) -> None:
+        """Delete user pipelines."""
+        return
+
+    def as_owner(self) -> User:
+        raise NotImplementedError
+
+    def get_pipelines(self) -> list[BasePipeline]:
+        """Get pipelines for user."""
+        raise NotImplementedError
+
+    def get_temporary_pipeline(
+        self, session_id: str | None = None,
+    ) -> BasePipeline | None:
+        if session_id is None:
+            session_id = self.session_id
+        pipeline = TemporaryPipeline.objects.filter(  # type: ignore
+            session_id=session_id).first()
+        if pipeline is None:
+            return None
+        if session_id != self.session_id:
+            raise ValueError("Session ID does not match user session!")
+        return cast(BasePipeline, pipeline)
+
+
+class UserWrapper(BaseUser):
+    """Wrapper for user objects to implement BaseUser functions."""
+
+    def __init__(self, user: User, session_id: str) -> None:
+        self.user = user
+        self._session_id = session_id
+
+    @property
+    def job_class(self) -> type[Job]:
+        """Get job class used."""
+        return self.user.job_class
+
+    @property
+    def identifier(self) -> str:
+        """Get identifier for user."""
+        return self.user.identifier
+
+    @property
+    def session_id(self) -> str:
+        """Get session ID for user."""
+        return self._session_id
+
+    def create_job(self, **kwargs: Any) -> Job:
+        """Create a new job for the user."""
+        return self.user.create_job(**kwargs)
+
+    def check_pipeline_owner(self, pipeline: BasePipeline) -> bool:
+        """Check if user is owner of the pipeline."""
+        return self.user.check_pipeline_owner(pipeline)
+
+    def can_create(self) -> bool:
+        """Check if a user is not limited by the daily quota."""
+        return self.user.can_create()
+
+    def generate_job_name(self) -> int:
+        """Generate a new job name for the user."""
+        return self.user.generate_job_name()
+
+    def get_socket_group(self) -> str:
+        """Get socket group for user."""
+        return self.user.get_socket_group()
 
     def get_pipeline(self, pipeline_id: str) -> BasePipeline:
         """Get pipeline from respective table, checking ownership."""
-        pipeline = self.pipeline_class.objects.filter(  # type: ignore
+        pipeline = Pipeline.objects.filter(  # type: ignore
             pk=int(pipeline_id),
         ).first()
         if pipeline is None:
             raise ValueError(f"Pipeline {pipeline_id} not found!")
-        if not self.check_pipeline_owner(pipeline):
+        if not self.check_pipeline_owner(cast(BasePipeline, pipeline)):
             raise ValueError("User not authorized to access pipeline!")
 
         return cast(BasePipeline, pipeline)
 
+    def get_pipelines(self) -> list[BasePipeline]:
+        """Get pipelines for user."""
+        pipelines = Pipeline.objects.filter(  # type: ignore
+            owner=self.user.as_owner,
+        )
+        return list(pipelines)
 
-class User(BaseUser, AbstractUser):
+    def delete_pipelines(self) -> None:
+        """Delete user pipelines."""
+        self.user.delete_pipelines()
+
+    def delete_pipeline(self, pipeline_id: str) -> None:
+        """Delete user pipelines."""
+        self.user.delete_pipeline(pipeline_id)
+
+    @property
+    def is_superuser(self) -> bool:
+        """Check if user is superuser."""
+        return self.user.is_superuser
+
+    @property
+    def is_authenticated(self) -> bool:
+        """Check if user is authenticated."""
+        return self.user.is_authenticated
+
+    def is_owner(self, job: Job) -> bool:
+        return job.owner == self.user
+
+    @property
+    def is_staff(self) -> str:
+        return self.user.is_staff
+
+    @property
+    def pk(self) -> int:
+        return self.user.pk
+
+    @property
+    def email(self) -> str:
+        return self.user.email
+
+    def get_jobs(self) -> list[Job]:
+        """Get user's jobs."""
+        return self.user.get_jobs()
+
+    @property
+    def as_owner(self) -> User:
+        return self.user.as_owner
+
+
+class User(AbstractUser):
     """Model for user accounts."""
     email = models.EmailField(("email address"), unique=True)
     USERNAME_FIELD = "email"
@@ -74,11 +193,6 @@ class User(BaseUser, AbstractUser):
     def job_class(self) -> type[Job]:
         """Get job class used."""
         return Job
-
-    @property
-    def pipeline_class(self) -> type[BasePipeline]:
-        """Get job class used."""
-        return Pipeline
 
     @property
     def identifier(self) -> str:
@@ -150,6 +264,15 @@ class User(BaseUser, AbstractUser):
         for pipeline in pipelines:
             pipeline.remove()
 
+    def delete_pipeline(self, pipeline_id: str) -> None:
+        """Delete user pipelines."""
+        pipelines = Pipeline.objects.filter(
+            owner=self.as_owner,
+            pk=int(pipeline_id),
+        )
+        for pipeline in pipelines:
+            pipeline.remove()
+
     def can_create(self) -> bool:
         """Check if a user is not limited by the daily quota."""
         if self.is_superuser:
@@ -169,7 +292,7 @@ class WebAnnotationAnonymousUser(BaseUser, AnonymousUser):
     def __init__(self, session_id: str, ip: str = "") -> None:
         super().__init__()
         self.ip = ip
-        self.session_id = session_id
+        self._session_id = session_id
 
     @property
     def job_class(self) -> type[AnonymousJob]:
@@ -177,9 +300,9 @@ class WebAnnotationAnonymousUser(BaseUser, AnonymousUser):
         return AnonymousJob
 
     @property
-    def pipeline_class(self) -> type[BasePipeline]:
-        """Get job class used."""
-        return AnonymousPipeline
+    def session_id(self) -> str:
+        """Get session ID for user."""
+        return self._session_id
 
     @property
     def identifier(self) -> str:
@@ -199,11 +322,6 @@ class WebAnnotationAnonymousUser(BaseUser, AnonymousUser):
 
     def generate_job_name(self) -> int:
         return time.time_ns()
-
-    def check_pipeline_owner(self, pipeline: BasePipeline) -> bool:
-        """Check if user is owner of the pipeline."""
-        assert isinstance(pipeline, AnonymousPipeline)
-        return pipeline.owner == self.as_owner
 
     def create_job(self, **kwargs: Any) -> AnonymousJob:
         """Create a new job for the anonymous user."""
@@ -229,14 +347,6 @@ class WebAnnotationAnonymousUser(BaseUser, AnonymousUser):
         for job in jobs:
             job.delete()
 
-    def delete_pipelines(self) -> None:
-        """Delete user pipelines."""
-        pipelines = AnonymousPipeline.objects.filter(
-            owner=self.as_owner,
-        )
-        for pipeline in pipelines:
-            pipeline.remove()
-
     def can_create(self) -> bool:
         """Check if a anonymous user is not limited by the daily quota."""
         today = timezone.now().replace(
@@ -255,17 +365,33 @@ class WebAnnotationAnonymousUser(BaseUser, AnonymousUser):
         """Meta class for verification model."""
         abstract = True
 
+    def get_pipeline(self, pipeline_id: str) -> BasePipeline:
+        raise NotImplementedError(
+            "Anonymous users cannot have named pipelines!")
+
+    def get_pipelines(self) -> list[BasePipeline]:
+        """Get pipelines for user."""
+        return []
+
+    def delete_pipeline(self, pipeline_id: str) -> BasePipeline:
+        raise NotImplementedError(
+            "Anonymous users cannot have named pipelines!")
+
 
 class BasePipeline(models.Model):
     """Base Model for saving pipeline configs"""
     name = models.CharField(max_length=1024, default="")
     config_path = models.FilePathField()
-    is_temporary = models.BooleanField(default=False)
 
     def remove(self) -> None:
         """Clean a user pipeline's resources."""
         os.remove(self.config_path)
         self.delete()
+
+    @property
+    def identifier(self) -> str:
+        """Get a unique identifier for the pipeline."""
+        raise NotImplementedError
 
     def table_id(self) -> tuple[str, str]:
         """Get a unique table ID for the pipeline."""
@@ -285,14 +411,28 @@ class Pipeline(BasePipeline):
 
     )
 
+    @property
+    def identifier(self) -> str:
+        """Get a unique identifier for the pipeline."""
+        return str(self.pk)
+
     def table_id(self) -> tuple[str, str]:
         """Get a unique table ID for the pipeline."""
         return ("user", str(self.pk))
 
 
-class AnonymousPipeline(BasePipeline):
+class TemporaryPipeline(BasePipeline):
     """Model for saving anonymous created pipeline configs"""
-    owner = models.CharField(max_length=1024)
+    session_id = models.CharField(max_length=1024, primary_key=True)
+
+    @property
+    def identifier(self) -> str:
+        """Get a unique identifier for the pipeline."""
+        return str(self.session_id)
+
+    @property
+    def id(self) -> str:
+        return self.session_id
 
     def table_id(self) -> tuple[str, str]:
         """Get a unique table ID for the pipeline."""

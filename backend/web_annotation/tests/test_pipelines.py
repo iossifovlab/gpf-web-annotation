@@ -33,13 +33,13 @@ def test_create_pipeline_stores_in_cache(
         ".views.UserPipeline.lru_cache",
         new=cache,
     )
-    assert ("user", "1") not in cache._cache
+    assert "1" not in cache._cache
 
     response = user_client.post("/api/pipelines/user", params)
 
     assert response.status_code == 200
-    assert ("user", "1") in cache._cache
-    pipeline = cache._cache[("user", "1")]
+    assert "1" in cache._cache
+    pipeline = cache._cache["1"]
     assert pipeline.future.result().raw == [{"position_score": "scores/pos1"}]
 
     pipeline_config = textwrap.dedent("""
@@ -58,8 +58,8 @@ def test_create_pipeline_stores_in_cache(
     response = user_client.post("/api/pipelines/user", params)
 
     assert response.status_code == 200
-    assert ("user", "1") in cache._cache
-    pipeline = cache._cache[("user", "1")]
+    assert "1" in cache._cache
+    pipeline = cache._cache["1"]
     assert pipeline.future.result().raw == [{"position_score": {
         "attributes": [{"name": "position_1", "source": "pos1"}],
         "resource_id": "scores/pos1",

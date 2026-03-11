@@ -129,7 +129,7 @@ class LoadingDetails:
     """Utility for identifying which pipeline is being loaded."""
     time_started: float
     config_hash: int
-    pipeline_id: tuple[str, str]
+    pipeline_id: str
     future: Future[ThreadSafePipeline]
 
     def __hash__(self) -> int:
@@ -154,20 +154,20 @@ class LRUPipelineCache:
         self._load_timeout = load_timeout
 
         self.capacity = capacity
-        self._cache: dict[tuple[str, str], LoadingDetails] = {}
-        self._pipeline_callbacks: dict[tuple[str, str], Callable | None] = {}
+        self._cache: dict[str, LoadingDetails] = {}
+        self._pipeline_callbacks: dict[str, Callable | None] = {}
         self._cache_lock: RLock = RLock()
-        self._order: list[tuple[str, str]] = []
+        self._order: list[str] = []
 
     def has_pipeline(
-        self, pipeline_id: tuple[str, str],
+        self, pipeline_id: str,
     ) -> bool:
         """Check if a pipeline is in the cache."""
         with self._cache_lock:
             return pipeline_id in self._cache
 
     def is_pipeline_loaded(
-        self, pipeline_id: tuple[str, str],
+        self, pipeline_id: str,
     ) -> bool:
         """Check if a pipeline is loaded."""
         with self._cache_lock:
@@ -187,7 +187,7 @@ class LRUPipelineCache:
 
     def put_pipeline(
         self,
-        pipeline_id: tuple[str, str],
+        pipeline_id: str,
         pipeline_config: str,
         begin_load_callback: Callable[[], None] | None = None,
         finish_load_callback: Callable[[], None] | None = None,
@@ -244,7 +244,7 @@ class LRUPipelineCache:
                 self.delete_pipeline(pipeline_id)
 
     def get_pipeline_future(
-        self, pipeline_id: tuple[str, str],
+        self, pipeline_id: str,
     ) -> Future[ThreadSafePipeline]:
         """Get a pipeline future by its ID."""
         started = time.time()
@@ -258,7 +258,7 @@ class LRUPipelineCache:
                 "get_pipeline_future %s in %.2f seconds", pipeline_id, elapsed)
             return self._cache[pipeline_id].future
 
-    def get_pipeline(self, pipeline_id: tuple[str, str]) -> ThreadSafePipeline:
+    def get_pipeline(self, pipeline_id: str) -> ThreadSafePipeline:
         """Get a pipeline by its ID."""
         pipeline = None
         started = time.time()
@@ -274,7 +274,7 @@ class LRUPipelineCache:
         return pipeline
 
     def delete_pipeline(
-        self, pipeline_id: tuple[str, str],
+        self, pipeline_id: str,
         *,
         do_cancel: bool = True,
     ) -> None:

@@ -15,7 +15,13 @@ from rest_framework.request import MultiValueDict
 from rest_framework.views import Request, Response
 from web_annotation.annotation_base_view import AnnotationBaseView
 from web_annotation.authentication import WebAnnotationAuthentication
-from web_annotation.models import User
+from web_annotation.models import (
+    BaseUser,
+    User,
+    Pipeline,
+    TemporaryPipeline,
+    WebAnnotationAnonymousUser,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -85,9 +91,23 @@ class UserPipeline(AnnotationBaseView):
         temporary = False
 
         pipeline_name = request.data.get("name")
+
+        if pipeline_id:
+            try:
+                int(pipeline_id)
+            except ValueError:
+                temporary = True
+                if pipeline_id != request.user.session_id:
+                    return Response(
+                        {"reason": "Pipeline ID does not match session ID!"},
+                        status=views.status.HTTP_400_BAD_REQUEST,
+                    )
+
         if not pipeline_id and not pipeline_name:
-            pipeline_name = f'pipeline-{int(time.time())}.yaml'
             temporary = True
+
+        if temporary:
+            pipeline_name = f'pipeline-{request.user.session_id}.yaml'
 
         if not temporary and pipeline_name in self.grr_pipelines:
             return Response(
@@ -97,35 +117,57 @@ class UserPipeline(AnnotationBaseView):
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
 
+        if not temporary and isinstance(
+                request.user, WebAnnotationAnonymousUser):
+            return Response(
+                {"reason": "Only authenticated users can create pipelines!"},
+                status=views.status.HTTP_401_UNAUTHORIZED,
+            )
+
         config_filename = f'{pipeline_name}.yaml'
 
         if pipeline_id:  # Update
-            pipeline = request.user.get_pipeline(pipeline_id)
+            pipeline = request.user.get_temporary_pipeline(pipeline_id)
+            if pipeline is None:
+                pipeline = request.user.get_pipeline(pipeline_id)
             config_path = Path(str(pipeline.config_path))
         else:  # Create
             assert pipeline_name is not None
-            config_path = Path(
-                settings.ANNOTATION_CONFIG_STORAGE_DIR,
-                request.user.identifier,
-                config_filename,
-            )
-            if pipeline_name is not None:
-                if request.user.pipeline_class.objects.filter(
-                    owner=request.user,
+            if not temporary:
+                config_path = Path(
+                    settings.ANNOTATION_CONFIG_STORAGE_DIR,
+                    request.user.identifier,
+                    config_filename,
+                )
+                if pipeline_name is not None:
+                    if Pipeline.objects.filter(
+                        owner=request.user.user,
+                        name=pipeline_name,
+                    ):
+                        return Response({
+                            "reason": (
+                                "Pipeline with name "
+                                f"{pipeline_name} already exists!"
+                            ),
+                        }, status=views.status.HTTP_400_BAD_REQUEST)
+                pipeline = Pipeline(
                     name=pipeline_name,
-                ):
-                    return Response({
-                        "reason": (
-                            "Pipeline with name "
-                            f"{pipeline_name} already exists!"
-                        ),
-                    }, status=views.status.HTTP_400_BAD_REQUEST)
-            pipeline = request.user.pipeline_class(
-                name=pipeline_name,
-                config_path=config_path,
-                owner=request.user.as_owner,
-                is_temporary=temporary,
-            )
+                    config_path=config_path,
+                    owner=request.user.user.as_owner,
+                )
+            else:
+                config_path = Path(
+                    settings.ANNOTATION_CONFIG_STORAGE_DIR,
+                    "temporary",
+                    config_filename,
+                )
+                pipeline, _ = TemporaryPipeline.objects.get_or_create(
+                    session_id=request.user.session_id,
+                    defaults={
+                        "name": pipeline_name,
+                        "config_path": str(config_path),
+                    },
+                )
 
         pipeline_or_response = self._save_user_pipeline(
             request, config_path,
@@ -136,7 +178,7 @@ class UserPipeline(AnnotationBaseView):
         pipeline.save()
 
         self.put_pipeline(
-            self.get_full_pipeline_id(pipeline.id, request.user),
+            str(pipeline.id),
             request.user,
         )
 
@@ -155,11 +197,26 @@ class UserPipeline(AnnotationBaseView):
             )
 
         try:
-            pipeline = request.user.pipeline_class.objects.get(
-                owner=request.user,
-                pk=pipeline_id,
+            pipeline = request.user.get_temporary_pipeline(pipeline_id)
+        except TemporaryPipeline.DoesNotExist:
+            pipeline = None
+        except ValueError:
+            return Response(
+                {
+                    "reason": (
+                        "Temporary pipeline does not match request session ID"
+                    ),
+                },
+                status=views.status.HTTP_400_BAD_REQUEST,
             )
-        except request.user.pipeline_class.DoesNotExist:
+        try:
+            pipeline = request.user.get_pipeline(pipeline_id)
+        except Pipeline.DoesNotExist:
+            return Response(
+                {"reason": "Pipeline name not recognized!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+        except ValueError:
             return Response(
                 {"reason": "Pipeline name not recognized!"},
                 status=views.status.HTTP_400_BAD_REQUEST,
@@ -183,23 +240,7 @@ class UserPipeline(AnnotationBaseView):
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
 
-        pipeline = request.user.pipeline_class.objects.filter(
-            owner=request.user,
-            pk=pipeline_id,
-        )
-
-        if pipeline.count() == 0:
-            return Response(
-                {"reason": "Pipeline name not recognized!"},
-                status=views.status.HTTP_400_BAD_REQUEST,
-            )
-        if pipeline.count() > 1:
-            return Response(
-                {"reason": "More than one pipeline shares this name!"},
-                status=views.status.HTTP_400_BAD_REQUEST,
-            )
-
-        pipeline.delete()
+        request.user.delete_pipeline(pipeline_id)
 
         return Response(status=views.status.HTTP_204_NO_CONTENT)
 
@@ -217,15 +258,18 @@ class ListPipelines(AnnotationBaseView):
                 "name": pipeline["id"],
                 "content": pipeline["content"],
                 "status": "loaded" if super().lru_cache.is_pipeline_loaded(
-                    ("grr", pipeline["id"])) else "unloaded",
+                    pipeline["id"]) else "unloaded",
             }
             for pipeline in self.grr_pipelines.values()
         ]
 
-    def _get_user_pipelines(self, user: User) -> list[dict[str, str]]:
-        pipelines = user.pipeline_class.objects.filter(  # type: ignore
-            owner=user, is_temporary=False,
-        )
+    def _get_user_pipelines(self, user: BaseUser) -> list[dict[str, str]]:
+        pipelines = [
+            *user.get_pipelines(),
+        ]
+
+        filtered_pipelines = filter(None, pipelines)
+
         return [
             {
                 "id": str(pipeline.pk),
@@ -235,9 +279,9 @@ class ListPipelines(AnnotationBaseView):
                     pipeline.config_path
                 ).read_text(encoding="utf-8"),
                 "status": "loaded" if super().lru_cache.is_pipeline_loaded(
-                    pipeline.table_id()) else "unloaded",
+                    pipeline.identifier) else "unloaded",
             }
-            for pipeline in pipelines
+            for pipeline in filtered_pipelines
         ]
 
     def get(self, request: Request) -> Response:
@@ -297,7 +341,7 @@ class LoadPipeline(AnnotationBaseView):
             )
 
         self.put_pipeline(
-            self.get_full_pipeline_id(pipeline_id, request.user),
+            pipeline_id,
             request.user,
         )
 
