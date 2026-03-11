@@ -91,7 +91,7 @@ class UserPipeline(AnnotationBaseView):
         temporary = False
 
         pipeline_name = request.data.get("name")
-        if not pipeline_id and not pipeline_name:
+        if not pipeline_name:
             pipeline_name = f'pipeline-{request.user.session_id}.yaml'
             temporary = True
 
@@ -113,7 +113,10 @@ class UserPipeline(AnnotationBaseView):
         config_filename = f'{pipeline_name}.yaml'
 
         if pipeline_id:  # Update
-            pipeline = request.user.get_pipeline(pipeline_id)
+            if temporary:
+                pipeline = request.user.get_temporary_pipeline(pipeline_id)
+            else:
+                pipeline = request.user.get_pipeline(pipeline_id)
             config_path = Path(str(pipeline.config_path))
         else:  # Create
             assert pipeline_name is not None
