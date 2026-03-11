@@ -1,10 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 
 import { PipelineEditorService } from './pipeline-editor.service';
-import { HttpClient, provideHttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { of, lastValueFrom, take } from 'rxjs';
-import { AnnotatorConfig, AttributeData, AttributePage, Resource } from './new-annotator/annotator';
+import { of, lastValueFrom, take, throwError } from 'rxjs';
+import { AnnotatorConfig, AttributeData, AttributePage, Resource, ResourceAnnotator } from './new-annotator/annotator';
 
 describe('PipelineEditorService', () => {
   let service: PipelineEditorService;
@@ -17,6 +17,7 @@ describe('PipelineEditorService', () => {
       ]
     });
     service = TestBed.inject(PipelineEditorService);
+    jest.clearAllMocks();
   });
 
   it('should be created', () => {
@@ -284,5 +285,171 @@ describe('PipelineEditorService', () => {
     );
     const res = await lastValueFrom(getResponse.pipe(take(1)));
     expect(res).toStrictEqual(yml);
+  });
+
+  it('should catch error 400 when requesting yml', async() => {
+    const httpError = new HttpErrorResponse({status: 400, error: {error: 'Invalid annotator configuration!'}});
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
+    httpPostSpy.mockReturnValue(throwError(() => httpError));
+
+    const postResult = service.getAnnotatorYml(
+      'pipelineId',
+      'liftover_annotator',
+      {
+        chain: 'liftover/T2T_to_hg38',
+        // eslint-disable-next-line camelcase
+        source_genome: 'hg38/genomes/GRCh38-hg38',
+        // eslint-disable-next-line camelcase
+        target_genome: 'hg19/genomes/GATK_ResourceBundle_5777_b37_phiX174'
+      },
+      [
+        new AttributeData(
+          'liftover_annotatable',
+          'annotatable',
+          'liftover_annotatable',
+          true,
+          true,
+          'The lifted over annotatable'
+        )
+      ]
+    );
+
+    await expect(() => lastValueFrom(postResult.pipe(take(1))))
+      .rejects.toThrow('Invalid annotator configuration!');
+  });
+
+  it('should return default error message when requesting yml fails', async() => {
+    const httpError = new HttpErrorResponse({status: 415});
+    const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
+    httpPostSpy.mockReturnValue(throwError(() => httpError));
+
+    const postResult = service.getAnnotatorYml(
+      'pipelineId',
+      'liftover_annotator',
+      {
+        chain: 'liftover/T2T_to_hg38',
+        // eslint-disable-next-line camelcase
+        source_genome: 'hg38/genomes/GRCh38-hg38',
+        // eslint-disable-next-line camelcase
+        target_genome: 'hg19/genomes/GATK_ResourceBundle_5777_b37_phiX174'
+      },
+      [
+        new AttributeData(
+          'liftover_annotatable',
+          'annotatable',
+          'liftover_annotatable',
+          true,
+          true,
+          'The lifted over annotatable'
+        )
+      ]
+    );
+
+    await expect(() => lastValueFrom(postResult.pipe(take(1))))
+      .rejects.toThrow('Error occurred!');
+  });
+
+  it('should get resource types', async() => {
+    const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
+    httpGetSpy.mockReturnValue(of([
+      'gene_models',
+      'position_score',
+      'allele_score',
+    ]));
+
+    const getResponse = service.getResourceTypes();
+
+    expect(httpGetSpy).toHaveBeenCalledWith(
+      '//localhost:8000/api/resources/types'
+    );
+    const res = await lastValueFrom(getResponse.pipe(take(1)));
+    expect(res).toStrictEqual([
+      'gene_models',
+      'position_score',
+      'allele_score',
+    ]);
+  });
+
+  it('should get resources by search value', async() => {
+    const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
+    httpGetSpy.mockReturnValue(of([
+      'hg38/scores/CADD_v1.6',
+      'hg19/scores/CADD',
+      'hg38/scores/CADD_v1.4',
+      'hg38/scores/CADD_v1.7',
+    ]));
+
+    const getResponse = service.getResourcesBySearch('cadd', 'allele_score');
+
+    expect(httpGetSpy).toHaveBeenCalledWith(
+      '//localhost:8000/api/resources?type=allele_score&search=cadd'
+    );
+    const res = await lastValueFrom(getResponse.pipe(take(1)));
+    expect(res).toStrictEqual([
+      'hg38/scores/CADD_v1.6',
+      'hg19/scores/CADD',
+      'hg38/scores/CADD_v1.4',
+      'hg38/scores/CADD_v1.7',
+    ]);
+  });
+
+  it('should get annotators of a resource', async() => {
+    const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
+    // eslint-disable-next-line camelcase
+    httpGetSpy.mockReturnValue(of([{annotator_type: 'allele_score', resource_id: 'hg19/scores/CADD'}]));
+
+    const getResponse = service.getResourceAnnotators('hg19/scores/CADD');
+
+    expect(httpGetSpy).toHaveBeenCalledWith(
+      '//localhost:8000/api/editor/resource_annotators?resource_id=hg19/scores/CADD'
+    );
+    const res = await lastValueFrom(getResponse.pipe(take(1)));
+    expect(res).toStrictEqual([
+      new ResourceAnnotator('allele_score', '{"resource_id":"hg19/scores/CADD"}')
+    ]);
+  });
+
+  it('should get all attribute names of a pipeline', async() => {
+    const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
+    // eslint-disable-next-line camelcase
+    httpGetSpy.mockReturnValue(of(
+      [
+        'normalized_allele',
+        'CLNSIG',
+        'CLNDN',
+        'hg19_annotatable',
+        'mpc',
+      ]
+    ));
+
+    const getResponse = service.getPipelineAttributesNames('pipelineId');
+
+    expect(httpGetSpy).toHaveBeenCalledWith(
+      '//localhost:8000/api/editor/pipeline_attributes?pipeline_id=pipelineId',
+      { headers: { 'X-CSRFToken': '' }, withCredentials: true }
+    );
+    const res = await lastValueFrom(getResponse.pipe(take(1)));
+    expect(res).toStrictEqual([
+      'normalized_allele',
+      'CLNSIG',
+      'CLNDN',
+      'hg19_annotatable',
+      'mpc',
+    ]);
+  });
+
+  it('should get attribute names of a pipeline with specific attribute type', async() => {
+    const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
+    // eslint-disable-next-line camelcase
+    httpGetSpy.mockReturnValue(of(['cadd_phred', 'cadd_raw']));
+
+    const getResponse = service.getPipelineAttributesNames('pipelineId', 'str');
+
+    expect(httpGetSpy).toHaveBeenCalledWith(
+      '//localhost:8000/api/editor/pipeline_attributes?pipeline_id=pipelineId&attribute_type=str',
+      { headers: { 'X-CSRFToken': '' }, withCredentials: true }
+    );
+    const res = await lastValueFrom(getResponse.pipe(take(1)));
+    expect(res).toStrictEqual(['cadd_phred', 'cadd_raw']);
   });
 });

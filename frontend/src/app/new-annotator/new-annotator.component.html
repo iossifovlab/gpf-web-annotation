@@ -253,9 +253,11 @@
           <div class="modal-footer">
             @if(!areAttributesValid) {
             <div class="duplicate-name">Attribute with this name already exists</div>
+            }@if(errorMessage) {
+            <div class="duplicate-name">{{ errorMessage }}</div>
             }
-            <button mat-button matStepperPrevious class="back-button">Back</button>
-            <button matButton matStepperNext class="next-button">Next</button>
+            <button mat-button matStepperPrevious class="back-button" (click)="clearErrorMessage()">Back</button>
+            <button matButton matStepperNext class="next-button" (click)="clearErrorMessage()">Next</button>
             @if(areAttributesValid) {
             <button matButton (click)="onFinish()" class="finish-button">Finish</button>
             }
@@ -322,8 +324,16 @@
           <div class="modal-footer">
             @if(!areAttributesValid) {
             <div class="duplicate-name">Attribute with this name already exists</div>
+            } @if(errorMessage) {
+            <div class="duplicate-name">{{ errorMessage }}</div>
             }
-            <button mat-button matStepperPrevious class="back-button" (click)="resetAttributeNames()">Back</button>
+            <button
+              mat-button
+              matStepperPrevious
+              class="back-button"
+              (click)="resetAttributeNames(); clearErrorMessage()"
+              >Back</button
+            >
             <button [disabled]="!areAttributesValid" matButton (click)="onFinish()" class="finish-button"
               >Finish</button
             >

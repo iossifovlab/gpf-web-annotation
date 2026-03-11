@@ -73,6 +73,7 @@ export class NewAnnotatorComponent implements OnInit {
   @ViewChild('stepper', { static: true }) public stepper: MatStepper;
   public duplicateAttributeNames: Set<string> = new Set();
   public attributesSubscription = new Subscription();
+  public errorMessage = '';
 
   public constructor(
     private editorService: PipelineEditorService,
@@ -339,8 +340,13 @@ export class NewAnnotatorComponent implements OnInit {
       this.annotatorStep.value.annotator,
       filtered,
       this.selectedAttributes
-    ).pipe(take(1)).subscribe(res => {
-      this.dialogRef.close('\n' + res);
+    ).pipe(take(1)).subscribe({
+      next: res => {
+        this.dialogRef.close('\n' + res);
+      },
+      error: (e: Error) => {
+        this.errorMessage = e.message;
+      }
     });
   }
 
@@ -410,5 +416,9 @@ export class NewAnnotatorComponent implements OnInit {
         });
       }
     });
+  }
+
+  public clearErrorMessage(): void {
+    this.errorMessage = '';
   }
 }

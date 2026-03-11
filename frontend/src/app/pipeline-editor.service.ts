@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
-import { HttpClient } from '@angular/common/http';
-import { forkJoin, map, Observable, of, switchMap, tap } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { catchError, forkJoin, map, Observable, of, switchMap, tap, throwError } from 'rxjs';
 import { AnnotatorConfig, AttributeData, AttributePage, ResourceAnnotator } from './new-annotator/annotator';
 
 @Injectable({
@@ -135,7 +135,13 @@ export class PipelineEditorService {
       this.getAnnotatorYmlUrl,
       Object.assign(body, resources),
       options
-    );
+    ).pipe(
+      catchError((err: HttpErrorResponse) => {
+        switch (err.status) {
+          case 400: return throwError(() => new Error((err.error as {error: string})['error']));
+          default: return throwError(() => new Error('Error occurred!'));
+        }
+      }));
   }
 
   public getResourceTypes(): Observable<string[]> {

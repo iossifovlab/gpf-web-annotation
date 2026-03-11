@@ -316,6 +316,7 @@ input[type="radio"]:checked {
 
 .duplicate-name {
   color: #d74b59;
+  align-self: center;
 }
 
 .duplicate-name-input {
@@ -326,6 +327,6 @@ input[type="radio"]:checked {
 .modal-footer {
   display: flex;
   justify-content: flex-end;
-  align-items: center;
+  align-items: flex-end;
   gap: 15px;
 }
