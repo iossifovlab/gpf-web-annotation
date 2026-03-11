@@ -181,11 +181,6 @@
     <mat-step label="Select attributes" [stepControl]="attributeStep">
       <ng-template matStepContent>
         <div class="summary-content">
-          @if(data.isResourceWorkflow) {
-          <div class="resource-type-display-text" [title]="resourceTypeStep.value | keyValueDisplay">{{
-            resourceTypeStep.get('resourceType').value + ': ' + resourceTypeStep.get('resourceId').value
-          }}</div>
-          }
           <div class="annotator-display-text" [title]="annotatorStep.value | keyValueDisplay">{{
             annotatorStep.value | keyValueDisplay
           }}</div>
@@ -271,11 +266,6 @@
     <mat-step label="Modify attributes" [optional]="areAttributesValid">
       <ng-template matStepContent>
         <div class="summary-content">
-          @if(data.isResourceWorkflow) {
-          <div class="resource-type-display-text" [title]="resourceTypeStep.value | keyValueDisplay">{{
-            resourceTypeStep.get('resourceType').value + ': ' + resourceTypeStep.get('resourceId').value
-          }}</div>
-          }
           <div class="annotator-display-text" [title]="annotatorStep.value | keyValueDisplay">{{
             annotatorStep.value | keyValueDisplay
           }}</div>
