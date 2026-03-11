@@ -402,6 +402,12 @@ export class NewAnnotatorComponent implements OnInit {
   public removeSelectedAttribute(attribute: AttributeData): void {
     this.selectedAttributes = this.selectedAttributes.filter(a => a !== attribute);
     this.validateAttributes();
+
+    this.attributesSubscription = this.getAttributesObservable().subscribe(res => {
+      this.attributePage = res;
+      this.unselectedAttributes = res.attributes.filter(a => !this.selectedAttributes.some(s => s.name === a.name));
+      this.unselectedFilteredAttributes = this.unselectedAttributes;
+    });
   }
 
   public resetAttributeNames(): void {

@@ -409,26 +409,14 @@ describe('NewAnnotatorComponent', () => {
     expect(component.areAttributesValid).toBe(false);
   });
 
-  it('should remove selected attribute and validate attributes', () => {
+  it('should remove selected attribute, validate attributes and request attributes', () => {
     component.requestAttributes();
     component.selectedAttributes = attributesMock;
     component.unselectedAttributes = [];
 
     component.removeSelectedAttribute(attributesMock[1]);
     expect(component.selectedAttributes).toStrictEqual([attributesMock[0], attributesMock[2]]);
-    expect(component.unselectedAttributes).toStrictEqual([]);
-  });
-
-  it('should remove selected attribute and don\'t put back attribute in dropdown when attributes are more', () => {
-    jest.spyOn(pipelineEditorServiceMock, 'getAttributes')
-      .mockReturnValueOnce(of(new AttributePage(attributesMock, 0, 10, 1500)));
-    component.requestAttributes();
-    component.selectedAttributes = attributesMock;
-    component.unselectedAttributes = [];
-
-    component.removeSelectedAttribute(attributesMock[1]);
-    expect(component.selectedAttributes).toStrictEqual([attributesMock[0], attributesMock[2]]);
-    expect(component.unselectedAttributes).toStrictEqual([]);
+    expect(component.unselectedAttributes).toStrictEqual([attributesMock[1]]);
   });
 
   it('should trigger search request for attributes', fakeAsync(() => {
