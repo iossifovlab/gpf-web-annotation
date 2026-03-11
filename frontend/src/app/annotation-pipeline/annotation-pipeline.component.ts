@@ -221,7 +221,9 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
         this.emitIsConfigValid.emit(true);
         if (this.isPipelineChanged()) {
           // Save pipeline as temporary when valid
-          this.autoSave().subscribe(() => this.getPiplineInfo());
+          this.autoSave().subscribe(() => this.getPipelineInfo());
+        } else {
+          this.getPipelineInfo();
         }
       } else {
         this.emitIsConfigValid.emit(false);
@@ -239,6 +241,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     } else if (!this.isPipelineChanged() && this.dropdownControl.value.includes(' *')) {
       this.dropdownControl.setValue(this.dropdownControl.value.replace(' *', ''));
       this.emitPipelineId.emit(this.selectedPipeline.id);
+      this.clearTemporaryPipeline();
     }
   }
 
@@ -262,10 +265,10 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     this.dropdownControl.setValue(this.selectedPipeline.name);
     this.clearTemporaryPipeline();
 
-    this.getPiplineInfo();
+    this.getPipelineInfo();
   }
 
-  private getPiplineInfo(): void {
+  private getPipelineInfo(): void {
     this.pipelineInfo = null;
     this.annotationPipelineService.getPipelineInfo(this.currentTemporaryPipelineId || this.selectedPipeline.id).pipe(
       take(1)
@@ -308,7 +311,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     const newAnnotatorModal = this.dialog.open(NewAnnotatorComponent, {
       id: 'newAnnotator',
       data: {
-        pipelineId: this.selectedPipeline?.id || this.currentTemporaryPipelineId,
+        pipelineId: this.currentTemporaryPipelineId || this.selectedPipeline?.id,
         isResourceWorkflow: isResourceWorkflow
       },
       height: '60vh',

@@ -16,11 +16,12 @@ import { By } from '@angular/platform-browser';
 import { SocketNotificationsService } from '../socket-notifications/socket-notifications.service';
 import { PipelineNotification } from '../socket-notifications/socket-notifications';
 import { PipelineInfo } from '../annotation-pipeline';
+import { NewAnnotatorComponent } from '../new-annotator/new-annotator.component';
 
 const mockPipelines = [
-  new Pipeline('1', 'id1', 'content1', 'default', 'loaded'),
-  new Pipeline('2', 'id2', 'content2', 'default', 'loaded'),
-  new Pipeline('3', 'id3', 'content3', 'user', 'loaded'),
+  new Pipeline('id1', 'name1', 'content1', 'default', 'loaded'),
+  new Pipeline('id2', 'name2', 'content2', 'default', 'loaded'),
+  new Pipeline('id3', 'name3', 'content3', 'user', 'loaded'),
 ];
 class JobsServiceMock {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -79,10 +80,6 @@ class MatDialogMock {
     return new MatDialogRefMock();
   }
 
-  public afterClosed(): Observable<string> {
-    return of('pipeline-name');
-  }
-
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, @stylistic/max-len
   public open(templateRef: TemplateRef<ElementRef>, config: MatDialogConfig<string>): MatDialogRefMock {
     return new MatDialogRefMock();
@@ -108,7 +105,7 @@ class AnnotationPipelineServiceMock {
 
 class SocketNotificationsServiceMock {
   public getPipelineNotifications(): Observable<PipelineNotification> {
-    return of(new PipelineNotification('1', 'unloaded'));
+    return of(new PipelineNotification('id1', 'unloaded'));
   }
 
   public closeConnection(): void { }
@@ -184,6 +181,7 @@ describe('AnnotationPipelineComponent', () => {
     };
 
     fixture.detectChanges();
+    jest.clearAllMocks();
   });
 
   it('should create', () => {
@@ -275,7 +273,7 @@ describe('AnnotationPipelineComponent', () => {
 
   it('should filter pipelines list in dropdown when typing in input', () => {
     expect(component.filteredPipelines).toStrictEqual(mockPipelines);
-    component.dropdownControl.setValue('ID2');
+    component.dropdownControl.setValue('nAmE2');
     expect(component.filteredPipelines).toStrictEqual([mockPipelines[1]]);
   });
 
@@ -342,7 +340,7 @@ describe('AnnotationPipelineComponent', () => {
     const setDropdownValueSpy = jest.spyOn(component.dropdownControl, 'setValue');
 
     component.onPipelineClick(null);
-    expect(component.selectedPipeline.id).toBe('1');
+    expect(component.selectedPipeline.id).toBe('id1');
     expect(component.selectedPipeline.content).toBe('content1');
     expect(emitPipelineIdSpy).not.toHaveBeenCalledWith();
     expect(setDropdownValueSpy).not.toHaveBeenCalledWith();
@@ -350,8 +348,8 @@ describe('AnnotationPipelineComponent', () => {
 
   it('should select pipeline by providing its name', () => {
     component.selectedPipeline = null;
-    component.selectPipelineByName('id3');
-    expect(component.selectedPipeline).toStrictEqual(new Pipeline('3', 'id3', 'content3', 'user', 'loaded'));
+    component.selectPipelineByName('name3');
+    expect(component.selectedPipeline).toStrictEqual(new Pipeline('id3', 'name3', 'content3', 'user', 'loaded'));
   });
 
   it('should get pipeline status after each pipeline select', () => {
@@ -362,7 +360,7 @@ describe('AnnotationPipelineComponent', () => {
   it('should reset component state', () => {
     component.selectedPipeline = mockPipelines[2];
     component.resetState();
-    expect(component.selectedPipeline.id).toBe('1');
+    expect(component.selectedPipeline.id).toBe('id1');
     expect(component.selectedPipeline.content).toBe('content1');
   });
 
@@ -389,6 +387,18 @@ describe('AnnotationPipelineComponent', () => {
     expect(emitIsConfigValid).toHaveBeenCalledWith(false);
   });
 
+  it('should get pipeline status info after successful validation', () => {
+    jest.spyOn(jobsServiceMock, 'validatePipelineConfig').mockReturnValue(of(''));
+    jest.spyOn(component, 'isPipelineChanged').mockReturnValue(false);
+    component.pipelineInfo = null;
+
+    component.selectedPipeline = mockPipelines[0];
+    component.currentPipelineText = 'config content';
+
+    component.isConfigValid();
+    expect(component.pipelineInfo).toStrictEqual(new PipelineInfo(20, 4, ['hg19_annotatable'], ['gene_list']));
+  });
+
   it('should display \' *\' when pipeline config is changed and not saved', () => {
     jest.spyOn(component, 'isPipelineChanged').mockReturnValue(true);
     component.dropdownControl.setValue('pipeline-name');
@@ -405,15 +415,17 @@ describe('AnnotationPipelineComponent', () => {
     expect(component.dropdownControl.value).toBe('pipeline-name *');
   });
 
-  it('should remove \' *\' when pipeline config has not changed and update pipeline id in parent', () => {
+  it('should remove \' *\' when pipeline changes are reverted, update id in parent and clear temporary id', () => {
     const emitPipelineIdSpy = jest.spyOn(component.emitPipelineId, 'emit');
     jest.spyOn(component, 'isPipelineChanged').mockReturnValue(false);
     component.dropdownControl.setValue('pipeline-name *');
+    component.currentTemporaryPipelineId = '1234';
     component.selectedPipeline = new Pipeline('1', 'pipeline-name', 'content', 'user', 'loaded');
 
     component.isConfigValid();
     expect(component.dropdownControl.value).toBe('pipeline-name');
     expect(emitPipelineIdSpy).toHaveBeenCalledWith('1');
+    expect(component.currentTemporaryPipelineId).toBe('');
   });
 
   it('should not add \' *\' when pipeline config is has not been changed', () => {
@@ -466,6 +478,8 @@ describe('AnnotationPipelineComponent', () => {
       new Pipeline('4', 'pipeline-name', 'content', 'default', 'loaded'),
     ];
 
+    jest.spyOn(mockMatRef, 'open').mockReturnValueOnce(mockMatDialogRef);
+    jest.spyOn(mockMatDialogRef, 'afterClosed').mockReturnValueOnce(of('pipeline-name'));
     const savePipelineSpy = jest.spyOn(annotationPipelineServiceMock, 'savePipeline').mockReturnValueOnce(of('4'));
     const getAnnotationPipelinesSpy = jest.spyOn(jobsServiceMock, 'getAnnotationPipelines')
       .mockReturnValueOnce(of(updatedMockPipelines));
@@ -481,6 +495,7 @@ describe('AnnotationPipelineComponent', () => {
   });
 
   it('should not save pipeline and trigger pipelines query if new pipeline has no name', () => {
+    jest.spyOn(mockMatRef, 'open').mockReturnValueOnce(mockMatDialogRef);
     jest.spyOn(mockMatDialogRef, 'afterClosed').mockReturnValueOnce(of(null));
     const savePipelineSpy = jest.spyOn(annotationPipelineServiceMock, 'savePipeline');
     const getAnnotationPipelinesSpy = jest.spyOn(jobsServiceMock, 'getAnnotationPipelines');
@@ -492,7 +507,7 @@ describe('AnnotationPipelineComponent', () => {
     expect(savePipelineSpy).not.toHaveBeenCalledWith();
     expect(getAnnotationPipelinesSpy).not.toHaveBeenCalledTimes(2);
     expect(onPipelineClickSpy).not.toHaveBeenCalledWith();
-    expect(component.selectedPipeline.id).toBe('1');
+    expect(component.selectedPipeline.id).toBe('id1');
   });
 
   it('should delete pipeline', () => {
@@ -508,12 +523,12 @@ describe('AnnotationPipelineComponent', () => {
 
   it('should save pipeline and update list with pipelines', () => {
     const updatedMockPipelines: Pipeline[] = [
-      new Pipeline('1', 'id1', 'content1', 'default', 'loaded'),
-      new Pipeline('2', 'id2', 'content2', 'default', 'loaded'),
-      new Pipeline('3', 'id3', 'new content', 'user', 'loaded'),
+      new Pipeline('id1', 'name1', 'content1', 'default', 'loaded'),
+      new Pipeline('id2', 'name2', 'content2', 'default', 'loaded'),
+      new Pipeline('id3', 'name3', 'new content', 'user', 'loaded'),
     ];
 
-    const savePipelineSpy = jest.spyOn(annotationPipelineServiceMock, 'savePipeline');
+    const savePipelineSpy = jest.spyOn(annotationPipelineServiceMock, 'savePipeline').mockReturnValueOnce(of('id3'));
     jest.spyOn(jobsServiceMock, 'getAnnotationPipelines')
       .mockReturnValueOnce(of(updatedMockPipelines));
     const selectNewPipelineSpy = jest.spyOn(component, 'onPipelineClick');
@@ -522,8 +537,8 @@ describe('AnnotationPipelineComponent', () => {
     component.currentPipelineText = 'new content';
 
     component.save();
-    expect(savePipelineSpy).toHaveBeenCalledWith('3', 'id3', 'new content');
-    expect(selectNewPipelineSpy).toHaveBeenCalledWith(new Pipeline('3', 'id3', 'new content', 'user', 'loaded'));
+    expect(savePipelineSpy).toHaveBeenCalledWith('id3', 'name3', 'new content');
+    expect(selectNewPipelineSpy).toHaveBeenCalledWith(new Pipeline('id3', 'name3', 'new content', 'user', 'loaded'));
   });
 
   it('should save pipeline and not update pipeline list when response is invalid', () => {
@@ -534,7 +549,7 @@ describe('AnnotationPipelineComponent', () => {
     component.currentPipelineText = 'new content';
 
     component.save();
-    expect(savePipelineSpy).toHaveBeenCalledWith('3', 'id3', 'new content');
+    expect(savePipelineSpy).toHaveBeenCalledWith('id1', 'name1', 'new content');
     expect(getAnnotationPipelinesSpy).not.toHaveBeenCalledTimes(2);
   });
 
@@ -548,14 +563,14 @@ describe('AnnotationPipelineComponent', () => {
     expect(savePipelineSpy).not.toHaveBeenCalledWith();
   });
 
-  it('should auto save current pipeline', () => {
+  it('should auto save current pipeline when editing', () => {
     const savePipelineSpy = jest.spyOn(annotationPipelineServiceMock, 'savePipeline').mockReturnValueOnce(of(null));
 
     component.selectedPipeline = mockPipelines[2];
     component.currentPipelineText = 'new content';
 
     component.autoSave();
-    expect(savePipelineSpy).toHaveBeenCalledWith('3', 'id3', 'new content');
+    expect(savePipelineSpy).toHaveBeenCalledWith('', '', 'new content');
   });
 
   it('should save annonymous pipeline', () => {
@@ -667,5 +682,46 @@ describe('AnnotationPipelineComponent', () => {
         'editorIndentGuide.activeBackground1': '#a4b6c7ff',
       }
     });
+  });
+
+  it('should send id of the selected pipeline when opening new annotator modal', () => {
+    const openSpy = jest.spyOn(mockMatRef, 'open');
+    component.selectedPipeline = mockPipelines[2];
+    component.openAnnotatorFormModal();
+
+    expect(openSpy).toHaveBeenCalledWith(
+      NewAnnotatorComponent,
+      {
+        id: 'newAnnotator',
+        data: {
+          pipelineId: 'id3',
+          isResourceWorkflow: false
+        },
+        height: '60vh',
+        width: '70vw',
+        maxWidth: '1000px',
+        minWidth: '500px'
+      });
+  });
+
+  it('should send temporary pipeline id when opening new annotator modal', () => {
+    const openSpy = jest.spyOn(mockMatRef, 'open');
+    component.selectedPipeline = mockPipelines[2];
+    component.currentTemporaryPipelineId = 'temp123';
+    component.openAnnotatorFormModal();
+
+    expect(openSpy).toHaveBeenCalledWith(
+      NewAnnotatorComponent,
+      {
+        id: 'newAnnotator',
+        data: {
+          pipelineId: 'temp123',
+          isResourceWorkflow: false
+        },
+        height: '60vh',
+        width: '70vw',
+        maxWidth: '1000px',
+        minWidth: '500px'
+      });
   });
 });
