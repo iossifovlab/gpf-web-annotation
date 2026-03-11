@@ -352,7 +352,8 @@
   align-items: center;
 }
 
-.status-item:hover {
+.status-item:last-child:hover,
+.status-item:nth-last-child(2):hover {
   cursor: pointer;
   color: #627686;
 }

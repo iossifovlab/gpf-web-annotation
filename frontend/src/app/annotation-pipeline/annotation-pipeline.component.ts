@@ -27,6 +27,7 @@ import { PipelineNotification, PipelineStatus } from '../socket-notifications/so
 import { NewAnnotatorComponent } from '../new-annotator/new-annotator.component';
 import { PipelineInfo } from '../annotation-pipeline';
 import type * as Monaco from 'monaco-editor';
+import { MatTooltip } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-annotation-pipeline',
@@ -38,6 +39,7 @@ import type * as Monaco from 'monaco-editor';
     ReactiveFormsModule,
     FormsModule,
     MonacoEditorModule,
+    MatTooltip
   ],
   templateUrl: './annotation-pipeline.component.html',
   styleUrl: './annotation-pipeline.component.css'
