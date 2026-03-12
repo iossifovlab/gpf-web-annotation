@@ -98,7 +98,7 @@ input[type="text"] {
 ::ng-deep .mat-vertical-content {
   overflow: auto;
   height: fit-content;
-  max-height: 45vh;
+  max-height: 35vh;
 }
 
 .mdc-button {
@@ -176,45 +176,8 @@ mat-form-field {
   margin-bottom: 10px;
 }
 
-.attribute {
-  display: flex;
-  gap: 10px;
-  text-align: end;
-  margin-bottom: 5px;
-  align-items: center;
-}
-
 #attributes-dropdown {
   margin-bottom: 20px;
-}
-
-.selected-attribute {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
-  align-items: center;
-  font-size: 14px;
-}
-
-.modify-view-attribute {
-  height: 30px;
-  margin-right: 20px;
-}
-
-.modify-view-group {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.internal-value {
-  margin-right: 10px;
-}
-
-.field-label-attribute {
-  color: #85a2b9;
-  width: 35%;
-  text-align: end;
 }
 
 .field {
@@ -226,10 +189,6 @@ mat-form-field {
 
 .field-label {
   color: #85a2b9;
-}
-
-.attribute-desciption {
-  color: initial;
 }
 
 .remove-attribute {
@@ -292,17 +251,12 @@ input[type="radio"]:checked {
   accent-color: #435869;
 }
 
-.attribute-group {
-  border-bottom: 1px solid #e6e6de;
-  padding: 10px 0;
-}
-
 .left-content {
   width: 100%;
 }
 
 #attributes-list {
-  max-height: 35vh;
+  max-height: 45vh;
   overflow: auto;
 }
 

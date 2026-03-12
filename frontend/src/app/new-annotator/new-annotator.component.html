@@ -245,10 +245,10 @@
                   <input
                     class="editable-name"
                     type="text"
+                    #attributeNameInput
                     [title]="selectedAttribute.name"
-                    [value]="selectedAttribute.name"
-                    [(ngModel)]="selectedAttribute.name"
-                    (ngModelChange)="validateAttributes()"
+                    [ngModel]="selectedAttribute.name"
+                    (ngModelChange)="onAttributeNameChange(selectedAttribute, attributeNameInput.value)"
                     [ngClass]="existingAttributeNames.has(selectedAttribute.name) ? 'duplicate-name-input' : ''" />
                 </span>
                 <span class="attribute-internal grid-cell center-cell"
@@ -280,7 +280,6 @@
             <div class="duplicate-name">{{ errorMessage }}</div>
             }
             <button mat-button matStepperPrevious class="back-button" (click)="clearErrorMessage()">Back</button>
-            <button matButton matStepperNext class="next-button" (click)="clearErrorMessage()">Next</button>
             @if(areAttributesValid) {
             <button matButton (click)="onFinish()" class="finish-button">Finish</button>
             }
@@ -288,83 +287,6 @@
         </div>
       </ng-template>
     </mat-step>
-    <mat-step label="Modify attributes" [optional]="areAttributesValid">
-      <ng-template matStepContent>
-        <div class="summary-content">
-          <div class="annotator-display-text" [title]="annotatorStep.value | keyValueDisplay">{{
-            annotatorStep.value | keyValueDisplay
-          }}</div>
-          <div class="resources-display-text" [title]="resourceStep.value | keyValueDisplay">{{
-            resourceStep.value | keyValueDisplay
-          }}</div>
-        </div>
-
-        <div class="left-content">
-          <div id="attributes-list">
-            @for (attribute of selectedAttributes; track attribute.source) {
-            <div class="attribute-group modify-view-group">
-              <div style="width: 100%; margin-left: 20px">
-                <div class="attribute modify-view-attribute">
-                  <span class="field-label">name</span>
-                  <input
-                    class="editable-name"
-                    type="text"
-                    [title]="attribute.name"
-                    [value]="attribute.name"
-                    [(ngModel)]="attribute.name"
-                    (ngModelChange)="validateAttributes()"
-                    [ngClass]="existingAttributeNames.has(attribute.name) ? 'duplicate-name-input' : ''" />
-                </div>
-                <div class="attribute modify-view-attribute">
-                  <span class="field-label">source</span>
-                  <span>{{ attribute.source }}</span>
-                </div>
-                <div class="attribute modify-view-attribute">
-                  <span class="field-label">internal</span>
-                  <div>
-                    <input
-                      type="radio"
-                      [id]="attribute.name + '-internal-true'"
-                      [name]="attribute.name + 'is-internal'"
-                      [value]="attribute.name + '-internal-true'"
-                      [checked]="attribute.internal === true"
-                      (click)="setAttributeInternal(attribute, true)" />
-                    <label [for]="attribute.name + '-internal-true'" class="internal-value">True</label>
-                    <input
-                      type="radio"
-                      [id]="attribute.name + '-internal-false'"
-                      [name]="attribute.name + 'is-internal'"
-                      [value]="attribute.name + '-internal-false'"
-                      [checked]="attribute.internal === false"
-                      (click)="setAttributeInternal(attribute, false)" />
-                    <label [for]="attribute.name + '-internal-false'" class="internal-value">False</label>
-                  </div>
-                </div>
-              </div>
-            </div>
-            }
-          </div>
-          <div class="modal-footer">
-            @if(!areAttributesValid) {
-            <div class="duplicate-name">Attribute with this name already exists</div>
-            } @if(errorMessage) {
-            <div class="duplicate-name">{{ errorMessage }}</div>
-            }
-            <button
-              mat-button
-              matStepperPrevious
-              class="back-button"
-              (click)="resetAttributeNames(); clearErrorMessage()"
-              >Back</button
-            >
-            <button [disabled]="!areAttributesValid" matButton (click)="onFinish()" class="finish-button"
-              >Finish</button
-            >
-          </div>
-        </div>
-      </ng-template>
-    </mat-step>
-
     <ng-template matStepperIcon="edit" let-index="index">
       {{ index + 1 }}
     </ng-template>
