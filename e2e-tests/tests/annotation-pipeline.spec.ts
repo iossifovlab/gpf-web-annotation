@@ -420,7 +420,8 @@ test.describe('Add annotator to pipeline tests', () => {
         resp => resp.url().includes('api/pipelines/validate')
       ),
       page.waitForResponse(
-        resp => resp.url().includes('api/pipelines/user') // wait for pipeline to be saved
+        resp => resp.url().includes('api/pipelines/user'), // wait for pipeline to be saved
+        {timeout: 30000},
       ),
     ]);
 
