@@ -314,9 +314,9 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
         pipelineId: this.currentTemporaryPipelineId || this.selectedPipeline?.id,
         isResourceWorkflow: isResourceWorkflow
       },
-      height: '60vh',
-      width: '70vw',
-      maxWidth: '1000px',
+      height: '70vh',
+      width: '80vw',
+      maxWidth: '1500px',
       minWidth: '500px'
     });
 
