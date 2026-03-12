@@ -354,7 +354,15 @@ describe('NewAnnotatorComponent', () => {
 
   it('should store attribute names which already exists in config', () => {
     component.requestAttributes();
-    expect(component.duplicateAttributeNames).toStrictEqual(new Set(['mpc', 'dbSNP_RS']));
+    expect(component.existingAttributeNames).toStrictEqual(new Set([
+      'normalized_allele',
+      'dbSNP_RS',
+      'CLNSIG',
+      'CLNDN',
+      'mpc',
+      'worst_effect',
+      '3\'UTR_gene_list'
+    ]));
   });
 
   it('should disable finish button if there is selected attribute with duplicate name', () => {
@@ -376,7 +384,15 @@ describe('NewAnnotatorComponent', () => {
       )
     ];
     component.validateAttributes();
-    expect(component.duplicateAttributeNames).toStrictEqual(new Set(['mpc', 'dbSNP_RS']));
+    expect(component.existingAttributeNames).toStrictEqual(new Set([
+      'normalized_allele',
+      'dbSNP_RS',
+      'CLNSIG',
+      'CLNDN',
+      'mpc',
+      'worst_effect',
+      '3\'UTR_gene_list'
+    ]));
     expect(component.areAttributesValid).toBe(true);
   });
 
@@ -468,8 +484,6 @@ describe('NewAnnotatorComponent', () => {
     expect(component.unselectedFilteredAttributes).toStrictEqual([
       new AttributeData('5\'UTR_gene_list', 'object', '5\'UTR_gene_list', false, true, 'List of all 5\'UTR genes'),
     ]);
-
-    expect(component.duplicateAttributeNames).toStrictEqual(new Set(['mpc', 'dbSNP_RS', '3\'UTR_gene_list']));
   })
   );
 
