@@ -357,3 +357,16 @@ input[type="radio"]:checked {
   font-size: 14px;
   height: 20px;
 }
+
+input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+}
+
+input[type="checkbox"]:hover {
+  cursor: pointer;
+}
+
+input[type="checkbox"]:checked {
+  accent-color: #435869;
+}

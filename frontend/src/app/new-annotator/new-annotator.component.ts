@@ -377,6 +377,12 @@ export class NewAnnotatorComponent implements OnInit {
     }
     this.resourceTypeStep.get('resourceId').setValue(null);
   }
+  public toggleAttributeInternal(attribute: AttributeData): void {
+    const index = this.selectedAttributes.findIndex(a => a.name === attribute.name);
+    if (index !== -1) {
+      this.selectedAttributes[index].internal = !this.selectedAttributes[index].internal;
+    }
+  }
 
   public setAttributeInternal(attribute: AttributeData, value: boolean): void {
     const index = this.selectedAttributes.findIndex(a => a.name === attribute.name);

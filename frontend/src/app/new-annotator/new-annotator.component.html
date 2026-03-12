@@ -243,7 +243,12 @@
                   <span class="attribute-source grid-cell" [title]="selectedAttribute.source">{{
                     selectedAttribute.source
                   }}</span>
-                  <span class="attribute-internal grid-cell">{{ selectedAttribute.internal }}</span>
+                  <span class="attribute-internal grid-cell"
+                    ><input
+                      type="checkbox"
+                      [checked]="selectedAttribute.internal"
+                      (change)="toggleAttributeInternal(selectedAttribute)" />
+                  </span>
                   <span class="attribute-description grid-cell" [title]="selectedAttribute.description">{{
                     selectedAttribute.description
                   }}</span>
