@@ -3,6 +3,7 @@ import datetime
 import gzip
 import pathlib
 import textwrap
+from typing import cast
 
 import pytest
 from dae.genomic_resources.repository import GenomicResourceRepo
@@ -13,7 +14,7 @@ from django.utils import timezone
 from pytest_mock import MockerFixture
 from web_annotation.annotation_base_view import AnnotationBaseView
 from web_annotation.executor import SequentialTaskExecutor
-from web_annotation.models import AnonymousJob, Job, User, UserWrapper
+from web_annotation.models import AnonymousJob, BaseUser, Job, User, UserWrapper
 from web_annotation.pipeline_cache import LRUPipelineCache
 
 
@@ -771,7 +772,7 @@ def test_single_annotation_pipeline_usage(
     assert load_spy.call_count == 1
     assert get_spy.call_count == 1
 
-    base_view.get_pipeline("1", user)
+    base_view.get_pipeline("1", cast(BaseUser, user))
 
     assert load_spy.call_count == 1
     assert get_spy.call_count == 2

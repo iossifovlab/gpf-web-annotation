@@ -28,6 +28,7 @@ from web_annotation.models import (
     AnonymousJob,
     Job,
     User,
+    UserWrapper,
     WebAnnotationAnonymousUser,
 )
 from web_annotation.permissions import has_job_permission
@@ -81,7 +82,7 @@ class JobList(generics.ListAPIView):
 
     def get_queryset(self) -> QuerySet:
         assert isinstance(
-            self.request.user, (User, WebAnnotationAnonymousUser))
+            self.request.user, (UserWrapper, WebAnnotationAnonymousUser))
         return Job.objects \
             .order_by("name") \
             .filter(
