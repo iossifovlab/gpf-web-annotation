@@ -59,7 +59,7 @@ class BaseUser():
         return
 
     @property
-    def as_owner(self) -> User:
+    def as_owner(self) -> User | str:
         raise NotImplementedError
 
     def get_pipelines(self) -> list[BasePipeline]:
@@ -138,7 +138,7 @@ class UserWrapper(BaseUser):
     def get_pipelines(self) -> list[BasePipeline]:
         """Get pipelines for user."""
         pipelines = Pipeline.objects.filter(
-            owner=self.user.as_owner,
+            owner=cast(User, self.user.as_owner),
         )
         return list(pipelines)
 
@@ -180,7 +180,7 @@ class UserWrapper(BaseUser):
         return self.user.get_jobs()
 
     @property
-    def as_owner(self) -> User:
+    def as_owner(self) -> User | str:
         return self.user.as_owner
 
 
@@ -202,7 +202,7 @@ class User(AbstractUser):
         return self.email
 
     @property
-    def as_owner(self) -> User:
+    def as_owner(self) -> User | str:
         return self
 
     def is_owner(self, job: Job) -> bool:
@@ -246,14 +246,14 @@ class User(AbstractUser):
     def get_jobs(self) -> list[Job]:
         """Get user's jobs."""
         jobs = self.job_class.objects.filter(
-            owner=self.as_owner,
+            owner=cast(User, self.as_owner),
         )
         return list(jobs)
 
     def delete_jobs(self) -> None:
         """Get user's jobs."""
         jobs = self.job_class.objects.filter(
-            owner=self.as_owner,
+            owner=cast(User, self.as_owner),
         )
         for job in jobs:
             job.deactivate()
@@ -261,7 +261,7 @@ class User(AbstractUser):
     def delete_pipelines(self) -> None:
         """Delete user pipelines."""
         pipelines = Pipeline.objects.filter(
-            owner=self.as_owner,
+            owner=cast(User, self.as_owner),
         )
         for pipeline in pipelines:
             pipeline.remove()
@@ -269,7 +269,7 @@ class User(AbstractUser):
     def delete_pipeline(self, pipeline_id: str) -> None:
         """Delete user pipelines."""
         pipelines = Pipeline.objects.filter(
-            owner=self.as_owner,
+            owner=cast(User, self.as_owner),
             pk=int(pipeline_id),
         )
         for pipeline in pipelines:
@@ -312,7 +312,7 @@ class WebAnnotationAnonymousUser(BaseUser, AnonymousUser):
         return f"anon_{self.session_id}"
 
     @property
-    def as_owner(self) -> str:
+    def as_owner(self) -> User | str:
         return self.identifier
 
     def get_socket_group(self) -> str:

@@ -78,10 +78,14 @@ class JobAll(generics.ListAPIView):
 class JobList(generics.ListAPIView):
     """Generic view for listing jobs for the user."""
     authentication_classes = [WebAnnotationAuthentication]
+
     def get_queryset(self) -> QuerySet:
+        assert isinstance(
+            self.request.user, (User, WebAnnotationAnonymousUser))
         return Job.objects \
             .order_by("name") \
-            .filter(owner=self.request.user.as_owner, is_active=True)
+            .filter(
+                owner=cast(User, self.request.user.as_owner), is_active=True)
 
     serializer_class = JobSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -160,7 +164,7 @@ class JobDetail(AnnotationBaseView):
         except ObjectDoesNotExist:
             return Response(status=views.status.HTTP_404_NOT_FOUND)
 
-        if job.owner != request.user.as_owner:
+        if job.owner != cast(User, request.user.as_owner):
             return Response(status=views.status.HTTP_403_FORBIDDEN)
 
         job.deactivate()

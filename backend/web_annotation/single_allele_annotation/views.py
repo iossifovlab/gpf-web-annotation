@@ -1,6 +1,6 @@
 """Module for single allele annotation views."""
 from datetime import datetime
-from typing import Any
+from typing import Any, cast
 
 from dae.annotation.annotatable import VCFAllele
 from dae.annotation.annotation_config import AttributeInfo
@@ -30,7 +30,7 @@ from rest_framework.views import Request, Response
 
 from web_annotation.annotation_base_view import AnnotationBaseView
 from web_annotation.authentication import WebAnnotationAuthentication
-from web_annotation.models import AlleleQuery, BaseUser
+from web_annotation.models import AlleleQuery, BaseUser, User
 from web_annotation.serializers import AlleleSerializer
 
 
@@ -324,7 +324,9 @@ class AlleleHistory(generics.ListAPIView):
     serializer_class = AlleleSerializer
 
     def get_queryset(self) -> QuerySet:
-        return AlleleQuery.objects.filter(owner=self.request.user.as_owner)
+        assert isinstance(self.request.user, BaseUser)
+        return AlleleQuery.objects.filter(
+            owner=cast(User, self.request.user.as_owner))
 
     def delete(self, request: Request) -> Response:
         """Delete user allele annotation query from history"""

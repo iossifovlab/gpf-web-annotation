@@ -185,10 +185,11 @@ class LRUPipelineCache:
         pipeline.open()
         return pipeline
 
-    def put_pipeline(
+    def put_pipeline(  # pylint: disable=too-many-arguments
         self,
         pipeline_id: str,
         pipeline_config: str,
+        *,
         begin_load_callback: Callable[[], None] | None = None,
         finish_load_callback: Callable[[], None] | None = None,
         delete_callback: Callable[[ThreadSafePipeline], None] | None = None,
