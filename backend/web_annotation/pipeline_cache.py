@@ -192,6 +192,7 @@ class LRUPipelineCache:
         begin_load_callback: Callable[[], None] | None = None,
         finish_load_callback: Callable[[], None] | None = None,
         delete_callback: Callable[[ThreadSafePipeline], None] | None = None,
+        force: bool = False
     ) -> None:
         """Put a pipeline into the cache."""
         pipeline_config_hash = hash(pipeline_config)
@@ -199,7 +200,7 @@ class LRUPipelineCache:
         with self._cache_lock:
             if pipeline_id in self._cache:
                 details = self._cache[pipeline_id]
-                if details.config_hash == pipeline_config_hash:
+                if details.config_hash == pipeline_config_hash and not force:
                     return
                 self.delete_pipeline(pipeline_id)
 

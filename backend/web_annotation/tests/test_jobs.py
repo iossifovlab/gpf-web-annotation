@@ -1249,8 +1249,9 @@ def test_user_create_anonymous_pipeline(
     assert response is not None
     assert response.status_code == 200
     anon_pipeline_id = response.json()["id"]
+    assert anon_pipeline_id == user_client.session.session_key
     assert TemporaryPipeline.objects.filter(
-        session_id=user_client.session.session_key).count() == 1
+        session_id=anon_pipeline_id).count() == 1
     pipeline = TemporaryPipeline.objects.last()
     assert pipeline is not None
     assert pipeline.name.startswith("pipeline-")

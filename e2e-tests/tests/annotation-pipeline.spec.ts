@@ -421,7 +421,7 @@ test.describe('Add annotator to pipeline tests', () => {
       ),
       page.waitForResponse(
         resp => resp.url().includes('api/pipelines/user'), // wait for pipeline to be saved
-        {timeout: 30000},
+        {timeout: 20000},  // hg38_to_t2t chain loading can take a while, increase timeout for this test
       ),
     ]);
 

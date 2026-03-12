@@ -30,7 +30,7 @@ from rest_framework.views import Request, Response
 
 from web_annotation.annotation_base_view import AnnotationBaseView
 from web_annotation.authentication import WebAnnotationAuthentication
-from web_annotation.models import AlleleQuery, BaseUser, User
+from web_annotation.models import AlleleQuery, BaseUser
 from web_annotation.serializers import AlleleSerializer
 
 

@@ -1,5 +1,6 @@
+"""Views for annotator editor API."""
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
 import yaml
 from itertools import islice
@@ -307,7 +308,7 @@ class AnnotatorAttributes(EditorView):
                 )
             attribute_descs = list(filter(
                 lambda desc:
-                    search_term.lower() in cast(str, desc.source).lower() or
+                    search_term.lower() in desc.source.lower() or
                     search_term.lower() in desc.description.lower(),
                 annotator.get_all_attribute_descriptions().values(),
             ))

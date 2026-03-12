@@ -1,7 +1,6 @@
 """Views for pipeline creation and manipulation."""
 import logging
 from pathlib import Path
-import time
 from dae.annotation.annotation_config import (
     AnnotationConfigParser,
     AnnotationConfigurationError,
@@ -17,7 +16,6 @@ from web_annotation.annotation_base_view import AnnotationBaseView
 from web_annotation.authentication import WebAnnotationAuthentication
 from web_annotation.models import (
     BaseUser,
-    User,
     Pipeline,
     TemporaryPipeline,
     WebAnnotationAnonymousUser,

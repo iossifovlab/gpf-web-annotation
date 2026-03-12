@@ -31,7 +31,6 @@ from web_annotation.models import (
     BaseUser,
     Job,
     User,
-    WebAnnotationAnonymousUser,
 )
 from web_annotation.pipeline_cache import LRUPipelineCache, ThreadSafePipeline
 
@@ -202,6 +201,7 @@ class AnnotationBaseView(views.APIView):
         user: BaseUser,
     ) -> None:
         """Load an annotation pipeline by ID and notify the user channel."""
+        force = False
         if pipeline_id in self.grr_pipelines:
             pipeline_config = self.grr_pipelines[pipeline_id]["content"]
             notify_function = self._notify_global_pipeline
@@ -209,6 +209,8 @@ class AnnotationBaseView(views.APIView):
             pipeline = user.get_temporary_pipeline(pipeline_id)
             if pipeline is None:
                 pipeline = user.get_pipeline(pipeline_id)
+            else:
+                force = True
             pipeline_config = self._get_user_pipeline_yaml(pipeline)
             notify_function = partial(self._notify_user_pipeline, user)
 
@@ -229,6 +231,7 @@ class AnnotationBaseView(views.APIView):
             begin_load_callback=begin_load_callback,
             finish_load_callback=finish_load_callback,
             delete_callback=delete_callback,
+            force=force,
         )
 
     def get_pipeline(

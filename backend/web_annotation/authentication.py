@@ -51,7 +51,7 @@ class WebAnnotationAuthentication(SessionAuthentication):
 
 class RequiredSessionAuthentication(SessionAuthentication):
     """Custom authentication class"""
-    def authenticate(
+    def authenticate(  # pylint: disable=useless-return
         self,
         request: HttpRequest,
     ) -> tuple[User | WebAnnotationAnonymousUser, None] | None:

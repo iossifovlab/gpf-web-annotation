@@ -58,6 +58,7 @@ class BaseUser():
         """Delete user pipelines."""
         return
 
+    @property
     def as_owner(self) -> User:
         raise NotImplementedError
 
@@ -68,9 +69,10 @@ class BaseUser():
     def get_temporary_pipeline(
         self, session_id: str | None = None,
     ) -> BasePipeline | None:
+        """Get temporary pipeline for user."""
         if session_id is None:
             session_id = self.session_id
-        pipeline = TemporaryPipeline.objects.filter(  # type: ignore
+        pipeline = TemporaryPipeline.objects.filter(
             session_id=session_id).first()
         if pipeline is None:
             return None
@@ -123,7 +125,7 @@ class UserWrapper(BaseUser):
 
     def get_pipeline(self, pipeline_id: str) -> BasePipeline:
         """Get pipeline from respective table, checking ownership."""
-        pipeline = Pipeline.objects.filter(  # type: ignore
+        pipeline = Pipeline.objects.filter(
             pk=int(pipeline_id),
         ).first()
         if pipeline is None:
@@ -135,7 +137,7 @@ class UserWrapper(BaseUser):
 
     def get_pipelines(self) -> list[BasePipeline]:
         """Get pipelines for user."""
-        pipelines = Pipeline.objects.filter(  # type: ignore
+        pipelines = Pipeline.objects.filter(
             owner=self.user.as_owner,
         )
         return list(pipelines)
@@ -162,7 +164,7 @@ class UserWrapper(BaseUser):
         return job.owner == self.user
 
     @property
-    def is_staff(self) -> str:
+    def is_staff(self) -> bool:
         return self.user.is_staff
 
     @property

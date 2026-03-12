@@ -13,7 +13,7 @@ from django.utils import timezone
 from pytest_mock import MockerFixture
 from web_annotation.annotation_base_view import AnnotationBaseView
 from web_annotation.executor import SequentialTaskExecutor
-from web_annotation.models import AnonymousJob, Job, User
+from web_annotation.models import AnonymousJob, Job, User, UserWrapper
 from web_annotation.pipeline_cache import LRUPipelineCache
 
 
@@ -764,8 +764,9 @@ def test_single_annotation_pipeline_usage(
         "config": ContentFile(pipeline_config),
         "name": "test_pipeline",
     })
-
-    base_view.get_pipeline("1", user)
+    assert user_client.session.session_key is not None
+    base_view.get_pipeline(
+        "1", UserWrapper(user, user_client.session.session_key))
 
     assert load_spy.call_count == 1
     assert get_spy.call_count == 1
@@ -777,7 +778,8 @@ def test_single_annotation_pipeline_usage(
 
 
 def test_histogram_view(admin_client: Client) -> None:
-    response = admin_client.get("/api/single_allele/histograms/scores/pos1?score_id=pos1")
+    response = admin_client.get(
+        "/api/single_allele/histograms/scores/pos1?score_id=pos1")
 
     assert response.status_code == 200
     data = response.json()
