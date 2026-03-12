@@ -98,7 +98,7 @@ input[type="text"] {
 ::ng-deep .mat-vertical-content {
   overflow: auto;
   height: fit-content;
-  max-height: 35vh;
+  max-height: 45vh;
 }
 
 .mdc-button {
@@ -111,7 +111,9 @@ input[type="text"] {
   gap: 20px;
 }
 
-form,
+#resource-input-form,
+#annotator-input-form,
+#resources-form,
 .left-content {
   display: flex;
   flex-direction: column;
@@ -266,8 +268,7 @@ mat-form-field {
   color: #8faec6;
 }
 
-.resource-field,
-.editable-name {
+.resource-field {
   padding: 10px;
   border: 1px solid #cfd8df;
   border-radius: 5px;
@@ -278,7 +279,12 @@ mat-form-field {
 }
 
 .editable-name {
-  width: 60%;
+  padding: 10px;
+  border: 1px solid #cfd8df;
+  border-radius: 5px;
+  color: #252e34;
+  font-size: 16px;
+  width: 90%;
   height: 10px;
 }
 
@@ -349,13 +355,16 @@ input[type="radio"]:checked {
 
 .grid-cell {
   border: 1px solid #cfd8df;
-  text-align: center;
   padding: 7px;
   text-wrap: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: 14px;
-  height: 20px;
+  align-content: center;
+}
+
+.center-cell {
+  text-align: center;
 }
 
 input[type="checkbox"] {

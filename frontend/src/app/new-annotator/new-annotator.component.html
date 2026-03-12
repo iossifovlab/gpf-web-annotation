@@ -113,7 +113,7 @@
         </div>
 
         <div class="left-content">
-          <form [formGroup]="resourceStep">
+          <form [formGroup]="resourceStep" id="resources-form">
             <div>
               @for (resource of annotatorConfig.resources; track resource.key) {
               <div class="field">
@@ -224,47 +224,54 @@
                   }
                 </mat-autocomplete>
               </mat-form-field>
-              @if(selectedAttributes.length){
-              <span>Selected attributes:</span>
-              <div class="grid-container" id="attributes-list">
-                <div class="grid-header">Name</div>
-                <div class="grid-header">Source</div>
-                <div class="grid-header">Internal</div>
-                <div class="grid-header">Description</div>
-                <div class="grid-header">Actions</div>
-                @for (selectedAttribute of selectedAttributes; track selectedAttribute.source) {
-                <ng-container>
-                  <span
-                    class="attribute-name grid-cell"
-                    [title]="selectedAttribute.name"
-                    [ngClass]="existingAttributeNames.has(selectedAttribute.name) ? 'duplicate-name' : ''"
-                    >{{ selectedAttribute.name }}</span
-                  >
-                  <span class="attribute-source grid-cell" [title]="selectedAttribute.source">{{
-                    selectedAttribute.source
-                  }}</span>
-                  <span class="attribute-internal grid-cell"
-                    ><input
-                      type="checkbox"
-                      [checked]="selectedAttribute.internal"
-                      (change)="toggleAttributeInternal(selectedAttribute)" />
-                  </span>
-                  <span class="attribute-description grid-cell" [title]="selectedAttribute.description">{{
-                    selectedAttribute.description
-                  }}</span>
-                  <div class="action-buttons grid-cell">
-                    <span
-                      [attr.id]="selectedAttribute.name + '-remove-button'"
-                      class="material-symbols-outlined remove-attribute"
-                      (click)="removeSelectedAttribute(selectedAttribute)"
-                      >delete</span
-                    >
-                  </div>
-                </ng-container>
-                }
-              </div>
-              }
             </form>
+            @if(selectedAttributes.length) {
+            <span>Selected attributes:</span>
+            <div class="grid-container" id="attributes-list">
+              <div class="grid-header">Source</div>
+              <div class="grid-header">Name</div>
+              <div class="grid-header">Internal</div>
+              <div class="grid-header">Description</div>
+              <div class="grid-header">Delete</div>
+              @for (selectedAttribute of selectedAttributes; track selectedAttribute.source) {
+              <ng-container>
+                <span class="attribute-source grid-cell" [title]="selectedAttribute.source">{{
+                  selectedAttribute.source
+                }}</span>
+                <span
+                  class="attribute-name grid-cell"
+                  [title]="selectedAttribute.name"
+                  [ngClass]="existingAttributeNames.has(selectedAttribute.name) ? 'duplicate-name' : ''">
+                  <input
+                    class="editable-name"
+                    type="text"
+                    [title]="selectedAttribute.name"
+                    [value]="selectedAttribute.name"
+                    [(ngModel)]="selectedAttribute.name"
+                    (ngModelChange)="validateAttributes()"
+                    [ngClass]="existingAttributeNames.has(selectedAttribute.name) ? 'duplicate-name-input' : ''" />
+                </span>
+                <span class="attribute-internal grid-cell center-cell"
+                  ><input
+                    type="checkbox"
+                    [checked]="selectedAttribute.internal"
+                    (change)="toggleAttributeInternal(selectedAttribute)" />
+                </span>
+                <span class="attribute-description grid-cell" [title]="selectedAttribute.description">{{
+                  selectedAttribute.description
+                }}</span>
+                <div class="delete-buttons grid-cell center-cell">
+                  <span
+                    [attr.id]="selectedAttribute.name + '-remove-button'"
+                    class="material-symbols-outlined remove-attribute"
+                    (click)="removeSelectedAttribute(selectedAttribute)"
+                    >delete</span
+                  >
+                </div>
+              </ng-container>
+              }
+            </div>
+            }
           </div>
           <div class="modal-footer">
             @if(!areAttributesValid) {
