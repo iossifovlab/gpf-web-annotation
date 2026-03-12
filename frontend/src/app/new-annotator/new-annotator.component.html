@@ -238,7 +238,7 @@
                   <span
                     [title]="selectedAttribute.name"
                     class="attribute-name"
-                    [ngClass]="duplicateAttributeNames.has(selectedAttribute.name) ? 'duplicate-name' : ''"
+                    [ngClass]="existingAttributeNames.has(selectedAttribute.name) ? 'duplicate-name' : ''"
                     >{{ selectedAttribute.name
                     }}<span [title]="selectedAttribute.description" class="attribute-desciption">{{
                       ' - ' + selectedAttribute.description
@@ -290,7 +290,7 @@
                     [value]="attribute.name"
                     [(ngModel)]="attribute.name"
                     (ngModelChange)="validateAttributes()"
-                    [ngClass]="duplicateAttributeNames.has(attribute.name) ? 'duplicate-name-input' : ''" />
+                    [ngClass]="existingAttributeNames.has(attribute.name) ? 'duplicate-name-input' : ''" />
                 </div>
                 <div class="attribute modify-view-attribute">
                   <span class="field-label">source</span>

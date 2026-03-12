@@ -71,7 +71,7 @@ export class NewAnnotatorComponent implements OnInit {
   public unselectedFilteredAttributes: AttributeData[];
   public areAttributesValid: boolean;
   @ViewChild('stepper', { static: true }) public stepper: MatStepper;
-  public duplicateAttributeNames: Set<string> = new Set();
+  public existingAttributeNames: Set<string> = new Set();
   public attributesSubscription = new Subscription();
   public errorMessage = '';
 
@@ -303,7 +303,6 @@ export class NewAnnotatorComponent implements OnInit {
       this.attributePage = res;
       this.unselectedAttributes = res.attributes.filter(a => !this.selectedAttributes.some(s => s.name === a.name));
       this.unselectedFilteredAttributes = this.unselectedAttributes;
-      this.getPipelineAttributesNames();
     });
   }
 
@@ -318,17 +317,14 @@ export class NewAnnotatorComponent implements OnInit {
 
   private getPipelineAttributesNames(): void {
     this.editorService.getPipelineAttributesNames(this.data.pipelineId).pipe(take(1)).subscribe(names => {
-      this.attributePage.attributes
-        .filter(a => names.includes(a.name))
-        .map(a => a.name)
-        .forEach(name => this.duplicateAttributeNames.add(name));
+      this.existingAttributeNames = new Set([...names]);
       this.validateAttributes();
     });
   }
 
   public validateAttributes(): void {
     this.areAttributesValid = !this.selectedAttributes.some(
-      a => this.duplicateAttributeNames.has(a.name)
+      a => this.existingAttributeNames.has(a.name)
     );
   }
 
