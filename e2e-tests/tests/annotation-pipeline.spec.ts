@@ -370,7 +370,7 @@ test.describe('Add annotator to pipeline tests', () => {
     await page.locator('mat-option').getByText('gene_list').click();
     await page.getByRole('button', { name: 'Next' }).click();
 
-    await expect(page.locator('.selected-attribute')).toHaveCount(1);
+    await expect(page.locator('.attribute-source')).toHaveCount(1);
 
     await Promise.all([
       page.getByRole('button', { name: 'Finish' }).click(),
