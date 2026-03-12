@@ -74,6 +74,7 @@ export class NewAnnotatorComponent implements OnInit {
   public existingAttributeNames: Set<string> = new Set();
   public attributesSubscription = new Subscription();
   public errorMessage = '';
+  public editAttributeNameView = false;
 
   public constructor(
     private editorService: PipelineEditorService,
@@ -378,10 +379,18 @@ export class NewAnnotatorComponent implements OnInit {
     this.resourceTypeStep.get('resourceId').setValue(null);
   }
 
-  public setAttributeInternal(attribute: AttributeData, value: boolean): void {
+  public onAttributeNameChange(attribute: AttributeData, newName: string): void {
+    const trimmedName = newName.trim();
+    if (!this.existingAttributeNames.has(trimmedName)) {
+      attribute.name = trimmedName;
+    }
+    this.validateAttributes();
+  }
+
+  public toggleAttributeInternal(attribute: AttributeData): void {
     const index = this.selectedAttributes.findIndex(a => a.name === attribute.name);
     if (index !== -1) {
-      this.selectedAttributes[index].internal = value;
+      this.selectedAttributes[index].internal = !this.selectedAttributes[index].internal;
     }
   }
 
@@ -403,20 +412,6 @@ export class NewAnnotatorComponent implements OnInit {
       this.attributePage = res;
       this.unselectedAttributes = res.attributes.filter(a => !this.selectedAttributes.some(s => s.name === a.name));
       this.unselectedFilteredAttributes = this.unselectedAttributes;
-    });
-  }
-
-  public resetAttributeNames(): void {
-    this.selectedAttributes.forEach(a => {
-      const ind = this.attributePage.attributes.findIndex(el => el.source === a.source);
-      if (ind !== -1) {
-        a.name = this.attributePage.attributes[ind].name;
-      } else {
-        this.attributesSubscription.unsubscribe();
-        this.getAttributesObservable(a.description).subscribe(res => {
-          a.name = res.attributes[0].name;
-        });
-      }
     });
   }
 

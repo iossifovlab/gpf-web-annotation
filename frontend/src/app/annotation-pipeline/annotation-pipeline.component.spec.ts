@@ -697,9 +697,9 @@ describe('AnnotationPipelineComponent', () => {
           pipelineId: 'id3',
           isResourceWorkflow: false
         },
-        height: '60vh',
-        width: '70vw',
-        maxWidth: '1000px',
+        height: '70vh',
+        width: '80vw',
+        maxWidth: '1500px',
         minWidth: '500px'
       });
   });
@@ -718,9 +718,9 @@ describe('AnnotationPipelineComponent', () => {
           pipelineId: 'temp123',
           isResourceWorkflow: false
         },
-        height: '60vh',
-        width: '70vw',
-        maxWidth: '1000px',
+        height: '70vh',
+        width: '80vw',
+        maxWidth: '1500px',
         minWidth: '500px'
       });
   });
