@@ -226,25 +226,36 @@
               </mat-form-field>
               @if(selectedAttributes.length){
               <span>Selected attributes:</span>
-              <div id="attributes-list">
+              <div class="grid-container" id="attributes-list">
+                <div class="grid-header">Name</div>
+                <div class="grid-header">Source</div>
+                <div class="grid-header">Internal</div>
+                <div class="grid-header">Description</div>
+                <div class="grid-header">Actions</div>
                 @for (selectedAttribute of selectedAttributes; track selectedAttribute.source) {
-                <div class="selected-attribute">
+                <ng-container>
                   <span
-                    [attr.id]="selectedAttribute.name + '-remove-button'"
-                    class="material-symbols-outlined remove-attribute"
-                    (click)="removeSelectedAttribute(selectedAttribute)"
-                    >delete</span
-                  >
-                  <span
+                    class="attribute-name grid-cell"
                     [title]="selectedAttribute.name"
-                    class="attribute-name"
                     [ngClass]="existingAttributeNames.has(selectedAttribute.name) ? 'duplicate-name' : ''"
-                    >{{ selectedAttribute.name
-                    }}<span [title]="selectedAttribute.description" class="attribute-desciption">{{
-                      ' - ' + selectedAttribute.description
-                    }}</span></span
+                    >{{ selectedAttribute.name }}</span
                   >
-                </div>
+                  <span class="attribute-source grid-cell" [title]="selectedAttribute.source">{{
+                    selectedAttribute.source
+                  }}</span>
+                  <span class="attribute-internal grid-cell">{{ selectedAttribute.internal }}</span>
+                  <span class="attribute-description grid-cell" [title]="selectedAttribute.description">{{
+                    selectedAttribute.description
+                  }}</span>
+                  <div class="action-buttons grid-cell">
+                    <span
+                      [attr.id]="selectedAttribute.name + '-remove-button'"
+                      class="material-symbols-outlined remove-attribute"
+                      (click)="removeSelectedAttribute(selectedAttribute)"
+                      >delete</span
+                    >
+                  </div>
+                </ng-container>
                 }
               </div>
               }

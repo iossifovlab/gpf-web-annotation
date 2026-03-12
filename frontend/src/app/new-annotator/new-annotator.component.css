@@ -330,3 +330,30 @@ input[type="radio"]:checked {
   align-items: flex-end;
   gap: 15px;
 }
+
+.grid-container {
+  display: grid;
+  grid-template-columns: 26% 26% 10% 26% 10%;
+  font-size: 14px;
+}
+
+.grid-header {
+  min-height: 2rem;
+  line-height: 2rem;
+  border: 1px solid #cfd8df;
+  background-color: #ecf1f6;
+  text-align: center;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.grid-cell {
+  border: 1px solid #cfd8df;
+  text-align: center;
+  padding: 7px;
+  text-wrap: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 14px;
+  height: 20px;
+}
