@@ -5,7 +5,9 @@ export class Variant {
     public position: number,
     public reference: string,
     public alternative: string,
-    public variantType: string
+    public variantType: string,
+    public positionStart: number,
+    public positionEnd: number,
   ) {}
 
   public static fromJson(json: object): Variant {
@@ -19,6 +21,8 @@ export class Variant {
       json['reference'] as string,
       json['alternative'] as string,
       json['variant_type'] as string,
+      json['pos_beg'] as number,
+      json['pos_end'] as number,
     );
   }
 }

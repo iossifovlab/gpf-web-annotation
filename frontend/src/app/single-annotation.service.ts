@@ -26,9 +26,13 @@ export class SingleAnnotationService {
   public getReport(variant: Variant, pipeline: string): Observable<SingleAnnotationReport> {
     const variantJson = {
       chrom: variant.chromosome,
-      pos: variant.position,
-      ref: variant.reference,
-      alt: variant.alternative
+      pos: variant.position || undefined,
+      ref: variant.reference || undefined,
+      alt: variant.alternative || undefined,
+      // eslint-disable-next-line camelcase
+      pos_beg: variant.positionStart || undefined,
+      // eslint-disable-next-line camelcase
+      pos_end: variant.positionEnd || undefined
     };
 
     const userToken = this.getCSRFToken();

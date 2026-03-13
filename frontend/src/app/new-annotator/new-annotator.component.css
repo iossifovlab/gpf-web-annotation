@@ -310,11 +310,15 @@ input[type="radio"]:checked {
 .grid-cell {
   border: 1px solid #cfd8df;
   padding: 7px;
+  font-size: 14px;
+  align-content: center;
+}
+
+.attribute-description,
+.attribute-source {
   text-wrap: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 14px;
-  align-content: center;
 }
 
 .center-cell {

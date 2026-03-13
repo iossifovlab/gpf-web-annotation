@@ -26,6 +26,7 @@ export class SingleAnnotationComponent {
   @Output() public autoSaveTrigger = new EventEmitter<void>();
   private getReportSubscription = new Subscription();
   public loading = false;
+  private alleleJson: Variant;
 
   public constructor(private singleAnnotationService: SingleAnnotationService, private userService: UsersService) { }
 
@@ -38,6 +39,7 @@ export class SingleAnnotationComponent {
       this.validationMessage = '';
       this.getReport(this.pipelineId);
     } else {
+      this.alleleJson = undefined;
       this.validationMessage = 'Invalid allele format or missing pipeline!';
       this.report = null;
     }
@@ -49,20 +51,79 @@ export class SingleAnnotationComponent {
 
   private isAlleleValid(): boolean {
     this.currentAllele = this.currentAllele.trim();
-    const a = this.currentAllele.split(' ');
 
-    let valid = false;
-    if (a.length === 3) {
-      valid = this.isPosValid(a[0]) && this.isRefValid(a[1]) && this.isAltValid(a[2]);
-    } else if (a.length === 4) {
-      valid = this.isPosValid(a[1]) && this.isRefValid(a[2]) && this.isAltValid(a[3]);
+    const parts = this.splitAllele(this.currentAllele);
+
+    if (parts.length === 4) {
+      this.alleleJson = new Variant(
+        parts[0],
+        Number(parts[1]),
+        parts[2],
+        parts[3],
+        null,
+        null,
+        null
+      );
+      return this.isPosValid(parts[1]) && this.isRefValid(parts[2]) && this.isAltValid(parts[3]);
     }
 
-    return valid;
+    if (parts.length === 3) {
+      this.alleleJson = new Variant(
+        parts[0],
+        null,
+        null,
+        null,
+        null,
+        Number(parts[1]),
+        Number(parts[2]),
+      );
+      return this.isPosValid(parts[1]) && this.isPosValid(parts[2]) && parts[1] < parts[2];
+    }
+
+    if (parts.length === 2) {
+      this.alleleJson = new Variant(
+        parts[0],
+        Number(parts[1]),
+        null,
+        null,
+        null,
+        null,
+        null
+      );
+      return this.isPosValid(parts[1]);
+    }
+    this.alleleJson = undefined;
+    return false;
+  }
+
+  private splitAllele(allele: string): string[] {
+    const parts = allele.split(/[: ]+/);
+    const [chrom, pos, ref, alt] = parts;
+
+    if (pos.includes('-')) {
+      const [posBeg, posEnd] = pos.split('-');
+      return [chrom, posBeg, posEnd];
+    }
+
+    if (!ref && !alt) {
+      return [chrom, pos];
+    }
+
+    if (ref.includes('\'>\'')) {
+      const [r, a] = ref.split('\'>\'');
+      return [chrom, pos, r, a];
+    }
+
+    if (ref && !alt) {
+      return [chrom, pos, ref];
+    }
+
+
+    return [chrom, pos, ref, alt];
   }
 
   private isPosValid(position: string): boolean {
-    return !isNaN(Number(position));
+    return position !== '' && !isNaN(Number(position));
   }
 
   private isRefValid(reference: string): boolean {
@@ -72,12 +133,12 @@ export class SingleAnnotationComponent {
   private areBasesValid(bases: string): boolean {
     const validBases = ['A', 'C', 'G', 'T', 'N', 'a', 'c', 'g', 't', 'n'];
     const bList = bases.split('');
-    return bList.filter(b => !validBases.includes(b)).length === 0;
+    return bList.every(b => validBases.includes(b));
   }
 
   private isAltValid(alternative: string): boolean {
     const aList = alternative.split(',');
-    return aList.filter(a => !this.areBasesValid(a)).length === 0;
+    return aList.every(a => this.areBasesValid(a));
   }
 
   public setAllele(historyAllele: string): void {
@@ -100,7 +161,7 @@ export class SingleAnnotationComponent {
     this.getReportSubscription.unsubscribe();
     this.loading = true;
     this.getReportSubscription = this.singleAnnotationService.getReport(
-      this.parseVariantToObject(this.currentAllele),
+      this.alleleJson,
       pipelineId
     ).subscribe({
       next: report => {
@@ -121,10 +182,5 @@ export class SingleAnnotationComponent {
         this.alleleUpdateEmit.emit();
       }
     });
-  }
-
-  private parseVariantToObject(variant: string): Variant {
-    const variantFields = variant.split(' ');
-    return new Variant(variantFields[0], Number(variantFields[1]), variantFields[2], variantFields[3], null);
   }
 }

@@ -148,7 +148,7 @@ describe('SingleAnnotationService', () => {
   it('should check query parameters when requesting annotation report', () => {
     const httpGetSpy = jest.spyOn(HttpClient.prototype, 'post');
 
-    service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'pipeline');
+    service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null, null, null), 'pipeline');
     expect(httpGetSpy).toHaveBeenCalledWith(
       '//localhost:8000/api/single_allele/annotate',
       // eslint-disable-next-line camelcase
@@ -159,7 +159,7 @@ describe('SingleAnnotationService', () => {
 
   it('should get single annotation report', async() => {
     const mockObject = new SingleAnnotationReport(
-      new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
+      new Variant('chr14', 204000100, 'A', 'AA', 'ins', undefined, undefined),
       [
         new Annotator(
           new AnnotatorDetails('allele_score', 'description', [new Resource('resourceId', 'resourceUrl')]),
@@ -178,7 +178,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponse));
 
-    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'pipeline_id');
+    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null, null, null), 'pipeline_id');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toStrictEqual(mockObject);
@@ -186,7 +186,7 @@ describe('SingleAnnotationService', () => {
 
   it('should set score to undefined when score data from query response is invalid', async() => {
     const mockObject = new SingleAnnotationReport(
-      new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
+      new Variant('chr14', 204000100, 'A', 'AA', 'ins', undefined, undefined),
       [
         new Annotator(
           new AnnotatorDetails('allele_score', 'description', [new Resource('resourceId', 'resourceUrl')]),
@@ -201,7 +201,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponseInvalidScore));
 
-    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'pipeline');
+    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null, null, null), 'pipeline');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toStrictEqual(mockObject);
@@ -209,7 +209,7 @@ describe('SingleAnnotationService', () => {
 
   it('should set array of scores to undefined when scores data from query response are invalid', async() => {
     const mockObject = new SingleAnnotationReport(
-      new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
+      new Variant('chr14', 204000100, 'A', 'AA', 'ins', undefined, undefined),
       [
         new Annotator(
           new AnnotatorDetails('allele_score', 'description', [new Resource('resourceId', 'resourceUrl')]),
@@ -224,7 +224,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponseInvalidScores));
 
-    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'pipeline');
+    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null, null, null), 'pipeline');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toStrictEqual(mockObject);
@@ -232,7 +232,7 @@ describe('SingleAnnotationService', () => {
 
   it('should set annotator to undefined when annotator data from query response is invalid', async() => {
     const mockObject = new SingleAnnotationReport(
-      new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
+      new Variant('chr14', 204000100, 'A', 'AA', 'ins', undefined, undefined),
       [undefined]
     );
 
@@ -242,7 +242,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponseInvalidAnnotator));
 
-    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'pipeline');
+    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null, null, null), 'pipeline');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toStrictEqual(mockObject);
@@ -250,7 +250,7 @@ describe('SingleAnnotationService', () => {
 
   it('should set array of annotators to undefined when annotators from query response are invalid', async() => {
     const mockObject = new SingleAnnotationReport(
-      new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
+      new Variant('chr14', 204000100, 'A', 'AA', 'ins', undefined, undefined),
       undefined
     );
 
@@ -260,7 +260,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponseInvalidAnnotators));
 
-    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'pipeline');
+    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null, null, null), 'pipeline');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toStrictEqual(mockObject);
@@ -291,7 +291,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponseInvalidVariant));
 
-    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'pipeline');
+    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null, null, null), 'pipeline');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toStrictEqual(mockObject);
@@ -301,7 +301,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(null));
 
-    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'pipeline');
+    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null, null, null), 'pipeline');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res).toBeUndefined();
@@ -376,7 +376,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponse));
 
-    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'pipeline');
+    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null, null, null), 'pipeline');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res.annotators[0].attributes[0].result.value).toBe(4.097);
@@ -389,7 +389,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponse));
 
-    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'pipeline');
+    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null, null, null), 'pipeline');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res.annotators[0].attributes[0].result.value).toBe(8);
@@ -402,7 +402,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponse));
 
-    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'pipeline');
+    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null, null, null), 'pipeline');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res.annotators[0].attributes[0].result.value).toBe('pathogenic');
@@ -415,7 +415,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponse));
 
-    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'pipeline');
+    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null, null, null), 'pipeline');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res.annotators[0].attributes[0].result.value).toBe('false');
@@ -429,7 +429,7 @@ describe('SingleAnnotationService', () => {
     const httpPostSpy = jest.spyOn(HttpClient.prototype, 'post');
     httpPostSpy.mockReturnValue(of(mockResponse));
 
-    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null), 'pipeline');
+    const getReport = service.getReport(new Variant('chr14', 204000100, 'A', 'AA', null, null, null), 'pipeline');
 
     const res = await lastValueFrom(getReport.pipe(take(1)));
     expect(res.annotators[0].attributes[0].result.value).toStrictEqual(new Map([['MTHFR', 14.0], ['ABC', 2.0]]));

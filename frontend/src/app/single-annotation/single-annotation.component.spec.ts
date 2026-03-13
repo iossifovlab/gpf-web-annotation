@@ -10,7 +10,7 @@ import { Annotator, AnnotatorDetails, Resource, SingleAnnotationReport, Variant 
 import { UserData, UsersService } from '../users.service';
 
 const mockReport = new SingleAnnotationReport(
-  new Variant('chr14', 204000100, 'A', 'AA', 'ins'),
+  new Variant('chr14', 204000100, 'A', 'AA', 'ins', null, null),
   [
     new Annotator(new AnnotatorDetails('allele_score', 'desc', [new Resource('resourceId', 'resourceUrl')]), [])
   ],
@@ -73,27 +73,103 @@ describe('SingleAnnotationComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should validate allele input', () => {
+  it('should not show error message for valid alleles', () => {
     component.currentAllele = 'chr1 11796321 G A';
     component.pipelineId = 'pipelineId';
     component.annotateAllele();
     expect(component.validationMessage).toBe('');
 
-    component.currentAllele = 'chr1 GTT A';
-    component.annotateAllele();
-    expect(component.validationMessage).toBe('Invalid allele format or missing pipeline!');
-
     component.currentAllele = 'chr1 100 GTT A';
     component.annotateAllele();
     expect(component.validationMessage).toBe('');
 
-    component.currentAllele = 'chr7 1    GTT A';
-    component.annotateAllele();
-    expect(component.validationMessage).toBe('Invalid allele format or missing pipeline!');
-
     component.currentAllele = '  chr1 11796321 G A ';
     component.annotateAllele();
     expect(component.validationMessage).toBe('');
+
+    component.currentAllele = 'chr1:11796321:G:A';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('');
+
+    component.currentAllele = 'chr1:11796321';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('');
+
+    component.currentAllele = 'chr1 11796321';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('');
+
+    component.currentAllele = 'chr1 11796321 G\'>\'A';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('');
+
+    component.currentAllele = 'chr1:11796321:G\'>\'A';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('');
+
+    component.currentAllele = 'chr1:11796321-11800000';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('');
+
+    component.currentAllele = 'chr1 11796321 11800000';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('');
+
+    component.currentAllele = 'chr1:11796321 G A';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('');
+
+    component.currentAllele = 'chr7 1     GTT A';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('');
+
+    component.currentAllele = 'chr1:11796321:G::A';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('');
+  });
+
+  it('should show error message for invalid alleles', () => {
+    component.pipelineId = 'pipelineId';
+
+    component.currentAllele = 'chr1 GTT A';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('Invalid allele format or missing pipeline!');
+
+    component.currentAllele = 'chr1:aaaa';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('Invalid allele format or missing pipeline!');
+
+    component.currentAllele = 'chr1 11796321aaa';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('Invalid allele format or missing pipeline!');
+
+    component.currentAllele = 'chr1 11796321 Gav\'>\'A';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('Invalid allele format or missing pipeline!');
+
+    component.currentAllele = 'chr1:-11796321';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('Invalid allele format or missing pipeline!');
+
+    component.currentAllele = 'chr1:11796321-111';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('Invalid allele format or missing pipeline!');
+
+    component.currentAllele = 'chr1 11796321 11796321';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('Invalid allele format or missing pipeline!');
+
+    component.currentAllele = 'chr1:11796321:G>A';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('Invalid allele format or missing pipeline!');
+
+    component.currentAllele = 'chr1:11796321:G > A';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('Invalid allele format or missing pipeline!');
+
+    component.currentAllele = 'chr1:11796321--11800000';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('Invalid allele format or missing pipeline!');
   });
 
   it('should check if position of an allele is valid', () => {
@@ -169,7 +245,15 @@ describe('SingleAnnotationComponent', () => {
 
     component.annotateAllele();
     expect(component.report).toBe(mockReport);
-    expect(getReportSpy).toHaveBeenCalledWith(new Variant('chr1', 11796321, 'G', 'GT', null), 'pipelineId');
+    expect(getReportSpy).toHaveBeenCalledWith(new Variant(
+      'chr1',
+      11796321,
+      'G',
+      'GT',
+      null,
+      null,
+      null
+    ), 'pipelineId');
   });
 
   it('should set report to null when input is not valid', () => {
