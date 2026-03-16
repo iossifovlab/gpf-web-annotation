@@ -1,9 +1,11 @@
 # pylint: disable=W0621,C0114,C0116,W0212,W0613
+import pytest
 from types import SimpleNamespace
 from typing import Any
 from unittest.mock import MagicMock
 
 from pytest_mock import MockerFixture
+from django.test import Client
 
 from dae.annotation.annotation_config import AttributeInfo
 from dae.genomic_resources.repository import GenomicResourceRepo
@@ -144,7 +146,7 @@ def test_use_of_thread_safe_pipelines(
     request_data = MagicMock()
     request_data.data = {
         "pipeline_id": "dummy",
-        "variant": {
+        "annotatable": {
             "chrom": "1",
             "pos": 12345,
             "ref": "A",
@@ -168,3 +170,98 @@ def test_use_of_thread_safe_pipelines(
     view.post(request_data)
     view.post(request_data)
     assert thread_safe_dummy.lock.__enter__.call_count == 3
+
+
+@pytest.mark.parametrize(
+    "annotatable,expected", [
+        (
+            {"chrom": "chr1", "pos": "3"},
+            {
+                 "chromosome": "chr1", "position": 3,
+                 "reference": None, "alternative": None,
+                 "annotatable_type": "POSITION"
+            },
+        ),
+        (
+            {"chrom": "chr1", "pos": "4", "ref": "C", "alt": "CT"},
+            {
+                 "chromosome": "chr1", "position": 4,
+                 "reference": "C", "alternative": "CT",
+                 "annotatable_type": "SMALL_INSERTION"
+            },
+        ),
+        (
+            {"vcf_like": "chr1:4:C:CT"},
+            {
+                 "chromosome": "chr1", "position": 4,
+                 "reference": "C", "alternative": "CT",
+                 "annotatable_type": "SMALL_INSERTION"
+            },
+        ),
+        (
+            {"chrom": "chr1", "pos_beg": "4", "pos_end": "30"},
+            {
+                 "chromosome": "chr1", "position": 4,
+                 "reference": None, "alternative": None,
+                 "annotatable_type": "REGION"
+            },
+        ),
+        (
+            {"location": "chr1:13", "variant": "sub(A->T)"},
+            {
+                 "chromosome": "chr1", "position": 13,
+                 "reference": "A", "alternative": "T",
+                 "annotatable_type": "SUBSTITUTION"
+            },
+        ),
+        (
+            {"location": "chr1:3-13", "variant": "duplication"},
+            {
+                 "chromosome": "chr1", "position": 3,
+                 "reference": None, "alternative": None,
+                 "annotatable_type": "LARGE_DUPLICATION"
+            },
+        ),
+        (
+            {"location": "chr1:3-13", "variant": "CNV+"},
+            {
+                 "chromosome": "chr1", "position": 3,
+                 "reference": None, "alternative": None,
+                 "annotatable_type": "LARGE_DUPLICATION"
+            },
+        ),
+        (
+            {"location": "chr1:3-13", "variant": "deletion"},
+            {
+                 "chromosome": "chr1", "position": 3,
+                 "reference": None, "alternative": None,
+                 "annotatable_type": "LARGE_DELETION"
+            },
+        ),
+        (
+            {"location": "chr1:3-13", "variant": "CNV-"},
+            {
+                 "chromosome": "chr1", "position": 3,
+                 "reference": None, "alternative": None,
+                 "annotatable_type": "LARGE_DELETION"
+            },
+        ),
+    ],
+)
+def test_different_annotatables(
+    annotatable: dict[str, Any],
+    expected: dict[str, Any],
+    user_client: Client,
+) -> None:
+    response = user_client.post(
+        "/api/single_allele/annotate",
+        {
+            "annotatable": annotatable,
+            "pipeline_id": "t4c8/t4c8_pipeline"
+        },
+        content_type="application/json",
+    )
+
+    assert response.status_code == 200
+
+    assert response.json()["annotatable"] == expected

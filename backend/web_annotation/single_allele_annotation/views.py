@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Any, cast
 
 from dae.annotation.annotatable import VCFAllele
+from dae.annotation.record_to_annotatable import build_annotatable_from_dict
 from dae.annotation.annotation_config import AttributeInfo
 from dae.annotation.annotation_pipeline import Annotator
 from dae.annotation.gene_score_annotator import GeneScoreAnnotator
@@ -141,13 +142,13 @@ class SingleAnnotation(AnnotationBaseView):
         """View for single annotation"""
 
         assert isinstance(request.data, dict)
-        if "variant" not in request.data:
+        if "annotatable" not in request.data:
             return Response(
-                {"reason": "Variant not provided!"},
+                {"reason": "Annotatable not provided!"},
                 status=views.status.HTTP_400_BAD_REQUEST,
             )
-        variant = request.data["variant"]
-        assert isinstance(variant, dict)
+        annotatable = request.data["annotatable"]
+        assert isinstance(annotatable, dict)
 
         if "pipeline_id" not in request.data:
             return Response(
@@ -164,12 +165,9 @@ class SingleAnnotation(AnnotationBaseView):
 
         pipeline = self.get_pipeline(pipeline_id, request.user)
 
-        vcf_annotatable = VCFAllele(
-            variant["chrom"], variant["pos"],
-            variant["ref"], variant["alt"],
-        )
+        annotatable = build_annotatable_from_dict(annotatable)
 
-        annotation = pipeline.annotate(vcf_annotatable, {})
+        annotation = pipeline.annotate(annotatable, {})
 
         annotators_data = []
         if (
@@ -215,10 +213,7 @@ class SingleAnnotation(AnnotationBaseView):
             and request.user.is_authenticated
             and isinstance(request.user, BaseUser)
         ):
-            allele = (
-                f"{variant['chrom']} {variant['pos']} "
-                f"{variant['ref']} {variant['alt']}"
-            )
+            allele = str(annotatable)
             if AlleleQuery.objects.filter(
                 allele=allele,
                 owner=request.user.as_owner,
@@ -229,16 +224,16 @@ class SingleAnnotation(AnnotationBaseView):
                 )
                 allele_query.save()
 
-        variant = {
-            "chromosome": vcf_annotatable.chrom,
-            "position": vcf_annotatable.pos,
-            "reference": vcf_annotatable.ref,
-            "alternative": vcf_annotatable.alt,
-            "variant_type": vcf_annotatable.type.name,
+        annotatable = {
+            "chromosome": annotatable.chrom,
+            "position": annotatable.pos,
+            "reference": getattr(annotatable, "ref", None),
+            "alternative": getattr(annotatable, "alt", None),
+            "annotatable_type": annotatable.type.name,
         }
 
         response_data = {
-            "variant": variant,
+            "annotatable": annotatable,
             "annotators": annotators_data,
         }
 
