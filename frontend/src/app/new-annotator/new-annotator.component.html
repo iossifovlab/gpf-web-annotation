@@ -2,7 +2,7 @@
 <div style="height: 100%">
   <mat-stepper #stepper [linear]="true" class="custom-stepper">
     @if(data.isResourceWorkflow) {
-    <mat-step label="Select resource type" [stepControl]="resourceTypeStep">
+    <mat-step label="Select resource" [stepControl]="resourceTypeStep">
       <form [formGroup]="resourceTypeStep" id="resource-input-form">
         <div class="forms-wrapper">
           <mat-form-field [appearance]="'outline'" id="resource-type">
@@ -101,7 +101,7 @@
       </ng-template>
     </mat-step>
 
-    <mat-step label="Select resources" [stepControl]="resourceStep">
+    <mat-step label="Configure annotator" [stepControl]="resourceStep">
       <ng-template matStepContent>
         <div class="summary-content">
           @if(data.isResourceWorkflow) {
@@ -178,7 +178,7 @@
       </ng-template>
     </mat-step>
 
-    <mat-step label="Select attributes" [stepControl]="attributeStep">
+    <mat-step label="Configure attributes" [stepControl]="attributeStep">
       <ng-template matStepContent>
         <div class="summary-content">
           <div class="annotator-display-text" [title]="annotatorStep.value | keyValueDisplay">{{
