@@ -214,7 +214,7 @@
                 <mat-autocomplete
                   #attributesDropdown="matAutocomplete"
                   (optionSelected)="onSelectAttribute($event.option.value)">
-                  @for (attribute of unselectedFilteredAttributes; track attribute.name) {
+                  @for (attribute of filteredAttributes; track attribute.name) {
                   <mat-option
                     class="attribute-option"
                     [value]="attribute"
@@ -233,7 +233,7 @@
               <div class="grid-header">Internal</div>
               <div class="grid-header">Description</div>
               <div class="grid-header">Delete</div>
-              @for (selectedAttribute of selectedAttributes; track selectedAttribute.source) {
+              @for (selectedAttribute of selectedAttributes; track $index) {
               <ng-container>
                 <span class="attribute-source grid-cell" [title]="selectedAttribute.source">{{
                   selectedAttribute.source
@@ -241,7 +241,7 @@
                 <span
                   class="attribute-name grid-cell"
                   [title]="selectedAttribute.name"
-                  [ngClass]="existingAttributeNames.has(selectedAttribute.name) ? 'duplicate-name' : ''">
+                  [ngClass]="!isAttributeValid(selectedAttribute) ? 'duplicate-name' : ''">
                   <input
                     class="editable-name"
                     type="text"
@@ -249,7 +249,7 @@
                     [title]="selectedAttribute.name"
                     [ngModel]="selectedAttribute.name"
                     (ngModelChange)="onAttributeNameChange(selectedAttribute, attributeNameInput.value)"
-                    [ngClass]="existingAttributeNames.has(selectedAttribute.name) ? 'duplicate-name-input' : ''" />
+                    [ngClass]="!isAttributeValid(selectedAttribute) ? 'duplicate-name-input' : ''" />
                 </span>
                 <span class="attribute-internal grid-cell center-cell"
                   ><input

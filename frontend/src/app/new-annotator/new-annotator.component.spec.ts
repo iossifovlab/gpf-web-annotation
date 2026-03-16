@@ -257,26 +257,7 @@ describe('NewAnnotatorComponent', () => {
     );
     expect(component.attributePage).toStrictEqual(attributePageMock);
     expect(component.selectedAttributes).toStrictEqual([attributesMock[0], attributesMock[2]]);
-    expect(component.unselectedAttributes).toStrictEqual([
-      new AttributeData(
-        'effect_details',
-        'bool',
-        'effect_details',
-        false,
-        false,
-        'Effect details for each affected transcript'
-      ),
-    ]);
-    expect(component.unselectedFilteredAttributes).toStrictEqual([
-      new AttributeData(
-        'effect_details',
-        'bool',
-        'effect_details',
-        false,
-        false,
-        'Effect details for each affected transcript'
-      ),
-    ]);
+    expect(component.filteredAttributes).toStrictEqual(attributesMock);
     expect(nextStepSpy).toHaveBeenCalledWith();
   });
 
@@ -399,23 +380,23 @@ describe('NewAnnotatorComponent', () => {
   it('should select attribute and remove it from dropdown content', () => {
     component.requestAttributes();
     component.selectedAttributes = [attributesMock[1], attributesMock[2]];
-    component.unselectedAttributes = [attributesMock[0]];
     component.onSelectAttribute(attributesMock[0]);
     expect(component.selectedAttributes).toStrictEqual([attributesMock[1], attributesMock[2], attributesMock[0]]);
-    expect(component.unselectedAttributes).toStrictEqual([]);
+    expect(component.filteredAttributes).toStrictEqual(attributesMock);
   });
 
-  it('should not select already selected attribute', () => {
+  it('should be able to select already selected attribute', () => {
     component.requestAttributes();
     component.selectedAttributes = [attributesMock[1], attributesMock[2]];
+    component.areAttributesValid = true;
     component.onSelectAttribute(attributesMock[1]);
-    expect(component.selectedAttributes).toStrictEqual([attributesMock[1], attributesMock[2]]);
+    expect(component.selectedAttributes).toStrictEqual([attributesMock[1], attributesMock[2], attributesMock[1]]);
+    expect(component.areAttributesValid).toBe(false);
   });
 
   it('should select attribute, clean input and validate attributes', () => {
     component.requestAttributes();
     component.selectedAttributes = [attributesMock[1], attributesMock[2]];
-    component.unselectedAttributes = [attributesMock[0]];
     component.attributeStep.setControl(
       'attribute',
       new FormControl('mpc - Missense badness, PolyPhen-2, and Constraint.')
@@ -428,11 +409,10 @@ describe('NewAnnotatorComponent', () => {
   it('should remove selected attribute, validate attributes and request attributes', () => {
     component.requestAttributes();
     component.selectedAttributes = attributesMock;
-    component.unselectedAttributes = [];
 
     component.removeSelectedAttribute(attributesMock[1]);
     expect(component.selectedAttributes).toStrictEqual([attributesMock[0], attributesMock[2]]);
-    expect(component.unselectedAttributes).toStrictEqual([attributesMock[1]]);
+    expect(component.filteredAttributes).toStrictEqual(attributesMock);
   });
 
   it('should trigger search request for attributes', fakeAsync(() => {
@@ -477,11 +457,8 @@ describe('NewAnnotatorComponent', () => {
       'UTR'
     );
 
-    expect(component.unselectedAttributes).toStrictEqual([
-      new AttributeData('5\'UTR_gene_list', 'object', '5\'UTR_gene_list', false, true, 'List of all 5\'UTR genes'),
-    ]);
-
-    expect(component.unselectedFilteredAttributes).toStrictEqual([
+    expect(component.filteredAttributes).toStrictEqual([
+      new AttributeData('3\'UTR_gene_list', 'object', '3\'UTR_gene_list', false, true, 'List of all 3\'UTR genes'),
       new AttributeData('5\'UTR_gene_list', 'object', '5\'UTR_gene_list', false, true, 'List of all 5\'UTR genes'),
     ]);
   })
@@ -517,7 +494,38 @@ describe('NewAnnotatorComponent', () => {
       undefined
     );
     expect(component.attributePage).toStrictEqual(attributePageMock);
-    expect(component.unselectedAttributes).toStrictEqual([attributesMock[1], attributesMock[2]]);
+    expect(component.filteredAttributes).toStrictEqual(attributesMock);
+  });
+
+  it('should change name of a selected attribute', () => {
+    const attribute = new AttributeData('name', 'str', 'source', true, false, 'desc');
+    component.selectedAttributes = [attribute];
+    component.onAttributeNameChange(attribute, ' newName      ');
+    expect(attribute.name).toBe('newName');
+    expect(component.isAttributeValid(attribute)).toBe(true);
+    expect(component.areAttributesValid).toBe(true);
+  });
+
+  it('should change name of a selected attribute to exisitng in config name', () => {
+    const attribute = new AttributeData('name', 'str', 'source', true, false, 'desc');
+    component.selectedAttributes = [attribute];
+    component.existingAttributeNames = new Set(['hg19_annotatable']);
+    component.onAttributeNameChange(attribute, ' hg19_annotatable      ');
+    expect(attribute.name).toBe('hg19_annotatable');
+    expect(component.isAttributeValid(attribute)).toBe(false);
+    expect(component.areAttributesValid).toBe(false);
+  });
+
+  it('should change name of a selected attribute to exisitng in selected attributes name', () => {
+    const attribute = new AttributeData('name', 'str', 'source', true, false, 'desc');
+    component.selectedAttributes = [
+      attribute,
+      new AttributeData('hg19_annotatable', 'str', 'liftover_annotatable', true, false, 'desc')
+    ];
+    component.onAttributeNameChange(attribute, ' hg19_annotatable      ');
+    expect(attribute.name).toBe('hg19_annotatable');
+    expect(component.isAttributeValid(attribute)).toBe(false);
+    expect(component.areAttributesValid).toBe(false);
   });
 });
 
