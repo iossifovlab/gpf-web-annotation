@@ -228,16 +228,13 @@
             @if(selectedAttributes.length) {
             <span>Selected attributes:</span>
             <div class="grid-container" id="attributes-list">
-              <div class="grid-header">Source</div>
               <div class="grid-header">Name</div>
+              <div class="grid-header">Source</div>
               <div class="grid-header">Internal</div>
               <div class="grid-header">Description</div>
               <div class="grid-header">Delete</div>
               @for (selectedAttribute of selectedAttributes; track $index) {
               <ng-container>
-                <span class="attribute-source grid-cell" [title]="selectedAttribute.source">{{
-                  selectedAttribute.source
-                }}</span>
                 <span
                   class="attribute-name grid-cell"
                   [title]="selectedAttribute.name"
@@ -251,6 +248,9 @@
                     (ngModelChange)="onAttributeNameChange(selectedAttribute, attributeNameInput.value)"
                     [ngClass]="!isAttributeValid(selectedAttribute) ? 'duplicate-name-input' : ''" />
                 </span>
+                <span class="attribute-source grid-cell" [title]="selectedAttribute.source">{{
+                  selectedAttribute.source
+                }}</span>
                 <span class="attribute-internal grid-cell center-cell"
                   ><input
                     type="checkbox"
