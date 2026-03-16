@@ -160,6 +160,7 @@
   color: #eb8b94;
 }
 
+#new-pipeline-button:disabled,
 #save-as-button:disabled,
 #save-button:disabled,
 #add-annotator-button:disabled,
@@ -168,6 +169,7 @@
   color: #85a2b9;
 }
 
+#new-pipeline-button:focus-visible,
 #add-button:focus-visible,
 #save-as-button:focus-visible,
 #save-button:focus-visible,

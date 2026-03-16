@@ -724,4 +724,30 @@ describe('AnnotationPipelineComponent', () => {
         minWidth: '500px'
       });
   });
+
+  it('should disable pipeline action buttons on save as click', () => {
+    component.saveAs();
+    expect(component.disableActions).toBe(true);
+  });
+
+  it('should disable pipeline action buttons on save click', () => {
+    jest.spyOn(component, 'isPipelineChanged').mockReturnValue(true);
+    jest.spyOn(annotationPipelineServiceMock, 'savePipeline').mockReturnValueOnce(of(null));
+
+    component.save();
+    expect(component.disableActions).toBe(true);
+  });
+
+  it('should enable pipeline action buttons on pipeline select', () => {
+    component.disableActions = true;
+    component.onPipelineClick(new Pipeline('id1', 'name1', '', 'user', 'loading'));
+    expect(component.disableActions).toBe(false);
+  });
+
+  it('should enable pipeline action buttons when canceling setting name to pipeline', () => {
+    component.disableActions = true;
+    jest.spyOn(mockMatDialogRef, 'afterClosed').mockReturnValueOnce(of(null));
+    component.saveAs();
+    expect(component.disableActions).toBe(false);
+  });
 });

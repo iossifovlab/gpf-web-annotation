@@ -69,6 +69,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   public showConfimDeletePopup = false;
   public socketNotificationSubscription: Subscription = new Subscription();
   public pipelineInfo: PipelineInfo;
+  public disableActions: boolean;
 
   public constructor(
     private jobsService: JobsService,
@@ -264,6 +265,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     this.emitPipelineId.emit(this.selectedPipeline.id);
     this.dropdownControl.setValue(this.selectedPipeline.name);
     this.clearTemporaryPipeline();
+    this.disableActions = false;
 
     this.getPipelineInfo();
   }
@@ -349,6 +351,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   }
 
   public saveAs(): void {
+    this.disableActions = true;
     const newNameModalRef = this.dialog.open(this.nameInputTemplateRef, {
       id: 'setPipelineName',
       width: '30vw',
@@ -360,6 +363,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
         if (name) {
           return this.annotationPipelineService.savePipeline('', name, this.currentPipelineText);
         }
+        this.disableActions = false;
         return of(null);
       }),
     ).subscribe((pipelineId: string) => {
@@ -391,6 +395,8 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     if (!this.isPipelineChanged()) {
       return;
     }
+
+    this.disableActions = true;
 
     this.annotationPipelineService.savePipeline(
       this.selectedPipeline.id,
