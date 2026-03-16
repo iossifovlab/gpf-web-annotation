@@ -218,8 +218,10 @@
                   <mat-option
                     class="attribute-option"
                     [value]="attribute"
-                    [title]="attribute.name + ' - ' + attribute.description"
-                    >{{ attribute.name + ' - ' + attribute.description }}</mat-option
+                    [title]="attribute.description ? attribute.name + ' - ' + attribute.description : attribute.name"
+                    >{{
+                      attribute.description ? attribute.name + ' - ' + attribute.description : attribute.name
+                    }}</mat-option
                   >
                   }
                 </mat-autocomplete>
