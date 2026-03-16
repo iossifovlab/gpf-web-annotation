@@ -12,6 +12,7 @@ import { SocketNotificationsService } from '../socket-notifications/socket-notif
 import { JobNotification, PipelineNotification } from '../socket-notifications/socket-notifications';
 import { AnnotationPipelineService } from '../annotation-pipeline.service';
 import { SingleAnnotationComponent } from '../single-annotation/single-annotation.component';
+import { MatTooltip } from '@angular/material/tooltip';
 
 class UserServiceMock {
   public userData = new BehaviorSubject<UserData>({
@@ -130,6 +131,7 @@ describe('AnnotationWrapperComponent', () => {
       imports: [AnnotationWrapperComponent],
       providers: [
         JobsService,
+        MatTooltip,
         {
           provide: UsersService,
           useValue: userServiceMock

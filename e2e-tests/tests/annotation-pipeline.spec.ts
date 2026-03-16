@@ -69,7 +69,8 @@ test.describe('Pipeline tests', () => {
 
     await saveResponse;
 
-    await page.locator('.example').click();
+    await page.locator('#examples-button').click();
+    await page.getByRole('menuitem', {name: 'chr1 11796321 G A', exact: true}).click();
     await expect(page.locator('#pipelines-input')).toBeEmpty();
     await expect(page.locator('#report')).toBeVisible({timeout: 120000});
   });
@@ -108,7 +109,8 @@ test.describe('Pipeline tests', () => {
     await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
     await expect(page.locator('#pipelines-input')).toBeEmpty();
 
-    await page.locator('.example').click();
+    await page.locator('#examples-button').click();
+    await page.getByRole('menuitem', {name: 'chr1 11796321 G A', exact: true}).click();
     await expect(page.locator('#report')).toBeVisible({timeout: 120000});
   });
 
@@ -421,7 +423,7 @@ test.describe('Add annotator to pipeline tests', () => {
       ),
       page.waitForResponse(
         resp => resp.url().includes('api/pipelines/user'), // wait for pipeline to be saved
-        {timeout: 20000},  // hg38_to_t2t chain loading can take a while, increase timeout for this test
+        {timeout: 20000}, // hg38_to_t2t chain loading can take a while, increase timeout for this test
       ),
     ]);
 

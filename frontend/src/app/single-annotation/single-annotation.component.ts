@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -8,14 +8,15 @@ import { SingleAnnotationReport, Variant } from '../single-annotation';
 import { UsersService } from '../users.service';
 import { Subscription } from 'rxjs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatMenuModule } from '@angular/material/menu';
 
 @Component({
   selector: 'app-single-annotation',
-  imports: [CommonModule, FormsModule, SingleAnnotationReportComponent, MatProgressSpinnerModule],
+  imports: [CommonModule, FormsModule, SingleAnnotationReportComponent, MatProgressSpinnerModule, MatMenuModule],
   templateUrl: './single-annotation.component.html',
   styleUrl: './single-annotation.component.css'
 })
-export class SingleAnnotationComponent {
+export class SingleAnnotationComponent implements OnInit {
   @Input() public pipelineId = '';
   @Input() public isPipelineValid: boolean;
   public readonly environment = environment;
@@ -27,8 +28,23 @@ export class SingleAnnotationComponent {
   private getReportSubscription = new Subscription();
   public loading = false;
   private alleleJson: Variant;
+  public examples: string[];
 
   public constructor(private singleAnnotationService: SingleAnnotationService, private userService: UsersService) { }
+
+  public ngOnInit(): void {
+    this.examples = [
+      'chr1 11796321 G A',
+      'chr1:11796321:G:A',
+      'chr1 11796321 G\'>\'A',
+      'chr1:11796321:G\'>\'A',
+      'chr1 11796321 11800000',
+      'chr1:11796321-11800000',
+      'chr1 11796321',
+      'chr1:11796321',
+      'chr1 11796321 G GT,N',
+    ];
+  }
 
   public triggerPipelineAutoSave(): void {
     this.autoSaveTrigger.emit();

@@ -126,6 +126,10 @@ describe('SingleAnnotationComponent', () => {
     component.currentAllele = 'chr1:11796321:G::A';
     component.annotateAllele();
     expect(component.validationMessage).toBe('');
+
+    component.currentAllele = 'chr1  11796321      G   ::A';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('');
   });
 
   it('should show error message for invalid alleles', () => {

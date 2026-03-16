@@ -1,5 +1,5 @@
 <div id="single-annotation-container" class="main-component">
-  <div>
+  <div id="annotation-wrapper">
     <input
       [(ngModel)]="currentAllele"
       type="text"
@@ -7,12 +7,18 @@
       (keydown.enter)="triggerPipelineAutoSave()"
       (ngModelChange)="resetAllele()" />
     <button (click)="triggerPipelineAutoSave()" [disabled]="disableGo()">Go</button>
+
+    <span id="examples-button" [matMenuTriggerFor]="tooltip" title="Examples"
+      ><span class="material-symbols-outlined">info</span></span
+    >
+
+    <mat-menu #tooltip="matMenu">
+      @for(e of examples; track e) {
+      <a mat-menu-item disableRipple class="example" (click)="setAllele(e); triggerPipelineAutoSave()">{{ e }}</a>
+      }
+    </mat-menu>
   </div>
   <span *ngIf="validationMessage" id="validation-message">{{ validationMessage }}</span>
-  <span id="variant-examples"
-    >Example:
-    <a class="example" (click)="setAllele('chr1 11796321 G A'); triggerPipelineAutoSave()">chr1 11796321 G A</a></span
-  >
   @if (loading) {
   <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>
   <span id="loading-text">Loading...</span>

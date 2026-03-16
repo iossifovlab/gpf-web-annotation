@@ -82,19 +82,23 @@ button:disabled:hover {
   color: #d74b59;
 }
 
-#variant-examples {
-  font-style: italic;
-  color: #b9d3e7;
+#examples-button {
+  color: #b4b4b4;
+}
+
+#examples-button:hover {
+  cursor: pointer;
+  color: #7392a9;
 }
 
 .example {
-  color: #b9d3e7;
+  color: #5b778c;
   text-decoration: underline;
 }
 
 .example:hover {
   cursor: pointer;
-  color: #5b778c;
+  color: #85a2b9;
 }
 
 mat-progress-spinner {
@@ -107,4 +111,21 @@ mat-progress-spinner {
   color: #b9d3e7;
   font-style: italic;
   margin-top: 10px;
+}
+
+mat-menu {
+  --mat-menu-item-hover-state-layer-color: none;
+  --mat-menu-item-label-text-line-height: 15px;
+}
+
+::ng-deep .mat-mdc-menu-item {
+  min-height: 30px !important;
+}
+
+#annotation-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  margin-top: 20px;
 }

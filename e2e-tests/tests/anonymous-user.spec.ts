@@ -89,7 +89,8 @@ test.describe('Anonymous user tests', () => {
 
     await saveResponse;
 
-    await page.locator('.example').click();
+    await page.locator('#examples-button').click();
+    await page.getByRole('menuitem', {name: 'chr1 11796321 G A', exact: true}).click();
     await page.waitForSelector('#report', {timeout: 120000});
     await expect(page.locator('#report')).toBeVisible();
 
