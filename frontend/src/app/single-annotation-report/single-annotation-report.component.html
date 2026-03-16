@@ -12,30 +12,48 @@
       </span>
     </div>
     <div id="variant-data-container">
+      @if(report.variant.chromosome) {
       <div>
         <div class="variant-data-label">chromosome</div>
         <div class="variant-data" id="variant-chromosome">{{ report.variant.chromosome }}</div>
       </div>
+      } @if(report.variant.chromosome) {
       <hr />
       <div>
         <div class="variant-data-label">position</div>
         <div class="variant-data" id="variant-position">{{ report.variant.position }}</div>
       </div>
+      } @if(report.variant.reference) {
       <hr />
       <div>
         <div class="variant-data-label">reference</div>
         <div class="variant-data" id="variant-reference">{{ report.variant.reference }}</div>
       </div>
+      } @if(report.variant.alternative) {
       <hr />
       <div>
         <div class="variant-data-label">alternative</div>
         <div class="variant-data" id="variant-alternate">{{ report.variant.alternative }}</div>
       </div>
+      } @if(report.variant.variantType) {
       <hr />
       <div>
         <div class="variant-data-label">variant type</div>
         <div class="variant-data" id="variant-type">{{ report.variant.variantType }}</div>
       </div>
+      } @if(report.variant.positionStart) {
+      <hr />
+      <div>
+        <div class="variant-data-label">position begin</div>
+        <div class="variant-data" id="position-start">{{ report.variant.positionStart }}</div>
+      </div>
+      } @if(report.variant.positionEnd) {
+      <hr />
+      <div>
+        <div class="variant-data-label">positiong end</div>
+        <div class="variant-data" id="position-end">{{ report.variant.positionEnd }}</div>
+      </div>
+      }
     </div>
   </div>
 

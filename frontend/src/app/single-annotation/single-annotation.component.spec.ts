@@ -8,6 +8,7 @@ import { SingleAnnotationService } from '../single-annotation.service';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { Annotator, AnnotatorDetails, Resource, SingleAnnotationReport, Variant } from '../single-annotation';
 import { UserData, UsersService } from '../users.service';
+import { MatTooltip } from '@angular/material/tooltip';
 
 const mockReport = new SingleAnnotationReport(
   new Variant('chr14', 204000100, 'A', 'AA', 'ins', null, null),
@@ -59,6 +60,7 @@ describe('SingleAnnotationComponent', () => {
         },
         provideRouter([]),
         JobsService,
+        MatTooltip,
         provideHttpClient(),
         provideHttpClientTesting(),
       ],
