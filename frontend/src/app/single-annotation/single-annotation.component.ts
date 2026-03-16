@@ -113,7 +113,7 @@ export class SingleAnnotationComponent implements OnInit {
   }
 
   private splitAllele(allele: string): string[] {
-    const parts = allele.split(/[: ]+/);
+    const parts = allele.split(/[: \t]+/);
     const [chrom, pos, ref, alt] = parts;
 
     if (pos.includes('-')) {
