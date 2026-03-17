@@ -2,6 +2,7 @@ import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { NumberHistogram } from '../single-annotation';
 import * as d3 from 'd3';
 import { CommonModule } from '@angular/common';
+import { FormatResultValuePipe } from '../format-result-value.pipe';
 
 interface BinBar {
   index: number;
@@ -11,13 +12,16 @@ interface BinBar {
 
 @Component({
   selector: 'app-number-histogram',
-  imports: [CommonModule],
+  imports: [CommonModule, FormatResultValuePipe],
+  providers: [FormatResultValuePipe],
   templateUrl: './number-histogram.component.html',
   styleUrl: './number-histogram.component.css'
 })
 export class NumberHistogramComponent implements OnInit {
   @Input() public histogram: NumberHistogram = null;
   @Input() public scoreValues: number[] = [];
+  public scorePercentages: Record<number, number> = {};
+
 
   @ViewChild('histogramContainer', {static: true}) public histogramContainer: ElementRef;
 
@@ -35,6 +39,7 @@ export class NumberHistogramComponent implements OnInit {
                      | d3.ScaleLogarithmic<number, number, never>;
 
   public ngOnInit(): void {
+    this.scoreValues.forEach(v => this.calculatePercentage(v));
     this.drawHistogram();
   }
 
@@ -134,5 +139,14 @@ export class NumberHistogramComponent implements OnInit {
           .tickValues(this.xLabelsWithDefaultValue())
           .tickFormat((_, i) => this.xLabelsWithDefaultValue()[i].toString())
       ).style('font-size', '12px');
+  }
+
+  private calculatePercentage(score: number): void {
+    const barsTotalSum = d3.sum(this.histogram.bars);
+    const index = this.histogram.bins
+      .findIndex((b, i) => b === score || b < score && score < this.histogram.bins[i + 1]);
+
+    const count = d3.sum(this.histogram.bars.slice(0, index));
+    this.scorePercentages[score] = count / barsTotalSum * 100;
   }
 }
