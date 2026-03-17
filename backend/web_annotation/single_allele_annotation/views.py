@@ -2,7 +2,6 @@
 from datetime import datetime
 from typing import Any, cast
 
-from dae.annotation.annotatable import VCFAllele
 from dae.annotation.record_to_annotatable import build_annotatable_from_dict
 from dae.annotation.annotation_config import AttributeInfo
 from dae.annotation.annotation_pipeline import Annotator
