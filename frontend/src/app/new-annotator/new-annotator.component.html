@@ -190,7 +190,7 @@
         </div>
 
         <div class="left-content">
-          <div>
+          <div style="display: flex; flex-direction: column; flex: 1 1 0; min-height: 0">
             <form [formGroup]="attributeStep" id="attribute-form">
               <mat-form-field [appearance]="'outline'" class="attribute-input" id="attributes-dropdown">
                 <input
@@ -277,9 +277,9 @@
           </div>
           <div class="modal-footer">
             @if(!areAttributesValid) {
-            <div class="duplicate-name">Attribute with this name already exists</div>
+            <div class="error-message">Attribute with this name already exists</div>
             }@if(errorMessage) {
-            <div class="duplicate-name">{{ errorMessage }}</div>
+            <div class="error-message">{{ errorMessage }}</div>
             }
             <button mat-button matStepperPrevious class="back-button" (click)="clearErrorMessage()">Back</button>
             @if(areAttributesValid) {

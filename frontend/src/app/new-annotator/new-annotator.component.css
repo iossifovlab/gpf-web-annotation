@@ -258,6 +258,9 @@ input[type="radio"]:checked {
 #attributes-list {
   max-height: 45vh;
   overflow: auto;
+  flex-basis: 0;
+  flex-grow: 1;
+  grid-auto-rows: 48px;
 }
 
 #annotator-input-form {
@@ -274,8 +277,12 @@ input[type="radio"]:checked {
   background-color: #85a2b9 !important;
 }
 
+.error-message,
 .duplicate-name {
   color: #d74b59;
+}
+
+.error-message {
   align-self: center;
 }
 
@@ -299,7 +306,7 @@ input[type="radio"]:checked {
 
 .grid-header {
   min-height: 2rem;
-  line-height: 2rem;
+  line-height: 3rem;
   border: 1px solid #cfd8df;
   background-color: #ecf1f6;
   text-align: center;
