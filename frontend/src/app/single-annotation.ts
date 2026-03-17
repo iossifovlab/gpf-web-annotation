@@ -1,5 +1,5 @@
 
-export class Variant {
+export class Annotatable {
   public constructor(
     public chromosome: string,
     public position: number,
@@ -10,12 +10,12 @@ export class Variant {
     public positionEnd: number,
   ) {}
 
-  public static fromJson(json: object): Variant {
+  public static fromJson(json: object): Annotatable {
     if (!json) {
       return undefined;
     }
 
-    return new Variant(
+    return new Annotatable(
       json['chromosome'] as string,
       json['position'] as number,
       json['reference'] as string,
@@ -248,7 +248,7 @@ export class CategoricalHistogram {
 
 export class SingleAnnotationReport {
   public constructor(
-    public variant: Variant,
+    public annotatable: Annotatable,
     public annotators: Annotator[],
   ) {}
 
@@ -258,7 +258,7 @@ export class SingleAnnotationReport {
     }
 
     return new SingleAnnotationReport(
-      Variant.fromJson(json['variant'] as object),
+      Annotatable.fromJson(json['annotatable'] as object),
       Annotator.fromJsonArray(json['annotators'] as object[]),
     );
   }

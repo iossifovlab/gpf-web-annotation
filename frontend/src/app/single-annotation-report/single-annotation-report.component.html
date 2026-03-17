@@ -1,5 +1,5 @@
 <div *ngIf="report" id="report">
-  <div id="variant">
+  <div id="annotatable">
     <div id="report-header">
       <div id="toggle-view-container">
         <input class="switch" type="checkbox" checked="true" (change)="showFullReport = !showFullReport" />
@@ -11,47 +11,47 @@
         >
       </span>
     </div>
-    <div id="variant-data-container">
-      @if(report.variant.chromosome) {
+    <div id="annotatable-data-container">
+      @if(report.annotatable.chromosome) {
       <div>
-        <div class="variant-data-label">chromosome</div>
-        <div class="variant-data" id="variant-chromosome">{{ report.variant.chromosome }}</div>
+        <div class="annotatable-data-label">chromosome</div>
+        <div class="annotatable-data" id="annotatable-chromosome">{{ report.annotatable.chromosome }}</div>
       </div>
-      } @if(report.variant.chromosome) {
+      } @if(report.annotatable.chromosome) {
       <hr />
       <div>
-        <div class="variant-data-label">position</div>
-        <div class="variant-data" id="variant-position">{{ report.variant.position }}</div>
+        <div class="annotatable-data-label">position</div>
+        <div class="annotatable-data" id="annotatable-position">{{ report.annotatable.position }}</div>
       </div>
-      } @if(report.variant.reference) {
+      } @if(report.annotatable.reference) {
       <hr />
       <div>
-        <div class="variant-data-label">reference</div>
-        <div class="variant-data" id="variant-reference">{{ report.variant.reference }}</div>
+        <div class="annotatable-data-label">reference</div>
+        <div class="annotatable-data" id="annotatable-reference">{{ report.annotatable.reference }}</div>
       </div>
-      } @if(report.variant.alternative) {
+      } @if(report.annotatable.alternative) {
       <hr />
       <div>
-        <div class="variant-data-label">alternative</div>
-        <div class="variant-data" id="variant-alternate">{{ report.variant.alternative }}</div>
+        <div class="annotatable-data-label">alternative</div>
+        <div class="annotatable-data" id="annotatable-alternate">{{ report.annotatable.alternative }}</div>
       </div>
-      } @if(report.variant.variantType) {
+      } @if(report.annotatable.variantType) {
       <hr />
       <div>
-        <div class="variant-data-label">variant type</div>
-        <div class="variant-data" id="variant-type">{{ report.variant.variantType }}</div>
+        <div class="annotatable-data-label">variant type</div>
+        <div class="annotatable-data" id="variant-type">{{ report.annotatable.variantType }}</div>
       </div>
-      } @if(report.variant.positionStart) {
+      } @if(report.annotatable.positionStart) {
       <hr />
       <div>
-        <div class="variant-data-label">position begin</div>
-        <div class="variant-data" id="position-start">{{ report.variant.positionStart }}</div>
+        <div class="annotatable-data-label">position begin</div>
+        <div class="annotatable-data" id="position-start">{{ report.annotatable.positionStart }}</div>
       </div>
-      } @if(report.variant.positionEnd) {
+      } @if(report.annotatable.positionEnd) {
       <hr />
       <div>
-        <div class="variant-data-label">positiong end</div>
-        <div class="variant-data" id="position-end">{{ report.variant.positionEnd }}</div>
+        <div class="annotatable-data-label">positiong end</div>
+        <div class="annotatable-data" id="position-end">{{ report.annotatable.positionEnd }}</div>
       </div>
       }
     </div>

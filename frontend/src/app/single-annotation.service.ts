@@ -2,7 +2,13 @@ import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
-import { Allele, CategoricalHistogram, NumberHistogram, SingleAnnotationReport, Variant } from './single-annotation';
+import {
+  Allele,
+  CategoricalHistogram,
+  NumberHistogram,
+  SingleAnnotationReport,
+  Annotatable
+} from './single-annotation';
 
 
 @Injectable()
@@ -23,16 +29,16 @@ export class SingleAnnotationService {
     return res;
   }
 
-  public getReport(variant: Variant, pipeline: string): Observable<SingleAnnotationReport> {
-    const variantJson = {
-      chrom: variant.chromosome,
-      pos: variant.position || undefined,
-      ref: variant.reference || undefined,
-      alt: variant.alternative || undefined,
+  public getReport(annotatable: Annotatable, pipeline: string): Observable<SingleAnnotationReport> {
+    const annotatableJson = {
+      chrom: annotatable.chromosome,
+      pos: annotatable.position || undefined,
+      ref: annotatable.reference || undefined,
+      alt: annotatable.alternative || undefined,
       // eslint-disable-next-line camelcase
-      pos_beg: variant.positionStart || undefined,
+      pos_beg: annotatable.positionStart || undefined,
       // eslint-disable-next-line camelcase
-      pos_end: variant.positionEnd || undefined
+      pos_end: annotatable.positionEnd || undefined
     };
 
     const userToken = this.getCSRFToken();
@@ -44,7 +50,7 @@ export class SingleAnnotationService {
     return this.http.post<object>(
       this.getReportUrl,
       {
-        variant: variantJson,
+        annotatable: annotatableJson,
         // eslint-disable-next-line camelcase
         pipeline_id: pipeline,
       },

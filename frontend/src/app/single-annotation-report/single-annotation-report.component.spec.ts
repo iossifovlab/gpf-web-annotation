@@ -9,7 +9,7 @@ import {
   Resource,
   Result,
   SingleAnnotationReport,
-  Variant
+  Annotatable
 } from '../single-annotation';
 import { ActivatedRoute, provideRouter } from '@angular/router';
 import { provideMarkdown } from 'ngx-markdown';
@@ -39,8 +39,8 @@ describe('SingleAnnotationReportComponent', () => {
     component = fixture.componentInstance;
 
     const activatedRoute = TestBed.inject(ActivatedRoute);
-    (activatedRoute.queryParams as BehaviorSubject<{variant: string, pipeline: string}>).next({
-      variant: 'chr14 204000100 A AA',
+    (activatedRoute.queryParams as BehaviorSubject<{annotatable: string, pipeline: string}>).next({
+      annotatable: 'chr14 204000100 A AA',
       pipeline: 'pipeline'
     });
 
@@ -53,7 +53,7 @@ describe('SingleAnnotationReportComponent', () => {
 
   it('should display true, false and 0 when there is no histogram', () => {
     const report = new SingleAnnotationReport(
-      new Variant('chr14', 204000100, 'A', 'AA', 'ins', null, null),
+      new Annotatable('chr14', 204000100, 'A', 'AA', 'ins', null, null),
       [
         new Annotator(new AnnotatorDetails('allele_score', 'desc', [new Resource('resourceId', 'resourceUrl')]), [
           new Attribute('attr1', 'desc1', 'AF', {value: 'true', histogramLink: null} as Result),
@@ -77,7 +77,7 @@ describe('SingleAnnotationReportComponent', () => {
     const saveAsSpy = jest.spyOn(FileSaver, 'saveAs').mockImplementation(() => null);
 
     const report = new SingleAnnotationReport(
-      new Variant('chr14', 204000100, 'A', 'AA', 'ins', null, null),
+      new Annotatable('chr14', 204000100, 'A', 'AA', 'ins', null, null),
       [
         new Annotator(new AnnotatorDetails('allele_score', 'desc', [new Resource('resourceId', 'resourceUrl')]), [
           new Attribute('attr1', 'desc1\nblabla1\n', 'AF', {value: 'true', histogramLink: null} as Result),

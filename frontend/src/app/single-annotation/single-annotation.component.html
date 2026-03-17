@@ -3,7 +3,7 @@
     <input
       [(ngModel)]="currentAllele"
       type="text"
-      placeholder="Type variant..."
+      placeholder="Type annotatable..."
       (keydown.enter)="triggerPipelineAutoSave()"
       (ngModelChange)="resetAllele()" />
     <button (click)="triggerPipelineAutoSave()" [disabled]="disableGo()">Go</button>

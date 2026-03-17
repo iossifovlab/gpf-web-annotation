@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SingleAnnotationReportComponent } from '../single-annotation-report/single-annotation-report.component';
 import { SingleAnnotationService } from '../single-annotation.service';
-import { SingleAnnotationReport, Variant } from '../single-annotation';
+import { SingleAnnotationReport, Annotatable } from '../single-annotation';
 import { UsersService } from '../users.service';
 import { Subscription } from 'rxjs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -27,7 +27,7 @@ export class SingleAnnotationComponent implements OnInit {
   @Output() public autoSaveTrigger = new EventEmitter<void>();
   private getReportSubscription = new Subscription();
   public loading = false;
-  private alleleJson: Variant;
+  private alleleJson: Annotatable;
   public examples: string[];
 
   public constructor(private singleAnnotationService: SingleAnnotationService, private userService: UsersService) { }
@@ -71,7 +71,7 @@ export class SingleAnnotationComponent implements OnInit {
     const parts = this.splitAllele(this.currentAllele);
 
     if (parts.length === 4) {
-      this.alleleJson = new Variant(
+      this.alleleJson = new Annotatable(
         parts[0],
         Number(parts[1]),
         parts[2],
@@ -84,7 +84,7 @@ export class SingleAnnotationComponent implements OnInit {
     }
 
     if (parts.length === 3) {
-      this.alleleJson = new Variant(
+      this.alleleJson = new Annotatable(
         parts[0],
         null,
         null,
@@ -97,7 +97,7 @@ export class SingleAnnotationComponent implements OnInit {
     }
 
     if (parts.length === 2) {
-      this.alleleJson = new Variant(
+      this.alleleJson = new Annotatable(
         parts[0],
         Number(parts[1]),
         null,

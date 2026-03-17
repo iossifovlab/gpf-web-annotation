@@ -42,16 +42,16 @@ export class SingleAnnotationReportComponent {
   }
 
   public saveReport(): void {
-    const fileName = `${this.report.variant.chromosome}_${this.report.variant.position}`
-      + `_${this.report.variant.reference}_${this.report.variant.alternative}`
+    const fileName = `${this.report.annotatable.chromosome}_${this.report.annotatable.position}`
+      + `_${this.report.annotatable.reference}_${this.report.annotatable.alternative}`
       + '_report.tsv';
 
     let reportLines: string = 'Attribute name\tValue\tDescription\n';
 
-    reportLines += `chromosome\t${this.report.variant.chromosome}\n`;
-    reportLines += `position\t${this.report.variant.position}\n`;
-    reportLines += `reference\t${this.report.variant.reference}\n`;
-    reportLines += `alternative\t${this.report.variant.alternative}\n`;
+    reportLines += `chromosome\t${this.report.annotatable.chromosome}\n`;
+    reportLines += `position\t${this.report.annotatable.position}\n`;
+    reportLines += `reference\t${this.report.annotatable.reference}\n`;
+    reportLines += `alternative\t${this.report.annotatable.alternative}\n`;
 
     this.report.annotators.forEach(annotator => {
       annotator.attributes.forEach(attribute => {

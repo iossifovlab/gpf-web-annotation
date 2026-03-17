@@ -101,7 +101,7 @@ test.describe('Anonymous user tests', () => {
     await page.locator('#pipelines-input').click();
     await page.locator('mat-option').getByText('pipeline/T2T_Clinical_annotation').click();
 
-    await page.getByPlaceholder('Type variant...').fill('chr1 1265232 G A');
+    await page.getByPlaceholder('Type annotatable...').fill('chr1 1265232 G A');
     await page.getByRole('button', {name: 'Go'}).click();
     await page.waitForSelector('#report', {timeout: 120000});
     await expect(page.locator('#report')).toBeVisible();
@@ -112,7 +112,7 @@ test.describe('Anonymous user tests', () => {
     await page.locator('.dropdown-icon').click();
     await page.locator('mat-option').getByText('pipeline/T2T_Clinical_annotation').click();
 
-    await page.getByPlaceholder('Type variant...').fill('chr1 1265232 G A');
+    await page.getByPlaceholder('Type annotatable...').fill('chr1 1265232 G A');
     await page.getByRole('button', {name: 'Go'}).click();
     await page.waitForSelector('#report', {timeout: 120000});
     await expect(page.locator('#download-report-button')).toBeVisible();

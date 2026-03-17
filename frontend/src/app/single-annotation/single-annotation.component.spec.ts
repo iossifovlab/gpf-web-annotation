@@ -6,19 +6,19 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { SingleAnnotationService } from '../single-annotation.service';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { Annotator, AnnotatorDetails, Resource, SingleAnnotationReport, Variant } from '../single-annotation';
+import { Annotator, AnnotatorDetails, Resource, SingleAnnotationReport, Annotatable } from '../single-annotation';
 import { UserData, UsersService } from '../users.service';
 import { MatTooltip } from '@angular/material/tooltip';
 
 const mockReport = new SingleAnnotationReport(
-  new Variant('chr14', 204000100, 'A', 'AA', 'ins', null, null),
+  new Annotatable('chr14', 204000100, 'A', 'AA', 'ins', null, null),
   [
     new Annotator(new AnnotatorDetails('allele_score', 'desc', [new Resource('resourceId', 'resourceUrl')]), [])
   ],
 );
 class MockSingleAnnotationService {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getReport(variant: Variant, pipeline: string): Observable<SingleAnnotationReport> {
+  public getReport(annotatable: Annotatable, pipeline: string): Observable<SingleAnnotationReport> {
     return of(mockReport);
   }
 }
@@ -259,7 +259,7 @@ describe('SingleAnnotationComponent', () => {
 
     component.annotateAllele();
     expect(component.report).toBe(mockReport);
-    expect(getReportSpy).toHaveBeenCalledWith(new Variant(
+    expect(getReportSpy).toHaveBeenCalledWith(new Annotatable(
       'chr1',
       11796321,
       'G',
