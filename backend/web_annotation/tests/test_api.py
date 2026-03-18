@@ -175,6 +175,7 @@ def test_job_details_not_exist(user_client: Client) -> None:
     response = user_client.get("/api/jobs/99")
     assert response.status_code == 404
 
+
 @pytest.mark.django_db
 def test_job_details_anonymous_owner(anonymous_client: Client) -> None:
     AnonymousJob(
@@ -594,7 +595,7 @@ def test_single_annotation(admin_client: Client) -> None:
         "/api/single_allele/annotate",
         {
             "pipeline_id": "pipeline/test_pipeline",
-            "variant": {
+            "annotatable": {
                 "chrom": "chr1", "pos": 1, "ref": "C", "alt": "A",
             }
         },
@@ -604,10 +605,10 @@ def test_single_annotation(admin_client: Client) -> None:
     assert response.status_code == 200
 
     data = response.json()
-    assert "variant" in data
+    assert "annotatable" in data
     assert "annotators" in data
 
-    variant_data = data["variant"]
+    variant_data = data["annotatable"]
     annotators_data = data["annotators"]
 
     assert variant_data == {
@@ -615,7 +616,7 @@ def test_single_annotation(admin_client: Client) -> None:
         "position": 1,
         "reference": "C",
         "alternative": "A",
-        "variant_type": "SUBSTITUTION",
+        "annotatable_type": "SUBSTITUTION",
     }
     assert len(annotators_data) == 1
     assert annotators_data[0]["details"] == {
@@ -657,7 +658,7 @@ def test_single_annotation_unauthorized(anonymous_client: Client) -> None:
         "/api/single_allele/annotate",
         {
             "pipeline_id": "pipeline/test_pipeline",
-            "variant": {
+            "annotatable": {
                 "chrom": "chr1", "pos": 1, "ref": "C", "alt": "A",
             }
         },
@@ -667,10 +668,10 @@ def test_single_annotation_unauthorized(anonymous_client: Client) -> None:
     assert response.status_code == 200
 
     data = response.json()
-    assert "variant" in data
+    assert "annotatable" in data
     assert "annotators" in data
 
-    variant_data = data["variant"]
+    variant_data = data["annotatable"]
     annotators_data = data["annotators"]
 
     assert variant_data == {
@@ -678,7 +679,7 @@ def test_single_annotation_unauthorized(anonymous_client: Client) -> None:
         "position": 1,
         "reference": "C",
         "alternative": "A",
-        "variant_type": "SUBSTITUTION",
+        "annotatable_type": "SUBSTITUTION",
     }
     assert len(annotators_data) == 1
     assert annotators_data[0]["details"] == {
@@ -731,7 +732,7 @@ def test_single_annotation_no_pipeline(admin_client: Client) -> None:
     response = admin_client.post(
         "/api/single_allele/annotate",
         {
-            "variant": {
+            "annotatable": {
                 "chrom": "chr1", "pos": 1, "ref": "C", "alt": "A",
             }
         },
@@ -831,7 +832,7 @@ def test_single_annotation_throttled(user_client: Client) -> None:
             "/api/single_allele/annotate",
             {
                 "pipeline_id": "pipeline/test_pipeline",
-                "variant": {
+                "annotatable": {
                     "chrom": "chr1", "pos": 1, "ref": "C", "alt": "A",
                 }
             },
@@ -843,7 +844,7 @@ def test_single_annotation_throttled(user_client: Client) -> None:
         "/api/single_allele/annotate",
         {
             "pipeline_id": "pipeline/test_pipeline",
-            "variant": {
+            "annotatable": {
                 "chrom": "chr1", "pos": 1, "ref": "C", "alt": "A",
             }
         },
@@ -1044,7 +1045,7 @@ def test_single_annotation_t4c8(admin_client: Client) -> None:
         "/api/single_allele/annotate",
         {
             "pipeline_id": "t4c8/t4c8_pipeline",
-            "variant": {
+            "annotatable": {
                 "chrom": "chr1", "pos": 53, "ref": "C", "alt": "A",
             }
         },
@@ -1053,10 +1054,10 @@ def test_single_annotation_t4c8(admin_client: Client) -> None:
     assert response.status_code == 200, response.content
 
     data = response.data  # type: ignore
-    assert "variant" in data
+    assert "annotatable" in data
     assert "annotators" in data
 
-    variant_data = data["variant"]
+    variant_data = data["annotatable"]
     annotators_data = data["annotators"]
 
     assert variant_data == {
@@ -1064,7 +1065,7 @@ def test_single_annotation_t4c8(admin_client: Client) -> None:
         "position": 53,
         "reference": "C",
         "alternative": "A",
-        "variant_type": "SUBSTITUTION",
+        "annotatable_type": "SUBSTITUTION",
     }
     assert len(annotators_data) == 2
     effect_annotator = annotators_data[0]
@@ -1100,7 +1101,7 @@ def test_single_annotation_t4c8(admin_client: Client) -> None:
         "/api/single_allele/annotate",
         {
             "pipeline_id": "t4c8/t4c8_pipeline",
-            "variant": {
+            "annotatable": {
                 "chrom": "chr1", "pos": 102, "ref": "C", "alt": "A",
             }
         },
@@ -1109,10 +1110,10 @@ def test_single_annotation_t4c8(admin_client: Client) -> None:
     assert response.status_code == 200
 
     data = response.data  # type: ignore
-    assert "variant" in data
+    assert "annotatable" in data
     assert "annotators" in data
 
-    variant_data = data["variant"]
+    variant_data = data["annotatable"]
     annotators_data = data["annotators"]
 
     assert variant_data == {
@@ -1120,7 +1121,7 @@ def test_single_annotation_t4c8(admin_client: Client) -> None:
         "position": 102,
         "reference": "C",
         "alternative": "A",
-        "variant_type": "SUBSTITUTION",
+        "annotatable_type": "SUBSTITUTION",
     }
     assert len(annotators_data) == 2
     effect_annotator = annotators_data[0]
@@ -1158,7 +1159,7 @@ def test_single_annotation_save_query_in_history(admin_client: Client) -> None:
         "/api/single_allele/annotate",
         {
             "pipeline_id": "t4c8/t4c8_pipeline",
-            "variant": {
+            "annotatable": {
                 "chrom": "chr1", "pos": 53, "ref": "C", "alt": "A",
             }
         },
@@ -1170,7 +1171,7 @@ def test_single_annotation_save_query_in_history(admin_client: Client) -> None:
         "/api/single_allele/annotate",
         {
             "pipeline_id": "t4c8/t4c8_pipeline",
-            "variant": {
+            "annotatable": {
                 "chrom": "chr2", "pos": 62, "ref": "T", "alt": "G",
             }
         },
@@ -1184,12 +1185,12 @@ def test_single_annotation_save_query_in_history(admin_client: Client) -> None:
         {
             "id": 1,
             "owner": "admin@example.com",
-            "allele": "chr1 53 C A",
+            "allele": "chr1:53 C>A",
         },
         {
             "id": 2,
             "owner": "admin@example.com",
-            "allele": "chr2 62 T G",
+            "allele": "chr2:62 T>G",
         }
     ]
 
@@ -1201,7 +1202,7 @@ def test_single_annotation_save_duplicate_query_in_history(
         "/api/single_allele/annotate",
         {
             "pipeline_id": "t4c8/t4c8_pipeline",
-            "variant": {
+            "annotatable": {
                 "chrom": "chr1", "pos": 53, "ref": "C", "alt": "A",
             }
         },
@@ -1213,7 +1214,7 @@ def test_single_annotation_save_duplicate_query_in_history(
         "/api/single_allele/annotate",
         {
             "pipeline_id": "t4c8/t4c8_pipeline",
-            "variant": {
+            "annotatable": {
                 "chrom": "chr1", "pos": 53, "ref": "C", "alt": "A",
             }
         },
@@ -1227,7 +1228,7 @@ def test_single_annotation_save_duplicate_query_in_history(
         {
             "id": 1,
             "owner": "admin@example.com",
-            "allele": "chr1 53 C A",
+            "allele": "chr1:53 C>A",
         },
     ]
 
@@ -1237,7 +1238,7 @@ def test_user_delete_allele_query_from_history(admin_client: Client) -> None:
         "/api/single_allele/annotate",
         {
             "pipeline_id": "t4c8/t4c8_pipeline",
-            "variant": {
+            "annotatable": {
                 "chrom": "chr1", "pos": 53, "ref": "C", "alt": "A",
             }
         },
@@ -1251,7 +1252,7 @@ def test_user_delete_allele_query_from_history(admin_client: Client) -> None:
         {
             "id": 1,
             "owner": "admin@example.com",
-            "allele": "chr1 53 C A",
+            "allele": "chr1:53 C>A",
         },
     ]
 
