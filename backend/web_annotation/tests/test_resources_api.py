@@ -61,7 +61,7 @@ def test_get_resources(
     if search_term:
         query_params["search"] = search_term
 
-    response = client.get("/api/resources", query_params=query_params)
+    response = client.get("/api/resources/search", query_params=query_params)
 
     assert response.status_code == 200
     assert set(response.json()) == expected_resources

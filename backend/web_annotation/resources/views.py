@@ -68,3 +68,35 @@ class ResourceTypes(ResourcesAPIView):
             list(self.SUPPORTED_RESOURCE_TYPES),
             status=status.HTTP_200_OK,
         )
+
+
+class SearchResources(ResourcesAPIView):
+    """Endpoint for resource FTS search."""
+
+    def get(self, request: Request) -> Response:
+        """Search for resources based on query parameters."""
+        query_params = request.query_params
+
+        # Filter by type if provided
+        resource_type = query_params.get("type")
+
+        # Filter by name if provided
+        search = query_params.get("search")
+
+        resources = self._grr.search_resources(
+            search_term=search,
+            resource_type=resource_type,
+        )
+
+        output = [
+            {
+                "full_id": resource.get_full_id(),
+                "resource_id": resource.resource_id,
+                "type": resource.get_type(),
+                "version": resource.version,
+                "url": resource.get_public_url(),
+            }
+            for resource in resources
+        ]
+
+        return Response(output, status=status.HTTP_200_OK)

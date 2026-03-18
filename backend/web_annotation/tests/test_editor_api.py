@@ -2,6 +2,9 @@
 import textwrap
 from typing import Any
 import yaml
+
+from unittest.mock import ANY
+
 from django.test import Client
 import pytest
 
@@ -16,25 +19,26 @@ def test_annotator_types(
 
     assert response.status_code == 200
     assert set(response.json()) == {
-        "allele_score",
-        "position_score",
+        "allele_score_annotator",
+        "position_score_annotator",
         "effect_annotator",
         "gene_set_annotator",
         "liftover_annotator",
         "normalize_allele_annotator",
         "gene_score_annotator",
         "simple_effect_annotator",
-        "cnv_collection",
+        "cnv_collection_annotator",
     }
 
 
 @pytest.mark.parametrize("current_client", ["admin", "user", "anonymous"])
 @pytest.mark.parametrize("annotator_type,extra_parameters,expected", [
     (
-        "position_score",
+        "position_score_annotator",
         {},
         {
-            "annotator_type": "position_score",
+            "annotator_type": "position_score_annotator",
+            "documentation_url": ANY,
             "resource_id": {
                 "field_type": "resource",
                 "resource_type": "position_score",
@@ -52,6 +56,7 @@ def test_annotator_types(
         {},
         {
             "annotator_type": "gene_set_annotator",
+            "documentation_url": ANY,
             "resource_id": {
                 "field_type": "resource",
                 "resource_type": "gene_set_collection",
@@ -316,16 +321,17 @@ def test_annotator_creation_workflow(
     response = client.get("/api/editor/annotator_types")
     assert response.status_code == 200
     annotator_types = response.json()
-    assert "position_score" in annotator_types
+    assert "position_score_annotator" in annotator_types
 
     # Step 2: Get annotator config
     response = client.post("/api/editor/annotator_config", data={
-        "annotator_type": "position_score",
+        "annotator_type": "position_score_annotator",
     }, content_type="application/json")
     assert response.status_code == 200
     config = response.json()
     assert config == {
-        "annotator_type": "position_score",
+        "annotator_type": "position_score_annotator",
+        "documentation_url": ANY,
         "resource_id": {
             "field_type": "resource",
             "resource_type": "position_score",
@@ -337,7 +343,7 @@ def test_annotator_creation_workflow(
             "optional": True,
         },
     }
-    assert config["annotator_type"] == "position_score"
+    assert config["annotator_type"] == "position_score_annotator"
 
     # Step 3: Get position scores
 
@@ -348,7 +354,7 @@ def test_annotator_creation_workflow(
 
     # Step 4: Get annotator attributes
     response = client.post("/api/editor/annotator_attributes", data={
-        "annotator_type": "position_score",
+        "annotator_type": "position_score_annotator",
         "resource_id": "scores/pos1",
         "pipeline_id": "pipeline/test_pipeline",
     }, content_type="application/json")
@@ -361,7 +367,7 @@ def test_annotator_creation_workflow(
     # Step 5: Get annotator YAML
     response = client.post("/api/editor/annotator_yaml", data={
         "pipeline_id": "pipeline/test_pipeline",
-        "annotator_type": "position_score",
+        "annotator_type": "position_score_annotator",
         "resource_id": "scores/pos1",
         "attributes": [
             {
@@ -377,7 +383,7 @@ def test_annotator_creation_workflow(
 
     output = yaml.safe_load(yaml_output)
     expected = [{
-        "position_score": {
+        "position_score_annotator": {
             "resource_id": "scores/pos1",
             "attributes": [
                 {
@@ -414,24 +420,30 @@ def test_annotator_creation_resource_workflow(
     }, content_type="application/json")
     assert response.status_code == 200
     annotators = response.json()
-    assert len(annotators) == 1
-    assert annotators[0]["annotator_type"] == "position_score"
-    assert annotators[0]["resource_id"] == "scores/pos1"
+    assert "configs" in annotators
+    assert "default" in annotators
+    assert annotators["default"] in annotators["configs"]
+    assert annotators["default"] == "position_score_annotator"
+    annotator_configs = annotators["configs"]
+    assert len(annotator_configs) == 1
+    annotator = annotator_configs[annotators["default"]]
+    assert annotator["annotator_type"] == "position_score_annotator"
+    assert annotator["resource_id"] == "scores/pos1"
 
     # Step 4: Get annotator config
     response = client.post(
         "/api/editor/annotator_config",
-        data=annotators[0],
+        data=annotator,
         content_type="application/json",
     )
     assert response.status_code == 200
     config = response.json()
-    assert config["annotator_type"] == "position_score"
+    assert config["annotator_type"] == "position_score_annotator"
     assert config["resource_id"]["value"] == "scores/pos1"
 
     # Step 5: Get annotator attributes
     response = client.post("/api/editor/annotator_attributes", data={
-        "annotator_type": "position_score",
+        "annotator_type": "position_score_annotator",
         "resource_id": "scores/pos1",
         "pipeline_id": "pipeline/test_pipeline",
     }, content_type="application/json")
@@ -444,7 +456,7 @@ def test_annotator_creation_resource_workflow(
     # Step 6: Get annotator YAML
     response = client.post("/api/editor/annotator_yaml", data={
         "pipeline_id": "pipeline/test_pipeline",
-        "annotator_type": "position_score",
+        "annotator_type": "position_score_annotator",
         "resource_id": "scores/pos1",
         "attributes": [
             {
@@ -460,7 +472,7 @@ def test_annotator_creation_resource_workflow(
 
     output = yaml.safe_load(yaml_output)
     expected = [{
-        "position_score": {
+        "position_score_annotator": {
             "resource_id": "scores/pos1",
             "attributes": [
                 {

@@ -29,11 +29,11 @@ class EditorView(AnnotationBaseView):
         """Get all available annotator types from the DAE registry."""
 
         return [
-            "position_score",
-            "allele_score",
+            "position_score_annotator",
+            "allele_score_annotator",
             "gene_score_annotator",
             "gene_set_annotator",
-            "cnv_collection",
+            "cnv_collection_annotator",
             "effect_annotator",
             "simple_effect_annotator",
             "liftover_annotator",
@@ -51,9 +51,13 @@ class EditorView(AnnotationBaseView):
         if annotator_type not in get_available_annotator_types():
             raise ValueError(f"Unknown annotator_type: {annotator_type}")
 
-        if annotator_type == "position_score":
+        if annotator_type == "position_score_annotator":
             return {
-                "annotator_type": "position_score",
+                "annotator_type": "position_score_annotator",
+                "documentation_url": (
+                    "https://iossifovlab.com/gpfuserdocs/administration"
+                    "/annotation.html#position-score"
+                ),
                 "resource_id": {
                     "field_type": "resource",
                     "resource_type": "position_score",
@@ -65,9 +69,13 @@ class EditorView(AnnotationBaseView):
                     "optional": True,
                 },
             }
-        if annotator_type == "allele_score":
+        if annotator_type == "allele_score_annotator":
             return {
                 "annotator_type": "allele_score",
+                "documentation_url": (
+                    "https://iossifovlab.com/gpfuserdocs/administration"
+                    "/annotation.html#allele-score"
+                ),
                 "resource_id": {
                     "field_type": "resource",
                     "resource_type": "allele_score",
@@ -82,6 +90,10 @@ class EditorView(AnnotationBaseView):
         if annotator_type == "gene_score_annotator":
             return {
                 "annotator_type": "gene_score_annotator",
+                "documentation_url": (
+                    "https://iossifovlab.com/gpfuserdocs/administration"
+                    "/annotation.html#gene-score-annotator"
+                ),
                 "resource_id": {
                     "field_type": "resource",
                     "resource_type": "gene_score",
@@ -101,6 +113,10 @@ class EditorView(AnnotationBaseView):
         if annotator_type == "gene_set_annotator":
             return {
                 "annotator_type": "gene_set_annotator",
+                "documentation_url": (
+                    "https://iossifovlab.com/gpfuserdocs/administration"
+                    "/annotation.html#gene-set-annotator"
+                ),
                 "resource_id": {
                     "field_type": "resource",
                     "resource_type": "gene_set_collection",
@@ -112,9 +128,13 @@ class EditorView(AnnotationBaseView):
                     "optional": False,
                 },
             }
-        if annotator_type == "cnv_collection":
+        if annotator_type == "cnv_collection_annotator":
             return {
                 "annotator_type": "cnv_collection",
+                "documentation_url": (
+                    "https://iossifovlab.com/gpfuserdocs/administration"
+                    "/annotation.html#cnv-collection-annotator"
+                ),
                 "resource_id": {
                     "field_type": "resource",
                     "resource_type": "cnv_collection",
@@ -133,6 +153,10 @@ class EditorView(AnnotationBaseView):
         if annotator_type == "effect_annotator":
             return {
                 "annotator_type": "effect_annotator",
+                "documentation_url": (
+                    "https://iossifovlab.com/gpfuserdocs/administration"
+                    "/annotation.html#effect-annotator"
+                ),
                 "gene_models": {
                     "field_type": "resource",
                     "resource_type": "gene_models",
@@ -152,6 +176,10 @@ class EditorView(AnnotationBaseView):
         if annotator_type == "simple_effect_annotator":
             return {
                 "annotator_type": "effect_annotator",
+                "documentation_url": (
+                    "https://iossifovlab.com/gpfuserdocs/administration"
+                    "/annotation.html#effect-annotator"
+                ),
                 "gene_models": {
                     "field_type": "resource",
                     "resource_type": "gene_models",
@@ -166,6 +194,10 @@ class EditorView(AnnotationBaseView):
         if annotator_type == "liftover_annotator":
             return {
                 "annotator_type": "liftover_annotator",
+                "documentation_url": (
+                    "https://iossifovlab.com/gpfuserdocs/administration"
+                    "/annotation.html#liftover-annotator"
+                ),
                 "chain": {
                     "field_type": "resource",
                     "resource_type": "liftover_chain",
@@ -190,6 +222,10 @@ class EditorView(AnnotationBaseView):
         if annotator_type == "normalize_allele_annotator":
             return {
                 "annotator_type": "normalize_allele_annotator",
+                "documentation_url": (
+                    "https://iossifovlab.com/gpfuserdocs/administration"
+                    "/annotation.html#gene-set-annotator"
+                ),
                 "genome": {
                     "field_type": "resource",
                     "resource_type": "genome",
@@ -475,7 +511,7 @@ class ResourceAnnotators(EditorView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        configs = []
+        configs = {}
 
         for annotator_type in self._get_annotator_types():
             config = {
@@ -496,11 +532,36 @@ class ResourceAnnotators(EditorView):
                             config[field_name] = resource_id
                             break
 
+            if (
+                resource.get_type() == "liftover_chain" and
+                annotator_type == "liftover_annotator"
+            ):
+                labels = resource.get_labels()
+                if "source_genome" in labels:
+                    config["source_genome"] = labels["source_genome"]
+                if "target_genome" in labels:
+                    config["target_genome"] = labels["target_genome"]
+
             if not matched:
                 continue
-            configs.append(config)
+            configs[annotator_type] = config
 
-        return Response(configs, status=status.HTTP_200_OK)
+        resource_default_annotators_mapping = {
+            "allele_score": "allele_score_annotator",
+            "cnv_collection": "cnv_collection_annotator",
+            "gene_models": "effect_annotator",
+            "gene_score": "gene_score_annotator",
+            "gene_set_collection": "gene_set_annotator",
+            "liftover_chain": "liftover_annotator",
+            "position_score": "position_score_annotator",
+        }
+
+        return Response(
+            {
+                "default": resource_default_annotators_mapping.get(
+                    resource.get_type()),
+                "configs": configs,
+            }, status=status.HTTP_200_OK)
 
 
 class PipelineStatus(EditorView):
