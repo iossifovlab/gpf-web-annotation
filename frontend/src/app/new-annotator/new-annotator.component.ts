@@ -22,7 +22,13 @@ import {
   filter,
   Subscription
 } from 'rxjs';
-import { AnnotatorConfig, AttributeData, AttributePage, Resource, ResourceAnnotatorConfigs } from './annotator';
+import {
+  AnnotatorConfig,
+  AttributeData,
+  AttributePage,
+  AnnotatorConfigResource,
+  ResourceAnnotatorConfigs
+} from './annotator';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { KeyValueDisplayPipe } from '../key-value-display.pipe';
 import { MatSelect } from '@angular/material/select';
@@ -134,6 +140,10 @@ export class NewAnnotatorComponent implements OnInit {
     });
   }
 
+  public selectResource(id: string): void {
+    this.resourceTypeStep.get('resourceId').setValue(id);
+    this.requestResourceAnnotators();
+  }
 
   private requestAnnotators(): void {
     this.editorService.getAnnotators().subscribe(res => {

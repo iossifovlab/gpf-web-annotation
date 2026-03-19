@@ -12,38 +12,32 @@
               }
             </mat-select>
           </mat-form-field>
-          <mat-form-field [appearance]="'outline'">
-            <input
-              type="text"
-              autocomplete="off"
-              matInput
-              id="resource-input"
-              formControlName="resourceId"
-              [matAutocomplete]="resourceIdsDropdown"
-              #resourceInput="matAutocompleteTrigger"
-              #resourceInputValue
-              [title]="resourceInputValue.value"
-              (click)="clearResource()"
-              (keydown.enter)="resourceInput.closePanel()" />
-            <span (click)="resourceInput.openPanel(); clearResource()" class="material-symbols-outlined dropdown-icon"
-              >keyboard_arrow_down</span
-            >
-            <mat-autocomplete #resourceIdsDropdown="matAutocomplete">
-              @for (id of resourceIds; track id) {
-              <mat-option class="resource-option" [value]="id" [title]="id">{{ id }}</mat-option>
-              }
-            </mat-autocomplete>
-          </mat-form-field>
+
+          <input
+            placeholder="Search resource"
+            type="text"
+            autocomplete="off"
+            id="resource-search-input"
+            formControlName="resourceId"
+            #resourceInputValue
+            [title]="resourceInputValue.value"
+            (click)="clearResource()" />
         </div>
 
-        <div>
-          <button
-            matButton
-            [disabled]="resourceTypeStep.invalid"
-            class="next-button"
-            (click)="requestResourceAnnotators()"
-            >Next</button
-          >
+        <div style="display: flex; flex-direction: column; flex: 1 1 0; min-height: 0">
+          <div class="grid-container" id="resource-list">
+            <div class="grid-header">Resource id</div>
+            <div></div>
+            @for (id of resourceIds; track $index) {
+            <ng-container>
+              <span class="resource-id grid-cell" [title]="id">{{ id }}</span>
+
+              <button [attr.id]="id + '-select-button'" class="select-resource-button" (click)="selectResource(id)"
+                >Select</button
+              >
+            </ng-container>
+            }
+          </div>
         </div>
       </form>
     </mat-step>
