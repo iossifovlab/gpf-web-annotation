@@ -64,7 +64,7 @@ def test_get_resources(
     response = client.get("/api/resources/search", query_params=query_params)
 
     assert response.status_code == 200
-    assert set(response.json()) == expected_resources
+    assert {res["resource_id"] for res in response.json()} == expected_resources
 
 
 @pytest.mark.parametrize("current_client", ["admin", "user", "anonymous"])

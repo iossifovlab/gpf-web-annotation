@@ -1,6 +1,6 @@
-- md5: 38f7e47d68d6743cdf0e68539183ec54
+- md5: 1bfdcc6208ad2d2faed3383f7b66dd52
   name: genomic_resource.yaml
-  size: 310
+  size: 177
 - md5: 125b5f9f783376a442a9be776953d375
   name: main_gene_sets/all_candidates.txt
   size: 96

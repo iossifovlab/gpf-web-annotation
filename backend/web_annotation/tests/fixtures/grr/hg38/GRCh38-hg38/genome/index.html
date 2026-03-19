@@ -20,6 +20,36 @@ td {
     font-size: 18px;
 }
 
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    padding-top: 100px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    justify-content: center;
+}
+.modal-content {
+    margin: auto;
+    display: block;
+    width: 80%;
+    max-width: 700px;
+}
+.close {
+    float: right;
+    font-size: 40px;
+    font-weight: bold;
+}
+.close:hover,
+.close:focus {
+    color: #bbb;
+    text-decoration: none;
+    cursor: pointer;
+}
+
 #chromosomes-table {
     border-collapse: separate;
     border-spacing: 0;
@@ -44,11 +74,45 @@ td {
     position: sticky; top: 0; background-color: white;
 }
 
-
 </style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll("[data-modal-trigger]").forEach(function (trigger) {
+            trigger.addEventListener("click", function () {
+                var modalId = this.getAttribute("data-modal-trigger");
+                var modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.style.display = "block";
+                    document.currentOpenModal = modal;
+                }
+            });
+        });
+
+        document.querySelectorAll(".close").forEach(function (closeButton) {
+            closeButton.addEventListener("click", function () {
+                this.closest(".modal").style.display = "none";
+                document.currentOpenModal = null;
+            });
+        });
+
+        window.addEventListener("click", function (event) {
+            if (event.target.classList.contains("modal")) {
+                event.target.style.display = "none";
+                document.currentOpenModal = null;
+            }
+        });
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape" && document.currentOpenModal) {
+                document.currentOpenModal.style.display = "none";
+                document.currentOpenModal = null;
+            }
+        });
+    });
+</script>
 </head>
     <body>
-
     <h1>Resource</h1>
     <div>
         <table border="1">
@@ -79,7 +143,7 @@ td {
 <p>Default HG38 reference genome used by GPF</p>
 
                         </template>
-                     </div>
+                    </div>
                 </td>
             </tr>
             <tr>
@@ -93,10 +157,9 @@ td {
 <p>Default HG38 reference genome used by GPF</p>
 
                         </template>
-                     </div>
+                    </div>
                 </td>
             </tr>
-
             <tr>
                 <td>
                     <b>Labels:</b>
@@ -329,36 +392,43 @@ td {
         </tr>
     </thead>
     <tbody>
-        <tr>
-            <td class="nowrap">
-                <a href='GRCh38_full_analysis_set_plus_decoy_hla.fa'>GRCh38_full_analysis_set_plus_decoy_hla.fa</a>
-            </td>
-            <td class="nowrap">2.71 MB</td>
-            <td class="nowrap">e00929f659f77c5d04d0a881cf6f3033</td>
-        </tr>
-        <tr>
-            <td class="nowrap">
-                <a href='GRCh38_full_analysis_set_plus_decoy_hla.fa.fai'>GRCh38_full_analysis_set_plus_decoy_hla.fa.fai</a>
-            </td>
-            <td class="nowrap">50.0 B</td>
-            <td class="nowrap">2e3b716901f9da348a3ea6a424d54006</td>
-        </tr>
-        <tr>
-            <td class="nowrap">
-                <a href='genomic_resource.yaml'>genomic_resource.yaml</a>
-            </td>
-            <td class="nowrap">339.0 B</td>
-            <td class="nowrap">b151ecdcef68d9014ab78823b5147711</td>
-        </tr>
-        <tr>
-            <td class="nowrap">
-                <a href='statistics/'>statistics/</a>
-            </td>
-            <td class="nowrap"></td>
-            <td class="nowrap"></td>
-        </tr>
+            <tr>
+                
+                    <td class="nowrap">
+                        <a href='GRCh38_full_analysis_set_plus_decoy_hla.fa'>GRCh38_full_analysis_set_plus_decoy_hla.fa</a>
+                    </td>
+                
+                <td class="nowrap">2.71 MB</td>
+                <td class="nowrap">e00929f659f77c5d04d0a881cf6f3033</td>
+            </tr>
+            <tr>
+                
+                    <td class="nowrap">
+                        <a href='GRCh38_full_analysis_set_plus_decoy_hla.fa.fai'>GRCh38_full_analysis_set_plus_decoy_hla.fa.fai</a>
+                    </td>
+                
+                <td class="nowrap">50.0 B</td>
+                <td class="nowrap">2e3b716901f9da348a3ea6a424d54006</td>
+            </tr>
+            <tr>
+                
+                    <td class="nowrap">
+                        <a href='genomic_resource.yaml'>genomic_resource.yaml</a>
+                    </td>
+                
+                <td class="nowrap">339.0 B</td>
+                <td class="nowrap">b151ecdcef68d9014ab78823b5147711</td>
+            </tr>
+            <tr>
+                
+                    <td class="nowrap">
+                        <a href='statistics/index.html'>statistics/</a>
+                    </td>
+                
+                <td class="nowrap"></td>
+                <td class="nowrap"></td>
+            </tr>
     </tbody>
     </table>
-
     </body>
 </html>
