@@ -15,12 +15,11 @@ import {
   switchMap,
   take,
   forkJoin,
-  Subject,
-  distinctUntilChanged,
-  tap,
   debounceTime,
   filter,
-  Subscription
+  Subscription,
+  distinctUntilChanged,
+  Subject
 } from 'rxjs';
 import {
   AnnotatorConfig,
@@ -103,9 +102,9 @@ export class NewAnnotatorComponent implements OnInit {
 
       this.editorService.getResourceTypes().pipe(take(1)).subscribe(res => {
         this.resourceTypes = res.sort();
-        this.selectedResourceType = this.resourceTypes[0];
-        this.resourceTypeStep.get('resourceType').setValue(this.selectedResourceType, { emitEvent: false });
         this.setupResourceSearching();
+        this.selectedResourceType = this.resourceTypes[0];
+        this.resourceTypeStep.get('resourceType').setValue(this.selectedResourceType);
       });
     } else {
       this.requestAnnotators();
@@ -119,17 +118,11 @@ export class NewAnnotatorComponent implements OnInit {
       switchMap(({ value, type }) => this.editorService.getResourcesBySearch(value, type)),
     ).subscribe(resources => {
       this.resourceIds = resources;
-
-      if (!this.resourceIds.includes(this.normalizeString(this.resourceTypeStep.get('resourceId').value))) {
-        this.resourceTypeStep.get('resourceId').setErrors({ invalidOption: true });
-      } else {
-        this.resourceTypeStep.get('resourceId').setErrors(null);
-      }
     });
 
     // Trigger search on resourceId value changes
     this.resourceTypeStep.get('resourceId').valueChanges.pipe(
-      tap(() => this.resourceTypeStep.get('resourceId').setErrors({ invalidOption: true })),
+      debounceTime(300),
       map(value => ({ value: this.normalizeString(value), type: this.selectedResourceType })),
     ).subscribe(obj => this.searchSubject.next(obj));
 
@@ -391,7 +384,7 @@ export class NewAnnotatorComponent implements OnInit {
       this.resourceStep.get(inputField).setValue(null);
       return;
     }
-    this.resourceTypeStep.get('resourceId').setValue(null);
+    this.resourceTypeStep.get('resourceId').setValue('');
   }
 
   public onAttributeNameChange(attribute: AttributeData, newName: string): void {

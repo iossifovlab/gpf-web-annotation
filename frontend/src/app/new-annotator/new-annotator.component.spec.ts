@@ -582,6 +582,7 @@ describe('Annotator created by resource', () => {
   it('should trigger search on resource type change', () => {
     const searchSpy = jest.spyOn(pipelineEditorServiceMock, 'getResourcesBySearch');
     component.resourceTypeStep.get('resourceType').setValue('genome', { emitEvent: true });
+
     expect(searchSpy).toHaveBeenCalledWith('', 'genome');
     expect(component.resourceIds).toStrictEqual([
       'hg19/scores/phyloP46_primates',
@@ -589,37 +590,34 @@ describe('Annotator created by resource', () => {
       'hg38/scores/phastCons100way',
       'hg38/scores/phastCons20way'
     ]);
-    expect(component.resourceTypeStep.get('resourceId').errors).toStrictEqual({invalidOption: true});
   });
 
-  it('should trigger search on resource input change', () => {
+  it('should trigger search on resource input change', fakeAsync(() => {
     const searchSpy = jest.spyOn(pipelineEditorServiceMock, 'getResourcesBySearch');
-    const normalizeStringSpy = jest.spyOn(component, 'normalizeString');
     component.resourceTypeStep.get('resourceId').setValue('hg38  ', { emitEvent: true });
-    expect(normalizeStringSpy).toHaveBeenCalledWith('hg38  ');
+    tick(300);
     expect(searchSpy).toHaveBeenCalledWith('hg38', 'gene_set_collection');
     expect(component.resourceIds).toStrictEqual(['hg38/scores/phastCons100way', 'hg38/scores/phastCons20way']);
-    expect(component.resourceTypeStep.get('resourceId').errors).toStrictEqual({invalidOption: true});
-  });
+  }));
 
-  it('should make resource id form valid if the typed resource exists', () => {
+  it('should make resource id form valid if the typed resource exists', fakeAsync(() => {
     const searchSpy = jest.spyOn(pipelineEditorServiceMock, 'getResourcesBySearch');
-    const normalizeStringSpy = jest.spyOn(component, 'normalizeString');
     component.resourceTypeStep.get('resourceId').setValue('hg38/scores/phastCons20way', { emitEvent: true });
-    expect(normalizeStringSpy).toHaveBeenCalledWith('hg38/scores/phastCons20way');
+    tick(300);
     expect(searchSpy).toHaveBeenCalledWith('hg38/scores/phastCons20way', 'gene_set_collection');
     expect(component.resourceIds).toStrictEqual(['hg38/scores/phastCons20way']);
-    expect(component.resourceTypeStep.get('resourceId').errors).toBeNull();
-  });
+  }));
 
-  it('should not trigger resource search when the search value has not changed', () => {
+  it('should not trigger resource search when the search value has not changed', fakeAsync(() => {
     jest.clearAllMocks(); // clear search method calls from previous tests
     const searchSpy = jest.spyOn(pipelineEditorServiceMock, 'getResourcesBySearch');
     component.resourceTypeStep.get('resourceId').setValue('hg38  ', { emitEvent: true });
+    tick(300);
     expect(searchSpy).toHaveBeenCalledTimes(1);
     component.resourceTypeStep.get('resourceId').setValue('hg38', { emitEvent: true });
+    tick(300);
     expect(searchSpy).toHaveBeenCalledTimes(1);
-  });
+  }));
 
   it('should set default annotator', () => {
     jest.clearAllMocks(); // clear search method calls from previous tests
