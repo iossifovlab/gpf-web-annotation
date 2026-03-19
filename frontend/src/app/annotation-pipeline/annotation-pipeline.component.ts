@@ -68,6 +68,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   public isUserLoggedIn = false;
   public showConfimDeletePopup = false;
   public socketNotificationSubscription: Subscription = new Subscription();
+  public pipelineValidationSubscription: Subscription = new Subscription();
   public pipelineInfo: PipelineInfo;
   public disableActions: boolean;
 
@@ -214,7 +215,8 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
 
     this.emitIsConfigValid.emit(false);
 
-    this.jobsService.validatePipelineConfig(this.currentPipelineText).pipe(
+    this.pipelineValidationSubscription.unsubscribe();
+    this.pipelineValidationSubscription = this.jobsService.validatePipelineConfig(this.currentPipelineText).pipe(
       take(1)
     ).subscribe((errorReason: string) => {
       this.configError = errorReason;

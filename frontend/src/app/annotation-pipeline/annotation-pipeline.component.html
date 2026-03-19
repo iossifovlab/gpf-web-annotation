@@ -84,7 +84,9 @@
       >
     </div>
   </div>
-  <div *ngIf="configError" class="error-message">{{ configError }}</div>
+  @if(configError) {
+  <div class="error-message">{{ configError }}</div>
+  }
 </div>
 
 <div id="pipeline-actions">
