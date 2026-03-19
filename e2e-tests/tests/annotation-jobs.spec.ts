@@ -15,7 +15,7 @@ test.describe('Create job tests', () => {
   });
 
   test('should create job with vcf file', async({ page }) => {
-    await utils.selectPipeline(page, 'pipeline/Autism_annotation');
+    await utils.selectPipeline(page, 'pipeline/Clinical_annotation');
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-vcf-file.vcf');
     await page.locator('#create-button').click();
 
@@ -36,7 +36,7 @@ test.describe('Create job tests', () => {
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-vcf-file.vcf');
     await expect(page.locator('#create-button')).toBeEnabled();
 
-    await utils.clearPipelineEditor(page);
+    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New', exact: true }).click();
     await expect(page.locator('#create-button')).toBeEnabled();
   });
 
@@ -101,7 +101,7 @@ test.describe('Job details tests', () => {
   });
 
   test('should check job details of the first job', async({ page }) => {
-    await createJobWithPipeline(page, 'pipeline/Autism_annotation', 'input-vcf-file.vcf');
+    await createJobWithPipeline(page, 'pipeline/Clinical_annotation', 'input-vcf-file.vcf');
 
     await page.locator('.job-name').getByText('info').nth(0).click();
     await expect(page.locator('app-job-details')).toBeVisible();
@@ -177,7 +177,7 @@ test.describe('Job details tests', () => {
   });
 
   test('should check job details modal of failed job', async({ page }) => {
-    await utils.selectPipeline(page, 'pipeline/Autism_annotation');
+    await utils.selectPipeline(page, 'pipeline/Clinical_annotation');
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-csv-file.csv');
 
     await expect(page.locator('app-column-specifying')).toBeVisible();
@@ -299,7 +299,7 @@ test.describe('Jobs validation tests', () => {
   });
 
   test('should upload invalid vcf file', async({ page }) => {
-    await utils.selectPipeline(page, 'pipeline/Autism_annotation');
+    await utils.selectPipeline(page, 'pipeline/Clinical_annotation');
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/invalid-vcf-input-file.vcf');
 
     await page.locator('#create-button').click();
@@ -367,14 +367,14 @@ async function customDefaultPipeline(page: Page): Promise<void> {
   await utils.typeInPipelineEditor(
     page,
     '- effect_annotator:\n' +
-    '   gene_models: hg38/gene_models/GENCODE/48/basic/ALL\n' +
-    '   genome: hg38/genomes/GRCh38.p13\n' +
-    '   attributes:\n' +
-    '   - worst_effect\n' +
-    '   - gene_effects\n' +
-    '   - effect_details\n' +
-    '   - name: gene_list \n' +
-    '     internal: true\n'
+    '    gene_models: hg38/gene_models/GENCODE/48/basic/ALL\n' +
+    '    genome: hg38/genomes/GRCh38.p13\n' +
+    '    attributes:\n' +
+    '    - worst_effect\n' +
+    '    - gene_effects\n' +
+    '    - effect_details\n' +
+    '    - name: gene_list \n' +
+    '      internal: true\n'
   );
 
   await saveResponse;

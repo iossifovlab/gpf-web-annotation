@@ -16,6 +16,7 @@ test.describe('Anonymous user tests', () => {
   });
 
   test('should append gene set annotator', async({ page }) => {
+    await utils.selectPipeline(page, 'pipeline/Clinical_annotation');
     await page.locator('#pipeline-actions').locator('#add-annotator-button').click();
 
     await page.getByRole('combobox', { name: 'Select annotator' }).click();
@@ -129,6 +130,7 @@ test.describe('Anonymous user tests', () => {
   });
 
   test('should use public pipeline for job annotation', async({ page }) => {
+    await utils.selectPipeline(page, 'pipeline/Clinical_annotation');
     await page.locator('#annotation-jobs').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-vcf-file-reduced.vcf');
     await page.locator('#create-button').click();
@@ -215,6 +217,7 @@ test.describe('Anonymous user tests', () => {
   });
 
   test('should be able to create new job after the previous one', async({ page }) => {
+    await utils.selectPipeline(page, 'pipeline/Clinical_annotation');
     await page.locator('#annotation-jobs').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-vcf-file.vcf');
     await page.locator('#create-button').click();

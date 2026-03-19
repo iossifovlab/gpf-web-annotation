@@ -57,14 +57,15 @@ test.describe('Pipeline tests', () => {
 
     await utils.typeInPipelineEditor(
       page,
-      '- cnv_collection:\n' +
-      '    resource_id: hg38/cnv_collections/Iossifov_Lab_SSC_AGRE_2021\n' +
-      '    cnv_filter: >\n' +
-      '        cnv.attributes["affected_status"] == "affected" and\n' +
-      '        cnv.attributes["variant"] == "deletion"\n' +
+      '- effect_annotator:\n' +
+      '    gene_models: hg38/gene_models/GENCODE/48/basic/ALL\n' +
+      '    genome: hg38/genomes/GRCh38.p13\n' +
       '    attributes:\n' +
-      '    - name: number_of_deletions_in_SSC_affected\n' +
-      '      source: count\n'
+      '    - worst_effect\n' +
+      '    - gene_effects\n' +
+      '    - effect_details\n' +
+      '    - name: gene_list \n' +
+      '      internal: true\n'
     );
 
     await saveResponse;
@@ -76,7 +77,7 @@ test.describe('Pipeline tests', () => {
   });
 
   test('should not be able to save pipeline if invalid', async({ page }) => {
-    await utils.clearPipelineEditor(page);
+    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New', exact: true }).click();
     await utils.typeInPipelineEditor(
       page,
       'preamble:\n' +
@@ -160,7 +161,7 @@ test.describe('Pipeline tests', () => {
       model.applyEdits([
         {
           range: new monaco.Range(6, 1, 13, 1),
-          text: '- position_score:\n' +
+          text: '- position_score_annotator:\n' +
                 '    attributes:\n' +
                 '    - internal: false\n' +
                 '      name: fitcons2_e035\n' +
@@ -217,6 +218,7 @@ test.describe('Pipeline tests', () => {
   });
 
   test('should make copy of public pipeline by clicking \'save as\'', async({ page }) => {
+    await utils.selectPipeline(page, 'pipeline/Clinical_annotation');
     await page.getByRole('button', { name: 'Save as' }).click();
 
     await expect(page.locator('#name-modal')).toBeVisible();
@@ -321,21 +323,21 @@ test.describe('Pipeline validation tests', () => {
   });
 
   test('should type config without annotators and show error message', async({ page }) => {
-    await utils.clearPipelineEditor(page);
+    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New', exact: true }).click();
     await utils.typeInPipelineEditor(page, 'preamble:\n input_reference_genome: hg38/genomes/GRCh38-hg38');
     await page.waitForSelector('.invalid-config', { state: 'visible', timeout: 120000 });
     await expect(page.getByText('Invalid configuration, reason: \'annotators\'')).toBeVisible();
   });
 
   test('should type config without peamble and show error message', async({ page }) => {
-    await utils.clearPipelineEditor(page);
+    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New', exact: true }).click();
     await utils.typeInPipelineEditor(page, 'annotators:\n - allele_score: hg38/scores/CADD_v1.4');
     await page.waitForSelector('.invalid-config', { state: 'visible', timeout: 120000 });
     await expect(page.getByText('Invalid configuration, reason: \'preamble\'')).toBeVisible();
   });
 
   test('should type semantically invalid config and see error', async({ page }) => {
-    await utils.clearPipelineEditor(page);
+    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New', exact: true }).click();
     await utils.typeInPipelineEditor(page, '- allele_score');
 
     await expect(page.locator('.error-message').nth(0)).toContainText(
@@ -360,6 +362,7 @@ test.describe('Add annotator to pipeline tests', () => {
   });
 
   test('should append gene set annotator', async({ page }) => {
+    await utils.selectPipeline(page, 'pipeline/Clinical_annotation');
     await page.locator('#pipeline-actions').locator('#add-annotator-button').click();
 
     await page.getByRole('combobox', { name: 'Select annotator' }).click();
@@ -400,6 +403,7 @@ test.describe('Add annotator to pipeline tests', () => {
   });
 
   test('should append two annotators', async({ page }) => {
+    await utils.selectPipeline(page, 'pipeline/Clinical_annotation');
     await page.locator('#pipeline-actions').locator('#add-annotator-button').click();
 
     await page.getByRole('combobox', { name: 'Select annotator' }).click();
@@ -432,7 +436,8 @@ test.describe('Add annotator to pipeline tests', () => {
     await page.locator('#pipeline-actions').locator('#add-annotator-button').click();
 
     await page.getByRole('combobox', { name: 'Select annotator' }).click();
-    await page.locator('mat-option').getByText('position_score').click();
+    await page.locator('mat-option').getByText('position_score_annotator').click();
+    await page.waitForTimeout(3000);
     await page.getByRole('button', { name: 'Next' }).click();
 
     await page.locator('[id="resource_id-dropdown"]').click();
@@ -464,7 +469,7 @@ test.describe('Add annotator to pipeline tests', () => {
       '      source: liftover_annotatable\n' +
       '      internal: true\n' +
       '\n' +
-      '- position_score:\n' +
+      '- position_score_annotator:\n' +
       '    resource_id: hg19/scores/fitCons2/E050\n' +
       '    attributes:\n' +
       '    - name: FitCons2_E050\n' +

@@ -70,14 +70,6 @@ export async function typeInPipelineEditor(page: Page, input: string): Promise<v
   /* eslint-enable */
 }
 
-export async function clearPipelineEditor(page: Page): Promise<void> {
-  const monacoEditor = page.locator('.monaco-editor').nth(0);
-  await monacoEditor.click();
-  await page.keyboard.press('Control+A');
-  await page.keyboard.press('Delete');
-}
-
-
 export async function selectPipeline(page: Page, pipeline: string): Promise<void> {
   await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
   await page.locator('.dropdown-icon').click();
