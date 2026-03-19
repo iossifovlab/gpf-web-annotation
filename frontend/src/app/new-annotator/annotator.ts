@@ -1,6 +1,7 @@
 export class AnnotatorConfig {
   public constructor(
     public annotatorType: string,
+    public annotatorUrl: string,
     public resources: Resource[]
   ) { }
 
@@ -11,7 +12,7 @@ export class AnnotatorConfig {
 
     const resources: Resource[] = [];
     Object.keys(json).forEach(key => {
-      if (key !== 'annotator_type') {
+      if (!['annotator_type', 'documentation_url'].includes(key)) {
         resources.push(new Resource(
           key,
           /* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access */
@@ -29,6 +30,7 @@ export class AnnotatorConfig {
 
     return new AnnotatorConfig(
       json['annotator_type'] as string,
+      json['documentation_url'] as string,
       resources,
     );
   }

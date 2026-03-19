@@ -51,6 +51,7 @@ describe('PipelineEditorService', () => {
       /* eslint-disable camelcase */
       {
         annotator_type: 'position_score',
+        documentation_url: 'annotatorUrl',
         resource_id: {
           field_type: 'resource',
           resource_type: 'position_score',
@@ -83,6 +84,7 @@ describe('PipelineEditorService', () => {
     const res = await lastValueFrom(getResponse.pipe(take(1)));
     expect(res).toStrictEqual(new AnnotatorConfig(
       'position_score',
+      'annotatorUrl',
       [
         new Resource(
           'resource_id', 'resource', 'position_score', '', [
@@ -104,6 +106,7 @@ describe('PipelineEditorService', () => {
       /* eslint-disable camelcase */
       {
         annotator_type: 'gene_set_annotator',
+        documentation_url: 'annotatorUrl',
         input_gene_list: {
           field_type: 'string',
           optional: false
@@ -129,6 +132,7 @@ describe('PipelineEditorService', () => {
     const res = await lastValueFrom(getResponse.pipe(take(1)));
     expect(res).toStrictEqual(new AnnotatorConfig(
       'gene_set_annotator',
+      'annotatorUrl',
       [
         new Resource('input_gene_list', 'string', '', '', null, false, ''),
         new Resource('input_annotatable', 'attribute', '', '', null, true, 'annotatable'),

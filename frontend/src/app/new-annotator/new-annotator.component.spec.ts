@@ -12,6 +12,7 @@ import { FormBuilder, FormControl } from '@angular/forms';
 
 const annotatorConfigMock = new AnnotatorConfig(
   'effect_annotator',
+  'annotatorUrl',
   [
     new Resource(
       'gene_models',
