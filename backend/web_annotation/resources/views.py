@@ -96,7 +96,11 @@ class SearchResources(ResourcesAPIView):
                 "version": resource.version,
                 "url": resource.get_public_url(),
             }
-            for resource in resources
+            for resource in
+            filter(
+                lambda r: r.get_type() in self.SUPPORTED_RESOURCE_TYPES,
+                resources,
+            )
         ]
 
         return Response(output, status=status.HTTP_200_OK)
