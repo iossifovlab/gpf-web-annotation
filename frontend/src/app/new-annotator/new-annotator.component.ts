@@ -22,7 +22,7 @@ import {
   filter,
   Subscription
 } from 'rxjs';
-import { AnnotatorConfig, AttributeData, AttributePage, Resource, ResourceAnnotator } from './annotator';
+import { AnnotatorConfig, AttributeData, AttributePage, Resource, ResourceAnnotatorConfigs } from './annotator';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { KeyValueDisplayPipe } from '../key-value-display.pipe';
 import { MatSelect } from '@angular/material/select';
@@ -58,7 +58,7 @@ export class NewAnnotatorComponent implements OnInit {
   public resourceIds: string[];
   public selectedResourceType = '';
   private searchSubject = new Subject<{ value: string; type: string }>();
-  public resourceAnnotators: ResourceAnnotator[];
+  public resourceAnnotators: ResourceAnnotatorConfigs;
   public annotatorStep: FormGroup<{ annotator: FormControl<string> }>;
   public annotatorTypes: string[] = [];
   public filteredAnnotatorTypes: string[];
@@ -148,18 +148,20 @@ export class NewAnnotatorComponent implements OnInit {
       take(1),
     ).subscribe(res => {
       this.resourceAnnotators = res;
-      this.annotatorTypes = res.map(r => r.annotatorType);
-      this.filteredAnnotatorTypes = res.map(r => r.annotatorType);
+      this.annotatorTypes = res.annotators.map(r => r.annotatorType);
+      this.filteredAnnotatorTypes = res.annotators.map(r => r.annotatorType);
       this.setupAnnotatorValueFiltering();
-      if (this.resourceAnnotators.length === 1) {
-        this.autoSelectAnnotator();
+      if (this.resourceAnnotators.annotators.length === 1) {
+        this.autoSelectAnnotator(this.resourceAnnotators.annotators[0].annotatorType);
+      } else if (this.resourceAnnotators.defaultAnnotator) {
+        this.autoSelectAnnotator(this.resourceAnnotators.defaultAnnotator);
       }
       this.stepper.next();
     });
   }
 
-  private autoSelectAnnotator(): void {
-    this.annotatorStep.get('annotator').setValue(this.resourceAnnotators[0].annotatorType);
+  private autoSelectAnnotator(annotatorType: string): void {
+    this.annotatorStep.get('annotator').setValue(annotatorType);
     this.requestResources();
   }
 
@@ -215,7 +217,8 @@ export class NewAnnotatorComponent implements OnInit {
     if (this.data.isResourceWorkflow) {
       annotatorConfigObservable = this.editorService.getAnnotatorConfig(
         this.annotatorStep.get('annotator').value,
-        this.resourceAnnotators.find(a => a.annotatorType === this.annotatorStep.get('annotator').value).resourceJson
+        this.resourceAnnotators.annotators
+          .find(a => a.annotatorType === this.annotatorStep.get('annotator').value).resourceJson
       );
     }
 

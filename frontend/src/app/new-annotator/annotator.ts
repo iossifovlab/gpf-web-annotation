@@ -103,6 +103,32 @@ export class AttributePage {
   }
 }
 
+export class ResourceAnnotatorConfigs {
+  public constructor(
+    public defaultAnnotator: string,
+    public annotators: ResourceAnnotator[],
+  ) { }
+
+  public static fromJson(json: object): ResourceAnnotatorConfigs {
+    if (!json) {
+      return undefined;
+    }
+
+    const annotators: ResourceAnnotator[] = [];
+
+    type Config = [string, object];
+
+    for (const [, value] of Object.entries(json['configs'] as Config[])) {
+      annotators.push(ResourceAnnotator.fromJson(value));
+    }
+
+    return new ResourceAnnotatorConfigs(
+      json['default'] as string,
+      annotators
+    );
+  }
+}
+
 export class ResourceAnnotator {
   public constructor(
     public annotatorType: string,

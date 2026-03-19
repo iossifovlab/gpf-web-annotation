@@ -4,7 +4,14 @@ import { PipelineEditorService } from './pipeline-editor.service';
 import { HttpClient, HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { of, lastValueFrom, take, throwError } from 'rxjs';
-import { AnnotatorConfig, AttributeData, AttributePage, Resource, ResourceAnnotator } from './new-annotator/annotator';
+import {
+  AnnotatorConfig,
+  AttributeData,
+  AttributePage,
+  Resource,
+  ResourceAnnotator,
+  ResourceAnnotatorConfigs
+} from './new-annotator/annotator';
 
 describe('PipelineEditorService', () => {
   let service: PipelineEditorService;
@@ -399,8 +406,13 @@ describe('PipelineEditorService', () => {
 
   it('should get annotators of a resource', async() => {
     const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
-    // eslint-disable-next-line camelcase
-    httpGetSpy.mockReturnValue(of([{annotator_type: 'allele_score', resource_id: 'hg19/scores/CADD'}]));
+    httpGetSpy.mockReturnValue(of({
+      default: 'allele_score',
+      configs: {
+        // eslint-disable-next-line camelcase
+        allele_score: {annotator_type: 'allele_score', resource_id: 'hg19/scores/CADD'}
+      }
+    }));
 
     const getResponse = service.getResourceAnnotators('hg19/scores/CADD');
 
@@ -408,9 +420,12 @@ describe('PipelineEditorService', () => {
       '//localhost:8000/api/editor/resource_annotators?resource_id=hg19/scores/CADD'
     );
     const res = await lastValueFrom(getResponse.pipe(take(1)));
-    expect(res).toStrictEqual([
-      new ResourceAnnotator('allele_score', '{"resource_id":"hg19/scores/CADD"}')
-    ]);
+    expect(res).toStrictEqual(
+      new ResourceAnnotatorConfigs(
+        'allele_score',
+        [new ResourceAnnotator('allele_score', '{"resource_id":"hg19/scores/CADD"}')]
+      )
+    );
   });
 
   it('should get all attribute names of a pipeline', async() => {

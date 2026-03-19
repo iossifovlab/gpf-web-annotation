@@ -6,7 +6,14 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Observable, of } from 'rxjs';
 import { PipelineEditorService } from '../pipeline-editor.service';
-import { AnnotatorConfig, AttributeData, AttributePage, Resource, ResourceAnnotator } from './annotator';
+import {
+  AnnotatorConfig,
+  AttributeData,
+  AttributePage,
+  Resource,
+  ResourceAnnotator,
+  ResourceAnnotatorConfigs
+} from './annotator';
 import { FormBuilder, FormControl } from '@angular/forms';
 
 
@@ -112,11 +119,16 @@ class PipelineEditorServiceMock {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getResourceAnnotators(resourceId: string): Observable<ResourceAnnotator[]> {
-    return of([
-      new ResourceAnnotator('effect_annotator', 'gene_models: hg19/gene_models/ccds_v201309'),
-      new ResourceAnnotator('simple_effect_annotator', 'gene_models: hg19/gene_models/ccds_v201309')
-    ]);
+  public getResourceAnnotators(resourceId: string): Observable<ResourceAnnotatorConfigs> {
+    return of(
+      new ResourceAnnotatorConfigs(
+        null,
+        [
+          new ResourceAnnotator('effect_annotator', 'gene_models: hg19/gene_models/ccds_v201309'),
+          new ResourceAnnotator('simple_effect_annotator', 'gene_models: hg19/gene_models/ccds_v201309')
+        ]
+      )
+    );
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -209,10 +221,13 @@ describe('NewAnnotatorComponent', () => {
   });
 
   it('should get resources of an annotator and set default values', () => {
-    component.resourceAnnotators = [
-      new ResourceAnnotator('effect_annotator', 'gene_models: hg19/gene_models/ccds_v201309'),
-      new ResourceAnnotator('simple_effect_annotator', 'gene_models: hg19/gene_models/ccds_v201309')
-    ];
+    component.resourceAnnotators = new ResourceAnnotatorConfigs(
+      null,
+      [
+        new ResourceAnnotator('effect_annotator', 'gene_models: hg19/gene_models/ccds_v201309'),
+        new ResourceAnnotator('simple_effect_annotator', 'gene_models: hg19/gene_models/ccds_v201309')
+      ]
+    );
     component.annotatorStep.setControl('annotator', new FormControl('effect_annotator'));
     component.requestResources();
     expect(component.annotatorConfig).toStrictEqual(annotatorConfigMock);
@@ -604,5 +619,40 @@ describe('Annotator created by resource', () => {
     expect(searchSpy).toHaveBeenCalledTimes(1);
     component.resourceTypeStep.get('resourceId').setValue('hg38', { emitEvent: true });
     expect(searchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should set default annotator', () => {
+    jest.clearAllMocks(); // clear search method calls from previous tests
+    component.resourceTypeStep.get('resourceId').setValue('gene_models');
+    jest.spyOn(pipelineEditorServiceMock, 'getResourceAnnotators').mockReturnValueOnce(
+      of(
+        new ResourceAnnotatorConfigs(
+          'simple_effect_annotator',
+          [
+            new ResourceAnnotator('effect_annotator', 'gene_models: hg19/gene_models/ccds_v201309'),
+            new ResourceAnnotator('simple_effect_annotator', 'gene_models: hg19/gene_models/ccds_v201309')
+          ]
+        )
+      )
+    );
+    component.requestResourceAnnotators();
+    expect(component.annotatorStep.get('annotator').value).toBe('simple_effect_annotator');
+  });
+
+  it('should set the only annotator as default', () => {
+    jest.clearAllMocks(); // clear search method calls from previous tests
+    component.resourceTypeStep.get('resourceId').setValue('gene_models');
+    jest.spyOn(pipelineEditorServiceMock, 'getResourceAnnotators').mockReturnValueOnce(
+      of(
+        new ResourceAnnotatorConfigs(
+          null,
+          [
+            new ResourceAnnotator('effect_annotator', 'gene_models: hg19/gene_models/ccds_v201309'),
+          ]
+        )
+      )
+    );
+    component.requestResourceAnnotators();
+    expect(component.annotatorStep.get('annotator').value).toBe('effect_annotator');
   });
 });
