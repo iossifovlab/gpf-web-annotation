@@ -193,7 +193,7 @@ export class NewAnnotatorComponent implements OnInit {
         map(res => {
           const resourceIndex = config.resources.findIndex(r => r.key === resource.key);
           if (resourceIndex !== -1) {
-            config.resources[resourceIndex] = new Resource(
+            config.resources[resourceIndex] = new AnnotatorConfigResource(
               resource.key,
               resource.fieldType,
               resource.resourceType,

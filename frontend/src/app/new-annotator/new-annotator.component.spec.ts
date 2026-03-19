@@ -10,7 +10,7 @@ import {
   AnnotatorConfig,
   AttributeData,
   AttributePage,
-  Resource,
+  AnnotatorConfigResource,
   ResourceAnnotator,
   ResourceAnnotatorConfigs
 } from './annotator';
@@ -21,7 +21,7 @@ const annotatorConfigMock = new AnnotatorConfig(
   'effect_annotator',
   'annotatorUrl',
   [
-    new Resource(
+    new AnnotatorConfigResource(
       'gene_models',
       'resource',
       'gene_models',
@@ -34,7 +34,7 @@ const annotatorConfigMock = new AnnotatorConfig(
       false,
       ''
     ),
-    new Resource(
+    new AnnotatorConfigResource(
       'genome',
       'resource',
       'genome',
@@ -43,7 +43,7 @@ const annotatorConfigMock = new AnnotatorConfig(
       true,
       ''
     ),
-    new Resource(
+    new AnnotatorConfigResource(
       'input_annotatable',
       'attribute',
       '',

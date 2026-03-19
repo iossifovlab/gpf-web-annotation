@@ -2,7 +2,7 @@ export class AnnotatorConfig {
   public constructor(
     public annotatorType: string,
     public annotatorUrl: string,
-    public resources: Resource[]
+    public resources: AnnotatorConfigResource[]
   ) { }
 
   public static fromJson(json: object): AnnotatorConfig {
@@ -10,10 +10,10 @@ export class AnnotatorConfig {
       return undefined;
     }
 
-    const resources: Resource[] = [];
+    const resources: AnnotatorConfigResource[] = [];
     Object.keys(json).forEach(key => {
       if (!['annotator_type', 'documentation_url'].includes(key)) {
-        resources.push(new Resource(
+        resources.push(new AnnotatorConfigResource(
           key,
           /* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access */
           json[key]['field_type'] || '',
@@ -36,7 +36,7 @@ export class AnnotatorConfig {
   }
 }
 
-export class Resource {
+export class AnnotatorConfigResource {
   public constructor(
     public key: string,
     public fieldType: 'resource' | 'string' | 'bool' | 'attribute',

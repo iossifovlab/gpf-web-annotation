@@ -8,7 +8,7 @@ import {
   AnnotatorConfig,
   AttributeData,
   AttributePage,
-  Resource,
+  AnnotatorConfigResource,
   ResourceAnnotator,
   ResourceAnnotatorConfigs
 } from './new-annotator/annotator';
@@ -93,7 +93,7 @@ describe('PipelineEditorService', () => {
       'position_score',
       'annotatorUrl',
       [
-        new Resource(
+        new AnnotatorConfigResource(
           'resource_id', 'resource', 'position_score', '', [
             'hg19/scores/FitCons-i6-merged',
             'hg19/scores/FitCons2_E035',
@@ -102,7 +102,7 @@ describe('PipelineEditorService', () => {
           false,
           ''
         ),
-        new Resource('input_annotatable', 'attribute', '', '', null, true, 'annotatable'),
+        new AnnotatorConfigResource('input_annotatable', 'attribute', '', '', null, true, 'annotatable'),
       ],
     ));
   });
@@ -141,8 +141,8 @@ describe('PipelineEditorService', () => {
       'gene_set_annotator',
       'annotatorUrl',
       [
-        new Resource('input_gene_list', 'string', '', '', null, false, ''),
-        new Resource('input_annotatable', 'attribute', '', '', null, true, 'annotatable'),
+        new AnnotatorConfigResource('input_gene_list', 'string', '', '', null, false, ''),
+        new AnnotatorConfigResource('input_annotatable', 'attribute', '', '', null, true, 'annotatable'),
       ]
     ));
   });
