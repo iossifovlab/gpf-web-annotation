@@ -4,6 +4,6 @@
 - md5: 6a99c575ab87f8c7d1ed1e52e7e349ce
   name: statistics/stats_hash
   size: 11
-- md5: fb8e370216d6008ce9970b91b36c9b65
+- md5: 9b9d2a2b9af0c382ed09b2856f962d20
   name: test_pipeline.yaml
-  size: 30
+  size: 110
