@@ -94,6 +94,7 @@ class SearchResources(ResourcesAPIView):
                 "resource_id": resource.resource_id,
                 "type": resource.get_type(),
                 "version": resource.version,
+                "summary": resource.summary,
                 "url": resource.get_public_url(),
             }
             for resource in
