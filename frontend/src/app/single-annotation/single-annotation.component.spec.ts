@@ -104,7 +104,7 @@ describe('SingleAnnotationComponent', () => {
     component.currentAllele = 'chr1:11796321:G>A';
     component.annotateAllele();
     expect(component.validationMessage).toBe('');
-  
+
     component.currentAllele = 'chr1:11796321-11800000';
     component.annotateAllele();
     expect(component.validationMessage).toBe('');
