@@ -6,9 +6,11 @@
   position: relative;
 }
 
-.forms-wrapper {
+.resource-fields-wrapper {
   display: flex;
   gap: 20px;
+  align-items: center;
+  width: 95%;
 }
 
 input[type="text"] {
@@ -26,7 +28,7 @@ input[type="text"] {
   display: flex;
   flex-direction: column;
   height: 100%;
-  gap: 15px;
+  gap: 25px;
 }
 
 #resource-search-input {
@@ -36,6 +38,29 @@ input[type="text"] {
   color: #252e34;
   font-size: 16px;
   width: 100%;
+}
+
+#resource-search-input:focus,
+#resource-search-input:focus-visible {
+  outline-color: #85a2b9;
+}
+
+::ng-deep .multiline-tooltip {
+  white-space: pre-line;
+}
+
+.info-icon {
+  color: #5b778c;
+  font-size: 26px;
+}
+
+.info-icon:hover {
+  color: #85a2b9;
+  cursor: pointer;
+}
+
+#resource-count {
+  color: #5b778c;
 }
 
 /* stylelint-disable-next-line selector-class-pattern */
@@ -317,20 +342,22 @@ input[type="radio"]:checked {
 }
 
 #resource-list {
-  grid-template-columns: 50% 5%;
+  margin-top: 8px;
+  grid-template-columns: 10% 38% 5% 38% 62px;
   overflow-y: auto;
+  grid-auto-rows: 45px;
 }
 
 .select-resource-button {
-  background-color: transparent;
   color: #435869 !important;
   font-weight: 700;
+  background: none;
   border: none;
 }
 
 .select-resource-button:hover {
   cursor: pointer;
-  color: #b8c2ca !important;
+  color: #6b8daa !important;
 }
 
 .grid-header {
@@ -350,6 +377,14 @@ input[type="radio"]:checked {
   align-content: center;
 }
 
+.resource-select {
+  text-align: center;
+}
+
+.grid-header,
+.resource-id,
+.resource-full-id,
+.resource-type,
 .attribute-description,
 .attribute-source {
   text-wrap: nowrap;

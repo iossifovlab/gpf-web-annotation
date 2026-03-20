@@ -4,7 +4,7 @@
     @if(data.isResourceWorkflow) {
     <mat-step label="Select resource" [stepControl]="resourceTypeStep">
       <form [formGroup]="resourceTypeStep" id="resource-input-form">
-        <div class="forms-wrapper">
+        <div class="resource-fields-wrapper">
           <mat-form-field [appearance]="'outline'" id="resource-type">
             <mat-select matNativeControl [value]="selectedResourceType" formControlName="resourceType">
               @for (type of resourceTypes; track type) {
@@ -22,21 +22,44 @@
             #resourceInputValue
             [title]="resourceInputValue.value"
             (click)="clearResource()" />
+
+          <span
+            class="material-symbols-outlined info-icon"
+            #tooltip="matTooltip"
+            [matTooltip]="tooltipContent"
+            matTooltipClass="multiline-tooltip"
+            matTooltipShowDelay="200"
+            >info</span
+          >
         </div>
 
-        <div style="display: flex; flex-direction: column; flex: 1 1 0; min-height: 0">
-          <div class="grid-container" id="resource-list">
-            <div class="grid-header">Resource id</div>
-            <div></div>
-            @for (id of resourceIds; track $index) {
-            <ng-container>
-              <span class="resource-id grid-cell" [title]="id">{{ id }}</span>
-
-              <button [attr.id]="id + '-select-button'" class="select-resource-button" (click)="selectResource(id)"
-                >Select</button
-              >
-            </ng-container>
-            }
+        <div style="flex: 1 1 0; overflow: auto">
+          <span id="resource-count">{{ resources?.length }} resources</span>
+          <div>
+            <div class="grid-container" id="resource-list">
+              <div class="grid-header" title="Resource type">Resource type</div>
+              <div class="grid-header" title="Resource">Resource</div>
+              <div class="grid-header" title="Version">Version</div>
+              <div class="grid-header" title="Summary">Summary</div>
+              <div class="grid-header" title="Select">Select</div>
+              @for (resource of resources; track $index) {
+              <ng-container>
+                <span class="resource-type grid-cell" [title]="resource.type">{{ resource.type }}</span>
+                <span class="resource-full-id grid-cell" [title]="resource.fullId">{{ resource.fullId }}</span>
+                <span class="resource-version grid-cell" [title]="resource.version">{{ resource.version }}</span>
+                <span class="resource-summary grid-cell" [title]="resource.summary">{{ resource.summary }}</span>
+                <span class="resource-select grid-cell">
+                  <button
+                    [attr.id]="resource.id + '-select-button'"
+                    class="material-symbols-outlined select-resource-button"
+                    (click)="selectResource(resource.fullId)"
+                    [title]="'Select ' + resource.fullId"
+                    >arrow_forward</button
+                  >
+                </span>
+              </ng-container>
+              }
+            </div>
           </div>
         </div>
       </form>
@@ -224,11 +247,11 @@
             @if(selectedAttributes.length) {
             <span>Selected attributes:</span>
             <div class="grid-container" id="attributes-list">
-              <div class="grid-header">Name</div>
-              <div class="grid-header">Source</div>
-              <div class="grid-header">Internal</div>
-              <div class="grid-header">Description</div>
-              <div class="grid-header">Delete</div>
+              <div class="grid-header" title="Name">Name</div>
+              <div class="grid-header" title="Source">Source</div>
+              <div class="grid-header" title="Internal">Internal</div>
+              <div class="grid-header" title="Description">Description</div>
+              <div class="grid-header" title="Delete">Delete</div>
               @for (selectedAttribute of selectedAttributes; track $index) {
               <ng-container>
                 <span
