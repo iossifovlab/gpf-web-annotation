@@ -101,14 +101,10 @@ describe('SingleAnnotationComponent', () => {
     component.annotateAllele();
     expect(component.validationMessage).toBe('');
 
-    component.currentAllele = 'chr1 11796321 G\'>\'A';
+    component.currentAllele = 'chr1:11796321:G>A';
     component.annotateAllele();
     expect(component.validationMessage).toBe('');
-
-    component.currentAllele = 'chr1:11796321:G\'>\'A';
-    component.annotateAllele();
-    expect(component.validationMessage).toBe('');
-
+  
     component.currentAllele = 'chr1:11796321-11800000';
     component.annotateAllele();
     expect(component.validationMessage).toBe('');
@@ -173,11 +169,15 @@ describe('SingleAnnotationComponent', () => {
     component.annotateAllele();
     expect(component.validationMessage).toBe('Invalid allele format or missing pipeline!');
 
-    component.currentAllele = 'chr1:11796321:G>A';
+    component.currentAllele = 'chr1:11796321:G > A';
     component.annotateAllele();
     expect(component.validationMessage).toBe('Invalid allele format or missing pipeline!');
 
-    component.currentAllele = 'chr1:11796321:G > A';
+    component.currentAllele = 'chr1 11796321 G\'>\'A';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('Invalid allele format or missing pipeline!');
+
+    component.currentAllele = 'chr1:11796321:G\'>\'A';
     component.annotateAllele();
     expect(component.validationMessage).toBe('Invalid allele format or missing pipeline!');
 
@@ -236,11 +236,11 @@ describe('SingleAnnotationComponent', () => {
 
     component.currentAllele = 'chr1 11796321 G GT,N';
     component.annotateAllele();
-    expect(component.validationMessage).toBe('');
+    expect(component.validationMessage).toBe('Invalid allele format or missing pipeline!');
 
     component.currentAllele = 'chr1 11796321 G gt,a';
     component.annotateAllele();
-    expect(component.validationMessage).toBe('');
+    expect(component.validationMessage).toBe('Invalid allele format or missing pipeline!');
 
     component.currentAllele = 'chr1 11796321 G A,NN,NNP';
     component.annotateAllele();

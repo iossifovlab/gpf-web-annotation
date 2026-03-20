@@ -36,13 +36,13 @@ export class SingleAnnotationComponent implements OnInit {
     this.examples = [
       'chr1 11796321 G A',
       'chr1:11796321:G:A',
-      'chr1 11796321 G\'>\'A',
-      'chr1:11796321:G\'>\'A',
+      'chr1 11796321 G>A',
+      'chr1:11796321:G>A',
       'chr1 11796321 11800000',
       'chr1:11796321-11800000',
       'chr1 11796321',
       'chr1:11796321',
-      'chr1 11796321 G GT,N',
+      'chr1 11796321 G GT',
     ];
   }
 
@@ -125,8 +125,8 @@ export class SingleAnnotationComponent implements OnInit {
       return [chrom, pos];
     }
 
-    if (ref.includes('\'>\'')) {
-      const [r, a] = ref.split('\'>\'');
+    if (ref.includes('>')) {
+      const [r, a] = ref.split('>');
       return [chrom, pos, r, a];
     }
 
@@ -153,8 +153,7 @@ export class SingleAnnotationComponent implements OnInit {
   }
 
   private isAltValid(alternative: string): boolean {
-    const aList = alternative.split(',');
-    return aList.every(a => this.areBasesValid(a));
+    return alternative !== '' && this.areBasesValid(alternative);
   }
 
   public setAllele(historyAllele: string): void {
