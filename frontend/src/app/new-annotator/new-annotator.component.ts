@@ -15,18 +15,25 @@ import {
   switchMap,
   take,
   forkJoin,
-  Subject,
-  distinctUntilChanged,
-  tap,
   debounceTime,
   filter,
-  Subscription
+  Subscription,
+  distinctUntilChanged,
+  Subject
 } from 'rxjs';
-import { AnnotatorConfig, AttributeData, AttributePage, Resource, ResourceAnnotatorConfigs } from './annotator';
+import {
+  AnnotatorConfig,
+  AttributeData,
+  AttributePage,
+  AnnotatorConfigResource,
+  ResourceAnnotatorConfigs,
+  Resource
+} from './annotator';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { KeyValueDisplayPipe } from '../key-value-display.pipe';
 import { MatSelect } from '@angular/material/select';
 import { cloneDeep } from 'lodash';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-new-annotator',
@@ -41,7 +48,8 @@ import { cloneDeep } from 'lodash';
     CdkStepperModule,
     MatAutocompleteModule,
     MatSelect,
-    KeyValueDisplayPipe
+    KeyValueDisplayPipe,
+    MatTooltipModule
   ],
   providers: [
     {
@@ -55,9 +63,10 @@ import { cloneDeep } from 'lodash';
 export class NewAnnotatorComponent implements OnInit {
   public resourceTypeStep: FormGroup<{ resourceType: FormControl<string>, resourceId: FormControl<string> }>;
   public resourceTypes: string[];
-  public resourceIds: string[];
+  public resources: Resource[];
   public selectedResourceType = '';
   private searchSubject = new Subject<{ value: string; type: string }>();
+  private resourceSearchSubscription = new Subscription();
   public resourceAnnotators: ResourceAnnotatorConfigs;
   public annotatorStep: FormGroup<{ annotator: FormControl<string> }>;
   public annotatorTypes: string[] = [];
@@ -75,6 +84,11 @@ export class NewAnnotatorComponent implements OnInit {
   public attributesSubscription = new Subscription();
   public errorMessage = '';
   public editAttributeNameView = false;
+  public tooltipContent =
+    '- use AND to perform \'and\',\n'+
+    '- use OR to perform \'or\',\n' +
+    '- use spaces to separate strings\n' +
+    '- surround strings in "" to use spaces inside the string';
 
   public constructor(
     private editorService: PipelineEditorService,
@@ -96,10 +110,10 @@ export class NewAnnotatorComponent implements OnInit {
       });
 
       this.editorService.getResourceTypes().pipe(take(1)).subscribe(res => {
-        this.resourceTypes = res.sort();
-        this.selectedResourceType = this.resourceTypes[0];
-        this.resourceTypeStep.get('resourceType').setValue(this.selectedResourceType, { emitEvent: false });
+        this.resourceTypes = ['All', ...res.sort()];
         this.setupResourceSearching();
+        this.selectedResourceType = this.resourceTypes[0];
+        this.resourceTypeStep.get('resourceType').setValue(this.selectedResourceType);
       });
     } else {
       this.requestAnnotators();
@@ -108,24 +122,26 @@ export class NewAnnotatorComponent implements OnInit {
 
   private setupResourceSearching(): void {
     // Set up the search subject to handle API calls
-    this.searchSubject.pipe(
+    this.resourceSearchSubscription = this.searchSubject.pipe(
       distinctUntilChanged((prev, curr) => prev.value === curr.value && prev.type === curr.type),
       switchMap(({ value, type }) => this.editorService.getResourcesBySearch(value, type)),
-    ).subscribe(resources => {
-      this.resourceIds = resources;
-
-      if (!this.resourceIds.includes(this.normalizeString(this.resourceTypeStep.get('resourceId').value))) {
-        this.resourceTypeStep.get('resourceId').setErrors({ invalidOption: true });
-      } else {
-        this.resourceTypeStep.get('resourceId').setErrors(null);
+    ).subscribe({
+      next: resources => {
+        this.resources = resources;
+      },
+      error: () => {
+        this.resourceSearchSubscription.unsubscribe();
+        this.setupResourceSearching();
       }
     });
 
     // Trigger search on resourceId value changes
     this.resourceTypeStep.get('resourceId').valueChanges.pipe(
-      tap(() => this.resourceTypeStep.get('resourceId').setErrors({ invalidOption: true })),
+      debounceTime(300),
       map(value => ({ value: this.normalizeString(value), type: this.selectedResourceType })),
-    ).subscribe(obj => this.searchSubject.next(obj));
+    ).subscribe(obj => {
+      this.searchSubject.next(obj);
+    });
 
     // Trigger search when resourceType changes
     this.resourceTypeStep.get('resourceType').valueChanges.subscribe(type => {
@@ -134,6 +150,10 @@ export class NewAnnotatorComponent implements OnInit {
     });
   }
 
+  public selectResource(id: string): void {
+    this.resourceTypeStep.get('resourceId').setValue(id, { emitEvent: false });
+    this.requestResourceAnnotators();
+  }
 
   private requestAnnotators(): void {
     this.editorService.getAnnotators().subscribe(res => {
@@ -193,7 +213,7 @@ export class NewAnnotatorComponent implements OnInit {
         map(res => {
           const resourceIndex = config.resources.findIndex(r => r.key === resource.key);
           if (resourceIndex !== -1) {
-            config.resources[resourceIndex] = new Resource(
+            config.resources[resourceIndex] = new AnnotatorConfigResource(
               resource.key,
               resource.fieldType,
               resource.resourceType,
@@ -381,7 +401,7 @@ export class NewAnnotatorComponent implements OnInit {
       this.resourceStep.get(inputField).setValue(null);
       return;
     }
-    this.resourceTypeStep.get('resourceId').setValue(null);
+    this.resourceTypeStep.get('resourceId').setValue('');
   }
 
   public onAttributeNameChange(attribute: AttributeData, newName: string): void {

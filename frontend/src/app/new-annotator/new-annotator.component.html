@@ -4,7 +4,7 @@
     @if(data.isResourceWorkflow) {
     <mat-step label="Select resource" [stepControl]="resourceTypeStep">
       <form [formGroup]="resourceTypeStep" id="resource-input-form">
-        <div class="forms-wrapper">
+        <div class="resource-fields-wrapper">
           <mat-form-field [appearance]="'outline'" id="resource-type">
             <mat-select matNativeControl [value]="selectedResourceType" formControlName="resourceType">
               @for (type of resourceTypes; track type) {
@@ -12,38 +12,55 @@
               }
             </mat-select>
           </mat-form-field>
-          <mat-form-field [appearance]="'outline'">
-            <input
-              type="text"
-              autocomplete="off"
-              matInput
-              id="resource-input"
-              formControlName="resourceId"
-              [matAutocomplete]="resourceIdsDropdown"
-              #resourceInput="matAutocompleteTrigger"
-              #resourceInputValue
-              [title]="resourceInputValue.value"
-              (click)="clearResource()"
-              (keydown.enter)="resourceInput.closePanel()" />
-            <span (click)="resourceInput.openPanel(); clearResource()" class="material-symbols-outlined dropdown-icon"
-              >keyboard_arrow_down</span
-            >
-            <mat-autocomplete #resourceIdsDropdown="matAutocomplete">
-              @for (id of resourceIds; track id) {
-              <mat-option class="resource-option" [value]="id" [title]="id">{{ id }}</mat-option>
-              }
-            </mat-autocomplete>
-          </mat-form-field>
+
+          <input
+            placeholder="Search resource"
+            type="text"
+            autocomplete="off"
+            id="resource-search-input"
+            formControlName="resourceId"
+            #resourceInputValue
+            [title]="resourceInputValue.value"
+            (click)="clearResource()" />
+
+          <span
+            class="material-symbols-outlined info-icon"
+            #tooltip="matTooltip"
+            [matTooltip]="tooltipContent"
+            matTooltipClass="multiline-tooltip"
+            matTooltipShowDelay="200"
+            >info</span
+          >
         </div>
 
-        <div>
-          <button
-            matButton
-            [disabled]="resourceTypeStep.invalid"
-            class="next-button"
-            (click)="requestResourceAnnotators()"
-            >Next</button
-          >
+        <div style="flex: 1 1 0; overflow: auto">
+          <span id="resource-count">{{ resources?.length }} resources</span>
+          <div>
+            <div class="grid-container" id="resource-list">
+              <div class="grid-header" title="Resource type">Resource type</div>
+              <div class="grid-header" title="Resource">Resource</div>
+              <div class="grid-header" title="Version">Version</div>
+              <div class="grid-header" title="Summary">Summary</div>
+              <div class="grid-header" title="Select">Select</div>
+              @for (resource of resources; track $index) {
+              <ng-container>
+                <span class="resource-type grid-cell" [title]="resource.type">{{ resource.type }}</span>
+                <span class="resource-full-id grid-cell" [title]="resource.fullId">{{ resource.fullId }}</span>
+                <span class="resource-version grid-cell" [title]="resource.version">{{ resource.version }}</span>
+                <span class="resource-summary grid-cell" [title]="resource.summary">{{ resource.summary }}</span>
+                <span class="resource-select grid-cell">
+                  <button
+                    [attr.id]="resource.id + '-select-button'"
+                    class="material-symbols-outlined select-resource-button"
+                    (click)="selectResource(resource.fullId)"
+                    [title]="'Select ' + resource.fullId"
+                    >arrow_forward</button
+                  >
+                </span>
+              </ng-container>
+              }
+            </div>
+          </div>
         </div>
       </form>
     </mat-step>
@@ -230,11 +247,11 @@
             @if(selectedAttributes.length) {
             <span>Selected attributes:</span>
             <div class="grid-container" id="attributes-list">
-              <div class="grid-header">Name</div>
-              <div class="grid-header">Source</div>
-              <div class="grid-header">Internal</div>
-              <div class="grid-header">Description</div>
-              <div class="grid-header">Delete</div>
+              <div class="grid-header" title="Name">Name</div>
+              <div class="grid-header" title="Source">Source</div>
+              <div class="grid-header" title="Internal">Internal</div>
+              <div class="grid-header" title="Description">Description</div>
+              <div class="grid-header" title="Delete">Delete</div>
               @for (selectedAttribute of selectedAttributes; track $index) {
               <ng-container>
                 <span

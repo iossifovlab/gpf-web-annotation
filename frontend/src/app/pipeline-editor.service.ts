@@ -1,8 +1,14 @@
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { catchError, forkJoin, map, Observable, of, switchMap, tap, throwError } from 'rxjs';
-import { AnnotatorConfig, AttributeData, AttributePage, ResourceAnnotatorConfigs } from './new-annotator/annotator';
+import {
+  AnnotatorConfig,
+  AttributeData,
+  AttributePage,
+  ResourceAnnotatorConfigs,
+  Resource
+} from './new-annotator/annotator';
 
 @Injectable({
   providedIn: 'root',
@@ -148,8 +154,16 @@ export class PipelineEditorService {
     return this.http.get<string[]>(this.getResourceTypesUrl);
   }
 
-  public getResourcesBySearch(value: string, type: string): Observable<string[]> {
-    return this.http.get<string[]>(`${this.getResourcesUrl}?type=${type}&search=${value}`);
+  public getResourcesBySearch(value: string, type: string): Observable<Resource[]> {
+    let params = new HttpParams();
+    if (type !== 'All') {
+      params = params.set('type', type);
+    }
+    if (value !== '') {
+      params = params.set('search', value);
+    }
+    return this.http.get<Resource[]>(`${this.getResourcesUrl}/search`, { params: params })
+      .pipe(map((response) => Resource.fromJsonArray(response)));
   }
 
   public getResourceAnnotators(resourceId: string): Observable<ResourceAnnotatorConfigs> {
