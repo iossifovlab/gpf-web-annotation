@@ -273,7 +273,7 @@ LOGGING = {
         },
     },
     "loggers": {
-        "http_protocol": {
+        "daphne.http_protocol": {
             "handlers": ["console", "logdebug"],
             "propagate": True,
             "level": "INFO",
