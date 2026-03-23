@@ -69,7 +69,7 @@ hr {
 .attribute-header,
 .annotator-header {
   font-weight: 500;
-  color: #252e34;
+  color: #85a2b9;
   font-size: 16px;
   width: 30%;
 }
@@ -148,8 +148,8 @@ hr {
 
 .value-result {
   word-break: break-word;
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 18px;
+  font-weight: 800;
   color: #252e34;
 }
 
