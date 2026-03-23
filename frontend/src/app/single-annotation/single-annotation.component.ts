@@ -43,6 +43,7 @@ export class SingleAnnotationComponent implements OnInit {
       'chr1 11796321',
       'chr1:11796321',
       'chr1 11796321 G GT',
+      'chr1 11,796,321 11,800,000',
     ];
   }
 
@@ -73,7 +74,7 @@ export class SingleAnnotationComponent implements OnInit {
     if (parts.length === 4) {
       this.alleleJson = new Annotatable(
         parts[0],
-        Number(parts[1]),
+        Number(parts[1].replaceAll(',', '')),
         parts[2],
         parts[3],
         null,
@@ -90,16 +91,19 @@ export class SingleAnnotationComponent implements OnInit {
         null,
         null,
         null,
-        Number(parts[1]),
-        Number(parts[2]),
+        Number(parts[1].replaceAll(',', '')),
+        Number(parts[2].replaceAll(',', '')),
       );
-      return this.isPosValid(parts[1]) && this.isPosValid(parts[2]) && parts[1] < parts[2];
+
+      return this.isPosValid(parts[1]) &&
+        this.isPosValid(parts[2]) &&
+        Number(parts[1].replaceAll(',', '')) < Number(parts[2].replaceAll(',', ''));
     }
 
     if (parts.length === 2) {
       this.alleleJson = new Annotatable(
         parts[0],
-        Number(parts[1]),
+        Number(parts[1].replaceAll(',', '')),
         null,
         null,
         null,
@@ -139,7 +143,12 @@ export class SingleAnnotationComponent implements OnInit {
   }
 
   private isPosValid(position: string): boolean {
-    return position !== '' && !isNaN(Number(position));
+    if (position.includes(',')) {
+      const formattedPosition = position.replace(/(?<=\d),(?=(\d{3})+(?!\d))/g, '');
+      return !formattedPosition.includes(',') && position !== '' && !isNaN(Number(position.replaceAll(',', '')));
+    } else {
+      return position !== '' && !isNaN(Number(position));
+    }
   }
 
   private isRefValid(reference: string): boolean {

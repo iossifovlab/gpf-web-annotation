@@ -187,10 +187,38 @@ describe('SingleAnnotationComponent', () => {
   });
 
   it('should check if position of an allele is valid', () => {
-    component.currentAllele = 'chr1 11796321 G A';
     component.pipelineId = 'pipelineId';
+    component.currentAllele = 'chr1 11796321 G A';
     component.annotateAllele();
     expect(component.validationMessage).toBe('');
+
+    component.currentAllele = 'chr1 11,796,321 G A';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('');
+
+    component.currentAllele = 'chr1 11,796,321 G A';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('');
+
+    component.currentAllele = 'chr1:796,321-11,800,000';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('');
+
+    component.currentAllele = 'chr1 117,963,21 11,800,000';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('Invalid allele format or missing pipeline!');
+
+    component.currentAllele = 'chr1 11,,796,321 G A';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('Invalid allele format or missing pipeline!');
+
+    component.currentAllele = 'chr1 11,0,796,321 G A';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('Invalid allele format or missing pipeline!');
+
+    component.currentAllele = 'chr1 ,796,321 G A';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('Invalid allele format or missing pipeline!');
 
     component.currentAllele = 'chr1 pos:11796321 G A';
     component.annotateAllele();
