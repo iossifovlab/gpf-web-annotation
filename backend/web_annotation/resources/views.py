@@ -1,3 +1,4 @@
+from itertools import islice
 from rest_framework import status
 from rest_framework.views import Request, Response
 from dae.genomic_resources.repository import GenomicResource
@@ -83,12 +84,33 @@ class SearchResources(ResourcesAPIView):
         # Filter by name if provided
         search = query_params.get("search")
 
-        resources = self._grr.search_resources(
-            search_term=search,
-            resource_type=resource_type,
+        page = query_params.get("page", 0)
+
+        try:
+            page = int(query_params.get("page", 0))
+        except ValueError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            page_size = int(query_params.get("page_size", 50))
+        except ValueError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        resources = list(filter(
+            lambda r: r.get_type() in self.SUPPORTED_RESOURCE_TYPES,
+            self._grr.search_resources(
+                search_term=search,
+                resource_type=resource_type,
+            ),
+        ))
+
+        resource_page = islice(
+            resources,
+            int(page) * int(page_size),
+            (int(page) + 1) * int(page_size),
         )
 
-        output = [
+        resource_details = [
             {
                 "full_id": resource.get_full_id(),
                 "resource_id": resource.resource_id,
@@ -97,11 +119,11 @@ class SearchResources(ResourcesAPIView):
                 "summary": resource.get_summary(),
                 "url": resource.get_public_url(),
             }
-            for resource in
-            filter(
-                lambda r: r.get_type() in self.SUPPORTED_RESOURCE_TYPES,
-                resources,
-            )
+            for resource in resource_page
         ]
 
-        return Response(output, status=status.HTTP_200_OK)
+        return Response({
+            "page": int(page),
+            "pages": (len(resources) + page_size - 1) // page_size,
+            "resources": resource_details,
+        }, status=status.HTTP_200_OK)

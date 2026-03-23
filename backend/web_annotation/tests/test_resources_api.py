@@ -64,7 +64,23 @@ def test_get_resources(
     response = client.get("/api/resources/search", query_params=query_params)
 
     assert response.status_code == 200
-    assert {res["resource_id"] for res in response.json()} == expected_resources
+    assert {
+        res["resource_id"] for res in response.json()["resources"]
+    } == expected_resources
+
+
+@pytest.mark.parametrize("current_client", ["admin", "user", "anonymous"])
+def test_pagination(
+    current_client: str, clients: dict[str, Client],
+) -> None:
+    client = clients[current_client]
+    query_params = {"page_size": 2}
+    response = client.get("/api/resources/search", query_params=query_params)
+    assert response.status_code == 200
+    response_json = response.json()
+    assert len(response_json["resources"]) == 2
+    assert response_json["pages"] == 9
+    assert response_json["page"] == 0
 
 
 @pytest.mark.parametrize("current_client", ["admin", "user", "anonymous"])
