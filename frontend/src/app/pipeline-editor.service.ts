@@ -163,7 +163,16 @@ export class PipelineEditorService {
       params = params.set('search', value);
     }
     return this.http.get<Resource[]>(`${this.getResourcesUrl}/search`, { params: params })
-      .pipe(map((response) => Resource.fromJsonArray(response)));
+      .pipe(
+        map((response) => Resource.fromJsonArray(response)),
+        catchError((err: HttpErrorResponse) => {
+          switch (err.status) {
+            case 500: return throwError(() => new Error('Invalid search value'));
+            default: return throwError(() => new Error('Error occurred!'));
+          }
+        }
+        )
+      );
   }
 
   public getResourceAnnotators(resourceId: string): Observable<ResourceAnnotatorConfigs> {

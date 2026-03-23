@@ -28,7 +28,7 @@ input[type="text"] {
   display: flex;
   flex-direction: column;
   height: 100%;
-  gap: 25px;
+  gap: 15px;
 }
 
 #resource-search-input {
@@ -37,7 +37,7 @@ input[type="text"] {
   border-radius: 5px;
   color: #252e34;
   font-size: 16px;
-  width: 100%;
+  width: 97%;
 }
 
 #resource-search-input:focus,
@@ -293,7 +293,7 @@ input[type="radio"]:checked {
 }
 
 #attributes-list {
-  max-height: 45vh;
+  max-height: 47vh;
   overflow: auto;
   flex-basis: 0;
   flex-grow: 1;
@@ -342,10 +342,11 @@ input[type="radio"]:checked {
 }
 
 #resource-list {
-  margin-top: 8px;
+  margin-top: 15px;
   grid-template-columns: 10% 38% 5% 38% 62px;
   overflow-y: auto;
   grid-auto-rows: 45px;
+  height: 45vh;
 }
 
 .select-resource-button {
@@ -385,6 +386,7 @@ input[type="radio"]:checked {
 .resource-id,
 .resource-full-id,
 .resource-type,
+.resource-summary,
 .attribute-description,
 .attribute-source {
   text-wrap: nowrap;
@@ -407,4 +409,14 @@ input[type="checkbox"]:hover {
 
 input[type="checkbox"]:checked {
   accent-color: #435869;
+}
+
+a {
+  color: #24699e;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #4c93c9;
+  text-decoration: underline;
 }

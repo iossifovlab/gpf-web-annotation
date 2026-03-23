@@ -84,6 +84,7 @@ export class NewAnnotatorComponent implements OnInit {
   public attributesSubscription = new Subscription();
   public errorMessage = '';
   public editAttributeNameView = false;
+  public searchError = '';
   public tooltipContent =
     '- use AND to perform \'and\',\n'+
     '- use OR to perform \'or\',\n' +
@@ -128,8 +129,10 @@ export class NewAnnotatorComponent implements OnInit {
     ).subscribe({
       next: resources => {
         this.resources = resources;
+        this.searchError = '';
       },
-      error: () => {
+      error: (err: Error) => {
+        this.searchError = err.message;
         this.resourceSearchSubscription.unsubscribe();
         this.setupResourceSearching();
       }

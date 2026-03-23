@@ -33,6 +33,8 @@
           >
         </div>
 
+        <span class="error-message">{{ searchError }}</span>
+
         <div style="flex: 1 1 0; overflow: auto">
           <span id="resource-count">{{ resources?.length }} resources</span>
           <div>
@@ -45,7 +47,9 @@
               @for (resource of resources; track $index) {
               <ng-container>
                 <span class="resource-type grid-cell" [title]="resource.type">{{ resource.type }}</span>
-                <span class="resource-full-id grid-cell" [title]="resource.fullId">{{ resource.fullId }}</span>
+                <span class="resource-full-id grid-cell" [title]="resource.fullId"
+                  ><a [href]="resource.url">{{ resource.fullId }}</a></span
+                >
                 <span class="resource-version grid-cell" [title]="resource.version">{{ resource.version }}</span>
                 <span class="resource-summary grid-cell" [title]="resource.summary">{{ resource.summary }}</span>
                 <span class="resource-select grid-cell">
@@ -126,7 +130,10 @@
             resourceTypeStep.get('resourceType').value + '\n' + resourceTypeStep.get('resourceId').value
           }}</div>
           }
-          <div class="annotator-display-text">{{ annotatorStep.value | keyValueDisplay }}</div>
+          <div class="annotator-display-text" [title]="annotatorStep.get('annotator').value">
+            <div>annotator</div>
+            <a [href]="annotatorConfig.annotatorUrl">{{ annotatorStep.get('annotator').value }}</a></div
+          >
         </div>
 
         <div class="left-content">
@@ -198,9 +205,10 @@
     <mat-step label="Configure attributes" [stepControl]="attributeStep">
       <ng-template matStepContent>
         <div class="summary-content">
-          <div class="annotator-display-text" [title]="annotatorStep.value | keyValueDisplay">{{
-            annotatorStep.value | keyValueDisplay
-          }}</div>
+          <div class="annotator-display-text" [title]="annotatorStep.get('annotator').value">
+            <div>annotator</div>
+            <a [href]="annotatorConfig.annotatorUrl">{{ annotatorStep.get('annotator').value }}</a></div
+          >
           <div class="resources-display-text" [title]="resourceStep.value | keyValueDisplay">{{
             resourceStep.value | keyValueDisplay
           }}</div>
