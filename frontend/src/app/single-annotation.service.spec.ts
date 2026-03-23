@@ -92,7 +92,7 @@ const mockResponse = {
     reference: 'A',
     alternative: 'AA',
     // eslint-disable-next-line camelcase
-    variant_type: 'ins',
+    annotatable_type: 'ins',
   },
   annotators: [
     {

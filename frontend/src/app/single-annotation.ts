@@ -20,7 +20,7 @@ export class Annotatable {
       json['position'] as number,
       json['reference'] as string,
       json['alternative'] as string,
-      json['variant_type'] as string,
+      json['annotatable_type'] as string,
       json['pos_beg'] as number,
       json['pos_end'] as number,
     );
