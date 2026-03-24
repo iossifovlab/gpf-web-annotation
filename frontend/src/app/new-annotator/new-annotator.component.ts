@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -27,6 +27,7 @@ import {
   AttributePage,
   AnnotatorConfigResource,
   ResourceAnnotatorConfigs,
+  ResourcePage,
   Resource
 } from './annotator';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
@@ -60,10 +61,10 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   templateUrl: './new-annotator.component.html',
   styleUrl: './new-annotator.component.css',
 })
-export class NewAnnotatorComponent implements OnInit {
+export class NewAnnotatorComponent implements OnInit, AfterViewInit, OnDestroy {
   public resourceTypeStep: FormGroup<{ resourceType: FormControl<string>, resourceId: FormControl<string> }>;
   public resourceTypes: string[];
-  public resources: Resource[];
+  public resourcePage: ResourcePage;
   public selectedResourceType = '';
   private searchSubject = new Subject<{ value: string; type: string }>();
   private resourceSearchSubscription = new Subscription();
@@ -91,6 +92,16 @@ export class NewAnnotatorComponent implements OnInit {
     '- use spaces to separate strings\n' +
     '- surround strings in "" to use spaces inside the string';
 
+
+  @ViewChild('loadPageIndicator') public loadPageIndicator!: ElementRef<Element>;
+  public resources = signal<Resource[]>([]);
+  public nextPage: number;
+  public totalPages: number;
+  public isLoading = false;
+  public hasMore = true;
+  public observer!: IntersectionObserver;
+  public isResourceTableInitialized = false;
+
   public constructor(
     private editorService: PipelineEditorService,
     private formBuilder: FormBuilder,
@@ -114,11 +125,49 @@ export class NewAnnotatorComponent implements OnInit {
         this.resourceTypes = ['All', ...res.sort()];
         this.setupResourceSearching();
         this.selectedResourceType = this.resourceTypes[0];
-        this.resourceTypeStep.get('resourceType').setValue(this.selectedResourceType);
       });
     } else {
       this.requestAnnotators();
     }
+  }
+
+  public ngAfterViewInit(): void {
+    const container: Element = this.loadPageIndicator.nativeElement.closest('#resource-list');
+    this.observer = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && this.hasMore && !this.isLoading && this.isResourceTableInitialized) {
+        this.loadMore();
+      }
+    },
+    {
+      root: container,
+      threshold: 0.1
+    });
+
+    this.observer.observe(this.loadPageIndicator.nativeElement);
+  }
+
+  public loadMore(): void {
+    this.isLoading = true;
+
+    this.editorService.getResourcesBySearch(
+      this.resourceTypeStep.get('resourceId').value,
+      this.resourceTypeStep.get('resourceType').value,
+      this.nextPage
+    ).subscribe({
+      next: (data) => {
+        this.resources.update(current => [...current, ...data.resources]);
+        this.nextPage++;
+        this.hasMore = this.nextPage < this.totalPages;
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+      }
+    });
+  }
+
+  public ngOnDestroy(): void {
+    this.observer?.disconnect();
   }
 
   private setupResourceSearching(): void {
@@ -127,9 +176,14 @@ export class NewAnnotatorComponent implements OnInit {
       distinctUntilChanged((prev, curr) => prev.value === curr.value && prev.type === curr.type),
       switchMap(({ value, type }) => this.editorService.getResourcesBySearch(value, type)),
     ).subscribe({
-      next: resources => {
-        this.resources = resources;
+      next: pageData => {
+        this.resourcePage = pageData;
+        this.resources.set(pageData.resources);
+        this.nextPage = pageData.page + 1;
+        this.totalPages = pageData.totalPages;
+        this.hasMore = this.nextPage < this.totalPages;
         this.searchError = '';
+        this.isResourceTableInitialized = true;
       },
       error: (err: Error) => {
         this.searchError = err.message;

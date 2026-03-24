@@ -7,7 +7,7 @@ import {
   AttributeData,
   AttributePage,
   ResourceAnnotatorConfigs,
-  Resource
+  ResourcePage
 } from './new-annotator/annotator';
 
 @Injectable({
@@ -154,17 +154,20 @@ export class PipelineEditorService {
     return this.http.get<string[]>(this.getResourceTypesUrl);
   }
 
-  public getResourcesBySearch(value: string, type: string): Observable<Resource[]> {
+  public getResourcesBySearch(value: string, type: string, page?: number): Observable<ResourcePage> {
     let params = new HttpParams();
-    if (type !== 'All') {
+    if (type && type !== 'All') {
       params = params.set('type', type);
     }
     if (value !== '') {
       params = params.set('search', value);
     }
-    return this.http.get<Resource[]>(`${this.getResourcesUrl}/search`, { params: params })
+    if (page) {
+      params = params.set('page', page);
+    }
+    return this.http.get<ResourcePage>(`${this.getResourcesUrl}/search`, { params: params })
       .pipe(
-        map((response) => Resource.fromJsonArray(response)),
+        map((response) => ResourcePage.fromJson(response)),
         catchError((err: HttpErrorResponse) => {
           switch (err.status) {
             case 500: return throwError(() => new Error('Invalid search value'));

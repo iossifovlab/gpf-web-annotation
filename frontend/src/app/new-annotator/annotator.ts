@@ -48,6 +48,26 @@ export class AnnotatorConfigResource {
   ) { }
 }
 
+export class ResourcePage {
+  public constructor(
+    public page: number,
+    public totalPages: number,
+    public resources: Resource[]
+  ) {}
+
+  public static fromJson(json: object): ResourcePage {
+    if (!json) {
+      return undefined;
+    }
+
+    return new ResourcePage(
+      json['page'] as number,
+      json['pages'] as number,
+      Resource.fromJsonArray(json['resources'] as object[]),
+    );
+  }
+}
+
 export class Resource {
   public constructor(
     public fullId: string,

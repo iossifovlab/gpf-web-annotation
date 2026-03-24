@@ -13,7 +13,8 @@ import {
   AnnotatorConfigResource,
   ResourceAnnotator,
   ResourceAnnotatorConfigs,
-  Resource
+  Resource,
+  ResourcePage
 } from './annotator';
 import { FormBuilder, FormControl } from '@angular/forms';
 
@@ -110,41 +111,47 @@ class PipelineEditorServiceMock {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public getResourcesBySearch(value: string, type: string): Observable<Resource[]> {
-    return of([
-      new Resource(
-        'hg19/scores/phyloP46_primates',
-        'hg19/scores/phyloP46_primates',
-        'position_score',
+  public getResourcesBySearch(value: string, type: string, page?: number): Observable<ResourcePage> {
+    return of(
+      new ResourcePage(
         0,
-        'url',
-        'phyloP46_primates summary'
-      ),
-      new Resource(
-        'hg19/scores/phyloP46_vertebrates',
-        'hg19/scores/phyloP46_vertebrates',
-        'position_score',
-        0,
-        'url',
-        'phyloP46_vertebrates summary'
-      ),
-      new Resource(
-        'hg38/scores/phastCons100way',
-        'hg38/scores/phastCons100way',
-        'position_score',
-        0,
-        'url',
-        'phastCons100way summary'
-      ),
-      new Resource(
-        'hg38/scores/phastCons20way',
-        'hg38/scores/phastCons20way',
-        'position_score',
-        0,
-        'url',
-        'phastCons20way summary'
+        3,
+        [
+          new Resource(
+            'hg19/scores/phyloP46_primates',
+            'hg19/scores/phyloP46_primates',
+            'position_score',
+            0,
+            'url',
+            'phyloP46_primates summary'
+          ),
+          new Resource(
+            'hg19/scores/phyloP46_vertebrates',
+            'hg19/scores/phyloP46_vertebrates',
+            'position_score',
+            0,
+            'url',
+            'phyloP46_vertebrates summary'
+          ),
+          new Resource(
+            'hg38/scores/phastCons100way',
+            'hg38/scores/phastCons100way',
+            'position_score',
+            0,
+            'url',
+            'phastCons100way summary'
+          ),
+          new Resource(
+            'hg38/scores/phastCons20way',
+            'hg38/scores/phastCons20way',
+            'position_score',
+            0,
+            'url',
+            'phastCons20way summary'
+          )
+        ].filter(r => r.fullId.includes(value))
       )
-    ].filter(r => r.fullId.includes(value)));
+    );
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -199,8 +206,33 @@ describe('NewAnnotatorComponent', () => {
 
     fixture = TestBed.createComponent(NewAnnotatorComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
-    jest.clearAllMocks();
+
+    const mockContainer = document.createElement('div');
+
+    Object.defineProperty(component, 'loadPageIndicator', {
+      get: () => ({ nativeElement: {
+        closest: jest.fn().mockReturnValue(mockContainer)
+      } }),
+      set: () => {},
+      configurable: true
+    });
+
+    window.IntersectionObserver = jest.fn() as unknown as typeof IntersectionObserver;
+
+    jest.spyOn(window, 'IntersectionObserver').mockImplementation(() => {
+      return {
+        observe: jest.fn(),
+        disconnect: jest.fn(),
+        unobserve: jest.fn(),
+        root: null,
+        rootMargin: '',
+        thresholds: [],
+        scrollMargin: '',
+        takeRecords: jest.fn()
+      } as IntersectionObserver;
+    });
+
+    fixture.detectChanges(); //triggers ngAfterViewInit
   });
 
   it('should create', () => {
@@ -579,6 +611,7 @@ describe('Annotator created by resource', () => {
   let fixture: ComponentFixture<NewAnnotatorComponent>;
   const mockMatDialogRef = new MatDialogRefMock();
   const pipelineEditorServiceMock = new PipelineEditorServiceMock();
+  let mockObserverCallback: IntersectionObserverCallback;
 
   beforeEach(async() => {
     await TestBed.configureTestingModule({
@@ -595,7 +628,33 @@ describe('Annotator created by resource', () => {
 
     fixture = TestBed.createComponent(NewAnnotatorComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+
+    const mockContainer = document.createElement('div');
+    Object.defineProperty(component, 'loadPageIndicator', {
+      get: () => ({ nativeElement: {
+        closest: jest.fn().mockReturnValue(mockContainer)
+      } }),
+      set: () => {},
+      configurable: true
+    });
+
+    window.IntersectionObserver = jest.fn() as unknown as typeof IntersectionObserver;
+
+    jest.spyOn(window, 'IntersectionObserver').mockImplementation((cb: IntersectionObserverCallback) => {
+      mockObserverCallback = cb;
+      return {
+        observe: jest.fn(),
+        disconnect: jest.fn(),
+        unobserve: jest.fn(),
+        root: null,
+        rootMargin: '',
+        thresholds: [],
+        scrollMargin: '',
+        takeRecords: jest.fn()
+      } as IntersectionObserver;
+    });
+
+    fixture.detectChanges(); //triggers ngAfterViewInit
   });
 
   it('should create', () => {
@@ -605,7 +664,6 @@ describe('Annotator created by resource', () => {
   it('should get resource types on component initialization and set default', () => {
     expect(component.resourceTypes).toStrictEqual(['All', 'gene_set_collection', 'genome', 'position_score']);
     expect(component.selectedResourceType).toBe('All');
-    expect(component.resourceTypeStep.get('resourceType').value).toBe('All');
   });
 
   it('should trigger search on resource type change', () => {
@@ -613,7 +671,7 @@ describe('Annotator created by resource', () => {
     component.resourceTypeStep.get('resourceType').setValue('genome', { emitEvent: true });
 
     expect(searchSpy).toHaveBeenCalledWith('', 'genome');
-    expect(component.resources).toStrictEqual([
+    expect(component.resourcePage.resources).toStrictEqual([
       new Resource(
         'hg19/scores/phyloP46_primates',
         'hg19/scores/phyloP46_primates',
@@ -655,7 +713,7 @@ describe('Annotator created by resource', () => {
     component.selectedResourceType = 'gene_set_collection';
     tick(300);
     expect(searchSpy).toHaveBeenCalledWith('hg38', 'gene_set_collection');
-    expect(component.resources).toStrictEqual([
+    expect(component.resourcePage.resources).toStrictEqual([
       new Resource('hg38/scores/phastCons100way',
         'hg38/scores/phastCons100way',
         'position_score',
@@ -725,5 +783,102 @@ describe('Annotator created by resource', () => {
     );
     component.requestResourceAnnotators();
     expect(component.annotatorStep.get('annotator').value).toBe('effect_annotator');
+  });
+
+  it('should not load resources when not intersecting', () => {
+    jest.spyOn(component, 'loadMore');
+    component.ngAfterViewInit();
+    component.isResourceTableInitialized = true;
+
+    mockObserverCallback([{ isIntersecting: false }] as IntersectionObserverEntry[], null);
+    expect(component.loadMore).not.toHaveBeenCalled();
+  });
+
+  it('should not load resources when already loading', () => {
+    jest.spyOn(component, 'loadMore');
+    component.ngAfterViewInit();
+    component.isResourceTableInitialized = true;
+    component.isLoading = true;
+
+    mockObserverCallback([{ isIntersecting: true }] as IntersectionObserverEntry[], null);
+    expect(component.loadMore).not.toHaveBeenCalled();
+  });
+
+  it('should not load resources when no more pages', () => {
+    jest.spyOn(component, 'loadMore');
+    component.ngAfterViewInit();
+    component.isResourceTableInitialized = true;
+    component.hasMore = false;
+
+    mockObserverCallback([{ isIntersecting: true }] as IntersectionObserverEntry[], null);
+    expect(component.loadMore).not.toHaveBeenCalled();
+  });
+
+  it('should load more resources when loading indicator is visible', () => {
+    component.nextPage = 1;
+    component.totalPages = 300;
+    component.isResourceTableInitialized = true;
+    jest.spyOn(component, 'loadMore');
+    component.resources.set([
+      new Resource(
+        'mockFullId',
+        'mockId',
+        'str',
+        0,
+        '',
+        ''
+      )
+    ]);
+    const getResourcesBySearchSpy = jest.spyOn(pipelineEditorServiceMock, 'getResourcesBySearch');
+
+    // manually trigger the observer callback
+    mockObserverCallback([{ isIntersecting: true }] as IntersectionObserverEntry[], null);
+
+    expect(component.loadMore).toHaveBeenCalledWith();
+    expect(getResourcesBySearchSpy).toHaveBeenCalledWith('', '', 1);
+    expect(component.nextPage).toBe(2);
+    expect(component.hasMore).toBe(true);
+    expect(component.resources()).toStrictEqual([
+      new Resource(
+        'mockFullId',
+        'mockId',
+        'str',
+        0,
+        '',
+        ''
+      ),
+      new Resource(
+        'hg19/scores/phyloP46_primates',
+        'hg19/scores/phyloP46_primates',
+        'position_score',
+        0,
+        'url',
+        'phyloP46_primates summary'
+      ),
+      new Resource(
+        'hg19/scores/phyloP46_vertebrates',
+        'hg19/scores/phyloP46_vertebrates',
+        'position_score',
+        0,
+        'url',
+        'phyloP46_vertebrates summary'
+      ),
+      new Resource(
+        'hg38/scores/phastCons100way',
+        'hg38/scores/phastCons100way',
+        'position_score',
+        0,
+        'url',
+        'phastCons100way summary'
+      ),
+      new Resource(
+        'hg38/scores/phastCons20way',
+        'hg38/scores/phastCons20way',
+        'position_score',
+        0,
+        'url',
+        'phastCons20way summary'
+      )
+    ]);
   });
 });

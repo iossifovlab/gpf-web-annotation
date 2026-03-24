@@ -11,7 +11,8 @@ import {
   AnnotatorConfigResource,
   ResourceAnnotator,
   ResourceAnnotatorConfigs,
-  Resource
+  Resource,
+  ResourcePage
 } from './new-annotator/annotator';
 
 const mockResources = [
@@ -445,7 +446,11 @@ describe('PipelineEditorService', () => {
 
   it('should get resources by search value', async() => {
     const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
-    httpGetSpy.mockReturnValue(of(mockResources.filter(r => r.full_id.includes('CADD'))));
+    httpGetSpy.mockReturnValue(of({
+      page: 1,
+      pages: 10,
+      resources: mockResources.filter(r => r.full_id.includes('CADD'))
+    }));
 
     const getResponse = service.getResourcesBySearch('cadd', 'allele_score');
 
@@ -455,16 +460,26 @@ describe('PipelineEditorService', () => {
       {params: params}
     );
     const res = await lastValueFrom(getResponse.pipe(take(1)));
-    expect(res).toStrictEqual([
-      new Resource('hg19/scores/CADD', 'hg19/scores/CADD', 'allele_score', 0, 'url', 'CADD summary'),
-      new Resource('hg38/scores/CADD_v1.4', 'hg38/scores/CADD_v1.4', 'allele_score', 0, 'url', 'CADD_v1.4 summary'),
-      new Resource('hg38/scores/CADD_v1.7', 'hg38/scores/CADD_v1.7', 'allele_score', 0, 'url', 'CADD_v1.7 summary'),
-    ]);
+    expect(res).toStrictEqual(
+      new ResourcePage(
+        1,
+        10,
+        [
+          new Resource('hg19/scores/CADD', 'hg19/scores/CADD', 'allele_score', 0, 'url', 'CADD summary'),
+          new Resource('hg38/scores/CADD_v1.4', 'hg38/scores/CADD_v1.4', 'allele_score', 0, 'url', 'CADD_v1.4 summary'),
+          new Resource('hg38/scores/CADD_v1.7', 'hg38/scores/CADD_v1.7', 'allele_score', 0, 'url', 'CADD_v1.7 summary'),
+        ]
+      )
+    );
   });
 
   it('should get resources by type', async() => {
     const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
-    httpGetSpy.mockReturnValue(of(mockResources.filter(r => r.type === 'allele_score')));
+    httpGetSpy.mockReturnValue(of({
+      page: 1,
+      pages: 10,
+      resources: mockResources.filter(r => r.type.includes('allele_score'))
+    }));
 
     const getResponse = service.getResourcesBySearch('', 'allele_score');
 
@@ -474,17 +489,29 @@ describe('PipelineEditorService', () => {
       {params: params}
     );
     const res = await lastValueFrom(getResponse.pipe(take(1)));
-    expect(res).toStrictEqual([
-      new Resource('hg19/scores/MPC', 'hg19/scores/MPC', 'allele_score', 0, 'url', 'mpc summary'),
-      new Resource('hg19/scores/CADD', 'hg19/scores/CADD', 'allele_score', 0, 'url', 'CADD summary'),
-      new Resource('hg38/scores/CADD_v1.4', 'hg38/scores/CADD_v1.4', 'allele_score', 0, 'url', 'CADD_v1.4 summary'),
-      new Resource('hg38/scores/CADD_v1.7', 'hg38/scores/CADD_v1.7', 'allele_score', 0, 'url', 'CADD_v1.7 summary'),
-    ]);
+    expect(res).toStrictEqual(
+      new ResourcePage(
+        1,
+        10,
+        [
+          new Resource('hg19/scores/MPC', 'hg19/scores/MPC', 'allele_score', 0, 'url', 'mpc summary'),
+          new Resource('hg19/scores/CADD', 'hg19/scores/CADD', 'allele_score', 0, 'url', 'CADD summary'),
+          new Resource('hg38/scores/CADD_v1.4', 'hg38/scores/CADD_v1.4', 'allele_score', 0, 'url', 'CADD_v1.4 summary'),
+          new Resource('hg38/scores/CADD_v1.7', 'hg38/scores/CADD_v1.7', 'allele_score', 0, 'url', 'CADD_v1.7 summary'),
+        ]
+      )
+    );
   });
 
   it('should get all resources', async() => {
     const httpGetSpy = jest.spyOn(HttpClient.prototype, 'get');
-    httpGetSpy.mockReturnValue(of(mockResources));
+    httpGetSpy.mockReturnValue(of(
+      {
+        page: 1,
+        pages: 10,
+        resources: mockResources
+      }
+    ));
 
     const getResponse = service.getResourcesBySearch('', 'All');
 
@@ -494,16 +521,21 @@ describe('PipelineEditorService', () => {
       {params: params}
     );
     const res = await lastValueFrom(getResponse.pipe(take(1)));
-    expect(res).toStrictEqual([
-      new Resource('hg19/scores/MPC', 'hg19/scores/MPC', 'allele_score', 0, 'url', 'mpc summary'),
-      new Resource('hg19/scores/CADD', 'hg19/scores/CADD', 'allele_score', 0, 'url', 'CADD summary'),
-      new Resource('hg38/scores/CADD_v1.4', 'hg38/scores/CADD_v1.4', 'allele_score', 0, 'url', 'CADD_v1.4 summary'),
-      new Resource('hg38/scores/CADD_v1.7', 'hg38/scores/CADD_v1.7', 'allele_score', 0, 'url', 'CADD_v1.7 summary'),
-      new Resource('hg38/genomes/GRCh38.p13', 'hg38/genomes/GRCh38.p13', 'genome', 0, 'url', 'GRCh38.p13 summary'),
-      new Resource('hg38/genomes/GRCh38.p14', 'hg38/genomes/GRCh38.p14', 'genome', 0, 'url', 'GRCh38.p14 summary'),
-      // eslint-disable-next-line @stylistic/max-len
-      new Resource('t2t/genomes/t2t-chm13v2.0', 't2t/genomes/t2t-chm13v2.0', 'genome', 0, 'url', 't2t-chm13v2.0 summary'),
-    ]);
+    expect(res).toStrictEqual(
+      new ResourcePage(
+        1,
+        10,
+        [
+          new Resource('hg19/scores/MPC', 'hg19/scores/MPC', 'allele_score', 0, 'url', 'mpc summary'),
+          new Resource('hg19/scores/CADD', 'hg19/scores/CADD', 'allele_score', 0, 'url', 'CADD summary'),
+          new Resource('hg38/scores/CADD_v1.4', 'hg38/scores/CADD_v1.4', 'allele_score', 0, 'url', 'CADD_v1.4 summary'),
+          new Resource('hg38/scores/CADD_v1.7', 'hg38/scores/CADD_v1.7', 'allele_score', 0, 'url', 'CADD_v1.7 summary'),
+          new Resource('hg38/genomes/GRCh38.p13', 'hg38/genomes/GRCh38.p13', 'genome', 0, 'url', 'GRCh38.p13 summary'),
+          new Resource('hg38/genomes/GRCh38.p14', 'hg38/genomes/GRCh38.p14', 'genome', 0, 'url', 'GRCh38.p14 summary'),
+          // eslint-disable-next-line @stylistic/max-len
+          new Resource('t2t/genomes/t2t-chm13v2.0', 't2t/genomes/t2t-chm13v2.0', 'genome', 0, 'url', 't2t-chm13v2.0 summary'),
+        ]
+      ));
   });
 
   it('should get annotators of a resource', async() => {
