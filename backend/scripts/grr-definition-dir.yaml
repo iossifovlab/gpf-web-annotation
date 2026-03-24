@@ -9,4 +9,5 @@ children:
 - id: "grr_encode.sync"
   type: "directory"
   directory: /grr_encode
+  public_url: "https://grr-encode.iossifovlab.com"
   read_only: true
