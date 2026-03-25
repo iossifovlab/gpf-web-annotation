@@ -1,18 +1,25 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { SingleAnnotationReportComponent } from '../single-annotation-report/single-annotation-report.component';
 import { SingleAnnotationService } from '../single-annotation.service';
 import { SingleAnnotationReport, Annotatable } from '../single-annotation';
 import { UsersService } from '../users.service';
-import { Subscription } from 'rxjs';
+import { distinctUntilChanged, Subscription } from 'rxjs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatMenuModule } from '@angular/material/menu';
 
 @Component({
   selector: 'app-single-annotation',
-  imports: [CommonModule, FormsModule, SingleAnnotationReportComponent, MatProgressSpinnerModule, MatMenuModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    SingleAnnotationReportComponent,
+    MatProgressSpinnerModule,
+    MatMenuModule,
+    ReactiveFormsModule
+  ],
   templateUrl: './single-annotation.component.html',
   styleUrl: './single-annotation.component.css'
 })
@@ -20,8 +27,7 @@ export class SingleAnnotationComponent implements OnInit {
   @Input() public pipelineId = '';
   @Input() public isPipelineValid: boolean;
   public readonly environment = environment;
-  public validationMessage = '';
-  public currentAllele: string = '';
+  public alleleInput: FormControl<string>;
   public report: SingleAnnotationReport = null;
   @Output() public alleleUpdateEmit = new EventEmitter<void>();
   @Output() public autoSaveTrigger = new EventEmitter<void>();
@@ -45,6 +51,20 @@ export class SingleAnnotationComponent implements OnInit {
       'chr1 11796321 G GT',
       'chr1 11,796,321 11,800,000',
     ];
+
+    this.alleleInput = new FormControl('');
+
+    this.alleleInput.valueChanges.pipe(
+      distinctUntilChanged(),
+    ).subscribe(value => {
+      this.report = null;
+      this.alleleJson = undefined;
+      if (value && !this.isAlleleValid(value)) {
+        this.alleleInput.setErrors({ invalidAllele: true });
+      } else {
+        this.alleleInput.setErrors(null);
+      }
+    });
   }
 
   public triggerPipelineAutoSave(): void {
@@ -52,24 +72,22 @@ export class SingleAnnotationComponent implements OnInit {
   }
 
   public annotateAllele(): void {
-    if (this.isAlleleValid() && this.pipelineId) {
-      this.validationMessage = '';
+    if (this.alleleInput.valid && this.pipelineId) {
       this.getReport(this.pipelineId);
     } else {
       this.alleleJson = undefined;
-      this.validationMessage = 'Invalid allele format or missing pipeline!';
       this.report = null;
     }
   }
 
   public disableGo(): boolean {
-    return !(Boolean(this.currentAllele) && Boolean(this.pipelineId) && this.isPipelineValid);
+    return !(this.alleleInput.value && this.alleleInput.valid && Boolean(this.pipelineId) && this.isPipelineValid);
   }
 
-  private isAlleleValid(): boolean {
-    this.currentAllele = this.currentAllele.trim();
+  private isAlleleValid(allele: string): boolean {
+    const trimmedValue: string = allele.trim();
 
-    const parts = this.splitAllele(this.currentAllele);
+    const parts = this.splitAllele(trimmedValue);
 
     if (parts.length === 4) {
       this.alleleJson = new Annotatable(
@@ -120,6 +138,10 @@ export class SingleAnnotationComponent implements OnInit {
     const parts = allele.split(/[: \t]+/);
     const [chrom, pos, ref, alt] = parts;
 
+    if (!pos) {
+      return [chrom];
+    }
+
     if (pos.includes('-')) {
       const [posBeg, posEnd] = pos.split('-');
       return [chrom, posBeg, posEnd];
@@ -137,7 +159,6 @@ export class SingleAnnotationComponent implements OnInit {
     if (ref && !alt) {
       return [chrom, pos, ref];
     }
-
 
     return [chrom, pos, ref, alt];
   }
@@ -166,11 +187,7 @@ export class SingleAnnotationComponent implements OnInit {
   }
 
   public setAllele(historyAllele: string): void {
-    this.currentAllele = historyAllele;
-    this.resetReport();
-  }
-
-  public resetAllele(): void {
+    this.alleleInput.setValue(historyAllele);
     this.resetReport();
   }
 
