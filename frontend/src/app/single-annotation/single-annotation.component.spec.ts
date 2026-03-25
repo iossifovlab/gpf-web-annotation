@@ -165,10 +165,6 @@ describe('SingleAnnotationComponent', () => {
     component.annotateAllele();
     expect(component.validationMessage).toBe('Invalid allele format or missing pipeline!');
 
-    component.currentAllele = 'chr1 11796321 11796321';
-    component.annotateAllele();
-    expect(component.validationMessage).toBe('Invalid allele format or missing pipeline!');
-
     component.currentAllele = 'chr1:11796321:G > A';
     component.annotateAllele();
     expect(component.validationMessage).toBe('Invalid allele format or missing pipeline!');
@@ -201,6 +197,10 @@ describe('SingleAnnotationComponent', () => {
     expect(component.validationMessage).toBe('');
 
     component.currentAllele = 'chr1:796,321-11,800,000';
+    component.annotateAllele();
+    expect(component.validationMessage).toBe('');
+
+    component.currentAllele = 'chr1 11796321 11796321';
     component.annotateAllele();
     expect(component.validationMessage).toBe('');
 

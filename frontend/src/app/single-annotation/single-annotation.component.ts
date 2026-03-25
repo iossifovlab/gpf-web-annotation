@@ -97,7 +97,7 @@ export class SingleAnnotationComponent implements OnInit {
 
       return this.isPosValid(parts[1]) &&
         this.isPosValid(parts[2]) &&
-        Number(parts[1].replaceAll(',', '')) < Number(parts[2].replaceAll(',', ''));
+        Number(parts[1].replaceAll(',', '')) <= Number(parts[2].replaceAll(',', ''));
     }
 
     if (parts.length === 2) {
