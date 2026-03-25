@@ -2,8 +2,8 @@
   <div id="annotatable">
     <div id="report-header">
       <div id="toggle-view-container">
-        <input class="switch" type="checkbox" checked="true" (change)="showFullReport = !showFullReport" />
-        <label [ngStyle]="{ color: !showFullReport ? '#85a2b9' : '#5b778c' }">compact report</label>
+        <input class="switch" type="checkbox" [checked]="!showFullReport" (change)="showFullReport = !showFullReport" />
+        <label [ngStyle]="{ color: showFullReport ? '#5b778c' : '#85a2b9' }">full report</label>
       </div>
       <span id="download-report" download>
         <button (click)="saveReport()" id="download-report-button"
@@ -38,7 +38,7 @@
       } @if(report.annotatable.variantType) {
       <hr />
       <div>
-        <div class="annotatable-data-label">variant type</div>
+        <div class="annotatable-data-label">type</div>
         <div class="annotatable-data" id="variant-type">{{ report.annotatable.variantType }}</div>
       </div>
       } @if(report.annotatable.positionStart) {

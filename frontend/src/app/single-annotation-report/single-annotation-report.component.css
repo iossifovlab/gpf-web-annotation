@@ -237,12 +237,12 @@ a:hover {
   cursor: pointer;
   appearance: none;
   border-radius: 9999px;
-  background-color: #cfd8df;
+  background-color: #5b778c;
   transition: all 0.3s ease;
 }
 
 .switch:checked {
-  background-color: #5b778c;
+  background-color: #cfd8df;
 }
 
 .switch::before {
@@ -259,8 +259,9 @@ a:hover {
   background-color: white;
   box-shadow: 0 3px 10px #64748b53;
   transition: all 0.3s ease;
+  transform: translateX(100%);
 }
 
 .switch:checked::before {
-  transform: translateX(100%);
+  transform: translateX(0);
 }
