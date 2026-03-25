@@ -15,7 +15,7 @@ test.describe('Pipeline tests', () => {
   });
 
   test('should create new pipeline and save it', async({ page }) => {
-    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New', exact: true }).click();
+    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New pipeline', exact: true }).click();
     await expect(page.locator('#pipelines-input')).toBeEmpty();
     await expect(page.locator('.monaco-editor').nth(0)).toBeEmpty();
 
@@ -49,7 +49,7 @@ test.describe('Pipeline tests', () => {
 
   test('should create new pipeline and use it without saving it', async({ page }) => {
     await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
-    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New' }).click();
+    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New pipeline' }).click();
 
     const saveResponse = page.waitForResponse(
       resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
@@ -77,7 +77,7 @@ test.describe('Pipeline tests', () => {
   });
 
   test('should not be able to save pipeline if invalid', async({ page }) => {
-    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New', exact: true }).click();
+    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New pipeline', exact: true }).click();
     await utils.typeInPipelineEditor(
       page,
       'preamble:\n' +
@@ -117,7 +117,7 @@ test.describe('Pipeline tests', () => {
 
   test('should edit user pipeline and save it', async({ page }) => {
     // create pipeline
-    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New', exact: true }).click();
+    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New pipeline', exact: true }).click();
     await expect(page.locator('#pipelines-input')).toBeEmpty();
     await expect(page.locator('.monaco-editor').nth(0)).toBeEmpty();
 
@@ -179,7 +179,7 @@ test.describe('Pipeline tests', () => {
 
   test('should delete user pipeline', async({ page }) => {
     // create pipeline
-    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New', exact: true }).click();
+    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New pipeline', exact: true }).click();
     await expect(page.locator('#pipelines-input')).toBeEmpty();
     await expect(page.locator('.monaco-editor').nth(0)).toBeEmpty();
 
@@ -236,7 +236,7 @@ test.describe('Pipeline tests', () => {
 
   test('should make copy of user pipeline by clicking \'save as\'', async({ page }) => {
     // create pipeline
-    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New', exact: true }).click();
+    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New pipeline', exact: true }).click();
     await expect(page.locator('#pipelines-input')).toBeEmpty();
     await expect(page.locator('.monaco-editor').nth(0)).toBeEmpty();
 
@@ -323,21 +323,21 @@ test.describe('Pipeline validation tests', () => {
   });
 
   test('should type config without annotators and show error message', async({ page }) => {
-    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New', exact: true }).click();
+    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New pipeline', exact: true }).click();
     await utils.typeInPipelineEditor(page, 'preamble:\n input_reference_genome: hg38/genomes/GRCh38-hg38');
     await page.waitForSelector('.invalid-config', { state: 'visible', timeout: 120000 });
     await expect(page.getByText('Invalid configuration, reason: \'annotators\'')).toBeVisible();
   });
 
   test('should type config without peamble and show error message', async({ page }) => {
-    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New', exact: true }).click();
+    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New pipeline', exact: true }).click();
     await utils.typeInPipelineEditor(page, 'annotators:\n - allele_score: hg38/scores/CADD_v1.4');
     await page.waitForSelector('.invalid-config', { state: 'visible', timeout: 120000 });
     await expect(page.getByText('Invalid configuration, reason: \'preamble\'')).toBeVisible();
   });
 
   test('should type semantically invalid config and see error', async({ page }) => {
-    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New', exact: true }).click();
+    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New pipeline', exact: true }).click();
     await utils.typeInPipelineEditor(page, '- allele_score');
 
     await expect(page.locator('.error-message').nth(0)).toContainText(
@@ -480,7 +480,7 @@ test.describe('Add annotator to pipeline tests', () => {
 
   test('should append annotator to user pipeline', async({ page }) => {
     // create pipeline
-    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New', exact: true }).click();
+    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New pipeline', exact: true }).click();
     await expect(page.locator('#pipelines-input')).toBeEmpty();
     await expect(page.locator('.monaco-editor').nth(0)).toBeEmpty();
 

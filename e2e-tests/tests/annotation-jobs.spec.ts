@@ -36,7 +36,7 @@ test.describe('Create job tests', () => {
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-vcf-file.vcf');
     await expect(page.locator('#create-button')).toBeEnabled();
 
-    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New', exact: true }).click();
+    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New pipeline', exact: true }).click();
     await expect(page.locator('#create-button')).toBeEnabled();
   });
 
@@ -356,7 +356,7 @@ async function createJobWithPipeline(page: Page, pipeline: string, inputFileName
 
 
 async function customDefaultPipeline(page: Page): Promise<void> {
-  await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New', exact: true }).click();
+  await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New pipeline', exact: true }).click();
   await expect(page.locator('#pipelines-input')).toBeEmpty();
   await expect(page.locator('.monaco-editor').nth(0)).toBeEmpty();
 

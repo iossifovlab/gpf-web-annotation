@@ -57,7 +57,7 @@ test.describe('Anonymous user tests', () => {
   });
 
   test('should use anonynmous pipeline for single annotation', async({ page }) => {
-    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New', exact: true }).click();
+    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New pipeline', exact: true }).click();
     await expect(page.locator('#pipelines-input')).toBeEmpty();
     await expect(page.locator('.monaco-editor').nth(0)).toBeEmpty();
 
@@ -143,7 +143,7 @@ test.describe('Anonymous user tests', () => {
 
   test('should use anonymous pipeline for job annotation', async({ page }) => {
     await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
-    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New', exact: true }).click();
+    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New pipeline', exact: true }).click();
     await expect(page.locator('#pipelines-input')).toBeEmpty();
     await expect(page.locator('.monaco-editor').nth(0)).toBeEmpty();
 
@@ -230,7 +230,7 @@ test.describe('Anonymous user tests', () => {
 });
 
 async function customDefaultPipeline(page: Page): Promise<void> {
-  await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New', exact: true }).click();
+  await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New pipeline', exact: true }).click();
   await expect(page.locator('#pipelines-input')).toBeEmpty();
   await expect(page.locator('.monaco-editor').nth(0)).toBeEmpty();
 

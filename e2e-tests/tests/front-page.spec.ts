@@ -17,7 +17,7 @@ test.describe('Basic tests', () => {
 
   test('should check application description', async({ page }) => {
     await page.goto('/login', {waitUntil: 'load'});
-    await expect(page.locator('#front-page-header p')).toHaveText('GAIn Web Annotation description');
+    await expect(page.locator('#front-page-header p')).toHaveText('GAIn Web description');
   });
 
   test('should check url after navigating to register page from login page', async({ page }) => {
