@@ -6,11 +6,10 @@
       placeholder="Type annotatable..."
       (keydown.enter)="triggerPipelineAutoSave()"
       (ngModelChange)="resetAllele()" />
-    <button (click)="triggerPipelineAutoSave()" [disabled]="disableGo()">Go</button>
-
     <span id="examples-button" [matMenuTriggerFor]="tooltip" title="Examples"
       ><span class="material-symbols-outlined">info</span></span
     >
+    <button (click)="triggerPipelineAutoSave()" [disabled]="disableGo()">Go</button>
 
     <mat-menu #tooltip="matMenu">
       @for(e of examples; track e) {
