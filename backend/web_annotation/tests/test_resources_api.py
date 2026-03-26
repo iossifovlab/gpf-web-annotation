@@ -7,42 +7,98 @@ import pytest
 @pytest.mark.parametrize(
     "type_filter,search_term,expected",
     [
-        (None, None, [
-            "hg38/GRCh38-hg38/genome",
-            "scores/pos1",
-            "scores/pos2",
-            "t4c8/gene_scores/t4c8_score",
-            "t4c8/gene_sets/main",
-            "t4c8/genomic_scores/score_one",
-            "t4c8/t4c8_genes",
-            "t4c8/t4c8_genome",
-            "cnv_collections/test_collection",
-        ]),
-        ("genome", None, [
-            "hg38/GRCh38-hg38/genome",
-            "t4c8/t4c8_genome",
-        ]),
-        ("gene_set_collection", None, [
-            "t4c8/gene_sets/main",
-        ]),
-        ("position_score", None, [
-            "scores/pos1",
-            "scores/pos2",
-            "t4c8/genomic_scores/score_one",
-        ]),
-        ("position_score", "score_one", [
-            "t4c8/genomic_scores/score_one",
-        ]),
-        (None, "score_one", [
-            "t4c8/genomic_scores/score_one",
-        ]),
-        (None, "t4c8", [
-            "t4c8/gene_scores/t4c8_score",
-            "t4c8/gene_sets/main",
-            "t4c8/genomic_scores/score_one",
-            "t4c8/t4c8_genes",
-            "t4c8/t4c8_genome",
-        ]),
+        (
+            None, None,
+            {
+                "page": 0,
+                "pages": 1,
+                "total_resources": 9,
+                "resources": {
+                    "hg38/GRCh38-hg38/genome",
+                    "scores/pos1",
+                    "scores/pos2",
+                    "t4c8/gene_scores/t4c8_score",
+                    "t4c8/gene_sets/main",
+                    "t4c8/genomic_scores/score_one",
+                    "t4c8/t4c8_genes",
+                    "t4c8/t4c8_genome",
+                    "cnv_collections/test_collection",
+                }
+            }
+        ),
+        (
+            "genome", None,
+            {
+                "page": 0,
+                "pages": 1,
+                "total_resources": 2,
+                "resources": {
+                    "hg38/GRCh38-hg38/genome",
+                    "t4c8/t4c8_genome",
+                }
+            }
+        ),
+        (
+            "gene_set_collection", None,
+            {
+                 "page": 0,
+                 "pages": 1,
+                 "total_resources": 1,
+                 "resources": {
+                    "t4c8/gene_sets/main",
+                 }
+            }
+        ),
+        (
+            "position_score", None,
+            {
+                 "page": 0,
+                 "pages": 1,
+                 "total_resources": 3,
+                 "resources": {
+                    "scores/pos1",
+                    "scores/pos2",
+                    "t4c8/genomic_scores/score_one",
+                 }
+            }
+        ),
+        (
+            "position_score", "score_one",
+            {
+                 "page": 0,
+                 "pages": 1,
+                 "total_resources": 1,
+                 "resources": {
+                    "t4c8/genomic_scores/score_one",
+                 }
+            }
+        ),
+        (
+            None, "score_one",
+            {
+                 "page": 0,
+                 "pages": 1,
+                 "total_resources": 1,
+                 "resources": {
+                    "t4c8/genomic_scores/score_one",
+                 }
+            },
+        ),
+        (
+            None, "t4c8",
+            {
+                 "page": 0,
+                 "pages": 1,
+                 "total_resources": 5,
+                 "resources": {
+                    "t4c8/gene_scores/t4c8_score",
+                    "t4c8/gene_sets/main",
+                    "t4c8/genomic_scores/score_one",
+                    "t4c8/t4c8_genes",
+                    "t4c8/t4c8_genome",
+                 }
+            },
+        ),
     ],
 )
 def test_get_resources(
@@ -51,8 +107,6 @@ def test_get_resources(
     search_term: str | None,
     expected: list[str],
 ) -> None:
-    expected_resources = set(expected)
-
     client = clients[current_client]
 
     query_params = {}
@@ -64,9 +118,9 @@ def test_get_resources(
     response = client.get("/api/resources/search", query_params=query_params)
 
     assert response.status_code == 200
-    assert {
-        res["resource_id"] for res in response.json()["resources"]
-    } == expected_resources
+    result = response.json()
+    result["resources"] = {res["resource_id"] for res in result["resources"]}
+    assert result == expected
 
 
 @pytest.mark.parametrize("current_client", ["admin", "user", "anonymous"])
@@ -79,7 +133,7 @@ def test_pagination(
     assert response.status_code == 200
     response_json = response.json()
     assert len(response_json["resources"]) == 2
-    assert response_json["pages"] == 9
+    assert response_json["pages"] == 5
     assert response_json["page"] == 0
 
 
