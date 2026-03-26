@@ -244,9 +244,11 @@
                   <mat-option
                     class="attribute-option"
                     [value]="attribute"
-                    [title]="attribute.description ? attribute.name + ' - ' + attribute.description : attribute.name"
+                    [title]="
+                      attribute.description ? attribute.source + ' - ' + attribute.description : attribute.source
+                    "
                     >{{
-                      attribute.description ? attribute.name + ' - ' + attribute.description : attribute.name
+                      attribute.description ? attribute.source + ' - ' + attribute.description : attribute.source
                     }}</mat-option
                   >
                   }
