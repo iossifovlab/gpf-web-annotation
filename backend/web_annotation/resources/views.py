@@ -125,5 +125,6 @@ class SearchResources(ResourcesAPIView):
         return Response({
             "page": int(page),
             "pages": (len(resources) + page_size - 1) // page_size,
+            "total_resources": len(resources),
             "resources": resource_details,
         }, status=status.HTTP_200_OK)
