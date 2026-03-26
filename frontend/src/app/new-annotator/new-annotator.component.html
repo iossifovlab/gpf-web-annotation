@@ -21,7 +21,8 @@
             formControlName="resourceId"
             #resourceInputValue
             [title]="resourceInputValue.value"
-            (click)="clearResource()" />
+            (click)="clearResource()"
+            (keydown.enter)="$event.stopPropagation()" />
 
           <span
             class="material-symbols-outlined info-icon"
