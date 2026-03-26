@@ -197,7 +197,7 @@ export class NewAnnotatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // Trigger search on resourceId value changes
     this.resourceStep.get('resourceId').valueChanges.pipe(
-      debounceTime(300),
+      debounceTime(400),
       map(value => ({ value: this.normalizeString(value), type: this.selectedResourceType })),
     ).subscribe(obj => {
       this.searchSubject.next(obj);
@@ -377,7 +377,7 @@ export class NewAnnotatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.attributeStep.get('attribute').valueChanges.pipe(
       filter(value => typeof value === 'string'), // trigger search only on typing
-      debounceTime(300),
+      debounceTime(400),
       switchMap(value => {
         this.attributesSubscription.unsubscribe();
         return this.getAttributesObservable(value);

@@ -525,7 +525,7 @@ describe('NewAnnotatorComponent', () => {
 
     component.attributeStep.get('attribute').setValue('UTR');
 
-    tick(300); // Wait for debounceTime
+    tick(400); // Wait for debounceTime
 
     expect(getAttributesSpy).toHaveBeenCalledWith(
       'pipelineId',
@@ -751,7 +751,7 @@ describe('Annotator created by resource', () => {
     const searchSpy = jest.spyOn(pipelineEditorServiceMock, 'getResourcesBySearch');
     component.resourceStep.get('resourceId').setValue('hg38  ', { emitEvent: true });
     component.selectedResourceType = 'gene_set_collection';
-    tick(300);
+    tick(400);
     expect(searchSpy).toHaveBeenCalledWith('hg38', 'gene_set_collection');
     expect(component.resourcePage.resources).toStrictEqual([
       new Resource('hg38/scores/phastCons100way',
@@ -783,10 +783,10 @@ describe('Annotator created by resource', () => {
     jest.clearAllMocks(); // clear search method calls from previous tests
     const searchSpy = jest.spyOn(pipelineEditorServiceMock, 'getResourcesBySearch');
     component.resourceStep.get('resourceId').setValue('hg38  ', { emitEvent: true });
-    tick(300);
+    tick(400);
     expect(searchSpy).toHaveBeenCalledTimes(1);
     component.resourceStep.get('resourceId').setValue('hg38', { emitEvent: true });
-    tick(300);
+    tick(400);
     expect(searchSpy).toHaveBeenCalledTimes(1);
   }));
 
