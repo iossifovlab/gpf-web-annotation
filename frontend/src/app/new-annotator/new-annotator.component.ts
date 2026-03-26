@@ -206,7 +206,7 @@ export class NewAnnotatorComponent implements OnInit, AfterViewInit, OnDestroy {
     // Trigger search when resourceType changes
     this.resourceStep.get('resourceType').valueChanges.subscribe(type => {
       this.selectedResourceType = type;
-      this.searchSubject.next({ value: '', type: type });
+      this.searchSubject.next({ value: this.resourceStep.get('resourceId').value, type: type });
     });
   }
 

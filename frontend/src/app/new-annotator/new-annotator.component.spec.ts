@@ -753,9 +753,10 @@ describe('Annotator created by resource', () => {
 
   it('should trigger search on resource type change', () => {
     const searchSpy = jest.spyOn(pipelineEditorServiceMock, 'getResourcesBySearch');
+    component.resourceStep.get('resourceId').setValue('hg', { emitEvent: true });
     component.resourceStep.get('resourceType').setValue('genome', { emitEvent: true });
 
-    expect(searchSpy).toHaveBeenCalledWith('', 'genome');
+    expect(searchSpy).toHaveBeenCalledWith('hg', 'genome');
     expect(component.resourcePage.resources).toStrictEqual([
       new Resource(
         'hg19/scores/phyloP46_primates',

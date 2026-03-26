@@ -8,7 +8,7 @@
           <mat-form-field [appearance]="'outline'" id="resource-type">
             <mat-select matNativeControl [value]="selectedResourceType" formControlName="resourceType">
               @for (type of resourceTypes; track type) {
-              <mat-option [value]="type" [title]="type" (click)="clearResource()">{{ type }}</mat-option>
+              <mat-option [value]="type" [title]="type">{{ type }}</mat-option>
               }
             </mat-select>
           </mat-form-field>
