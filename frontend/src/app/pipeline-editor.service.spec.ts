@@ -449,7 +449,9 @@ describe('PipelineEditorService', () => {
     httpGetSpy.mockReturnValue(of({
       page: 1,
       pages: 10,
-      resources: mockResources.filter(r => r.full_id.includes('CADD'))
+      resources: mockResources.filter(r => r.full_id.includes('CADD')),
+      // eslint-disable-next-line camelcase
+      total_resources: 200
     }));
 
     const getResponse = service.getResourcesBySearch('cadd', 'allele_score');
@@ -468,7 +470,8 @@ describe('PipelineEditorService', () => {
           new Resource('hg19/scores/CADD', 'hg19/scores/CADD', 'allele_score', 0, 'url', 'CADD summary'),
           new Resource('hg38/scores/CADD_v1.4', 'hg38/scores/CADD_v1.4', 'allele_score', 0, 'url', 'CADD_v1.4 summary'),
           new Resource('hg38/scores/CADD_v1.7', 'hg38/scores/CADD_v1.7', 'allele_score', 0, 'url', 'CADD_v1.7 summary'),
-        ]
+        ],
+        200
       )
     );
   });
@@ -478,7 +481,9 @@ describe('PipelineEditorService', () => {
     httpGetSpy.mockReturnValue(of({
       page: 1,
       pages: 10,
-      resources: mockResources.filter(r => r.type.includes('allele_score'))
+      resources: mockResources.filter(r => r.type.includes('allele_score')),
+      // eslint-disable-next-line camelcase
+      total_resources: 200
     }));
 
     const getResponse = service.getResourcesBySearch('', 'allele_score');
@@ -498,7 +503,8 @@ describe('PipelineEditorService', () => {
           new Resource('hg19/scores/CADD', 'hg19/scores/CADD', 'allele_score', 0, 'url', 'CADD summary'),
           new Resource('hg38/scores/CADD_v1.4', 'hg38/scores/CADD_v1.4', 'allele_score', 0, 'url', 'CADD_v1.4 summary'),
           new Resource('hg38/scores/CADD_v1.7', 'hg38/scores/CADD_v1.7', 'allele_score', 0, 'url', 'CADD_v1.7 summary'),
-        ]
+        ],
+        200
       )
     );
   });
@@ -509,7 +515,9 @@ describe('PipelineEditorService', () => {
       {
         page: 1,
         pages: 10,
-        resources: mockResources
+        resources: mockResources,
+        // eslint-disable-next-line camelcase
+        total_resources: 300
       }
     ));
 
@@ -534,7 +542,8 @@ describe('PipelineEditorService', () => {
           new Resource('hg38/genomes/GRCh38.p14', 'hg38/genomes/GRCh38.p14', 'genome', 0, 'url', 'GRCh38.p14 summary'),
           // eslint-disable-next-line @stylistic/max-len
           new Resource('t2t/genomes/t2t-chm13v2.0', 't2t/genomes/t2t-chm13v2.0', 'genome', 0, 'url', 't2t-chm13v2.0 summary'),
-        ]
+        ],
+        300
       ));
   });
 

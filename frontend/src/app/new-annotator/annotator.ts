@@ -52,7 +52,8 @@ export class ResourcePage {
   public constructor(
     public page: number,
     public totalPages: number,
-    public resources: Resource[]
+    public resources: Resource[],
+    public totalResources: number,
   ) {}
 
   public static fromJson(json: object): ResourcePage {
@@ -64,6 +65,7 @@ export class ResourcePage {
       json['page'] as number,
       json['pages'] as number,
       Resource.fromJsonArray(json['resources'] as object[]),
+      json['total_resources'] as number
     );
   }
 }

@@ -149,7 +149,8 @@ class PipelineEditorServiceMock {
             'url',
             'phastCons20way summary'
           )
-        ].filter(r => r.fullId.includes(value))
+        ].filter(r => r.fullId.includes(value)),
+        100
       )
     );
   }
@@ -654,6 +655,45 @@ describe('Annotator created by resource', () => {
       } as IntersectionObserver;
     });
 
+    component.resourcePage = new ResourcePage(
+      0,
+      3,
+      [
+        new Resource(
+          'hg19/scores/phyloP46_primates',
+          'hg19/scores/phyloP46_primates',
+          'position_score',
+          0,
+          'url',
+          'phyloP46_primates summary'
+        ),
+        new Resource(
+          'hg19/scores/phyloP46_vertebrates',
+          'hg19/scores/phyloP46_vertebrates',
+          'position_score',
+          0,
+          'url',
+          'phyloP46_vertebrates summary'
+        ),
+        new Resource(
+          'hg38/scores/phastCons100way',
+          'hg38/scores/phastCons100way',
+          'position_score',
+          0,
+          'url',
+          'phastCons100way summary'
+        ),
+        new Resource(
+          'hg38/scores/phastCons20way',
+          'hg38/scores/phastCons20way',
+          'position_score',
+          0,
+          'url',
+          'phastCons20way summary'
+        )
+      ],
+      100
+    );
     fixture.detectChanges(); //triggers ngAfterViewInit
   });
 
