@@ -612,11 +612,11 @@ def test_single_annotation(admin_client: Client) -> None:
     annotators_data = data["annotators"]
 
     assert variant_data == {
-        "chromosome": "chr1",
-        "position": 1,
-        "reference": "C",
-        "alternative": "A",
-        "annotatable_type": "SUBSTITUTION",
+        "chrom": "chr1",
+        "pos": 1,
+        "ref": "C",
+        "alt": "A",
+        "type": "SUBSTITUTION",
     }
     assert len(annotators_data) == 1
     assert annotators_data[0]["details"] == {
@@ -675,11 +675,11 @@ def test_single_annotation_unauthorized(anonymous_client: Client) -> None:
     annotators_data = data["annotators"]
 
     assert variant_data == {
-        "chromosome": "chr1",
-        "position": 1,
-        "reference": "C",
-        "alternative": "A",
-        "annotatable_type": "SUBSTITUTION",
+        "chrom": "chr1",
+        "pos": 1,
+        "ref": "C",
+        "alt": "A",
+        "type": "SUBSTITUTION",
     }
     assert len(annotators_data) == 1
     assert annotators_data[0]["details"] == {
@@ -1061,11 +1061,11 @@ def test_single_annotation_t4c8(admin_client: Client) -> None:
     annotators_data = data["annotators"]
 
     assert variant_data == {
-        "chromosome": "chr1",
-        "position": 53,
-        "reference": "C",
-        "alternative": "A",
-        "annotatable_type": "SUBSTITUTION",
+        "chrom": "chr1",
+        "pos": 53,
+        "ref": "C",
+        "alt": "A",
+        "type": "SUBSTITUTION",
     }
     assert len(annotators_data) == 2
     effect_annotator = annotators_data[0]
@@ -1117,11 +1117,11 @@ def test_single_annotation_t4c8(admin_client: Client) -> None:
     annotators_data = data["annotators"]
 
     assert variant_data == {
-        "chromosome": "chr1",
-        "position": 102,
-        "reference": "C",
-        "alternative": "A",
-        "annotatable_type": "SUBSTITUTION",
+        "chrom": "chr1",
+        "pos": 102,
+        "ref": "C",
+        "alt": "A",
+        "type": "SUBSTITUTION",
     }
     assert len(annotators_data) == 2
     effect_annotator = annotators_data[0]
