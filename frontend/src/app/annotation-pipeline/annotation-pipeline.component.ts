@@ -5,17 +5,18 @@ import {
   ElementRef,
   EventEmitter,
   HostListener,
+  NgZone,
   OnDestroy,
   OnInit,
   Output,
   TemplateRef,
-  ViewChild
+  ViewChild,
 } from '@angular/core';
 import { map, Observable, of, startWith, Subscription, switchMap, take, tap } from 'rxjs';
 import { JobsService } from '../job-creation/jobs.service';
 import { Pipeline } from '../job-creation/pipelines';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatAutocompleteModule, MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { AnnotationPipelineService } from '../annotation-pipeline.service';
 import { MatDialog } from '@angular/material/dialog';
@@ -28,6 +29,7 @@ import { NewAnnotatorComponent } from '../new-annotator/new-annotator.component'
 import { PipelineInfo } from '../annotation-pipeline';
 import type * as Monaco from 'monaco-editor';
 import { MatTooltip } from '@angular/material/tooltip';
+import { OverlayModule } from '@angular/cdk/overlay';
 
 @Component({
   selector: 'app-annotation-pipeline',
@@ -39,7 +41,8 @@ import { MatTooltip } from '@angular/material/tooltip';
     ReactiveFormsModule,
     FormsModule,
     MonacoEditorModule,
-    MatTooltip
+    MatTooltip,
+    OverlayModule
   ],
   templateUrl: './annotation-pipeline.component.html',
   styleUrl: './annotation-pipeline.component.css'
@@ -59,6 +62,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   public dropdownControl = new FormControl<string>('');
   @ViewChild('nameInput') public nameInputTemplateRef: TemplateRef<ElementRef>;
   @ViewChild('pipelineEditor') public pipelineEditorRef: EditorComponent;
+  @ViewChild('pipelineInput') public pipelineInputRef: MatAutocompleteTrigger;
   public resizeObserver: ResizeObserver = null;
   public yamlEditorOptions = {};
   public displayFullScreenButton = true;
@@ -67,6 +71,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   @Output() public tiggerHidingComponents = new EventEmitter<boolean>();
   public isUserLoggedIn = false;
   public showConfimDeletePopup = false;
+  public showConfimPipelineChangePopup = false;
   public socketNotificationSubscription: Subscription = new Subscription();
   public pipelineValidationSubscription: Subscription = new Subscription();
   public pipelineInfo: PipelineInfo;
@@ -78,6 +83,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     private dialog: MatDialog,
     private userService: UsersService,
     private socketNotificationsService: SocketNotificationsService,
+    private ngZone: NgZone,
   ) { }
 
   public onEditorInit(): void {
@@ -251,7 +257,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   private unselectPublicPipeline(): void {
     if (this.selectedPipeline && this.selectedPipeline.type === 'default' && this.isPipelineChanged()) {
       this.selectedPipeline = null;
-      this.clearPipelineInput();
+      this.dropdownControl.setValue('');
       this.emitPipelineId.emit(null);
     }
   }
@@ -299,7 +305,27 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   }
 
   public clearPipelineInput(): void {
+    if (!this.dropdownControl.value.includes(' *')) {
+      this.dropdownControl.setValue('');
+    } else {
+      this.pipelineInputRef.setDisabledState(true);
+      this.showConfimPipelineChangePopup = true;
+    }
+  }
+
+  public confirmClear(): void {
+    this.showConfimPipelineChangePopup = false;
     this.dropdownControl.setValue('');
+
+    // open dropdown after Angular is done updating the view
+    this.ngZone.onStable.pipe(take(1)).subscribe(() => {
+      this.pipelineInputRef.openPanel();
+    });
+  }
+
+  public closePiplineChangeConfirmation(): void {
+    this.pipelineInputRef.setDisabledState(false);
+    this.showConfimPipelineChangePopup = false;
   }
 
   public displayPipelineNameInInput(): void {
@@ -347,7 +373,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     this.selectedPipeline = null;
     this.currentPipelineText = '';
     this.emitPipelineId.emit(null);
-    this.clearPipelineInput();
+    this.dropdownControl.setValue('');
     this.clearTemporaryPipeline();
     this.isConfigValid();
   }
