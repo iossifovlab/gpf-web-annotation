@@ -132,6 +132,9 @@ export class NewAnnotatorComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   public ngAfterViewInit(): void {
+    if (!this.data.isResourceWorkflow) {
+      return;
+    }
     const container: Element = this.loadPageIndicator.nativeElement.closest('#resource-list');
     this.observer = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && this.hasMore && !this.isLoading && this.isResourceTableInitialized) {
