@@ -62,7 +62,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   styleUrl: './new-annotator.component.css',
 })
 export class NewAnnotatorComponent implements OnInit, AfterViewInit, OnDestroy {
-  public resourceTypeStep: FormGroup<{ resourceType: FormControl<string>, resourceId: FormControl<string> }>;
+  public resourceStep: FormGroup<{ resourceType: FormControl<string>, resourceId: FormControl<string> }>;
   public resourceTypes: string[];
   public resourcePage: ResourcePage;
   public selectedResourceType = '';
@@ -72,7 +72,7 @@ export class NewAnnotatorComponent implements OnInit, AfterViewInit, OnDestroy {
   public annotatorStep: FormGroup<{ annotator: FormControl<string> }>;
   public annotatorTypes: string[] = [];
   public filteredAnnotatorTypes: string[];
-  public resourceStep: FormGroup = new FormGroup({});
+  public configurationStep: FormGroup = new FormGroup({});
   public filteredResourceValues: Map<string, string[]>;
   public annotatorConfig: AnnotatorConfig;
   public attributeStep: FormGroup<{ attribute: FormControl<string> }>;
@@ -116,7 +116,7 @@ export class NewAnnotatorComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     if (this.data.isResourceWorkflow) {
-      this.resourceTypeStep = this.formBuilder.group({
+      this.resourceStep = this.formBuilder.group({
         resourceType: ['', Validators.required],
         resourceId: ['', Validators.required],
       });
@@ -150,8 +150,8 @@ export class NewAnnotatorComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isLoading = true;
 
     this.editorService.getResourcesBySearch(
-      this.resourceTypeStep.get('resourceId').value,
-      this.resourceTypeStep.get('resourceType').value,
+      this.resourceStep.get('resourceId').value,
+      this.resourceStep.get('resourceType').value,
       this.nextPage
     ).subscribe({
       next: (data) => {
@@ -193,7 +193,7 @@ export class NewAnnotatorComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     // Trigger search on resourceId value changes
-    this.resourceTypeStep.get('resourceId').valueChanges.pipe(
+    this.resourceStep.get('resourceId').valueChanges.pipe(
       debounceTime(300),
       map(value => ({ value: this.normalizeString(value), type: this.selectedResourceType })),
     ).subscribe(obj => {
@@ -201,14 +201,14 @@ export class NewAnnotatorComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     // Trigger search when resourceType changes
-    this.resourceTypeStep.get('resourceType').valueChanges.subscribe(type => {
+    this.resourceStep.get('resourceType').valueChanges.subscribe(type => {
       this.selectedResourceType = type;
       this.searchSubject.next({ value: '', type: type });
     });
   }
 
   public selectResource(id: string): void {
-    this.resourceTypeStep.get('resourceId').setValue(id, { emitEvent: false });
+    this.resourceStep.get('resourceId').setValue(id, { emitEvent: false });
     this.requestResourceAnnotators();
   }
 
@@ -221,7 +221,7 @@ export class NewAnnotatorComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   public requestResourceAnnotators(): void {
-    this.editorService.getResourceAnnotators(this.resourceTypeStep.value.resourceId.trim()).pipe(
+    this.editorService.getResourceAnnotators(this.resourceStep.value.resourceId.trim()).pipe(
       take(1),
     ).subscribe(res => {
       this.resourceAnnotators = res;
@@ -329,19 +329,19 @@ export class NewAnnotatorComponent implements OnInit, AfterViewInit, OnDestroy {
       );
     }
 
-    this.resourceStep = new FormGroup(resourceGroup);
+    this.configurationStep = new FormGroup(resourceGroup);
     this.setupResourceValueFiltering();
   }
 
   private setupResourceValueFiltering(): void {
     // eslint-disable-next-line @stylistic/max-len
     this.annotatorConfig.resources.filter(r => r.fieldType === 'resource' || r.fieldType === 'attribute').forEach(resource => {
-      this.resourceStep.get(resource.key).valueChanges.pipe(
+      this.configurationStep.get(resource.key).valueChanges.pipe(
         map((value: string) => this.filterDropdownContent(value, resource.possibleValues))
       ).subscribe(filtered => {
         this.filteredResourceValues.set(resource.key, filtered);
         if (!filtered.length) {
-          this.resourceStep.get(resource.key).setErrors({ invalidOption: true });
+          this.configurationStep.get(resource.key).setErrors({ invalidOption: true });
         }
       });
     });
@@ -432,7 +432,7 @@ export class NewAnnotatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private getPopulatedResourceValues(): object {
     return Object.fromEntries(
-      Object.entries(this.resourceStep.value as object).filter(([, v]) => v !== null && v !== '')
+      Object.entries(this.configurationStep.value as object).filter(([, v]) => v !== null && v !== '')
     );
   }
 
@@ -455,10 +455,10 @@ export class NewAnnotatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   public clearResource(inputField?: string): void {
     if (inputField) {
-      this.resourceStep.get(inputField).setValue(null);
+      this.configurationStep.get(inputField).setValue(null);
       return;
     }
-    this.resourceTypeStep.get('resourceId').setValue('');
+    this.resourceStep.get('resourceId').setValue('');
   }
 
   public onAttributeNameChange(attribute: AttributeData, newName: string): void {

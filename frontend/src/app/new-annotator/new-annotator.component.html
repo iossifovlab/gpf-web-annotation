@@ -2,8 +2,8 @@
 <div style="height: 100%">
   <mat-stepper #stepper [linear]="true" class="custom-stepper">
     @if(data.isResourceWorkflow) {
-    <mat-step label="Select resource" [stepControl]="resourceTypeStep">
-      <form [formGroup]="resourceTypeStep" id="resource-input-form">
+    <mat-step label="Select resource" [stepControl]="resourceStep">
+      <form [formGroup]="resourceStep" id="resource-input-form">
         <div class="resource-fields-wrapper">
           <mat-form-field [appearance]="'outline'" id="resource-type">
             <mat-select matNativeControl [value]="selectedResourceType" formControlName="resourceType">
@@ -48,7 +48,7 @@
               <ng-container>
                 <span class="resource-type grid-cell" [title]="resource.type">{{ resource.type }}</span>
                 <span class="resource-full-id grid-cell" [title]="resource.fullId"
-                  ><a [href]="resource.url">{{ resource.fullId }}</a></span
+                  ><a [href]="resource.url" target="_blank">{{ resource.fullId }}</a></span
                 >
                 <span class="resource-version grid-cell" [title]="resource.version">{{ resource.version }}</span>
                 <span class="resource-summary grid-cell" [title]="resource.summary">{{ resource.summary }}</span>
@@ -75,8 +75,8 @@
       <ng-template matStepContent>
         @if(data.isResourceWorkflow) {
         <div class="summary-content">
-          <div class="resource-type-display-text" [title]="resourceTypeStep.value | keyValueDisplay">{{
-            resourceTypeStep.get('resourceType').value + '\n' + resourceTypeStep.get('resourceId').value
+          <div class="resource-type-display-text" [title]="resourceStep.value | keyValueDisplay">{{
+            resourceStep.get('resourceType').value + '\n' + resourceStep.get('resourceId').value
           }}</div>
         </div>
         }
@@ -123,22 +123,22 @@
       </ng-template>
     </mat-step>
 
-    <mat-step label="Configure annotator" [stepControl]="resourceStep">
+    <mat-step label="Configure annotator" [stepControl]="configurationStep">
       <ng-template matStepContent>
         <div class="summary-content">
           @if(data.isResourceWorkflow) {
-          <div class="resource-type-display-text" [title]="resourceTypeStep.value | keyValueDisplay">{{
-            resourceTypeStep.get('resourceType').value + '\n' + resourceTypeStep.get('resourceId').value
+          <div class="resource-type-display-text" [title]="resourceStep.value | keyValueDisplay">{{
+            resourceStep.get('resourceType').value + '\n' + resourceStep.get('resourceId').value
           }}</div>
           }
           <div class="annotator-display-text" [title]="annotatorStep.get('annotator').value">
             <div>annotator</div>
-            <a [href]="annotatorConfig.annotatorUrl">{{ annotatorStep.get('annotator').value }}</a></div
+            <a [href]="annotatorConfig.annotatorUrl" target="_blank">{{ annotatorStep.get('annotator').value }}</a></div
           >
         </div>
 
         <div class="left-content">
-          <form [formGroup]="resourceStep" id="resources-form">
+          <form [formGroup]="configurationStep" id="resources-form">
             <div>
               @for (resource of annotatorConfig.resources; track resource.key) {
               <div class="field">
@@ -193,7 +193,7 @@
               }
             </div>
             <div>
-              <button matButton [disabled]="resourceStep.invalid" (click)="requestAttributes()" class="next-button"
+              <button matButton [disabled]="configurationStep.invalid" (click)="requestAttributes()" class="next-button"
                 >Next</button
               >
               <button mat-button matStepperPrevious class="back-button">Back</button>
@@ -208,10 +208,10 @@
         <div class="summary-content">
           <div class="annotator-display-text" [title]="annotatorStep.get('annotator').value">
             <div>annotator</div>
-            <a [href]="annotatorConfig.annotatorUrl">{{ annotatorStep.get('annotator').value }}</a></div
+            <a [href]="annotatorConfig.annotatorUrl" target="_blank">{{ annotatorStep.get('annotator').value }}</a></div
           >
-          <div class="resources-display-text" [title]="resourceStep.value | keyValueDisplay">{{
-            resourceStep.value | keyValueDisplay
+          <div class="resources-display-text" [title]="configurationStep.value | keyValueDisplay">{{
+            configurationStep.value | keyValueDisplay
           }}</div>
         </div>
 

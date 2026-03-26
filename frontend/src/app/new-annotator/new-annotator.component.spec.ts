@@ -279,7 +279,7 @@ describe('NewAnnotatorComponent', () => {
           ['normalized_allele', 'hg19_annotatable']
         ]
       ]));
-    expect(component.resourceStep).toBeDefined();
+    expect(component.configurationStep).toBeDefined();
   });
 
   it('should get resources of an annotator and set default values', () => {
@@ -312,15 +312,15 @@ describe('NewAnnotatorComponent', () => {
           ['normalized_allele', 'hg19_annotatable']
         ]
       ]));
-    expect(component.resourceStep).toBeDefined();
-    expect(component.resourceStep.get('gene_models').value).toBe('hg19/gene_models/ccds_v201309');
-    expect(component.resourceStep.get('genome').value).toBe('');
-    expect(component.resourceStep.get('input_annotatable').value).toBe('');
+    expect(component.configurationStep).toBeDefined();
+    expect(component.configurationStep.get('gene_models').value).toBe('hg19/gene_models/ccds_v201309');
+    expect(component.configurationStep.get('genome').value).toBe('');
+    expect(component.configurationStep.get('input_annotatable').value).toBe('');
   });
 
   it('should get attributes', () => {
-    component.resourceStep.setControl('resource_id', new FormControl('gene_properties/gene_scores/RVIS'));
-    component.resourceStep.setControl('input_annotatable', new FormControl(null));
+    component.configurationStep.setControl('resource_id', new FormControl('gene_properties/gene_scores/RVIS'));
+    component.configurationStep.setControl('input_annotatable', new FormControl(null));
     component.annotatorStep.setControl('annotator', new FormControl('gene_set_annotator'));
     const getAttributesSpy = jest.spyOn(pipelineEditorServiceMock, 'getAttributes');
     const nextStepSpy = jest.spyOn(component.stepper, 'next');
@@ -340,8 +340,8 @@ describe('NewAnnotatorComponent', () => {
   });
 
   it('should get final yaml text', () => {
-    component.resourceStep.setControl('resource_id', new FormControl('gene_properties/gene_scores/RVIS'));
-    component.resourceStep.setControl('input_annotatable', new FormControl(null));
+    component.configurationStep.setControl('resource_id', new FormControl('gene_properties/gene_scores/RVIS'));
+    component.configurationStep.setControl('input_annotatable', new FormControl(null));
     component.annotatorStep.setControl('annotator', new FormControl('gene_set_annotator'));
     const getAnnotatorYmlSpy = jest.spyOn(pipelineEditorServiceMock, 'getAnnotatorYml');
     const closeModalSpy = jest.spyOn(mockMatDialogRef, 'close');
@@ -366,9 +366,9 @@ describe('NewAnnotatorComponent', () => {
   });
 
   it('should clear resource value in form', () => {
-    component.resourceStep.setControl('resource_id', new FormControl('gene_properties/gene_scores/RVIS'));
+    component.configurationStep.setControl('resource_id', new FormControl('gene_properties/gene_scores/RVIS'));
     component.clearResource('resource_id');
-    expect(component.resourceStep.get('resource_id').value).toBeNull();
+    expect(component.configurationStep.get('resource_id').value).toBeNull();
   });
 
   it('should toggle internal value of attribute', () => {
@@ -395,20 +395,20 @@ describe('NewAnnotatorComponent', () => {
 
   it('should change resource input value and filter dropdown content', () => {
     component.requestResources(); // trigger setup of resource form controls and filtering
-    component.resourceStep.get('gene_models').setValue('code');
+    component.configurationStep.get('gene_models').setValue('code');
 
     expect(component.filteredResourceValues.get('gene_models')).toStrictEqual(
       ['hg38/gene_models/GENCODE/34/basic/ALL', 'hg38/gene_models/GENCODE/34/basic/CHR']
     );
-    expect(component.resourceStep.get('gene_models').errors).toBeNull();
+    expect(component.configurationStep.get('gene_models').errors).toBeNull();
   });
 
   it('should change resource input value to invalid one and set error', () => {
     component.requestResources(); // trigger setup of resource form controls and filtering
-    component.resourceStep.get('gene_models').setValue('ewew');
+    component.configurationStep.get('gene_models').setValue('ewew');
 
     expect(component.filteredResourceValues.get('gene_models')).toStrictEqual([]);
-    expect(component.resourceStep.get('gene_models').errors).toStrictEqual({invalidOption: true});
+    expect(component.configurationStep.get('gene_models').errors).toStrictEqual({invalidOption: true});
   });
 
   it('should store attribute names which already exists in config', () => {
@@ -494,7 +494,7 @@ describe('NewAnnotatorComponent', () => {
   });
 
   it('should trigger search request for attributes', fakeAsync(() => {
-    component.resourceStep.setControl('gene_models', new FormControl('hg38/gene_models/GENCODE/48'));
+    component.configurationStep.setControl('gene_models', new FormControl('hg38/gene_models/GENCODE/48'));
     component.annotatorStep.setControl('annotator', new FormControl('effect_annotator'));
     const getAttributesSpy = jest.spyOn(pipelineEditorServiceMock, 'getAttributes');
 
@@ -543,7 +543,7 @@ describe('NewAnnotatorComponent', () => {
   );
 
   it('should clear attribute input and reset attributes', () => {
-    component.resourceStep.setControl('gene_models', new FormControl('hg38/gene_models/GENCODE/48'));
+    component.configurationStep.setControl('gene_models', new FormControl('hg38/gene_models/GENCODE/48'));
     component.annotatorStep.setControl('annotator', new FormControl('effect_annotator'));
     const getAttributesSpy = jest.spyOn(pipelineEditorServiceMock, 'getAttributes');
     component.requestAttributes();
@@ -708,7 +708,7 @@ describe('Annotator created by resource', () => {
 
   it('should trigger search on resource type change', () => {
     const searchSpy = jest.spyOn(pipelineEditorServiceMock, 'getResourcesBySearch');
-    component.resourceTypeStep.get('resourceType').setValue('genome', { emitEvent: true });
+    component.resourceStep.get('resourceType').setValue('genome', { emitEvent: true });
 
     expect(searchSpy).toHaveBeenCalledWith('', 'genome');
     expect(component.resourcePage.resources).toStrictEqual([
@@ -749,7 +749,7 @@ describe('Annotator created by resource', () => {
 
   it('should trigger search on resource input change', fakeAsync(() => {
     const searchSpy = jest.spyOn(pipelineEditorServiceMock, 'getResourcesBySearch');
-    component.resourceTypeStep.get('resourceId').setValue('hg38  ', { emitEvent: true });
+    component.resourceStep.get('resourceId').setValue('hg38  ', { emitEvent: true });
     component.selectedResourceType = 'gene_set_collection';
     tick(300);
     expect(searchSpy).toHaveBeenCalledWith('hg38', 'gene_set_collection');
@@ -775,24 +775,24 @@ describe('Annotator created by resource', () => {
     jest.clearAllMocks(); // clear search method calls from previous tests
     const getAnnotatorsSpy = jest.spyOn(pipelineEditorServiceMock, 'getResourceAnnotators');
     component.selectResource('hg38/scores/phastCons20way');
-    expect(component.resourceTypeStep.get('resourceId').value).toBe('hg38/scores/phastCons20way');
+    expect(component.resourceStep.get('resourceId').value).toBe('hg38/scores/phastCons20way');
     expect(getAnnotatorsSpy).toHaveBeenCalledWith('hg38/scores/phastCons20way');
   }));
 
   it('should not trigger resource search when the search value has not changed', fakeAsync(() => {
     jest.clearAllMocks(); // clear search method calls from previous tests
     const searchSpy = jest.spyOn(pipelineEditorServiceMock, 'getResourcesBySearch');
-    component.resourceTypeStep.get('resourceId').setValue('hg38  ', { emitEvent: true });
+    component.resourceStep.get('resourceId').setValue('hg38  ', { emitEvent: true });
     tick(300);
     expect(searchSpy).toHaveBeenCalledTimes(1);
-    component.resourceTypeStep.get('resourceId').setValue('hg38', { emitEvent: true });
+    component.resourceStep.get('resourceId').setValue('hg38', { emitEvent: true });
     tick(300);
     expect(searchSpy).toHaveBeenCalledTimes(1);
   }));
 
   it('should set default annotator', () => {
     jest.clearAllMocks(); // clear search method calls from previous tests
-    component.resourceTypeStep.get('resourceId').setValue('gene_models');
+    component.resourceStep.get('resourceId').setValue('gene_models');
     jest.spyOn(pipelineEditorServiceMock, 'getResourceAnnotators').mockReturnValueOnce(
       of(
         new ResourceAnnotatorConfigs(
@@ -810,7 +810,7 @@ describe('Annotator created by resource', () => {
 
   it('should set the only annotator as default', () => {
     jest.clearAllMocks(); // clear search method calls from previous tests
-    component.resourceTypeStep.get('resourceId').setValue('gene_models');
+    component.resourceStep.get('resourceId').setValue('gene_models');
     jest.spyOn(pipelineEditorServiceMock, 'getResourceAnnotators').mockReturnValueOnce(
       of(
         new ResourceAnnotatorConfigs(
