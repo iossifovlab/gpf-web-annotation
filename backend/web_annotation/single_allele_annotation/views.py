@@ -223,16 +223,8 @@ class SingleAnnotation(AnnotationBaseView):
                 )
                 allele_query.save()
 
-        annotatable = {
-            "chromosome": annotatable.chrom,
-            "position": annotatable.pos,
-            "reference": getattr(annotatable, "ref", None),
-            "alternative": getattr(annotatable, "alt", None),
-            "annotatable_type": annotatable.type.name,
-        }
-
         response_data = {
-            "annotatable": annotatable,
+            "annotatable": annotatable.to_dict(),
             "annotators": annotators_data,
         }
 

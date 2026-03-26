@@ -177,73 +177,68 @@ def test_use_of_thread_safe_pipelines(
         (
             {"chrom": "chr1", "pos": "3"},
             {
-                 "chromosome": "chr1", "position": 3,
-                 "reference": None, "alternative": None,
-                 "annotatable_type": "POSITION"
+                 "chrom": "chr1", "pos": 3,
+                 "type": "POSITION",
             },
         ),
         (
             {"chrom": "chr1", "pos": "4", "ref": "C", "alt": "CT"},
             {
-                 "chromosome": "chr1", "position": 4,
-                 "reference": "C", "alternative": "CT",
-                 "annotatable_type": "SMALL_INSERTION"
+                 "chrom": "chr1", "pos": 4,
+                 "ref": "C", "alt": "CT",
+                 "type": "SMALL_INSERTION",
             },
         ),
         (
             {"vcf_like": "chr1:4:C:CT"},
             {
-                 "chromosome": "chr1", "position": 4,
-                 "reference": "C", "alternative": "CT",
-                 "annotatable_type": "SMALL_INSERTION"
+                 "chrom": "chr1", "pos": 4,
+                 "ref": "C", "alt": "CT",
+                 "type": "SMALL_INSERTION",
             },
         ),
         (
             {"chrom": "chr1", "pos_beg": "4", "pos_end": "30"},
             {
-                 "chromosome": "chr1", "position": 4,
-                 "reference": None, "alternative": None,
-                 "annotatable_type": "REGION"
+                 "chrom": "chr1", "pos_begin": 4,
+                 "pos_end": 30,
+                 "type": "REGION",
             },
         ),
         (
             {"location": "chr1:13", "variant": "sub(A->T)"},
             {
-                 "chromosome": "chr1", "position": 13,
-                 "reference": "A", "alternative": "T",
-                 "annotatable_type": "SUBSTITUTION"
+                 "chrom": "chr1", "pos": 13,
+                 "ref": "A", "alt": "T",
+                 "type": "SUBSTITUTION",
             },
         ),
         (
             {"location": "chr1:3-13", "variant": "duplication"},
             {
-                 "chromosome": "chr1", "position": 3,
-                 "reference": None, "alternative": None,
-                 "annotatable_type": "LARGE_DUPLICATION"
+                 "chrom": "chr1", "pos_begin": 3, "pos_end": 13,
+                 "type": "LARGE_DUPLICATION",
             },
         ),
         (
             {"location": "chr1:3-13", "variant": "CNV+"},
             {
-                 "chromosome": "chr1", "position": 3,
-                 "reference": None, "alternative": None,
-                 "annotatable_type": "LARGE_DUPLICATION"
+                 "chrom": "chr1", "pos_begin": 3, "pos_end": 13,
+                 "type": "LARGE_DUPLICATION",
             },
         ),
         (
             {"location": "chr1:3-13", "variant": "deletion"},
             {
-                 "chromosome": "chr1", "position": 3,
-                 "reference": None, "alternative": None,
-                 "annotatable_type": "LARGE_DELETION"
+                 "chrom": "chr1", "pos_begin": 3, "pos_end": 13,
+                 "type": "LARGE_DELETION",
             },
         ),
         (
             {"location": "chr1:3-13", "variant": "CNV-"},
             {
-                 "chromosome": "chr1", "position": 3,
-                 "reference": None, "alternative": None,
-                 "annotatable_type": "LARGE_DELETION"
+                 "chrom": "chr1", "pos_begin": 3, "pos_end": 13,
+                 "type": "LARGE_DELETION",
             },
         ),
     ],
