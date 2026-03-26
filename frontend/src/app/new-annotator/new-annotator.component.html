@@ -36,7 +36,6 @@
         <span class="error-message">{{ searchError }}</span>
 
         <div style="flex: 1 1 0; overflow: auto">
-          <span id="resource-count">{{ resourcePage.totalResources }} resources</span>
           <div>
             <div class="grid-container" id="resource-list">
               <div class="grid-header" title="Resource type">Resource type</div>
@@ -67,6 +66,7 @@
             </div>
           </div>
         </div>
+        <span id="resource-count">{{ resourcePage?.totalResources }} resources</span>
       </form>
     </mat-step>
     }

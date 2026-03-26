@@ -28,7 +28,7 @@ input[type="text"] {
   display: flex;
   flex-direction: column;
   height: 100%;
-  gap: 15px;
+  gap: 7px;
 }
 
 #resource-search-input {
@@ -346,7 +346,7 @@ input[type="radio"]:checked {
   grid-template-columns: 10% 38% 5% 38% 62px;
   overflow-y: auto;
   grid-auto-rows: 45px;
-  height: 45vh;
+  height: 48vh;
 }
 
 .select-resource-button {
@@ -369,6 +369,8 @@ input[type="radio"]:checked {
   text-align: center;
   font-weight: bold;
   font-size: 14px;
+  position: sticky;
+  top: 0;
 }
 
 .grid-cell {
