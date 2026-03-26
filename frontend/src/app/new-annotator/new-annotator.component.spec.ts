@@ -318,6 +318,51 @@ describe('NewAnnotatorComponent', () => {
     expect(component.configurationStep.get('input_annotatable').value).toBe('');
   });
 
+  it('should set default value of input gene list', () => {
+    jest.spyOn(pipelineEditorServiceMock, 'getAnnotatorConfig').mockReturnValueOnce(of(
+      new AnnotatorConfig(
+        'gene_score_annotator',
+        'annotatorUrl',
+        [
+          new AnnotatorConfigResource(
+            'resource_id',
+            'resource',
+            'gene_score',
+            'hg19/gene_models/ccds_v201309',
+            [
+              'gene_properties/gene_scores/LGD',
+              'gene_properties/gene_scores/Satterstrom_Buxbaum_Cell_2020',
+              'hg38/enrichment/ur_synonymous_SFARI_SSC_WES_CSHL_liftover',
+            ],
+            false,
+            ''
+          ),
+          new AnnotatorConfigResource(
+            'input_gene_list',
+            'attribute',
+            'gene_list',
+            '',
+            ['gene_list'],
+            false,
+            ''
+          ),
+          new AnnotatorConfigResource(
+            'input_annotatable',
+            'attribute',
+            '',
+            '',
+            ['normalized_allele', 'hg19_annotatable'],
+            true,
+            'annotatable'
+          )
+        ]
+      )
+    ));
+    jest.spyOn(pipelineEditorServiceMock, 'getPipelineAttributes').mockReturnValueOnce(of(['gene_list']));
+    component.requestResources();
+    expect(component.configurationStep.get('input_gene_list').value).toBe('gene_list');
+  });
+
   it('should get attributes', () => {
     component.configurationStep.setControl('resource_id', new FormControl('gene_properties/gene_scores/RVIS'));
     component.configurationStep.setControl('input_annotatable', new FormControl(null));

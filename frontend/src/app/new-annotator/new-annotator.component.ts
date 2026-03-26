@@ -309,8 +309,16 @@ export class NewAnnotatorComponent implements OnInit, AfterViewInit, OnDestroy {
       this.annotatorConfig = res;
       this.initializeFilteredResourceValues();
       this.setupResourceControls();
+      this.autoselectInputGeneList();
       this.stepper.next();
     });
+  }
+
+  private autoselectInputGeneList(): void {
+    const inputGeneList = this.annotatorConfig.resources.find(r => r.key === 'input_gene_list');
+    if (inputGeneList && inputGeneList.possibleValues.length) {
+      this.configurationStep.get('input_gene_list').setValue(inputGeneList.possibleValues[0]);
+    }
   }
 
   private initializeFilteredResourceValues(): void {
