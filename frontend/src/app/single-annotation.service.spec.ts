@@ -87,12 +87,12 @@ const mockCategoricalHistogram = {
 
 const mockResponse = {
   annotatable: {
-    chromosome: 'chr14',
-    position: 204000100,
-    reference: 'A',
-    alternative: 'AA',
+    chrom: 'chr14',
+    pos: 204000100,
+    ref: 'A',
+    alt: 'AA',
     // eslint-disable-next-line camelcase
-    annotatable_type: 'ins',
+    type: 'ins',
   },
   annotators: [
     {

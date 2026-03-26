@@ -17,11 +17,23 @@
         <div class="annotatable-data-label">chromosome</div>
         <div class="annotatable-data" id="annotatable-chromosome">{{ report.annotatable.chromosome }}</div>
       </div>
-      } @if(report.annotatable.chromosome) {
+      } @if(report.annotatable.position) {
       <hr />
       <div>
         <div class="annotatable-data-label">position</div>
         <div class="annotatable-data" id="annotatable-position">{{ report.annotatable.position }}</div>
+      </div>
+      } @if(report.annotatable.positionStart) {
+      <hr />
+      <div>
+        <div class="annotatable-data-label">position begin</div>
+        <div class="annotatable-data" id="position-start">{{ report.annotatable.positionStart }}</div>
+      </div>
+      } @if(report.annotatable.positionEnd) {
+      <hr />
+      <div>
+        <div class="annotatable-data-label">position end</div>
+        <div class="annotatable-data" id="position-end">{{ report.annotatable.positionEnd }}</div>
       </div>
       } @if(report.annotatable.reference) {
       <hr />
@@ -40,18 +52,6 @@
       <div>
         <div class="annotatable-data-label">type</div>
         <div class="annotatable-data" id="variant-type">{{ report.annotatable.variantType }}</div>
-      </div>
-      } @if(report.annotatable.positionStart) {
-      <hr />
-      <div>
-        <div class="annotatable-data-label">position begin</div>
-        <div class="annotatable-data" id="position-start">{{ report.annotatable.positionStart }}</div>
-      </div>
-      } @if(report.annotatable.positionEnd) {
-      <hr />
-      <div>
-        <div class="annotatable-data-label">position end</div>
-        <div class="annotatable-data" id="position-end">{{ report.annotatable.positionEnd }}</div>
       </div>
       }
     </div>

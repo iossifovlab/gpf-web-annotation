@@ -16,12 +16,12 @@ export class Annotatable {
     }
 
     return new Annotatable(
-      json['chromosome'] as string,
-      json['position'] as number,
-      json['reference'] as string,
-      json['alternative'] as string,
-      json['annotatable_type'] as string,
-      json['pos_beg'] as number,
+      json['chrom'] as string,
+      json['pos'] as number,
+      json['ref'] as string,
+      json['alt'] as string,
+      json['type'] as string,
+      json['pos_begin'] as number,
       json['pos_end'] as number,
     );
   }
