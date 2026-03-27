@@ -63,6 +63,11 @@
                     class="material-symbols-outlined action-button"
                     (click)="selectResource(resource.fullId, true)"
                     title="Finish with defaults"
+                    [ngClass]="
+                      resource.fullId === resourceStep.get('resourceId').value && errorMessage
+                        ? 'error-action-button'
+                        : ''
+                    "
                     >task_alt</button
                   >
                 </span>

@@ -315,8 +315,13 @@ input[type="radio"]:checked {
 }
 
 .error-message,
-.duplicate-name {
-  color: #d74b59;
+.duplicate-name.action-button,
+.error-action-button {
+  color: #d74b59 !important;
+}
+
+.error-action-button:hover {
+  color: #e47d87 !important;
 }
 
 .error-message {
@@ -349,21 +354,31 @@ input[type="radio"]:checked {
   height: 48vh;
 }
 
+.resource-select a {
+  text-decoration: none;
+}
+
 .action-button,
-a {
-  color: #435869 !important;
+.resource-select a {
+  color: #435869;
   background: none;
   border: none;
 }
 
-a {
+.annotator-display-text a {
   text-decoration: none;
+  color: #24699e;
+}
+
+.annotator-display-text a:hover {
+  text-decoration: underline;
+  color: #4d88b5;
 }
 
 .action-button:hover,
-a:hover {
+.resource-select a:hover {
   cursor: pointer;
-  color: #6b8daa !important;
+  color: #6b8daa;
 }
 
 .grid-header {
