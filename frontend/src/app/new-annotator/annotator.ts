@@ -97,7 +97,7 @@ export class Resource {
       json['resource_id'] as string,
       json['type'] as string,
       json['version'] as number,
-      json['url'] as string,
+      json['url'] as string + '/index.html',
       json['summary'] as string,
     );
   }

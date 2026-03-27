@@ -467,9 +467,11 @@ describe('PipelineEditorService', () => {
         1,
         10,
         [
-          new Resource('hg19/scores/CADD', 'hg19/scores/CADD', 'allele_score', 0, 'url', 'CADD summary'),
-          new Resource('hg38/scores/CADD_v1.4', 'hg38/scores/CADD_v1.4', 'allele_score', 0, 'url', 'CADD_v1.4 summary'),
-          new Resource('hg38/scores/CADD_v1.7', 'hg38/scores/CADD_v1.7', 'allele_score', 0, 'url', 'CADD_v1.7 summary'),
+          new Resource('hg19/scores/CADD', 'hg19/scores/CADD', 'allele_score', 0, 'url/index.html', 'CADD summary'),
+          // eslint-disable-next-line @stylistic/max-len
+          new Resource('hg38/scores/CADD_v1.4', 'hg38/scores/CADD_v1.4', 'allele_score', 0, 'url/index.html', 'CADD_v1.4 summary'),
+          // eslint-disable-next-line @stylistic/max-len
+          new Resource('hg38/scores/CADD_v1.7', 'hg38/scores/CADD_v1.7', 'allele_score', 0, 'url/index.html', 'CADD_v1.7 summary'),
         ],
         200
       )
@@ -499,10 +501,12 @@ describe('PipelineEditorService', () => {
         1,
         10,
         [
-          new Resource('hg19/scores/MPC', 'hg19/scores/MPC', 'allele_score', 0, 'url', 'mpc summary'),
-          new Resource('hg19/scores/CADD', 'hg19/scores/CADD', 'allele_score', 0, 'url', 'CADD summary'),
-          new Resource('hg38/scores/CADD_v1.4', 'hg38/scores/CADD_v1.4', 'allele_score', 0, 'url', 'CADD_v1.4 summary'),
-          new Resource('hg38/scores/CADD_v1.7', 'hg38/scores/CADD_v1.7', 'allele_score', 0, 'url', 'CADD_v1.7 summary'),
+          new Resource('hg19/scores/MPC', 'hg19/scores/MPC', 'allele_score', 0, 'url/index.html', 'mpc summary'),
+          new Resource('hg19/scores/CADD', 'hg19/scores/CADD', 'allele_score', 0, 'url/index.html', 'CADD summary'),
+          // eslint-disable-next-line @stylistic/max-len
+          new Resource('hg38/scores/CADD_v1.4', 'hg38/scores/CADD_v1.4', 'allele_score', 0, 'url/index.html', 'CADD_v1.4 summary'),
+          // eslint-disable-next-line @stylistic/max-len
+          new Resource('hg38/scores/CADD_v1.7', 'hg38/scores/CADD_v1.7', 'allele_score', 0, 'url/index.html', 'CADD_v1.7 summary'),
         ],
         200
       )
@@ -534,14 +538,15 @@ describe('PipelineEditorService', () => {
         1,
         10,
         [
-          new Resource('hg19/scores/MPC', 'hg19/scores/MPC', 'allele_score', 0, 'url', 'mpc summary'),
-          new Resource('hg19/scores/CADD', 'hg19/scores/CADD', 'allele_score', 0, 'url', 'CADD summary'),
-          new Resource('hg38/scores/CADD_v1.4', 'hg38/scores/CADD_v1.4', 'allele_score', 0, 'url', 'CADD_v1.4 summary'),
-          new Resource('hg38/scores/CADD_v1.7', 'hg38/scores/CADD_v1.7', 'allele_score', 0, 'url', 'CADD_v1.7 summary'),
-          new Resource('hg38/genomes/GRCh38.p13', 'hg38/genomes/GRCh38.p13', 'genome', 0, 'url', 'GRCh38.p13 summary'),
-          new Resource('hg38/genomes/GRCh38.p14', 'hg38/genomes/GRCh38.p14', 'genome', 0, 'url', 'GRCh38.p14 summary'),
-          // eslint-disable-next-line @stylistic/max-len
-          new Resource('t2t/genomes/t2t-chm13v2.0', 't2t/genomes/t2t-chm13v2.0', 'genome', 0, 'url', 't2t-chm13v2.0 summary'),
+          /* eslint-disable @stylistic/max-len */
+          new Resource('hg19/scores/MPC', 'hg19/scores/MPC', 'allele_score', 0, 'url/index.html', 'mpc summary'),
+          new Resource('hg19/scores/CADD', 'hg19/scores/CADD', 'allele_score', 0, 'url/index.html', 'CADD summary'),
+          new Resource('hg38/scores/CADD_v1.4', 'hg38/scores/CADD_v1.4', 'allele_score', 0, 'url/index.html', 'CADD_v1.4 summary'),
+          new Resource('hg38/scores/CADD_v1.7', 'hg38/scores/CADD_v1.7', 'allele_score', 0, 'url/index.html', 'CADD_v1.7 summary'),
+          new Resource('hg38/genomes/GRCh38.p13', 'hg38/genomes/GRCh38.p13', 'genome', 0, 'url/index.html', 'GRCh38.p13 summary'),
+          new Resource('hg38/genomes/GRCh38.p14', 'hg38/genomes/GRCh38.p14', 'genome', 0, 'url/index.html', 'GRCh38.p14 summary'),
+          new Resource('t2t/genomes/t2t-chm13v2.0', 't2t/genomes/t2t-chm13v2.0', 'genome', 0, 'url/index.html', 't2t-chm13v2.0 summary'),
+          /* eslint-enable */
         ],
         300
       ));

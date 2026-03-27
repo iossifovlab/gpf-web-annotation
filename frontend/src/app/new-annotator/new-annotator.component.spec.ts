@@ -122,7 +122,7 @@ class PipelineEditorServiceMock {
             'hg19/scores/phyloP46_primates',
             'position_score',
             0,
-            'url',
+            'url/index.html',
             'phyloP46_primates summary'
           ),
           new Resource(
@@ -130,7 +130,7 @@ class PipelineEditorServiceMock {
             'hg19/scores/phyloP46_vertebrates',
             'position_score',
             0,
-            'url',
+            'url/index.html',
             'phyloP46_vertebrates summary'
           ),
           new Resource(
@@ -138,7 +138,7 @@ class PipelineEditorServiceMock {
             'hg38/scores/phastCons100way',
             'position_score',
             0,
-            'url',
+            'url/index.html',
             'phastCons100way summary'
           ),
           new Resource(
@@ -146,7 +146,7 @@ class PipelineEditorServiceMock {
             'hg38/scores/phastCons20way',
             'position_score',
             0,
-            'url',
+            'url/index.html',
             'phastCons20way summary'
           )
         ].filter(r => r.fullId.includes(value)),
@@ -763,7 +763,7 @@ describe('Annotator created by resource', () => {
         'hg19/scores/phyloP46_primates',
         'position_score',
         0,
-        'url',
+        'url/index.html',
         'phyloP46_primates summary'
       ),
       new Resource(
@@ -771,7 +771,7 @@ describe('Annotator created by resource', () => {
         'hg19/scores/phyloP46_vertebrates',
         'position_score',
         0,
-        'url',
+        'url/index.html',
         'phyloP46_vertebrates summary'
       ),
       new Resource(
@@ -779,7 +779,7 @@ describe('Annotator created by resource', () => {
         'hg38/scores/phastCons100way',
         'position_score',
         0,
-        'url',
+        'url/index.html',
         'phastCons100way summary'
       ),
       new Resource(
@@ -787,7 +787,7 @@ describe('Annotator created by resource', () => {
         'hg38/scores/phastCons20way',
         'position_score',
         0,
-        'url',
+        'url/index.html',
         'phastCons20way summary'
       )
     ]);
@@ -804,14 +804,14 @@ describe('Annotator created by resource', () => {
         'hg38/scores/phastCons100way',
         'position_score',
         0,
-        'url',
+        'url/index.html',
         'phastCons100way summary'
       ),
       new Resource('hg38/scores/phastCons20way',
         'hg38/scores/phastCons20way',
         'position_score',
         0,
-        'url',
+        'url/index.html',
         'phastCons20way summary'
       ),
     ]);
@@ -938,7 +938,7 @@ describe('Annotator created by resource', () => {
         'hg19/scores/phyloP46_primates',
         'position_score',
         0,
-        'url',
+        'url/index.html',
         'phyloP46_primates summary'
       ),
       new Resource(
@@ -946,7 +946,7 @@ describe('Annotator created by resource', () => {
         'hg19/scores/phyloP46_vertebrates',
         'position_score',
         0,
-        'url',
+        'url/index.html',
         'phyloP46_vertebrates summary'
       ),
       new Resource(
@@ -954,7 +954,7 @@ describe('Annotator created by resource', () => {
         'hg38/scores/phastCons100way',
         'position_score',
         0,
-        'url',
+        'url/index.html',
         'phastCons100way summary'
       ),
       new Resource(
@@ -962,7 +962,7 @@ describe('Annotator created by resource', () => {
         'hg38/scores/phastCons20way',
         'position_score',
         0,
-        'url',
+        'url/index.html',
         'phastCons20way summary'
       )
     ]);
