@@ -10,3 +10,6 @@ conda-channel.tar.gz
 /pg_data
 /gpfwa_data
 /results
+/gpfwa*
+/.mypy_cache
+/.ruff_cache
