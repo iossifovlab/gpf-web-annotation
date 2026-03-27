@@ -343,20 +343,25 @@ input[type="radio"]:checked {
 
 #resource-list {
   margin-top: 15px;
-  grid-template-columns: 10% 38% 5% 38% 62px;
+  grid-template-columns: max-content 38% 10% 38%;
   overflow-y: auto;
   grid-auto-rows: 45px;
   height: 48vh;
 }
 
-.select-resource-button {
+.action-button,
+a {
   color: #435869 !important;
-  font-weight: 700;
   background: none;
   border: none;
 }
 
-.select-resource-button:hover {
+a {
+  text-decoration: none;
+}
+
+.action-button:hover,
+a:hover {
   cursor: pointer;
   color: #6b8daa !important;
 }
@@ -411,14 +416,4 @@ input[type="checkbox"]:hover {
 
 input[type="checkbox"]:checked {
   accent-color: #435869;
-}
-
-a {
-  color: #24699e;
-  text-decoration: none;
-}
-
-a:hover {
-  color: #4c93c9;
-  text-decoration: underline;
 }

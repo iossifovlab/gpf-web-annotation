@@ -101,6 +101,7 @@ export class NewAnnotatorComponent implements OnInit, AfterViewInit, OnDestroy {
   public hasMore = true;
   public observer!: IntersectionObserver;
   public isResourceTableInitialized = false;
+  public createWithDefaults = true;
 
   public constructor(
     private editorService: PipelineEditorService,
@@ -210,7 +211,9 @@ export class NewAnnotatorComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  public selectResource(id: string): void {
+  public selectResource(id: string, navigate = false): void {
+    this.createWithDefaults = navigate;
+    this.clearErrorMessage();
     this.resourceStep.get('resourceId').setValue(id, { emitEvent: false });
     this.requestResourceAnnotators();
   }
@@ -236,7 +239,14 @@ export class NewAnnotatorComponent implements OnInit, AfterViewInit, OnDestroy {
       } else if (this.resourceAnnotators.defaultAnnotator) {
         this.autoSelectAnnotator(this.resourceAnnotators.defaultAnnotator);
       }
-      this.stepper.next();
+
+      if (this.createWithDefaults) {
+        if (this.annotatorStep.invalid) {
+          this.errorMessage = 'Error while setting annotator in step 2';
+        }
+      } else {
+        this.stepper.next();
+      }
     });
   }
 
@@ -310,7 +320,17 @@ export class NewAnnotatorComponent implements OnInit, AfterViewInit, OnDestroy {
       this.initializeFilteredResourceValues();
       this.setupResourceControls();
       this.autoselectInputGeneList();
-      this.stepper.next();
+
+
+      if (this.data.isResourceWorkflow && this.createWithDefaults) {
+        if (this.configurationStep.invalid) {
+          this.errorMessage = 'Error while configuring annotator in step 3';
+        } else {
+          this.requestAttributes();
+        }
+      } else {
+        this.stepper.next();
+      }
     });
   }
 
@@ -374,7 +394,10 @@ export class NewAnnotatorComponent implements OnInit, AfterViewInit, OnDestroy {
       this.filteredAttributes = res.attributes;
       this.setupAttributeValueFiltering();
       this.getPipelineAttributesNames();
-      this.stepper.next();
+
+      if (!this.data.isResourceWorkflow || !this.createWithDefaults) {
+        this.stepper.next();
+      }
     });
   }
 
@@ -409,6 +432,15 @@ export class NewAnnotatorComponent implements OnInit, AfterViewInit, OnDestroy {
     this.editorService.getPipelineAttributesNames(this.data.pipelineId).pipe(take(1)).subscribe(names => {
       this.existingAttributeNames = new Set([...names]);
       this.validateAttributes();
+
+
+      if (this.data.isResourceWorkflow && this.createWithDefaults) {
+        if (!this.areAttributesValid) {
+          this.errorMessage = 'Error while configuring attributes in step 4';
+          return;
+        }
+        this.onFinish();
+      }
     });
   }
 

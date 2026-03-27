@@ -39,35 +39,49 @@
         <div style="flex: 1 1 0; overflow: auto">
           <div>
             <div class="grid-container" id="resource-list">
-              <div class="grid-header" title="Resource type">Resource type</div>
+              <div class="grid-header" title="Actions">Actions</div>
               <div class="grid-header" title="Resource">Resource</div>
-              <div class="grid-header" title="Version">Version</div>
+              <div class="grid-header" title="Resource type">Resource type</div>
               <div class="grid-header" title="Summary">Summary</div>
-              <div class="grid-header" title="Select">Select</div>
               @for (resource of resources(); track $index) {
               <ng-container>
-                <span class="resource-type grid-cell" [title]="resource.type">{{ resource.type }}</span>
-                <span class="resource-full-id grid-cell" [title]="resource.fullId"
-                  ><a [href]="resource.url" target="_blank">{{ resource.fullId }}</a></span
-                >
-                <span class="resource-version grid-cell" [title]="resource.version">{{ resource.version }}</span>
-                <span class="resource-summary grid-cell" [title]="resource.summary">{{ resource.summary }}</span>
                 <span class="resource-select grid-cell">
                   <button
-                    [attr.id]="resource.id + '-select-button'"
-                    class="material-symbols-outlined select-resource-button"
+                    [attr.id]="resource.id + '-resource-details-button'"
+                    class="material-symbols-outlined action-button"
+                    title="Visit resource details"
+                    ><a [href]="resource.url" target="_blank">open_in_new</a></button
+                  >
+                  <button
+                    [attr.id]="resource.id + '-continue-button'"
+                    class="material-symbols-outlined action-button"
                     (click)="selectResource(resource.fullId)"
-                    [title]="'Select ' + resource.fullId"
+                    title="Continue"
                     >arrow_forward</button
                   >
+                  <button
+                    [attr.id]="resource.id + '-finish-button'"
+                    class="material-symbols-outlined action-button"
+                    (click)="selectResource(resource.fullId, true)"
+                    title="Finish with defaults"
+                    >task_alt</button
+                  >
                 </span>
+                <span class="resource-full-id grid-cell" [title]="resource.fullId">{{ resource.fullId }}</span>
+                <span class="resource-type grid-cell" [title]="resource.type">{{ resource.type }}</span>
+                <span class="resource-summary grid-cell" [title]="resource.summary">{{ resource.summary }}</span>
               </ng-container>
               }
               <div id="load-page-indicator" #loadPageIndicator style="height: 1px"></div>
             </div>
           </div>
         </div>
-        <span id="resource-count">{{ resourcePage?.totalResources }} resources</span>
+        <div style="display: flex; gap: 15px">
+          <span id="resource-count">{{ resourcePage?.totalResources }} resources</span>
+          @if (createWithDefaults) {
+          <span class="error-message">{{ errorMessage }}</span>
+          }
+        </div>
       </form>
     </mat-step>
     }
