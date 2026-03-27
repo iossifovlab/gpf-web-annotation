@@ -31,7 +31,6 @@ import {
   Resource
 } from './annotator';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { KeyValueDisplayPipe } from '../key-value-display.pipe';
 import { MatSelect } from '@angular/material/select';
 import { cloneDeep } from 'lodash';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -49,7 +48,6 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     CdkStepperModule,
     MatAutocompleteModule,
     MatSelect,
-    KeyValueDisplayPipe,
     MatTooltipModule
   ],
   providers: [
@@ -531,5 +529,10 @@ export class NewAnnotatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   public clearErrorMessage(): void {
     this.errorMessage = '';
+  }
+
+  public getResourceById(): Resource {
+    const id = this.resourceStep.get('resourceId').value;
+    return this.resourcePage.resources.find(r => r.fullId === id);
   }
 }

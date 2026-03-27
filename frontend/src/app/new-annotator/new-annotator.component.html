@@ -94,9 +94,12 @@
       <ng-template matStepContent>
         @if(data.isResourceWorkflow) {
         <div class="summary-content">
-          <div class="resource-type-display-text" [title]="resourceStep.value | keyValueDisplay">{{
-            resourceStep.get('resourceType').value + '\n' + resourceStep.get('resourceId').value
+          <div class="resource-type-display-text" style="margin-bottom: 10px">{{
+            'resource type\n' + getResourceById().type
           }}</div>
+          <div class="resource-type-display-text" [title]="resourceStep.get('resourceId').value">
+            {{ 'resource id\n' + resourceStep.get('resourceId').value }}
+          </div>
         </div>
         }
         <div class="left-content">
@@ -145,10 +148,11 @@
     <mat-step label="Configure annotator" [stepControl]="configurationStep">
       <ng-template matStepContent>
         <div class="summary-content">
-          @if(data.isResourceWorkflow) {
-          <div class="resource-type-display-text" [title]="resourceStep.value | keyValueDisplay">{{
-            resourceStep.get('resourceType').value + '\n' + resourceStep.get('resourceId').value
-          }}</div>
+          @if (data.isResourceWorkflow) {
+          <div class="resource-type-display-text">{{ 'resource type\n' + getResourceById().type }}</div>
+          <div class="resource-type-display-text" [title]="resourceStep.get('resourceId').value">
+            {{ 'resource id\n' + resourceStep.get('resourceId').value }}</div
+          >
           }
           <div class="annotator-display-text" [title]="annotatorStep.get('annotator').value">
             <div>annotator</div>
@@ -225,13 +229,22 @@
     <mat-step label="Configure attributes" [stepControl]="attributeStep">
       <ng-template matStepContent>
         <div class="summary-content">
+          @if (data.isResourceWorkflow) {
+          <div class="resource-type-display-text" style="margin-bottom: 10px">{{
+            'resource type\n' + getResourceById().type
+          }}</div>
+          <div class="resource-type-display-text" [title]="resourceStep.get('resourceId').value">
+            {{ 'resource id\n' + resourceStep.get('resourceId').value }}</div
+          >
+          }
           <div class="annotator-display-text" [title]="annotatorStep.get('annotator').value">
             <div>annotator</div>
             <a [href]="annotatorConfig.annotatorUrl" target="_blank">{{ annotatorStep.get('annotator').value }}</a></div
           >
-          <div class="resources-display-text" [title]="configurationStep.value | keyValueDisplay">{{
-            configurationStep.value | keyValueDisplay
-          }}</div>
+          @for (entry of configurationStep.value | keyvalue; track entry.key) { @if (!data.isResourceWorkflow ||
+          entry.value && resourceStep.get('resourceId').value !== entry.value) {
+          <div class="resources-display-text">{{ entry.key + '\n' + entry.value }}</div>
+          } }
         </div>
 
         <div class="left-content">
