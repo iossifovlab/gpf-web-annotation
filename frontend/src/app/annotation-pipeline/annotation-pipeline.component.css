@@ -1,3 +1,9 @@
+#selecting-container {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
 #pipeline-editor {
   border: 2px solid #cfd8df;
   border-radius: 15px;
@@ -78,7 +84,7 @@
   font-weight: 600;
   font-size: 16px;
   max-width: 30vw;
-  width: 95%;
+  width: 80%;
 }
 
 #pipelines-input:focus {
@@ -88,9 +94,8 @@
 }
 
 #pipelines-header {
-  font-weight: bold;
-  color: #435869;
-  align-self: center;
+  color: #85a2b9;
+  white-space: nowrap;
 }
 
 #pipelines-container {
@@ -252,7 +257,7 @@
   vertical-align: middle;
   color: #5b778c;
   cursor: pointer;
-  margin-left: -35px;
+  margin-left: -50px;
   user-select: none;
 }
 

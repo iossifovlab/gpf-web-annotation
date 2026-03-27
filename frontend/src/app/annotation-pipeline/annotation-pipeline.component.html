@@ -1,8 +1,7 @@
 <div id="pipelines-container">
-  <div id="pipelines-header">Annotation pipelines</div>
-  <div cdkOverlayOrigin>
+  <div cdkOverlayOrigin id="selecting-container">
+    <div id="pipelines-header">Select pipeline</div>
     <input
-      placeholder="Select pipeline"
       [title]="selectedPipeline ? selectedPipeline.name : ''"
       id="pipelines-input"
       matInput
