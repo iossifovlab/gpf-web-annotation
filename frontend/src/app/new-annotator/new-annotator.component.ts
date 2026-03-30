@@ -217,6 +217,7 @@ export class NewAnnotatorComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private requestAnnotators(): void {
+    this.clearErrorMessage();
     this.editorService.getAnnotators().subscribe(res => {
       this.annotatorTypes = res;
       this.filteredAnnotatorTypes = res.sort();
@@ -386,15 +387,21 @@ export class NewAnnotatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   public requestAttributes(): void {
     this.attributesSubscription.unsubscribe();
-    this.attributesSubscription = this.getAttributesObservable().subscribe(res => {
-      this.attributePage = res;
-      this.selectedAttributes = cloneDeep(res.attributes.filter(a => a.selectedByDefault));
-      this.filteredAttributes = res.attributes;
-      this.setupAttributeValueFiltering();
-      this.getPipelineAttributesNames();
+    this.attributesSubscription = this.getAttributesObservable().subscribe({
+      next: res => {
+        this.attributePage = res;
+        this.selectedAttributes = cloneDeep(res.attributes.filter(a => a.selectedByDefault));
+        this.filteredAttributes = res.attributes;
+        this.setupAttributeValueFiltering();
+        this.getPipelineAttributesNames();
+        this.clearErrorMessage();
 
-      if (!this.data.isResourceWorkflow || !this.createWithDefaults) {
-        this.stepper.next();
+        if (!this.data.isResourceWorkflow || !this.createWithDefaults) {
+          this.stepper.next();
+        }
+      },
+      error: (e: Error) => {
+        this.errorMessage = e.message;
       }
     });
   }

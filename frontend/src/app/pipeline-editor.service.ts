@@ -112,7 +112,15 @@ export class PipelineEditorService {
       this.getAttributesUrl,
       Object.assign(body, resources),
       options
-    ).pipe(map((response: object) => AttributePage.fromJson(response)));
+    ).pipe(
+      map((response: object) => AttributePage.fromJson(response)),
+      catchError((err: HttpErrorResponse) => {
+        switch (err.status) {
+          case 400: return throwError(() => new Error((err.error as {error: string})['error']));
+          default: return throwError(() => new Error('Error occurred!'));
+        }
+      })
+    );
   }
 
   public getAnnotatorYml(

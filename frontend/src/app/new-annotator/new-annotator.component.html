@@ -203,7 +203,8 @@
                   type="text"
                   [formControlName]="resource.key"
                   autocomplete="off"
-                  [attr.id]="resource.key + '-input'" />
+                  [attr.id]="resource.key + '-input'"
+                  [ngClass]="{ 'invalid-field': resource.key === 'cnv_filter' && errorMessage }" />
                 } @else if(resource.fieldType === 'bool') {
                 <div>
                   <input type="radio" [formControlName]="resource.key" for="true" />
@@ -215,11 +216,14 @@
               </div>
               }
             </div>
-            <div>
+            <div class="modal-footer">
+              @if(errorMessage) {
+              <div class="error-message">{{ errorMessage }}</div>
+              }
+              <button mat-button matStepperPrevious class="back-button" (click)="clearErrorMessage()">Back</button>
               <button matButton [disabled]="configurationStep.invalid" (click)="requestAttributes()" class="next-button"
                 >Next</button
               >
-              <button mat-button matStepperPrevious class="back-button">Back</button>
             </div>
           </form>
         </div>

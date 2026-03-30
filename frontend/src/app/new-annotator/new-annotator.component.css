@@ -270,7 +270,6 @@ mat-form-field {
   border-radius: 5px;
   color: #252e34;
   font-size: 16px;
-  max-width: 30vw;
   width: 100%;
 }
 
@@ -328,7 +327,8 @@ input[type="radio"]:checked {
   align-self: center;
 }
 
-.duplicate-name-input {
+.duplicate-name-input,
+.invalid-field {
   border-color: #d74b59;
   outline-color: #d74b59;
 }
