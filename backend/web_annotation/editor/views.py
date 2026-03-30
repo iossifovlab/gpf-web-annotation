@@ -142,7 +142,7 @@ class EditorView(AnnotationBaseView):
                 },
                 "cnv_filter": {
                     "field_type": "string",
-                    "optional": False,
+                    "optional": True,
                 },
                 "input_annotatable": {
                     "field_type": "attribute",
@@ -330,7 +330,13 @@ class AnnotatorAttributes(EditorView):
             )
 
         factory = get_annotator_factory(annotator_type)
-        annotator = factory(pipeline, annotator_config)
+        try:
+            annotator = factory(pipeline, annotator_config)
+        except AnnotationConfigurationError as e:
+            return Response(
+                {"error": f"Invalid annotator configuration: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         annotator_info = annotator.get_info()
         annotator_type = annotator_info.type
         if search_term is None:
