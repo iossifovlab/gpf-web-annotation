@@ -462,10 +462,6 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     });
   }
 
-  public confirmDeletePipeline(): void {
-    this.showConfimDeletePopup = true;
-  }
-
   public delete(): void {
     this.annotationPipelineService.deletePipeline(this.selectedPipeline.id).subscribe(() => this.getPipelines());
     this.showConfimDeletePopup = false;

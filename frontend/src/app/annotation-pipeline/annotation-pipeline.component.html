@@ -143,23 +143,15 @@
       ><span class="material-symbols-outlined save-icon">save</span>Save</button
     >
 
-    @if(showConfimDeletePopup) {
-    <div id="confirmation-popover">
-      <p>Are you sure you want to delete the pipeline?</p>
-      <div>
-        <button id="confirm-delete" (click)="delete()">Delete</button>
-        <button id="cancel-delete" (click)="showConfimDeletePopup = false">Cancel</button>
-      </div>
-    </div>
-    }
-
-    <button
-      *ngIf="isUserLoggedIn && selectedPipeline && selectedPipeline.type === 'user'"
-      (click)="confirmDeletePipeline()"
-      id="delete-button"
-      [disabled]="disableActions"
-      ><span class="material-symbols-outlined delete-icon">delete</span>Delete</button
-    >
+    <span cdkOverlayOrigin #pipelineDelete="cdkOverlayOrigin">
+      <button
+        *ngIf="isUserLoggedIn && selectedPipeline && selectedPipeline.type === 'user'"
+        (click)="showConfimDeletePopup = true"
+        id="delete-button"
+        [disabled]="disableActions"
+        ><span class="material-symbols-outlined delete-icon">delete</span>Delete</button
+      >
+    </span>
   </div>
   <div>
     <button *ngIf="displayResetScreenButton" (click)="shrinkTextarea()" id="shrink-button"
@@ -173,14 +165,43 @@
 
 <ng-template
   cdkConnectedOverlay
-  [cdkConnectedOverlayOrigin]="pipelineCreate"
-  [cdkConnectedOverlayOpen]="showConfimPipelineCreatePopup"
+  [cdkConnectedOverlayOrigin]="pipelineDelete"
+  [cdkConnectedOverlayOpen]="showConfimDeletePopup"
   [cdkConnectedOverlayPositions]="[{
-    originX: 'end',
+    originX: 'center',
     originY: 'top',
     overlayX: 'center',
     overlayY: 'bottom',
-    offsetX: -45,
+    offsetX: 0,
+    offsetY: -5,
+  }]"
+  [cdkConnectedOverlayMinHeight]="115"
+  [cdkConnectedOverlayMinWidth]="130"
+  [cdkConnectedOverlayPush]="true"
+  [cdkConnectedOverlayHasBackdrop]="true"
+  (detach)="showConfimDeletePopup = false"
+  (backdropClick)="showConfimDeletePopup = false"
+  [cdkConnectedOverlayBackdropClass]="'transparent-backdrop'">
+  <div id="change-confirmation-popover">
+    <p>Are you sure you want to delete the pipeline?</p>
+    <div>
+      <button id="confirm-delete" (click)="delete()">Delete</button>
+      <button id="cancel-delete" (click)="showConfimDeletePopup = false">Cancel</button>
+    </div>
+    <div class="popover-arrow"></div>
+  </div>
+</ng-template>
+
+<ng-template
+  cdkConnectedOverlay
+  [cdkConnectedOverlayOrigin]="pipelineCreate"
+  [cdkConnectedOverlayOpen]="showConfimPipelineCreatePopup"
+  [cdkConnectedOverlayPositions]="[{
+    originX: 'center',
+    originY: 'top',
+    overlayX: 'center',
+    overlayY: 'bottom',
+    offsetX: 0,
     offsetY: -5,
   }]"
   [cdkConnectedOverlayHeight]="115"
