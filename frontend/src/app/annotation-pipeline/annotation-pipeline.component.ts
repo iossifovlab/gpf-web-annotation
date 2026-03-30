@@ -72,6 +72,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   public isUserLoggedIn = false;
   public showConfimDeletePopup = false;
   public showConfimPipelineChangePopup = false;
+  public showConfimPipelineCreatePopup = false;
   public socketNotificationSubscription: Subscription = new Subscription();
   public pipelineValidationSubscription: Subscription = new Subscription();
   public pipelineInfo: PipelineInfo;
@@ -305,27 +306,33 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   }
 
   public clearPipelineInput(): void {
-    if (!this.dropdownControl.value.includes(' *')) {
-      this.dropdownControl.setValue('');
-    } else {
+    if (this.areThereUnsavedChanges()) {
       this.pipelineInputRef.setDisabledState(true);
       this.showConfimPipelineChangePopup = true;
+    } else {
+      this.dropdownControl.setValue('');
+      this.pipelineInputRef.openPanel();
     }
   }
 
-  public confirmClear(): void {
+  public confirmChange(confirm: boolean): void {
     this.showConfimPipelineChangePopup = false;
-    this.dropdownControl.setValue('');
+    this.pipelineInputRef.setDisabledState(false);
+    if (confirm) {
+      this.dropdownControl.setValue('');
 
-    // open dropdown after Angular is done updating the view
-    this.ngZone.onStable.pipe(take(1)).subscribe(() => {
-      this.pipelineInputRef.openPanel();
-    });
+      // open dropdown after Angular is done updating the view
+      this.ngZone.onStable.pipe(take(1)).subscribe(() => {
+        this.pipelineInputRef.openPanel();
+      });
+    }
   }
 
-  public closePiplineChangeConfirmation(): void {
-    this.pipelineInputRef.setDisabledState(false);
-    this.showConfimPipelineChangePopup = false;
+  public confirmCreate(confirm: boolean): void {
+    this.showConfimPipelineCreatePopup = false;
+    if (confirm) {
+      this.doClear();
+    }
   }
 
   public displayPipelineNameInInput(): void {
@@ -369,6 +376,15 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     if (!this.currentPipelineText && !this.selectedPipeline) {
       return;
     }
+
+    if (this.areThereUnsavedChanges()) {
+      this.showConfimPipelineCreatePopup = true;
+    } else {
+      this.doClear();
+    }
+  }
+
+  public doClear(): void {
     this.pipelineInfo = null;
     this.selectedPipeline = null;
     this.currentPipelineText = '';
@@ -376,6 +392,14 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     this.dropdownControl.setValue('');
     this.clearTemporaryPipeline();
     this.isConfigValid();
+  }
+
+  private areThereUnsavedChanges(): boolean {
+    return (
+      this.dropdownControl.value.includes(' *') ||
+      this.currentTemporaryPipelineId
+    ) &&
+      Boolean(this.currentPipelineText);
   }
 
   public saveAs(): void {

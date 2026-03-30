@@ -8,17 +8,15 @@
       #pipelineInput="matAutocompleteTrigger"
       [matAutocomplete]="pipelinesDropdown"
       cdkOverlayOrigin
-      #confirmChange="cdkOverlayOrigin"
+      #pipelineChange="cdkOverlayOrigin"
       [formControl]="dropdownControl"
       (focus)="clearPipelineInput()" />
-    <span (click)="clearPipelineInput(); pipelineInput.openPanel()" class="material-symbols-outlined dropdown-icon"
-      >keyboard_arrow_down</span
-    >
+    <span (click)="clearPipelineInput()" class="material-symbols-outlined dropdown-icon">keyboard_arrow_down</span>
   </div>
 
   <ng-template
     cdkConnectedOverlay
-    [cdkConnectedOverlayOrigin]="confirmChange"
+    [cdkConnectedOverlayOrigin]="pipelineChange"
     [cdkConnectedOverlayOpen]="showConfimPipelineChangePopup"
     [cdkConnectedOverlayPositions]="[{
       originX: 'end',
@@ -31,14 +29,14 @@
     [cdkConnectedOverlayHeight]="115"
     [cdkConnectedOverlayPush]="true"
     [cdkConnectedOverlayHasBackdrop]="true"
-    (detach)="closePiplineChangeConfirmation()"
-    (backdropClick)="closePiplineChangeConfirmation()"
+    (detach)="confirmChange(false)"
+    (backdropClick)="confirmChange(false)"
     [cdkConnectedOverlayBackdropClass]="'transparent-backdrop'">
     <div id="change-confirmation-popover">
       <p>Are you sure? You are going to lose your changes.</p>
       <div>
-        <button id="confirm-change" (click)="confirmClear()">Continue</button>
-        <button id="cancel-change" (click)="closePiplineChangeConfirmation()">Cancel</button>
+        <button id="confirm-change" (click)="confirmChange(true)">Continue</button>
+        <button id="cancel-change" (click)="confirmChange(false)">Cancel</button>
       </div>
       <div class="popover-arrow"></div>
     </div>
@@ -126,7 +124,12 @@
     <button (click)="openAnnotatorFormModal()" id="add-annotator-button" [disabled]="configError || disableActions"
       ><span class="material-symbols-outlined add-annotator-icon">add</span>New annotator</button
     >
-    <button (click)="clearPipeline()" id="new-pipeline-button" [disabled]="disableActions"
+    <button
+      (click)="clearPipeline()"
+      id="new-pipeline-button"
+      [disabled]="disableActions"
+      cdkOverlayOrigin
+      #pipelineCreate="cdkOverlayOrigin"
       ><span class="material-symbols-outlined new-pipeline-icon">draft</span>New pipeline</button
     >
     <button *ngIf="isUserLoggedIn" (click)="saveAs()" id="save-as-button" [disabled]="configError || disableActions"
@@ -167,6 +170,34 @@
     >
   </div>
 </div>
+
+<ng-template
+  cdkConnectedOverlay
+  [cdkConnectedOverlayOrigin]="pipelineCreate"
+  [cdkConnectedOverlayOpen]="showConfimPipelineCreatePopup"
+  [cdkConnectedOverlayPositions]="[{
+    originX: 'end',
+    originY: 'top',
+    overlayX: 'center',
+    overlayY: 'bottom',
+    offsetX: -45,
+    offsetY: -5,
+  }]"
+  [cdkConnectedOverlayHeight]="115"
+  [cdkConnectedOverlayPush]="true"
+  [cdkConnectedOverlayHasBackdrop]="true"
+  (detach)="confirmCreate(false)"
+  (backdropClick)="confirmCreate(false)"
+  [cdkConnectedOverlayBackdropClass]="'transparent-backdrop'">
+  <div id="change-confirmation-popover">
+    <p>Are you sure? You are going to lose your changes.</p>
+    <div>
+      <button id="confirm-change" (click)="confirmCreate(true)">Continue</button>
+      <button id="cancel-change" (click)="confirmCreate(false)">Cancel</button>
+    </div>
+    <div class="popover-arrow"></div>
+  </div>
+</ng-template>
 
 <ng-template #nameInput>
   <div id="name-modal">
