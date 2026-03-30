@@ -367,8 +367,9 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
 
   private autoScroll(): void {
     const editor = this.pipelineEditorRef['_editor'] as Monaco.editor.IStandaloneCodeEditor;
-    editor.onDidChangeModelContent(() => {
+    const contentChangeDisposable = editor.onDidChangeModelContent(() => {
       editor.revealLine(editor.getModel().getLineCount(), 1);
+      contentChangeDisposable.dispose();
     });
   }
 
