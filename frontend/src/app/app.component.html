@@ -1,21 +1,32 @@
 @if (currentUserData) {
 <div id="app-container" style="max-width: 100%">
-  <div id="app-header" *ngIf="isAppHeaderVisible()">
-    <div>
-      <img src="{{ environment.imgPathPrefix }}/logo-64x64.png" alt="GPF Logo" id="header-logo" />
-      <span id="app-title">GAIn Web</span>
+  @if(isAppHeaderVisible()){
+  <div id="app-header">
+    <div id="header-left">
+      <div>
+        <img src="{{ environment.imgPathPrefix }}/logo-64x64.png" alt="GPF Logo" id="header-logo" />
+        <span id="app-title">GAIn Web</span>
+      </div>
+      <div id="page-links">
+        <a routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">Home</a>
+        <a routerLink="/about" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">About</a>
+      </div>
     </div>
     <div id="header-right">
-      <div id="user-data" *ngIf="currentUserData.loggedIn">
+      @if(currentUserData.loggedIn) {
+      <div id="user-data">
         <span id="user-email">{{ currentUserData.email }}</span>
         <button id="logout-button" (click)="logout()">Logout</button>
       </div>
-      <div id="login-register-buttons" *ngIf="!currentUserData.loggedIn">
+      } @if(!currentUserData.loggedIn) {
+      <div id="login-register-buttons">
         <button id="login-button" (click)="login()">Login</button>
         <button id="register-button" (click)="register()">Register</button>
       </div>
+      }
     </div>
   </div>
+  }
   <router-outlet></router-outlet>
 </div>
 }
