@@ -485,3 +485,14 @@ def test_get_user_info_cookie() -> None:
     third_cookie = response.cookies["sessionid"].value
     assert third_cookie is not None
     assert second_cookie != third_cookie
+
+
+def test_about_page(clients: dict[str, Client]) -> None:
+
+    for client_type, client in clients.items():
+        response = client.get("/api/about")
+        assert response.status_code == 200, client_type
+        assert response.headers["Content-Type"] == "text/markdown", client_type
+        assert len(response.content) > 0, client_type
+        assert response.content.decode().find(
+            "Annotation is a core step in genomic analysis") != -1, client_type
