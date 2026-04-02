@@ -76,11 +76,20 @@
   gap: 20px;
 }
 
+#header-left {
+  display: flex;
+  align-items: center;
+}
+
+#page-links {
+  margin-top: 8px;
+}
+
 a {
   text-decoration: none;
   color: #85a2b9;
-  font-size: 16px;
-  margin-left: 20px;
+  font-size: 18px;
+  margin-left: 40px;
 }
 
 .active-link {

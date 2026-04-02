@@ -9,6 +9,7 @@ import { SingleAnnotationService } from './single-annotation.service';
 import { provideMarkdown } from 'ngx-markdown';
 import { AnnotationPipelineService } from './annotation-pipeline.service';
 import { provideMonacoEditor } from 'ngx-monaco-editor-v2';
+import { AboutPageService } from './about-page/about-page.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -19,6 +20,7 @@ export const appConfig: ApplicationConfig = {
     JobsService,
     SingleAnnotationService,
     AnnotationPipelineService,
+    AboutPageService,
     provideMarkdown(),
     provideMonacoEditor()
   ]
