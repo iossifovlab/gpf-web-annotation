@@ -1,6 +1,7 @@
 # pylint: disable=too-many-lines
 """View classes for web annotation."""
 import logging
+import textwrap
 from typing import cast
 
 from django import forms
@@ -419,3 +420,29 @@ class PasswordReset(views.APIView):
 
         redirect_uri = settings.EMAIL_REDIRECT_ENDPOINT
         return HttpResponseRedirect(f"{redirect_uri}/login")
+
+
+class AboutPage(views.APIView):
+    """View for the about page."""
+
+    ABOUT_MD = textwrap.dedent("""
+        # GAIn
+
+        Annotation is a core step in genomic analysis:
+        sequencing gives you a list of observed variants,
+        and annotation adds the biological and clinical context
+        needed to interpret them. GAIn is an infrastructure for
+        running annotation in a consistent,
+        reproducible way—by combining curated resources
+        (genomes, gene models, scores, gene sets, and plugins)
+        with a user-defined annotation pipeline that specifies what
+        to compute and what to emit.
+    """).strip()
+
+    def get(self, _: Request) -> Response:
+        """Return the about page content."""
+        return Response(
+            self.ABOUT_MD,
+            content_type="text/markdown",
+            status=views.status.HTTP_200_OK,
+        )
