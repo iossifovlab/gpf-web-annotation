@@ -7,8 +7,8 @@ from unittest.mock import MagicMock
 from pytest_mock import MockerFixture
 from django.test import Client
 
-from dae.annotation.annotation_config import AttributeInfo
-from dae.genomic_resources.repository import GenomicResourceRepo
+from gain.annotation.annotation_config import AttributeInfo
+from gain.genomic_resources.repository import GenomicResourceRepo
 from web_annotation.pipeline_cache import LRUPipelineCache
 from web_annotation.single_allele_annotation.views import SingleAnnotation
 

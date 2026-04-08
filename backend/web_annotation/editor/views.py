@@ -6,12 +6,12 @@ import yaml
 from itertools import islice
 from rest_framework.views import Request, Response, status
 
-from dae.annotation.annotation_config import (
+from gain.annotation.annotation_config import (
     AnnotationConfigParser,
     AnnotationConfigurationError,
     AnnotatorInfo,
 )
-from dae.annotation.annotation_factory import (
+from gain.annotation.annotation_factory import (
     check_for_repeated_attributes_in_pipeline,
     get_annotator_factory,
     get_available_annotator_types,

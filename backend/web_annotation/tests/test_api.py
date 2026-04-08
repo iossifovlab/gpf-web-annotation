@@ -6,7 +6,7 @@ import textwrap
 from typing import cast
 
 import pytest
-from dae.genomic_resources.repository import GenomicResourceRepo
+from gain.genomic_resources.repository import GenomicResourceRepo
 from django.conf import LazySettings
 from django.core.files.base import ContentFile
 from django.test import Client

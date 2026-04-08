@@ -5,12 +5,12 @@ from pathlib import Path
 from typing import Any, cast
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
-from dae.annotation.annotation_pipeline import AnnotationPipeline
-from dae.genomic_resources.implementations.annotation_pipeline_impl import (
+from gain.annotation.annotation_pipeline import AnnotationPipeline
+from gain.genomic_resources.implementations.annotation_pipeline_impl import (
     AnnotationPipelineImplementation,
 )
-from dae.genomic_resources.repository import GenomicResourceRepo
-from dae.genomic_resources.repository_factory import (
+from gain.genomic_resources.repository import GenomicResourceRepo
+from gain.genomic_resources.repository_factory import (
     build_genomic_resource_repository,
 )
 from django.conf import settings

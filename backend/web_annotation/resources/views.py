@@ -1,7 +1,7 @@
 from itertools import islice
 from rest_framework import status
 from rest_framework.views import Request, Response
-from dae.genomic_resources.repository import GenomicResource
+from gain.genomic_resources.repository import GenomicResource
 from collections.abc import Iterable
 from web_annotation.annotation_base_view import AnnotationBaseView
 

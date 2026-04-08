@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 import pathlib
 from typing import Any
-from dae.genomic_resources.repository_factory import \
+from gain.genomic_resources.repository_factory import \
     get_default_grr_definition_path
 
 
@@ -288,7 +288,7 @@ LOGGING = {
             "level": "WARNING",
             "propagate": True,
         },
-        "dae.effect_annotation": {
+        "gain.effect_annotation": {
             "handlers": ["console", "logdebug"],
             "level": "INFO",
             "propagate": True,

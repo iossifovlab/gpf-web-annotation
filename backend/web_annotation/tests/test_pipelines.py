@@ -5,7 +5,7 @@ from django.test import Client
 import pytest
 import pytest_mock
 
-from dae.genomic_resources.repository import GenomicResourceRepo
+from gain.genomic_resources.repository import GenomicResourceRepo
 
 from web_annotation.models import Pipeline, User
 from web_annotation.pipeline_cache import LRUPipelineCache

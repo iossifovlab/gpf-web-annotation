@@ -4,10 +4,10 @@ from typing import Callable, cast
 import pytest
 from pytest_mock import MockerFixture
 
-from dae.annotation.annotatable import VCFAllele
-from dae.annotation.annotation_factory import load_pipeline_from_yaml
-from dae.annotation.annotation_pipeline import AnnotationPipeline
-from dae.genomic_resources.repository import GenomicResourceRepo
+from gain.annotation.annotatable import VCFAllele
+from gain.annotation.annotation_factory import load_pipeline_from_yaml
+from gain.annotation.annotation_pipeline import AnnotationPipeline
+from gain.genomic_resources.repository import GenomicResourceRepo
 from web_annotation.executor import (
     SequentialTaskExecutor,
     ThreadedTaskExecutor,

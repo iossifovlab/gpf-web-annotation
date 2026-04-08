@@ -6,17 +6,17 @@ from threading import Lock, RLock
 import time
 from types import TracebackType
 from typing import Callable, Sequence
-from dae.annotation.annotatable import Annotatable
-from dae.annotation.annotation_config import (
+from gain.annotation.annotatable import Annotatable
+from gain.annotation.annotation_config import (
     AnnotationPreamble,
     AnnotatorInfo,
     AttributeInfo,
     RawPipelineConfig,
 )
-from dae.annotation.annotation_pipeline import AnnotationPipeline, Annotator
-from dae.genomic_resources.repository import GenomicResourceRepo
+from gain.annotation.annotation_pipeline import AnnotationPipeline, Annotator
+from gain.genomic_resources.repository import GenomicResourceRepo
 
-from dae.annotation.annotation_factory import load_pipeline_from_yaml
+from gain.annotation.annotation_factory import load_pipeline_from_yaml
 
 from web_annotation.executor import ThreadedTaskExecutor
 
