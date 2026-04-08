@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 import * as utils from '../utils';
 
 test.describe('Pipeline tests', () => {
@@ -348,6 +348,161 @@ test.describe('Pipeline validation tests', () => {
   });
 });
 
+test.describe('Pipeline confirmation popup tests', () => {
+  test.beforeEach(async({ page }) => {
+    await page.goto('/', {waitUntil: 'load'});
+
+    const email = utils.getRandomString() + '@email.com';
+    const password = 'aaabbb';
+    await utils.registerUser(page, email, password);
+
+    await utils.loginUser(page, email, password);
+    // wait for default pipeline to load
+    await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
+  });
+
+  const pipelineContent =
+    'preamble:\n' +
+    '   input_reference_genome: hg38/genomes/GRCh38-hg38\n' +
+    'annotators:\n' +
+    '- allele_score:\n' +
+    '    resource_id: hg38/scores/CADD_v1.4\n';
+
+  async function setupTempPipeline(page: Page): Promise<void> {
+    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New pipeline', exact: true }).click();
+    const saveResponse = page.waitForResponse(
+      resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
+    );
+    await utils.typeInPipelineEditor(page, pipelineContent);
+    await saveResponse;
+  }
+
+  test('should show confirmation popup when selecting a pipeline with unsaved temp changes', async({ page }) => {
+    await setupTempPipeline(page);
+
+    await page.locator('.dropdown-icon').click();
+
+    await expect(page.locator('#change-confirmation-popover')).toBeVisible();
+    await expect(page.locator('#change-confirmation-popover p')).toHaveText(
+      'Are you sure? You are going to lose your changes.'
+    );
+    await expect(page.locator('#confirm-change')).toBeVisible();
+    await expect(page.locator('#cancel-change')).toBeVisible();
+  });
+
+  test('should open pipeline dropdown after confirming pipeline selection', async({ page }) => {
+    await setupTempPipeline(page);
+
+    await page.locator('.dropdown-icon').click();
+    await expect(page.locator('#change-confirmation-popover')).toBeVisible();
+
+    await page.locator('#confirm-change').click();
+
+    await expect(page.locator('#change-confirmation-popover')).not.toBeVisible();
+    await expect(page.locator('#pipelines-input')).toBeEmpty();
+    await expect(page.locator('mat-option').first()).toBeVisible();
+  });
+
+  test('should keep unsaved changes after cancelling pipeline selection', async({ page }) => {
+    await setupTempPipeline(page);
+
+    await page.locator('.dropdown-icon').click();
+    await expect(page.locator('#change-confirmation-popover')).toBeVisible();
+
+    await page.locator('#cancel-change').click();
+
+    await expect(page.locator('#change-confirmation-popover')).not.toBeVisible();
+    await expect(page.locator('.monaco-editor').nth(0)).toHaveText(
+      'preamble:' +
+      ' input_reference_genome: hg38/genomes/GRCh38-hg38' +
+      'annotators:' +
+      '- allele_score:' +
+      '   resource_id: hg38/scores/CADD_v1.4');
+  });
+
+  test('should show confirmation popup when clicking "New pipeline" with unsaved temp changes', async({ page }) => {
+    await setupTempPipeline(page);
+
+    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New pipeline', exact: true }).click();
+
+    await expect(page.locator('#change-confirmation-popover')).toBeVisible();
+    await expect(page.locator('#change-confirmation-popover p')).toHaveText(
+      'Are you sure? You are going to lose your changes.'
+    );
+    await expect(page.locator('#confirm-change')).toBeVisible();
+    await expect(page.locator('#cancel-change')).toBeVisible();
+  });
+
+  test('should clear pipeline after confirming new pipeline creation', async({ page }) => {
+    await setupTempPipeline(page);
+
+    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New pipeline', exact: true }).click();
+    await expect(page.locator('#change-confirmation-popover')).toBeVisible();
+
+    await page.locator('#confirm-change').click();
+
+    await expect(page.locator('#change-confirmation-popover')).not.toBeVisible();
+    await expect(page.locator('#pipelines-input')).toBeEmpty();
+    await expect(page.locator('.monaco-editor').nth(0)).toBeEmpty();
+  });
+
+  test('should keep unsaved changes after cancelling new pipeline creation', async({ page }) => {
+    await setupTempPipeline(page);
+
+    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New pipeline', exact: true }).click();
+    await expect(page.locator('#change-confirmation-popover')).toBeVisible();
+
+    await page.locator('#cancel-change').click();
+
+    await expect(page.locator('#change-confirmation-popover')).not.toBeVisible();
+    await expect(page.locator('.monaco-editor').nth(0)).not.toBeEmpty();
+  });
+
+  test('should show confirmation popup when selecting pipeline with unsaved user pipeline changes', async({ page }) => {
+    // create and save a user pipeline first
+    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New pipeline', exact: true }).click();
+
+    const saveResponse = page.waitForResponse(
+      resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
+    );
+    await utils.typeInPipelineEditor(page, pipelineContent);
+    await saveResponse;
+
+    await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
+    await page.getByRole('button', { name: 'Save as' }).click();
+    await expect(page.locator('#name-modal')).toBeVisible();
+    await page.locator('#name-modal input').fill('My Pipeline');
+
+    await Promise.all([
+      page.locator('#name-modal').getByRole('button', { name: 'Save' }).click(),
+      page.waitForResponse(resp => resp.url().includes('api/pipelines/load')),
+    ]);
+
+    await expect(page.locator('#pipelines-input')).toHaveValue('My Pipeline');
+
+    // modify the saved pipeline to trigger unsaved indicator (*)
+    /* eslint-disable */
+    await page.evaluate(() => {
+      const monaco = (window as any).monaco;
+      const model = monaco.editor.getModels()[0];
+      model.applyEdits([{
+        range: new monaco.Range(5, 1, 5, 1),
+        text: '    # edited\n'
+      }]);
+    });
+    /* eslint-enable */
+
+    await expect(page.locator('#pipelines-input')).toHaveValue('My Pipeline *');
+
+    await page.locator('.dropdown-icon').click();
+
+    await expect(page.locator('#change-confirmation-popover')).toBeVisible();
+    await expect(page.locator('#change-confirmation-popover p')).toHaveText(
+      'Are you sure? You are going to lose your changes.'
+    );
+  });
+});
+
 test.describe('Add annotator to pipeline tests', () => {
   test.beforeEach(async({ page }) => {
     await page.goto('/', {waitUntil: 'load'});
@@ -359,6 +514,14 @@ test.describe('Add annotator to pipeline tests', () => {
     await utils.loginUser(page, email, password);
     // wait for default pipeline to load
     await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000});
+  });
+
+  test('should open new annotator dialog with correct header and first step', async({ page }) => {
+    await page.locator('#pipeline-actions').locator('#add-annotator-button').click();
+
+    await expect(page.locator('mat-dialog-container')).toBeVisible();
+    await expect(page.locator('#modal-header')).toHaveText('New annotator');
+    await expect(page.getByRole('combobox', { name: 'Select annotator' })).toBeVisible();
   });
 
   test('should append gene set annotator', async({ page }) => {
@@ -479,27 +642,7 @@ test.describe('Add annotator to pipeline tests', () => {
   });
 
   test('should append annotator to user pipeline', async({ page }) => {
-    // create pipeline
-    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New pipeline', exact: true }).click();
-    await expect(page.locator('#pipelines-input')).toBeEmpty();
-    await expect(page.locator('.monaco-editor').nth(0)).toBeEmpty();
-
-    const saveResponse = page.waitForResponse(
-      resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
-    );
-
-    await utils.typeInPipelineEditor(
-      page,
-      'preamble:\n' +
-      '   input_reference_genome: hg38/genomes/GRCh38-hg38\n' +
-      'annotators:\n' +
-      '- allele_score:\n' +
-      '    resource_id: hg38/scores/CADD_v1.4\n'
-    );
-
-    await saveResponse;
-
-    await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
+    await customDefaultPipeline(page);
 
     await page.getByRole('button', { name: 'Save as' }).click();
 
@@ -556,4 +699,247 @@ test.describe('Add annotator to pipeline tests', () => {
       '      internal: true\n'
     );
   });
+
+  test('should disable Next button when no annotator is selected and enable it after selection', async({ page }) => {
+    await page.locator('#pipeline-actions').locator('#add-annotator-button').click();
+
+    await expect(page.getByRole('button', { name: 'Next' })).toBeDisabled();
+
+    await page.getByRole('combobox', { name: 'Select annotator' }).click();
+    await page.locator('mat-option').getByText('allele_score').click();
+
+    await expect(page.getByRole('button', { name: 'Next' })).toBeEnabled();
+  });
+
+  test('should filter annotators in dropdown by search text', async({ page }) => {
+    await page.locator('#pipeline-actions').locator('#add-annotator-button').click();
+
+    await page.getByRole('combobox', { name: 'Select annotator' }).fill('allele');
+    await expect(page.locator('.annotator-option')).toHaveCount(2);
+    await expect(page.locator('.annotator-option').filter({ hasText: 'allele_score_annotator' })).toBeVisible();
+    await expect(page.locator('.annotator-option').filter({ hasText: 'normalize_allele_annotator' })).toBeVisible();
+  });
+
+  test('should navigate back from configure step to annotator selection step', async({ page }) => {
+    await page.locator('#pipeline-actions').locator('#add-annotator-button').click();
+
+    await page.getByRole('combobox', { name: 'Select annotator' }).click();
+    await page.locator('mat-option').getByText('allele_score').click();
+    await page.getByRole('button', { name: 'Next' }).click();
+
+    await expect(page.locator('[id="resource_id-dropdown"]')).toBeVisible();
+
+    await page.getByRole('button', { name: 'Back' }).click();
+
+    await expect(page.getByRole('combobox', { name: 'allele_score_annotator' })).toBeVisible();
+  });
+
+  test('should remove a default attribute in the attribute step', async({ page }) => {
+    await page.locator('#pipeline-actions').locator('#add-annotator-button').click();
+
+    await page.getByRole('combobox', { name: 'Select annotator' }).click();
+    await page.locator('mat-option').getByText('simple_effect_annotator').click();
+    await page.getByRole('button', { name: 'Next' }).click();
+
+    await page.locator('[id="gene_models-dropdown"]').click();
+    await page.locator('mat-option').getByText('hg19/gene_models/ccds_v201309').click();
+    await page.getByRole('button', { name: 'Next' }).click();
+
+    await expect(page.locator('.attribute-source')).toHaveCount(3);
+
+    await page.locator('#gene_list-remove-button').click();
+
+    await expect(page.locator('.attribute-source')).toHaveCount(2);
+  });
+
+  test('should rename attribute and reflect new name in finished YAML', async({ page }) => {
+    await customDefaultPipeline(page);
+    await page.locator('#pipeline-actions').locator('#add-annotator-button').click();
+
+    await page.getByRole('combobox', { name: 'Select annotator' }).click();
+    await page.locator('mat-option').getByText('simple_effect_annotator').click();
+    await page.getByRole('button', { name: 'Next' }).click();
+
+    await page.locator('[id="gene_models-dropdown"]').click();
+    await page.locator('mat-option').getByText('hg19/gene_models/ccds_v201309').click();
+    await page.getByRole('button', { name: 'Next' }).click();
+
+    await page.locator('.editable-name').first().fill('my_worst_effect');
+    await page.locator('.editable-name').first().blur();
+
+    await Promise.all([
+      page.getByRole('button', { name: 'Finish' }).click(),
+      page.waitForResponse(resp => resp.url().includes('api/pipelines/validate')),
+    ]);
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const value = await page.evaluate(() => {
+      // eslint-disable-next-line max-len
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-explicit-any
+      return (window as any).monaco.editor.getModels()[0].getValue();
+    });
+
+    expect(value).toContain('name: my_worst_effect');
+    expect(value).not.toContain('name: worst_effect\n');
+  });
+
+  test('should show duplicate attribute name error and hide Finish button', async({ page }) => {
+    await utils.selectPipeline(page, 'pipeline/Clinical_annotation');
+    await page.locator('#pipeline-actions').locator('#add-annotator-button').click();
+
+    await page.getByRole('combobox', { name: 'Select annotator' }).click();
+    await page.locator('mat-option').getByText('simple_effect_annotator').click();
+    await page.getByRole('button', { name: 'Next' }).click();
+
+    await page.locator('[id="gene_models-dropdown"]').click();
+    await page.locator('mat-option').getByText('hg19/gene_models/ccds_v201309').click();
+    await page.getByRole('button', { name: 'Next' }).click();
+
+    await expect(page.locator('.attribute-source')).toHaveCount(3);
+
+    await page.locator('.editable-name').first().fill('worst_effect_genes');
+    await page.locator('.editable-name').first().blur();
+
+    await expect(page.locator('.error-message')).toContainText('Attribute with this name already exists');
+    await expect(page.getByRole('button', { name: 'Finish' })).not.toBeVisible();
+  });
+
+  test('should disable New annotator button when pipeline config is invalid', async({ page }) => {
+    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New pipeline', exact: true }).click();
+    await utils.typeInPipelineEditor(page, 'preamble:\n input_reference_genome: hg38/genomes/GRCh38-hg38');
+    await page.waitForSelector('.invalid-config', { state: 'visible', timeout: 120000 });
+
+    await expect(page.locator('#pipeline-actions').locator('#add-annotator-button')).toBeDisabled();
+  });
+
+  test('should enable Next button on configure step only after all required fields are filled', async({ page }) => {
+    await page.locator('#pipeline-actions').locator('#add-annotator-button').click();
+    await page.getByRole('combobox', { name: 'Select annotator' }).click();
+    await page.locator('mat-option').getByText('liftover_annotator').click();
+    await page.getByRole('button', { name: 'Next' }).click();
+
+    await page.locator('[id="chain-dropdown"]').click();
+    await page.locator('mat-option').getByText('liftover/hg19_to_T2T').click();
+    await expect(page.getByRole('button', { name: 'Next' })).toBeDisabled();
+
+    await page.locator('[id="source_genome-dropdown"]').click();
+    await page.locator('mat-option').getByText('t2t/genomes/t2t-chm13v2.0').click();
+    await expect(page.getByRole('button', { name: 'Next' })).toBeDisabled();
+
+    await page.locator('[id="target_genome-dropdown"]').click();
+    await page.locator('mat-option').getByText('hg38/genomes/GRCh38.p14').click();
+    await expect(page.getByRole('button', { name: 'Next' })).toBeEnabled();
+  });
+
+  test('should enable Next when only required field is filled', async({ page }) => {
+    // effect_annotator has gene_models (required) and genome (optional resource)
+    await page.locator('#pipeline-actions').locator('#add-annotator-button').click();
+    await page.getByRole('combobox', { name: 'Select annotator' }).click();
+    await page.locator('mat-option').getByText('effect_annotator', { exact: true }).click();
+    await page.getByRole('button', { name: 'Next' }).click();
+
+    await expect(page.locator('[id="gene_models-dropdown"]')).toBeVisible();
+    await expect(page.locator('[id="genome-dropdown"]')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Next' })).toBeDisabled();
+
+    await page.locator('[id="gene_models-dropdown"]').click();
+    await page.locator('mat-option').getByText('hg19/gene_models/ccds_v201309').click();
+
+    // Next is enabled without filling optional genome field
+    await expect(page.getByRole('button', { name: 'Next' })).toBeEnabled();
+  });
+
+  test('should keep Next enabled after filling an optional resource field', async({ page }) => {
+    // effect_annotator: fill required gene_models then also fill optional genome
+    await page.locator('#pipeline-actions').locator('#add-annotator-button').click();
+    await page.getByRole('combobox', { name: 'Select annotator' }).click();
+    await page.locator('mat-option').getByText('effect_annotator', { exact: true }).click();
+    await page.getByRole('button', { name: 'Next' }).click();
+
+    await page.locator('[id="gene_models-dropdown"]').click();
+    await page.locator('mat-option').getByText('hg19/gene_models/ccds_v201309').click();
+    await expect(page.getByRole('button', { name: 'Next' })).toBeEnabled();
+
+    await page.locator('[id="genome-dropdown"]').click();
+    await page.locator('mat-option.resource-option').first().click();
+    await expect(page.getByRole('button', { name: 'Next' })).toBeEnabled();
+  });
+
+  test('should filter chain options by search text in configure step', async({ page }) => {
+    await page.locator('#pipeline-actions').locator('#add-annotator-button').click();
+    await page.getByRole('combobox', { name: 'Select annotator' }).click();
+    await page.locator('mat-option').getByText('liftover_annotator').click();
+    await page.getByRole('button', { name: 'Next' }).click();
+
+    await page.locator('[id="chain-dropdown"]').locator('.dropdown-icon').click();
+    const totalChainCount = await page.locator('mat-option.resource-option').count();
+
+    await page.locator('[id="chain-dropdown"] input').fill('hg19');
+    const filteredOptions = page.locator('mat-option.resource-option');
+
+    expect(await filteredOptions.count()).toBeLessThan(totalChainCount);
+    await expect(filteredOptions.first()).toContainText('hg19');
+  });
+
+  test('should filter source_genome options by search text in configure step', async({ page }) => {
+    await page.locator('#pipeline-actions').locator('#add-annotator-button').click();
+    await page.getByRole('combobox', { name: 'Select annotator' }).click();
+    await page.locator('mat-option').getByText('liftover_annotator').click();
+    await page.getByRole('button', { name: 'Next' }).click();
+
+    await page.locator('[id="source_genome-dropdown"]').locator('.dropdown-icon').click();
+    const totalGenomeCount = await page.locator('mat-option.resource-option').count();
+
+    await page.locator('[id="source_genome-dropdown"] input').fill('t2t');
+    const filteredOptions = page.locator('mat-option.resource-option');
+
+    expect(await filteredOptions.count()).toBeLessThan(totalGenomeCount);
+    await expect(filteredOptions.first()).toContainText('t2t');
+  });
+
+  test('should disable Next button in configure step when a filled required field is cleared', async({ page }) => {
+    await page.locator('#pipeline-actions').locator('#add-annotator-button').click();
+    await page.getByRole('combobox', { name: 'Select annotator' }).click();
+    await page.locator('mat-option').getByText('liftover_annotator').click();
+    await page.getByRole('button', { name: 'Next' }).click();
+
+    await page.locator('[id="chain-dropdown"]').click();
+    await page.locator('mat-option').getByText('liftover/hg19_to_T2T').click();
+    await page.locator('[id="source_genome-dropdown"]').click();
+    await page.locator('mat-option').getByText('t2t/genomes/t2t-chm13v2.0').click();
+    await page.locator('[id="target_genome-dropdown"]').click();
+    await page.locator('mat-option').getByText('hg38/genomes/GRCh38.p14').click();
+
+    await expect(page.getByRole('button', { name: 'Next' })).toBeEnabled();
+
+    // clicking the dropdown icon clears the field and opens the panel
+    await page.locator('[id="chain-dropdown"]').locator('.dropdown-icon').click();
+    await page.keyboard.press('Escape');
+
+    await expect(page.getByRole('button', { name: 'Next' })).toBeDisabled();
+  });
 });
+
+
+async function customDefaultPipeline(page: Page): Promise<void> {
+  await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New pipeline', exact: true }).click();
+  await expect(page.locator('#pipelines-input')).toBeEmpty();
+  await expect(page.locator('.monaco-editor').nth(0)).toBeEmpty();
+
+  const saveResponse = page.waitForResponse(
+    resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
+  );
+
+  await utils.typeInPipelineEditor(
+    page,
+    'preamble:\n' +
+    '   input_reference_genome: hg38/genomes/GRCh38-hg38\n' +
+    'annotators:\n' +
+    '- allele_score:\n' +
+    '    resource_id: hg38/scores/CADD_v1.4\n'
+  );
+
+  await saveResponse;
+
+  await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
+}
