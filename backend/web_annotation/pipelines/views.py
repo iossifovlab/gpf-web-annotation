@@ -1,11 +1,11 @@
 """Views for pipeline creation and manipulation."""
 import logging
 from pathlib import Path
-from dae.annotation.annotation_config import (
+from gain.annotation.annotation_config import (
     AnnotationConfigParser,
     AnnotationConfigurationError,
 )
-from dae.annotation.annotation_factory import load_pipeline_from_yaml
+from gain.annotation.annotation_factory import load_pipeline_from_yaml
 from django.conf import settings
 from django.core.files.uploadedfile import UploadedFile
 from django.http import QueryDict

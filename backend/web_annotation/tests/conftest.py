@@ -7,8 +7,8 @@ from django.test import Client
 from django.conf import settings, LazySettings
 from typing import Generator, cast
 from urllib.parse import urlparse
-from dae.genomic_resources.repository import GenomicResourceRepo
-from dae.genomic_resources.repository_factory import \
+from gain.genomic_resources.repository import GenomicResourceRepo
+from gain.genomic_resources.repository_factory import \
     build_genomic_resource_repository
 
 from web_annotation.tests.mailhog_client import MailhogClient
@@ -20,7 +20,7 @@ def clean_genomic_context(
     mocker: pytest_mock.MockerFixture,
 ) -> None:
     mocker.patch(
-        "dae.genomic_resources.genomic_context._REGISTERED_CONTEXTS",
+        "gain.genomic_resources.genomic_context._REGISTERED_CONTEXTS",
         [])
 
 

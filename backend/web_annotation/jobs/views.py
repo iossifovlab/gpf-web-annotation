@@ -5,8 +5,8 @@ from pathlib import Path
 from subprocess import CalledProcessError
 import time
 from typing import Any, cast
-from dae.annotation.annotation_factory import build_annotation_pipeline
-from dae.annotation.record_to_annotatable import build_record_to_annotatable
+from gain.annotation.annotation_factory import build_annotation_pipeline
+from gain.annotation.record_to_annotatable import build_record_to_annotatable
 from django.core.files.uploadedfile import UploadedFile
 from django.db.models import ObjectDoesNotExist, QuerySet
 from django.http import FileResponse, QueryDict

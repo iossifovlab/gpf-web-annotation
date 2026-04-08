@@ -2,23 +2,22 @@
 from datetime import datetime
 from typing import Any, cast
 
-from dae.annotation.record_to_annotatable import build_annotatable_from_dict
-from dae.annotation.annotation_config import AttributeInfo
-from dae.annotation.annotation_pipeline import Annotator
-from dae.annotation.gene_score_annotator import GeneScoreAnnotator
-from dae.annotation.score_annotator import GenomicScoreAnnotatorBase
-from dae.gene_scores.gene_scores import (
+from gain.annotation.record_to_annotatable import build_annotatable_from_dict
+from gain.annotation.annotation_config import AttributeInfo
+from gain.annotation.annotation_pipeline import Annotator
+from gain.annotation.gene_score_annotator import GeneScoreAnnotator
+from gain.annotation.score_annotator import GenomicScoreAnnotatorBase
+from gain.gene_scores.gene_scores import (
     _build_gene_score_help,
     build_gene_score_from_resource,
 )
-from dae.genomic_scores.scores import _build_score_help
-from dae.genomic_resources.genomic_scores import build_score_from_resource
-from dae.genomic_resources.histogram import (
+from gain.genomic_resources.genomic_scores import build_score_from_resource
+from gain.genomic_resources.histogram import (
     Histogram,
     NullHistogram,
     NullHistogramConfig,
 )
-from dae.genomic_resources.repository import GenomicResource
+from gain.genomic_resources.repository import GenomicResource
 from django.conf import settings
 from django.db.models import QuerySet
 from django.utils import timezone
@@ -122,11 +121,7 @@ class SingleAnnotation(AnnotationBaseView):
 
         if isinstance(annotator, GenomicScoreAnnotatorBase):
             assert isinstance(annotator, GenomicScoreAnnotatorBase)
-            return _build_score_help(
-                annotator,
-                attribute_info,
-                annotator.score,
-            )
+            return annotator.build_attribute_help(attribute_info)
 
         assert isinstance(annotator, GeneScoreAnnotator)
         for score_def in annotator.score.score_definitions.values():

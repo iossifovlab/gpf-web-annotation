@@ -3,10 +3,10 @@ import logging
 from datetime import timedelta
 from typing import Any
 
-from dae.annotation.annotate_columns import annotate_columns
-from dae.annotation.annotate_vcf import annotate_vcf
-from dae.annotation.annotation_pipeline import AnnotationPipeline
-from dae.genomic_resources.reference_genome import (
+from gain.annotation.annotate_columns import annotate_columns
+from gain.annotation.annotate_vcf import annotate_vcf
+from gain.annotation.annotation_pipeline import AnnotationPipeline
+from gain.genomic_resources.reference_genome import (
     ReferenceGenome,
     build_reference_genome_from_resource,
 )
