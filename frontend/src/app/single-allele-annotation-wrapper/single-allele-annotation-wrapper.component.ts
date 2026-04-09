@@ -14,7 +14,7 @@ import { JobNotification } from '../socket-notifications/socket-notifications';
 import { AnnotationPipelineService } from '../annotation-pipeline.service';
 
 @Component({
-  selector: 'app-annotation-wrapper',
+  selector: 'app-single-allele-annotation-wrapper',
   imports: [
     CommonModule,
     JobsTableComponent,
@@ -23,11 +23,11 @@ import { AnnotationPipelineService } from '../annotation-pipeline.service';
     SingleAnnotationComponent,
     AllelesTableComponent,
   ],
-  templateUrl: './annotation-wrapper.component.html',
-  styleUrl: './annotation-wrapper.component.css'
+  templateUrl: './single-allele-annotation-wrapper.component.html',
+  styleUrl: './single-allele-annotation-wrapper.component.css'
 })
 
-export class AnnotationWrapperComponent implements OnInit, OnDestroy {
+export class SingleAlleleAnnotationWrapperComponent implements OnInit, OnDestroy {
   public file: File = null;
   public fileSeparator: string = null;
   public fileHeader: Map<string, string> = null;
@@ -317,4 +317,3 @@ export class AnnotationWrapperComponent implements OnInit, OnDestroy {
     this.userService.refreshUserData();
   }
 }
-
