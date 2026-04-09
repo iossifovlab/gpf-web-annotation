@@ -1,33 +1,33 @@
 <div id="wrapper-container">
   <div id="annotation-container">
     <div class="sticky-elements">
-      <div *ngIf="hideComponents">
-        <button id="show-components" (click)="showComponents()"
-          ><span class="material-symbols-outlined show-components-icon">right_panel_open</span></button
-        >
-      </div>
+      @if(hideComponents) {
+      <button id="show-components" (click)="showComponents()"
+        ><span class="material-symbols-outlined show-components-icon">right_panel_open</span></button
+      >
+      }
+
       <app-annotation-pipeline
         (emitPipelineId)="setPipeline($event)"
         (emitIsConfigValid)="setConfigValid($event)"
         (tiggerHidingComponents)="updateComponentsVisibility($event)"></app-annotation-pipeline>
     </div>
 
-    <div>
-      <div *ngIf="isCreationFormVisible">
-        <app-job-creation
-          (emitFile)="setFile($event)"
-          (emitFileSeparator)="setFileSeparator($event)"
-          (emitGenome)="setGenome($event)"
-          (emitUpdatedFileHeader)="setUpdatedFileHeader($event)"></app-job-creation>
-        <div style="margin-top: 10px">
-          <span class="error-message">{{ creationError }}</span>
-          <button id="create-button" (click)="autoSavePipeline()" tabindex="1" [disabled]="disableCreate()"
-            >Create</button
-          >
-        </div>
+    <div style="width: 35%">
+      @if(isCreationFormVisible) {
+      <app-job-creation
+        (emitFile)="setFile($event)"
+        (emitFileSeparator)="setFileSeparator($event)"
+        (emitGenome)="setGenome($event)"
+        (emitUpdatedFileHeader)="setUpdatedFileHeader($event)"></app-job-creation>
+      <div style="margin-top: 10px">
+        <span class="error-message">{{ creationError }}</span>
+        <button id="create-button" (click)="autoSavePipeline()" tabindex="1" [disabled]="disableCreate()"
+          >Create</button
+        >
       </div>
-
-      <div *ngIf="!isCreationFormVisible && currentJob" id="result">
+      } @if(!isCreationFormVisible && currentJob) {
+      <div id="result">
         <div id="current-job-info">
           <div>
             <span class="job-name">Job name: {{ currentJob.name }}</span>
@@ -47,14 +47,12 @@
           >
         </div>
       </div>
+      }
     </div>
   </div>
 
-  <div
-    *ngIf="isUserLoggedIn"
-    [style.display]="hideComponents ? 'none' : 'block'"
-    id="history-table"
-    class="sticky-elements">
+  @if(isUserLoggedIn) {
+  <div [style.display]="hideComponents ? 'none' : 'block'" id="history-table" class="sticky-elements">
     <div>
       <button id="toggle-history" (click)="this.hideHistory = !this.hideHistory"
         ><span
@@ -68,4 +66,5 @@
     <app-jobs-table (jobDelete)="refreshUserQuota()"></app-jobs-table>
     }
   </div>
+  }
 </div>
