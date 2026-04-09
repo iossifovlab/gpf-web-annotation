@@ -1,11 +1,11 @@
 <div id="wrapper-container">
   <div id="annotation-container">
     <div class="sticky-elements">
-      <div *ngIf="hideComponents">
-        <button id="show-components" (click)="showComponents()"
-          ><span class="material-symbols-outlined show-components-icon">right_panel_open</span></button
-        >
-      </div>
+      @if(hideComponents) {
+      <button id="show-components" (click)="showComponents()"
+        ><span class="material-symbols-outlined show-components-icon">right_panel_open</span></button
+      >
+      }
       <app-annotation-pipeline
         (emitPipelineId)="setPipeline($event)"
         (emitIsConfigValid)="setConfigValid($event)"
@@ -13,6 +13,7 @@
     </div>
 
     <app-single-annotation
+      style="width: 100%"
       [isPipelineValid]="isConfigValid"
       [pipelineId]="pipelineId"
       (alleleUpdateEmit)="refreshAllelesTable()"
