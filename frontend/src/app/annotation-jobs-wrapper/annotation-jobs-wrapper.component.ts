@@ -6,8 +6,6 @@ import { AnnotationPipelineComponent } from '../annotation-pipeline/annotation-p
 import { getStatusClassName, Job, JobStatus } from '../job-creation/jobs';
 import { JobCreationComponent } from '../job-creation/job-creation.component';
 import { CommonModule } from '@angular/common';
-import { SingleAnnotationComponent } from '../single-annotation/single-annotation.component';
-import { AllelesTableComponent } from '../alleles-table/alleles-table.component';
 import { UsersService } from '../users.service';
 import { SocketNotificationsService } from '../socket-notifications/socket-notifications.service';
 import { JobNotification } from '../socket-notifications/socket-notifications';
@@ -20,8 +18,6 @@ import { AnnotationPipelineService } from '../annotation-pipeline.service';
     JobsTableComponent,
     AnnotationPipelineComponent,
     JobCreationComponent,
-    SingleAnnotationComponent,
-    AllelesTableComponent,
   ],
   templateUrl: './annotation-jobs-wrapper.component.html',
   styleUrl: './annotation-jobs-wrapper.component.css'
@@ -39,10 +35,7 @@ export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
   @ViewChild(AnnotationPipelineComponent) public pipelinesComponent: AnnotationPipelineComponent;
   @ViewChild(JobCreationComponent) public createJobComponent: JobCreationComponent;
   @ViewChild(JobsTableComponent) public jobsTableComponent: JobsTableComponent;
-  @ViewChild(AllelesTableComponent) public allelesTableComponent: AllelesTableComponent;
-  @ViewChild(SingleAnnotationComponent) public singleAnnotationComponent: SingleAnnotationComponent;
   public downloadLink = '';
-  public currentView:'jobs' | 'single allele' = 'single allele';
   public currentJob: Job = null;
   public currentJobId: number = null;
   public hideComponents = false;
@@ -80,7 +73,7 @@ export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
       return true;
     }
 
-    if (this.currentView === 'jobs' && this.file) {
+    if (this.file) {
       return true;
     }
     return false;
@@ -120,25 +113,11 @@ export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
     if (this.pipelinesComponent.isPipelineChanged()) {
       this.pipelinesComponent.autoSave().pipe(take(1)).subscribe(annonymousPipelineName => {
         this.pipelineId = annonymousPipelineName;
-        this.annotate();
+        this.create();
       });
     } else {
-      this.annotate();
-    }
-  }
-
-  private annotate(): void {
-    if (this.currentView === 'jobs') {
       this.create();
-    } else {
-      this.singleAnnotationComponent.pipelineId = this.pipelineId;
-      this.singleAnnotationComponent.annotateAllele();
     }
-  }
-
-  public triggerSingleAlleleAnnotation(allele: string): void {
-    this.singleAnnotationComponent.setAllele(allele);
-    this.autoSavePipeline();
   }
 
   private create(): void {
@@ -211,21 +190,12 @@ export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
     if (!newPipeline || this.pipelineId === newPipeline) {
       return;
     }
-    this.resetSingleAlleleReport();
     this.pipelineId = newPipeline;
-    if (this.currentView === 'single allele') {
-      this.singleAnnotationComponent.pipelineId = newPipeline;
-    }
+
     if (newPipeline) {
       this.annotationPipelineService.loadPipeline(newPipeline).pipe(take(1)).subscribe();
     }
     this.disableCreate();
-  }
-
-  public resetSingleAlleleReport(): void {
-    if (this.currentView === 'single allele') {
-      this.singleAnnotationComponent.resetReport();
-    }
   }
 
   public setGenome(genome: string): void {
@@ -236,7 +206,7 @@ export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
     if (this.isConfigValid === newState) {
       return;
     }
-    this.resetSingleAlleleReport();
+
     this.isConfigValid = newState;
     this.disableCreate();
   }
@@ -280,25 +250,6 @@ export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
 
   public isJobFinished(status: JobStatus): boolean {
     return status === 'success' || status === 'failed';
-  }
-
-  public switchView(view: 'jobs' | 'single allele'): void {
-    if (this.currentView === view) {
-      return;
-    }
-    if (this.currentView === 'single allele') {
-      this.resetSingleAlleleReport();
-    } else if (this.currentView === 'jobs') {
-      if (this.isCreationFormVisible) {
-        this.createJobComponent.resetState();
-      }
-      this.showCreateMode();
-    }
-    this.currentView = view;
-  }
-
-  public refreshAllelesTable(): void {
-    this.allelesTableComponent.refreshTable();
   }
 
   public updateComponentsVisibility(toHide: boolean): void {
