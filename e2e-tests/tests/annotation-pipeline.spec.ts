@@ -319,7 +319,6 @@ test.describe('Pipeline validation tests', () => {
     await utils.registerUser(page, email, password);
 
     await utils.loginUser(page, email, password);
-    await page.locator('#annotation-jobs').click();
   });
 
   test('should type config without annotators and show error message', async({ page }) => {
