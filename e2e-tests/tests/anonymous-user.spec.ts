@@ -130,8 +130,8 @@ test.describe('Anonymous user tests', () => {
   });
 
   test('should use public pipeline for job annotation', async({ page }) => {
+    await page.getByRole('link', { name: 'Annotation Jobs' }).click();
     await utils.selectPipeline(page, 'pipeline/Clinical_annotation');
-    await page.locator('#annotation-jobs').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-vcf-file-reduced.vcf');
     await page.locator('#create-button').click();
 
@@ -142,6 +142,7 @@ test.describe('Anonymous user tests', () => {
   });
 
   test('should use anonymous pipeline for job annotation', async({ page }) => {
+    await page.getByRole('link', { name: 'Annotation Jobs' }).click();
     await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
     await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New pipeline', exact: true }).click();
     await expect(page.locator('#pipelines-input')).toBeEmpty();
@@ -171,7 +172,6 @@ test.describe('Anonymous user tests', () => {
 
     await saveResponse;
 
-    await page.locator('#annotation-jobs').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-vcf-file.vcf');
     await page.locator('#create-button').click();
 
@@ -180,7 +180,7 @@ test.describe('Anonymous user tests', () => {
   });
 
   test('should annotate with tsv file', async({ page }) => {
-    await page.locator('#annotation-jobs').click();
+    await page.getByRole('link', { name: 'Annotation Jobs' }).click();
     await customDefaultPipeline(page);
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-tsv-file.tsv');
     await page.locator('#create-button').click();
@@ -188,7 +188,7 @@ test.describe('Anonymous user tests', () => {
   });
 
   test('should annotate with csv file', async({ page }) => {
-    await page.locator('#annotation-jobs').click();
+    await page.getByRole('link', { name: 'Annotation Jobs' }).click();
 
     await customDefaultPipeline(page);
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-csv-file.csv');
@@ -197,7 +197,7 @@ test.describe('Anonymous user tests', () => {
   });
 
   test('should download job result', async({ page }) => {
-    await page.locator('#annotation-jobs').click();
+    await page.getByRole('link', { name: 'Annotation Jobs' }).click();
     await customDefaultPipeline(page);
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-vcf-file.vcf');
     await page.locator('#create-button').click();
@@ -217,8 +217,8 @@ test.describe('Anonymous user tests', () => {
   });
 
   test('should be able to create new job after the previous one', async({ page }) => {
+    await page.getByRole('link', { name: 'Annotation Jobs' }).click();
     await utils.selectPipeline(page, 'pipeline/Clinical_annotation');
-    await page.locator('#annotation-jobs').click();
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-vcf-file.vcf');
     await page.locator('#create-button').click();
 

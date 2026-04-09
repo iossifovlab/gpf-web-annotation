@@ -13,4 +13,5 @@ export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegistrationComponent },
   { path: 'about', component: AboutPageComponent },
+  { path: '**', redirectTo: 'single-allele-annotation' },
 ];

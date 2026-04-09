@@ -11,7 +11,7 @@ test.describe('Create job tests', () => {
     await utils.registerUser(page, email, password);
 
     await utils.loginUser(page, email, password);
-    await page.locator('#annotation-jobs').click();
+    await page.getByRole('link', { name: 'Annotation Jobs' }).click();
   });
 
   test('should create job with vcf file', async({ page }) => {
@@ -97,7 +97,7 @@ test.describe('Job details tests', () => {
     await utils.registerUser(page, email, password);
 
     await utils.loginUser(page, email, password);
-    await page.locator('#annotation-jobs').click();
+    await page.getByRole('link', { name: 'Annotation Jobs' }).click();
   });
 
   test('should check job details of the first job', async({ page }) => {
@@ -204,7 +204,7 @@ test.describe('Jobs table tests', () => {
     await utils.registerUser(page, email, password);
 
     await utils.loginUser(page, email, password);
-    await page.locator('#annotation-jobs').click();
+    await page.getByRole('link', { name: 'Annotation Jobs' }).click();
   });
 
   test('should create job and check first row', async({ page }) => {
@@ -285,7 +285,7 @@ test.describe('Jobs validation tests', () => {
     await utils.registerUser(page, email, password);
 
     await utils.loginUser(page, email, password);
-    await page.locator('#annotation-jobs').click();
+    await page.getByRole('link', { name: 'Annotation Jobs' }).click();
   });
 
   test('should check if create button is disabled when invalid file is uploaded', async({ page }) => {
@@ -343,8 +343,6 @@ async function waitForJobStatus(page: Page, color: string): Promise<void> {
   await expect(async() => {
     await expect(page.locator('.grid-cell').nth(0)).toHaveCSS('background-color', color);
     await page.reload();
-    await page.goto('/', {waitUntil: 'load'});
-    await page.locator('#annotation-jobs').click();
   }).toPass({intervals: [2000, 3000, 5000], timeout: 120000});
 }
 
