@@ -16,14 +16,27 @@ describe('FormatResultValuePipe', () => {
 
   it('should format number value', () => {
     const pipe = new FormatResultValuePipe();
-    expect(pipe.transform(0, 3)).toBe('0');
-    expect(pipe.transform(10, 3)).toBe('10');
-    expect(pipe.transform(123, 3)).toBe('123');
-    expect(pipe.transform(1234, 3)).toBe('1.23e+03');
-    expect(pipe.transform(1234, 4)).toBe('1234');
+    expect(pipe.transform(0)).toBe('0');
+    expect(pipe.transform(10, 5)).toBe('10');
+    expect(pipe.transform(123)).toBe('123');
+    expect(pipe.transform(1234, 5)).toBe('1234');
     expect(pipe.transform(1801133, 3)).toBe('1.8e+06');
-    expect(pipe.transform(0.32269200682640076, 3)).toBe('0.323');
+    expect(pipe.transform(123456789, 3)).toBe('1.23e+08');
+    expect(pipe.transform(0.32269200682640076, 7)).toBe('0.322692');
+    expect(pipe.transform(0.123456, 3)).toBe('0.123');
+    expect(pipe.transform(123456.123456)).toBe('1.23e+05');
+    expect(pipe.transform(12345.5)).toBe('12345.5');
+    expect(pipe.transform(1234.5)).toBe('1234.5');
+    expect(pipe.transform(123.5)).toBe('123.5');
+    expect(pipe.transform(12345)).toBe('12345');
+    expect(pipe.transform(1234)).toBe('1234');
+    expect(pipe.transform(123)).toBe('123');
+    expect(pipe.transform(12345.0)).toBe('12345');
+    expect(pipe.transform(1234.0)).toBe('1234');
+    expect(pipe.transform(123.0)).toBe('123');
+    expect(pipe.transform(12.0, 4)).toBe('12');
   });
+
 
   it('should format value of type map with strings', () => {
     const pipe = new FormatResultValuePipe();
@@ -34,7 +47,7 @@ describe('FormatResultValuePipe', () => {
   it('should format value of type map with string and number', () => {
     const pipe = new FormatResultValuePipe();
     const map = new Map<string, number>([['MTHFR', 15454], ['ABC', 52]]);
-    expect(pipe.transform(map, 3)).toBe('MTHFR:1.55e+04; ABC:52; ');
+    expect(pipe.transform(map, 3)).toBe('MTHFR:15454; ABC:52; ');
   });
 
   it('should format value of type array with strings', () => {
