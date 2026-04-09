@@ -290,6 +290,62 @@ test.describe('Single annotation history tests', () => {
   });
 });
 
+test.describe('Single annotation rate limit tests - anonymous user', () => {
+  test('should return 429 when rate limit is exceeded', async({ page, request }) => {
+    await page.goto('/', {waitUntil: 'load'});
+    const payload = {
+      annotatable: { chrom: 'chr1', pos: 11796321, ref: 'G', alt: 'A' },
+      pipeline_id: 'pipeline/Clinical_annotation',
+    };
+
+    await Promise.all(
+      Array.from({ length: 10 }, () =>
+        request.post('http://localhost:8000/api/single_allele/annotate', { data: payload })
+      )
+    );
+    const response = await request.post(
+      'http://localhost:8000/api/single_allele/annotate',
+      { data: payload }
+    );
+    expect(response.status()).toBe(429);
+  });
+});
+
+test.describe('Single annotation rate limit tests - logged in user', () => {
+  test('should return 429 when rate limit is exceeded', async({ page }) => {
+    await page.goto('/', {waitUntil: 'load'});
+    const email = utils.getRandomString() + '@email.com';
+    const password = 'aaabbb';
+    await utils.registerUser(page, email, password);
+    await utils.loginUser(page, email, password);
+
+    const cookies = await page.context().cookies();
+    const csrfToken = cookies.find(c => c.name === 'csrftoken')?.value ?? '';
+
+    const payload = {
+      annotatable: { chrom: 'chr1', pos: 11796321, ref: 'G', alt: 'A' },
+      pipeline_id: 'pipeline/Clinical_annotation',
+    };
+
+    await Promise.all(
+      Array.from({ length: 10 }, () =>
+        page.request.post(
+          'http://localhost:8000/api/single_allele/annotate',
+          {
+            data: payload,
+            headers: { 'X-CSRFToken': csrfToken }
+          }
+        )
+      )
+    );
+    const response = await page.request.post(
+      'http://localhost:8000/api/single_allele/annotate',
+      { data: payload, headers: { 'X-CSRFToken': csrfToken } }
+    );
+    expect(response.status()).toBe(429);
+  });
+});
+
 async function customDefaultPipeline(page: Page): Promise<void> {
   await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New pipeline', exact: true }).click();
   await expect(page.locator('#pipelines-input')).toBeEmpty();

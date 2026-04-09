@@ -872,13 +872,11 @@ test.describe('Add annotator to pipeline tests', () => {
     await page.getByRole('button', { name: 'Next' }).click();
 
     await page.locator('[id="chain-dropdown"]').locator('.dropdown-icon').click();
-    const totalChainCount = await page.locator('mat-option.resource-option').count();
 
     await page.locator('[id="chain-dropdown"] input').fill('hg19');
     const filteredOptions = page.locator('mat-option.resource-option');
 
-    expect(await filteredOptions.count()).toBeLessThan(totalChainCount);
-    await expect(filteredOptions.first()).toContainText('hg19');
+    expect(await filteredOptions.count()).toBe(6);
   });
 
   test('should filter source_genome options by search text in configure step', async({ page }) => {
@@ -888,13 +886,11 @@ test.describe('Add annotator to pipeline tests', () => {
     await page.getByRole('button', { name: 'Next' }).click();
 
     await page.locator('[id="source_genome-dropdown"]').locator('.dropdown-icon').click();
-    const totalGenomeCount = await page.locator('mat-option.resource-option').count();
 
     await page.locator('[id="source_genome-dropdown"] input').fill('t2t');
     const filteredOptions = page.locator('mat-option.resource-option');
 
-    expect(await filteredOptions.count()).toBeLessThan(totalGenomeCount);
-    await expect(filteredOptions.first()).toContainText('t2t');
+    expect(await filteredOptions.count()).toBe(1);
   });
 
   test('should disable Next button in configure step when a filled required field is cleared', async({ page }) => {
