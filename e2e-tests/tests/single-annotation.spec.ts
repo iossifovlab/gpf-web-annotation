@@ -161,6 +161,10 @@ test.describe('Single annotation report tests', () => {
 test.describe('Single annotation annotator modal', () => {
   test.beforeEach(async({ page }) => {
     await page.goto('/', {waitUntil: 'load'});
+    const email = utils.getRandomString() + '@email.com';
+    const password = 'aaabbb';
+    await utils.registerUser(page, email, password);
+    await utils.loginUser(page, email, password);
     await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
     await customDefaultPipeline(page);
     await page.getByPlaceholder('Type annotatable...').fill('chr1 11796321 G A');
