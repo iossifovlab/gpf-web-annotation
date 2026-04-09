@@ -3,18 +3,23 @@
   justify-content: space-between;
   margin: 10px 15px;
   margin-bottom: 0;
+  gap: 20px;
 }
 
 #header-logo {
   width: 32px;
   height: 32px;
+  flex-shrink: 0;
 }
 
 #app-title {
   font-size: 20px;
   font-weight: 500;
   margin-left: 10px;
-  vertical-align: text-bottom;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #user-email {
@@ -75,18 +80,21 @@
   display: flex;
   align-items: center;
   gap: 20px;
+  flex-shrink: 0;
 }
 
 #header-left {
   display: flex;
   align-items: center;
+  min-width: 0;
+  gap: 8px;
 }
 
 #page-links {
   display: flex;
   align-items: flex-end;
-  margin-left: 30px;
   gap: 4px;
+  flex-shrink: 0;
 }
 
 #page-links a {
@@ -99,6 +107,11 @@
   font-size: 16px;
   font-weight: 500;
   line-height: 24px;
+  width: 8.5vw;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
 }
 
 #page-links a.active-link {
