@@ -12,67 +12,40 @@
         (tiggerHidingComponents)="updateComponentsVisibility($event)"></app-annotation-pipeline>
     </div>
 
-    <div
-      [style.display]="hideComponents ? 'none' : 'flex'"
-      style="display: flex; flex-direction: column; width: auto; min-width: 0; flex-grow: 1">
-      <div id="annotation-mode">
-        <button
-          id="single-allele-annotations"
-          (click)="switchView('single allele')"
-          [ngClass]="currentView === 'single allele' ? 'active-view' : 'inactive-view'"
-          >Single allele annotation</button
-        >
-        <button
-          id="annotation-jobs"
-          (click)="switchView('jobs')"
-          [ngClass]="currentView === 'jobs' ? 'active-view' : 'inactive-view'"
-          >Annotation jobs</button
-        >
+    <div>
+      <div *ngIf="isCreationFormVisible">
+        <app-job-creation
+          (emitFile)="setFile($event)"
+          (emitFileSeparator)="setFileSeparator($event)"
+          (emitGenome)="setGenome($event)"
+          (emitUpdatedFileHeader)="setUpdatedFileHeader($event)"></app-job-creation>
+        <div style="margin-top: 10px">
+          <span class="error-message">{{ creationError }}</span>
+          <button id="create-button" (click)="autoSavePipeline()" tabindex="1" [disabled]="disableCreate()"
+            >Create</button
+          >
+        </div>
       </div>
 
-      <div *ngIf="currentView === 'jobs'">
-        <div *ngIf="isCreationFormVisible">
-          <app-job-creation
-            (emitFile)="setFile($event)"
-            (emitFileSeparator)="setFileSeparator($event)"
-            (emitGenome)="setGenome($event)"
-            (emitUpdatedFileHeader)="setUpdatedFileHeader($event)"></app-job-creation>
-          <div style="margin-top: 10px">
-            <span class="error-message">{{ creationError }}</span>
-            <button id="create-button" (click)="autoSavePipeline()" tabindex="1" [disabled]="disableCreate()"
-              >Create</button
+      <div *ngIf="!isCreationFormVisible && currentJob" id="result">
+        <div id="current-job-info">
+          <div>
+            <span class="job-name">Job name: {{ currentJob.name }}</span>
+            <span class="status-label" [ngClass]="getStatusClass()">{{ currentJob.status }}</span>
+          </div>
+          <div *ngIf="currentJob.status === 'success'">
+            <span id="file-name">{{ currentJob.annotatedFileName }}</span>
+            <a id="download-result" [href]="downloadLink" download
+              ><span class="material-symbols-outlined download-icon">download</span></a
             >
           </div>
         </div>
 
-        <div *ngIf="!isCreationFormVisible && currentJob" id="result">
-          <div id="current-job-info">
-            <div>
-              <span class="job-name">Job name: {{ currentJob.name }}</span>
-              <span class="status-label" [ngClass]="getStatusClass()">{{ currentJob.status }}</span>
-            </div>
-            <div *ngIf="currentJob.status === 'success'">
-              <span id="file-name">{{ currentJob.annotatedFileName }}</span>
-              <a id="download-result" [href]="downloadLink" download
-                ><span class="material-symbols-outlined download-icon">download</span></a
-              >
-            </div>
-          </div>
-
-          <div id="new-job-section">
-            <button id="new-job-button" (click)="showCreateMode()"
-              ><span class="material-symbols-outlined">add</span>new job</button
-            >
-          </div>
+        <div id="new-job-section">
+          <button id="new-job-button" (click)="showCreateMode()"
+            ><span class="material-symbols-outlined">add</span>new job</button
+          >
         </div>
-      </div>
-
-      <div *ngIf="currentView === 'single allele'">
-        <app-single-annotation
-          [isPipelineValid]="isConfigValid"
-          [pipelineId]="pipelineId"
-          (alleleUpdateEmit)="refreshAllelesTable()"
-          (autoSaveTrigger)="autoSavePipeline()"></app-single-annotation>
       </div>
     </div>
   </div>
@@ -91,11 +64,8 @@
         ></button
       >
     </div>
-    <div *ngIf="!hideHistory">
-      <app-jobs-table *ngIf="currentView === 'jobs'" (jobDelete)="refreshUserQuota()"></app-jobs-table>
-      <app-alleles-table
-        *ngIf="currentView === 'single allele'"
-        (emitAllele)="triggerSingleAlleleAnnotation($event)"></app-alleles-table>
-    </div>
+    @if(!hideHistory) {
+    <app-jobs-table (jobDelete)="refreshUserQuota()"></app-jobs-table>
+    }
   </div>
 </div>

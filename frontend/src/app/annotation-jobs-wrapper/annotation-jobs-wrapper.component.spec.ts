@@ -11,7 +11,6 @@ import { provideMonacoEditor } from 'ngx-monaco-editor-v2';
 import { SocketNotificationsService } from '../socket-notifications/socket-notifications.service';
 import { JobNotification, PipelineNotification } from '../socket-notifications/socket-notifications';
 import { AnnotationPipelineService } from '../annotation-pipeline.service';
-import { SingleAnnotationComponent } from '../single-annotation/single-annotation.component';
 import { MatTooltip } from '@angular/material/tooltip';
 
 class UserServiceMock {
@@ -156,10 +155,8 @@ describe('AnnotationJobsWrapperComponent', () => {
 
     fixture = TestBed.createComponent(AnnotationJobsWrapperComponent);
     component = fixture.componentInstance;
-    component.currentView = 'jobs';
 
     fixture.detectChanges();
-    component.singleAnnotationComponent = TestBed.createComponent(SingleAnnotationComponent).componentInstance;
   });
 
   it('should create', () => {
@@ -333,61 +330,24 @@ describe('AnnotationJobsWrapperComponent', () => {
     expect(component.currentJobId).toBe(1);
   });
 
-  it('should trigger allele annotation and auto save pipeline', () => {
-    component.currentView = 'single allele';
-    fixture.detectChanges();
-
-    component.pipelineId = 'pipeline';
-    const pipelinesComponentSpy = jest.spyOn(component.pipelinesComponent, 'autoSave').mockReturnValue(of(''));
-    const annotateAlleleSpy = jest.spyOn(component.singleAnnotationComponent, 'annotateAllele');
-    jest.spyOn(component.pipelinesComponent, 'isPipelineChanged').mockReturnValue(true);
-
-    component.autoSavePipeline();
-    expect(pipelinesComponentSpy).toHaveBeenCalledWith();
-    expect(annotateAlleleSpy).toHaveBeenCalledWith();
-  });
-
-  it('should trigger allele annotation when catching emits from alleles table', () => {
-    component.currentView = 'single allele';
-    fixture.detectChanges();
-
-    const autoSavePipelineSpy = jest.spyOn(component, 'autoSavePipeline');
-    const setAlleleSpy = jest.spyOn(component.singleAnnotationComponent, 'setAllele');
-
-    component.triggerSingleAlleleAnnotation('chr1 123123 TT GG');
-    expect(autoSavePipelineSpy).toHaveBeenCalledWith();
-    expect(setAlleleSpy).toHaveBeenCalledWith('chr1 123123 TT GG');
-  });
-
   it('should set and load pipeline when catching emits from pipeline component', () => {
     component.pipelineId = 'prev_pipeline';
     const loadPipelineSpy = jest.spyOn(annotationPipelineServiceMock, 'loadPipeline');
-    const resetSingleAlleleReportSpy = jest.spyOn(component, 'resetSingleAlleleReport');
     const disableCreateSpy = jest.spyOn(component, 'disableCreate');
 
     component.setPipeline('pipeline_autism');
-    expect(resetSingleAlleleReportSpy).toHaveBeenCalledWith();
     expect(component.pipelineId).toBe('pipeline_autism');
     expect(loadPipelineSpy).toHaveBeenCalledWith('pipeline_autism');
     expect(disableCreateSpy).toHaveBeenCalledWith();
   });
 
-  it('should trigger annotation report reset on pipeline change', () => {
-    component.currentView = 'single allele';
-    fixture.detectChanges();
-
-    const resetReportSpy = jest.spyOn(component.singleAnnotationComponent, 'resetReport');
-
-    component.resetSingleAlleleReport();
-    expect(resetReportSpy).toHaveBeenCalledWith();
-  });
 
   it('should not trigger any changes when selecting the same pipeline', () => {
     component.pipelineId = 'pipeline_autism';
-    const resetSingleAlleleReportSpy = jest.spyOn(component, 'resetSingleAlleleReport');
+    const disableCreateJobSpy = jest.spyOn(component, 'disableCreate');
 
     component.setPipeline('pipeline_autism');
-    expect(resetSingleAlleleReportSpy).not.toHaveBeenCalledWith();
+    expect(disableCreateJobSpy).not.toHaveBeenCalledWith();
   });
 
   it('should set genome', () => {
@@ -398,15 +358,12 @@ describe('AnnotationJobsWrapperComponent', () => {
 
   it('should set pipeline config state', () => {
     component.isConfigValid = true;
-    const resetSingleAlleleReportSpy = jest.spyOn(component, 'resetSingleAlleleReport');
     const disableCreateSpy = jest.spyOn(component, 'disableCreate');
     component.setConfigValid(true);
-    expect(resetSingleAlleleReportSpy).not.toHaveBeenCalledWith();
     expect(disableCreateSpy).not.toHaveBeenCalledWith();
 
     component.setConfigValid(false);
     expect(component.isConfigValid).toBe(false);
-    expect(resetSingleAlleleReportSpy).toHaveBeenCalledWith();
     expect(disableCreateSpy).toHaveBeenCalledWith();
   });
 
@@ -525,47 +482,6 @@ describe('AnnotationJobsWrapperComponent', () => {
     expect(component.isJobFinished('waiting')).toBe(false);
   });
 
-  it('should switch to single annotation view', () => {
-    const showCreateModeSpy = jest.spyOn(component, 'showCreateMode');
-    const resetStateSpy = jest.spyOn(component.createJobComponent, 'resetState');
-    component.isCreationFormVisible = true;
-
-    component.switchView('single allele');
-    expect(showCreateModeSpy).toHaveBeenCalledWith();
-    expect(resetStateSpy).toHaveBeenCalledWith();
-    expect(component.currentView).toBe('single allele');
-  });
-
-  it('should switch to jobs view and reset single annotation result', () => {
-    component.currentView = 'single allele';
-    fixture.detectChanges();
-
-    const resetSingleAlleleReportSpy = jest.spyOn(component, 'resetSingleAlleleReport');
-
-    component.switchView('jobs');
-    expect(resetSingleAlleleReportSpy).toHaveBeenCalledWith();
-    expect(component.currentView).toBe('jobs');
-  });
-
-  it('should not trigger any changes if the current view is selected', () => {
-    const showCreateModeSpy = jest.spyOn(component, 'showCreateMode');
-    const resetStateSpy = jest.spyOn(component.createJobComponent, 'resetState');
-    component.isCreationFormVisible = true;
-
-    component.switchView('jobs');
-    expect(showCreateModeSpy).not.toHaveBeenCalledWith();
-    expect(resetStateSpy).not.toHaveBeenCalledWith();
-  });
-
-  it('should trigger alleles table refresh', () => {
-    component.currentView = 'single allele';
-    fixture.detectChanges();
-    const refreshTableSpy = jest.spyOn(component.allelesTableComponent, 'refreshTable');
-
-    component.refreshAllelesTable();
-    expect(refreshTableSpy).toHaveBeenCalledWith();
-  });
-
   it('should display hidden components and trigger shrinking the editor\'s size', () => {
     const updateComponentsVisibilitySpy = jest.spyOn(component, 'updateComponentsVisibility');
     const shrinkTextareaSpy = jest.spyOn(component.pipelinesComponent, 'shrinkTextarea');
@@ -590,7 +506,6 @@ describe('AnnotationJobsWrapperComponent', () => {
 
   it('should display confirmation dialog on beforeUnload event when creating job is not finished', () => {
     const mockBoeforeUnloadEvent = { preventDefault: jest.fn() } as unknown as BeforeUnloadEvent;
-    component.currentView = 'jobs';
     component.file = new File([], 'mock.vcf', { type: 'text/vcard' });
     component.beforeUnload(mockBoeforeUnloadEvent);
     expect(mockBoeforeUnloadEvent.preventDefault).toHaveBeenCalledWith();
