@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { AnnotationWrapperComponent } from './annotation-wrapper.component';
+import { AnnotationJobsWrapperComponent } from './annotation-jobs-wrapper.component';
 import { JobsService } from '../job-creation/jobs.service';
 import { provideHttpClient } from '@angular/common/http';
 import { UserData, UsersService } from '../users.service';
@@ -118,9 +118,9 @@ class AnnotationPipelineServiceMock {
 };
 
 
-describe('AnnotationWrapperComponent', () => {
-  let component: AnnotationWrapperComponent;
-  let fixture: ComponentFixture<AnnotationWrapperComponent>;
+describe('AnnotationJobsWrapperComponent', () => {
+  let component: AnnotationJobsWrapperComponent;
+  let fixture: ComponentFixture<AnnotationJobsWrapperComponent>;
   const jobsServiceMock = new JobsServiceMock();
   const userServiceMock = new UserServiceMock();
   const socketNotificationsServiceMock = new SocketNotificationsServiceMock();
@@ -128,7 +128,7 @@ describe('AnnotationWrapperComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [AnnotationWrapperComponent],
+      imports: [AnnotationJobsWrapperComponent],
       providers: [
         JobsService,
         MatTooltip,
@@ -154,7 +154,7 @@ describe('AnnotationWrapperComponent', () => {
       ]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(AnnotationWrapperComponent);
+    fixture = TestBed.createComponent(AnnotationJobsWrapperComponent);
     component = fixture.componentInstance;
     component.currentView = 'jobs';
 
