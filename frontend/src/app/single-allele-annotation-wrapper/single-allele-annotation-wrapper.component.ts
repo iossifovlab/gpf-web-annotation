@@ -1,25 +1,17 @@
-import { Component, ViewChild, OnInit, OnDestroy, NgZone, HostListener } from '@angular/core';
-import { JobsTableComponent } from '../jobs-table/jobs-table.component';
-import { Observable, Subscription, take } from 'rxjs';
-import { JobsService } from '../job-creation/jobs.service';
+import { Component, ViewChild, OnInit, NgZone, HostListener } from '@angular/core';
+import { take } from 'rxjs';
 import { AnnotationPipelineComponent } from '../annotation-pipeline/annotation-pipeline.component';
-import { getStatusClassName, Job, JobStatus } from '../job-creation/jobs';
-import { JobCreationComponent } from '../job-creation/job-creation.component';
 import { CommonModule } from '@angular/common';
 import { SingleAnnotationComponent } from '../single-annotation/single-annotation.component';
 import { AllelesTableComponent } from '../alleles-table/alleles-table.component';
 import { UsersService } from '../users.service';
-import { SocketNotificationsService } from '../socket-notifications/socket-notifications.service';
-import { JobNotification } from '../socket-notifications/socket-notifications';
 import { AnnotationPipelineService } from '../annotation-pipeline.service';
 
 @Component({
   selector: 'app-single-allele-annotation-wrapper',
   imports: [
     CommonModule,
-    JobsTableComponent,
     AnnotationPipelineComponent,
-    JobCreationComponent,
     SingleAnnotationComponent,
     AllelesTableComponent,
   ],
@@ -27,41 +19,25 @@ import { AnnotationPipelineService } from '../annotation-pipeline.service';
   styleUrl: './single-allele-annotation-wrapper.component.css'
 })
 
-export class SingleAlleleAnnotationWrapperComponent implements OnInit, OnDestroy {
-  public file: File = null;
-  public fileSeparator: string = null;
-  public fileHeader: Map<string, string> = null;
+export class SingleAlleleAnnotationWrapperComponent implements OnInit {
   public pipelineId = '';
   public isConfigValid = true;
   public creationError = '';
-  public selectedGenome = '';
-  public isCreationFormVisible = true;
   @ViewChild(AnnotationPipelineComponent) public pipelinesComponent: AnnotationPipelineComponent;
-  @ViewChild(JobCreationComponent) public createJobComponent: JobCreationComponent;
-  @ViewChild(JobsTableComponent) public jobsTableComponent: JobsTableComponent;
   @ViewChild(AllelesTableComponent) public allelesTableComponent: AllelesTableComponent;
   @ViewChild(SingleAnnotationComponent) public singleAnnotationComponent: SingleAnnotationComponent;
-  public downloadLink = '';
-  public currentView:'jobs' | 'single allele' = 'single allele';
-  public currentJob: Job = null;
-  public currentJobId: number = null;
   public hideComponents = false;
   public hideHistory = false;
   public isUserLoggedIn = false;
-  public blockCreate: boolean = false;
-  public socketNotificationSubscription: Subscription = new Subscription();
 
 
   public constructor(
-      private jobsService: JobsService,
       private userService: UsersService,
       private ngZone: NgZone,
-      private socketNotificationsService: SocketNotificationsService,
       private annotationPipelineService: AnnotationPipelineService,
   ) { }
 
   public ngOnInit(): void {
-    this.setupJobWebSocketConnection();
     this.userService.userData.pipe(
     ).subscribe((userData) => {
       this.isUserLoggedIn = userData.loggedIn;
@@ -70,47 +46,9 @@ export class SingleAlleleAnnotationWrapperComponent implements OnInit, OnDestroy
 
   @HostListener('window:beforeunload', ['$event'])
   public beforeUnload(event: BeforeUnloadEvent): void {
-    if (this.hasUnsavedChanges()) {
+    if (this.pipelinesComponent.isPipelineChanged()) {
       event.preventDefault(); // display the confirmation dialog
     }
-  }
-
-  private hasUnsavedChanges(): boolean {
-    if (this.pipelinesComponent.isPipelineChanged()) {
-      return true;
-    }
-
-    if (this.currentView === 'jobs' && this.file) {
-      return true;
-    }
-    return false;
-  }
-
-  public ngOnDestroy(): void {
-    this.socketNotificationsService.closeConnection();
-  }
-
-
-  private setupJobWebSocketConnection(): void {
-    this.socketNotificationSubscription = this.socketNotificationsService.getJobNotifications().pipe(
-    ).subscribe({
-      next: (notification: JobNotification) => {
-        this.userService.refreshUserData();
-        if (notification.jobId === this.currentJobId) {
-          this.getCurrentJobDetails(notification.jobId);
-        }
-        if (this.isUserLoggedIn) {
-          this.jobsTableComponent.refreshTable();
-        }
-      },
-      error: err => {
-        console.error(err);
-        if (err instanceof CloseEvent && err.type === 'close') {
-          this.socketNotificationSubscription.unsubscribe();
-          this.setupJobWebSocketConnection();
-        }
-      }
-    });
   }
 
   public autoSavePipeline(): void {
@@ -128,83 +66,13 @@ export class SingleAlleleAnnotationWrapperComponent implements OnInit, OnDestroy
   }
 
   private annotate(): void {
-    if (this.currentView === 'jobs') {
-      this.create();
-    } else {
-      this.singleAnnotationComponent.pipelineId = this.pipelineId;
-      this.singleAnnotationComponent.annotateAllele();
-    }
+    this.singleAnnotationComponent.pipelineId = this.pipelineId;
+    this.singleAnnotationComponent.annotateAllele();
   }
 
   public triggerSingleAlleleAnnotation(allele: string): void {
     this.singleAnnotationComponent.setAllele(allele);
     this.autoSavePipeline();
-  }
-
-  private create(): void {
-    if (this.file) {
-      let createObservable: Observable<number>;
-      if (this.file.type === 'text/vcard') {
-        createObservable = this.jobsService.createVcfJob(
-          this.file,
-          this.pipelineId,
-          this.selectedGenome,
-        );
-      } else {
-        createObservable = this.jobsService.createNonVcfJob(
-          this.file,
-          this.pipelineId,
-          this.selectedGenome,
-          this.fileSeparator,
-          this.fileHeader
-        );
-      }
-
-      this.blockCreate = true;
-      createObservable.pipe(
-        take(1),
-      ).subscribe({
-        next: (jobId: number) => {
-          this.isCreationFormVisible = false;
-          this.currentJobId = jobId;
-          this.getCurrentJobDetails(jobId);
-        },
-        complete: () => {
-          this.blockCreate = false;
-        },
-        error: (err: Error) => {
-          this.creationError = err.message;
-          this.blockCreate = false;
-        }
-      });
-    }
-  }
-
-  private getCurrentJobDetails(jobId: number): void {
-    this.jobsService.getJobDetails(jobId).subscribe({
-      next: (job: Job) => {
-        if (!this.currentJob || this.currentJob.status !== job.status) {
-          this.currentJob = job;
-          this.downloadLink = this.jobsService.getDownloadJobResultLink(job.id);
-        }
-      },
-      error: (err: Error) => {
-        this.creationError = err.message;
-      }
-    });
-  }
-
-  public showCreateMode(): void {
-    this.isCreationFormVisible = true;
-    this.creationError = '';
-    this.resetJobState();
-  }
-
-  private resetJobState(): void {
-    this.currentJob = null;
-    this.downloadLink = '';
-    this.file = null;
-    this.fileHeader = null;
   }
 
   public setPipeline(newPipeline: string): void {
@@ -213,23 +81,15 @@ export class SingleAlleleAnnotationWrapperComponent implements OnInit, OnDestroy
     }
     this.resetSingleAlleleReport();
     this.pipelineId = newPipeline;
-    if (this.currentView === 'single allele') {
-      this.singleAnnotationComponent.pipelineId = newPipeline;
-    }
+
+    this.singleAnnotationComponent.pipelineId = newPipeline;
     if (newPipeline) {
       this.annotationPipelineService.loadPipeline(newPipeline).pipe(take(1)).subscribe();
     }
-    this.disableCreate();
   }
 
   public resetSingleAlleleReport(): void {
-    if (this.currentView === 'single allele') {
-      this.singleAnnotationComponent.resetReport();
-    }
-  }
-
-  public setGenome(genome: string): void {
-    this.selectedGenome = genome;
+    this.singleAnnotationComponent.resetReport();
   }
 
   public setConfigValid(newState: boolean): void {
@@ -238,63 +98,6 @@ export class SingleAlleleAnnotationWrapperComponent implements OnInit, OnDestroy
     }
     this.resetSingleAlleleReport();
     this.isConfigValid = newState;
-    this.disableCreate();
-  }
-
-  public setFile(newFile: File): void {
-    this.file = newFile;
-    this.creationError = '';
-    this.disableCreate();
-  }
-
-  public setFileSeparator(newSeparator: string): void {
-    this.fileSeparator = newSeparator;
-  }
-
-  public setUpdatedFileHeader(newHeader: Map<string, string>): void {
-    this.fileHeader = newHeader;
-    this.disableCreate();
-  }
-
-  public isGenomeValid(): boolean {
-    const genomeRequired = this.fileHeader.has('location') || this.fileHeader.has('variant');
-    if (genomeRequired && this.selectedGenome === '') {
-      return false;
-    }
-    return true;
-  }
-
-  public getStatusClass(): string {
-    return getStatusClassName(this.currentJob.status);
-  }
-
-  public disableCreate(): boolean {
-    return this.blockCreate
-      || this.creationError !== ''
-      || !this.pipelineId
-      || !this.file
-      || (this.file.type !== 'text/vcard' && !this.fileHeader)
-      || !this.isConfigValid
-      || (this.file.type !== 'text/vcard' && !this.isGenomeValid());
-  }
-
-  public isJobFinished(status: JobStatus): boolean {
-    return status === 'success' || status === 'failed';
-  }
-
-  public switchView(view: 'jobs' | 'single allele'): void {
-    if (this.currentView === view) {
-      return;
-    }
-    if (this.currentView === 'single allele') {
-      this.resetSingleAlleleReport();
-    } else if (this.currentView === 'jobs') {
-      if (this.isCreationFormVisible) {
-        this.createJobComponent.resetState();
-      }
-      this.showCreateMode();
-    }
-    this.currentView = view;
   }
 
   public refreshAllelesTable(): void {
