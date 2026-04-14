@@ -3,13 +3,26 @@
   @if(isAppHeaderVisible()){
   <div id="app-header">
     <div id="header-left">
-      <div>
-        <img src="{{ environment.imgPathPrefix }}/logo-64x64.png" alt="GPF Logo" id="header-logo" />
-        <span id="app-title">GAIn Web</span>
-      </div>
+      <img src="{{ environment.imgPathPrefix }}/logo-64x64.png" alt="GPF Logo" id="header-logo" />
+      <span id="app-title">GAIn: Genomic Annotation Infrastructure</span>
       <div id="page-links">
-        <a routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">Home</a>
-        <a routerLink="/about" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">About</a>
+        <a
+          routerLink="/single-allele-annotation"
+          routerLinkActive="active-link"
+          [routerLinkActiveOptions]="{ exact: true }"
+          title="Single Allele Annotation"
+          >Single Allele Annotation</a
+        >
+        <a
+          routerLink="/annotation-jobs"
+          routerLinkActive="active-link"
+          [routerLinkActiveOptions]="{ exact: true }"
+          title="Annotation Jobs"
+          >Annotation Jobs</a
+        >
+        <a routerLink="/about" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }" title="About"
+          >About</a
+        >
       </div>
     </div>
     <div id="header-right">
@@ -26,6 +39,7 @@
       }
     </div>
   </div>
+  <div id="separator"></div>
   }
   <router-outlet></router-outlet>
 </div>

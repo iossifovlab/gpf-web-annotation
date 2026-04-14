@@ -11,7 +11,7 @@ test.describe('Create job tests', () => {
     await utils.registerUser(page, email, password);
 
     await utils.loginUser(page, email, password);
-    await page.locator('#annotation-jobs').click();
+    await page.getByRole('link', { name: 'Annotation Jobs' }).click();
   });
 
   test('should create job with vcf file', async({ page }) => {
@@ -45,6 +45,8 @@ test.describe('Create job tests', () => {
     await expect(page.locator('#create-button')).toBeEnabled();
 
     await utils.typeInPipelineEditor(page, 'invalid content');
+    await page.waitForSelector('.invalid-config', { state: 'visible', timeout: 120000 });
+
     await expect(page.locator('#create-button')).toBeDisabled();
   });
 
@@ -97,7 +99,7 @@ test.describe('Job details tests', () => {
     await utils.registerUser(page, email, password);
 
     await utils.loginUser(page, email, password);
-    await page.locator('#annotation-jobs').click();
+    await page.getByRole('link', { name: 'Annotation Jobs' }).click();
   });
 
   test('should check job details of the first job', async({ page }) => {
@@ -204,7 +206,7 @@ test.describe('Jobs table tests', () => {
     await utils.registerUser(page, email, password);
 
     await utils.loginUser(page, email, password);
-    await page.locator('#annotation-jobs').click();
+    await page.getByRole('link', { name: 'Annotation Jobs' }).click();
   });
 
   test('should create job and check first row', async({ page }) => {
@@ -285,7 +287,7 @@ test.describe('Jobs validation tests', () => {
     await utils.registerUser(page, email, password);
 
     await utils.loginUser(page, email, password);
-    await page.locator('#annotation-jobs').click();
+    await page.getByRole('link', { name: 'Annotation Jobs' }).click();
   });
 
   test('should check if create button is disabled when invalid file is uploaded', async({ page }) => {
@@ -343,8 +345,6 @@ async function waitForJobStatus(page: Page, color: string): Promise<void> {
   await expect(async() => {
     await expect(page.locator('.grid-cell').nth(0)).toHaveCSS('background-color', color);
     await page.reload();
-    await page.goto('/', {waitUntil: 'load'});
-    await page.locator('#annotation-jobs').click();
   }).toPass({intervals: [2000, 3000, 5000], timeout: 120000});
 }
 
@@ -361,7 +361,7 @@ async function customDefaultPipeline(page: Page): Promise<void> {
   await expect(page.locator('.monaco-editor').nth(0)).toBeEmpty();
 
   const saveResponse = page.waitForResponse(
-    resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
+    resp => resp.url().includes('api/pipelines/user') && resp.status() === 200, {timeout: 30000}
   );
 
   await utils.typeInPipelineEditor(

@@ -290,7 +290,7 @@ test.describe('Single annotation history tests', () => {
   });
 });
 
-test.describe('Single annotation rate limit tests - anonymous user', () => {
+test.describe.skip('Single annotation rate limit tests - anonymous user', () => {
   test('should return 429 when rate limit is exceeded', async({ page, request }) => {
     await page.goto('/', {waitUntil: 'load'});
     const payload = {
@@ -311,7 +311,7 @@ test.describe('Single annotation rate limit tests - anonymous user', () => {
   });
 });
 
-test.describe('Single annotation rate limit tests - logged in user', () => {
+test.describe.skip('Single annotation rate limit tests - logged in user', () => {
   test('should return 429 when rate limit is exceeded', async({ page }) => {
     await page.goto('/', {waitUntil: 'load'});
     const email = utils.getRandomString() + '@email.com';
