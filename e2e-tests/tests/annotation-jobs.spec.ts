@@ -45,6 +45,8 @@ test.describe('Create job tests', () => {
     await expect(page.locator('#create-button')).toBeEnabled();
 
     await utils.typeInPipelineEditor(page, 'invalid content');
+    await page.waitForSelector('.invalid-config', { state: 'visible', timeout: 120000 });
+
     await expect(page.locator('#create-button')).toBeDisabled();
   });
 
@@ -359,7 +361,7 @@ async function customDefaultPipeline(page: Page): Promise<void> {
   await expect(page.locator('.monaco-editor').nth(0)).toBeEmpty();
 
   const saveResponse = page.waitForResponse(
-    resp => resp.url().includes('api/pipelines/user'), {timeout: 30000}
+    resp => resp.url().includes('api/pipelines/user') && resp.status() === 200, {timeout: 30000}
   );
 
   await utils.typeInPipelineEditor(

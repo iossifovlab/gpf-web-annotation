@@ -64,7 +64,13 @@ export async function typeInPipelineEditor(page: Page, input: string): Promise<v
     return (window as any).monaco?.editor?.getModels()?.length > 0;
   });
   await page.evaluate((value) => {
-    const model = (window as any).monaco.editor.getModels()[0];
+    const editors = (window as any).monaco.editor.getEditors();
+    // Pick the editor whose container is visible in the DOM
+    const editor = editors.find((e: any) => {
+      const container = e.getContainerDomNode();
+      return container.offsetParent !== null; // visible in DOM
+    });
+    const model = editor.getModel();
     model.setValue(value);
   }, input);
   /* eslint-enable */
