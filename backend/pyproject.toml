@@ -43,4 +43,4 @@ exclude = ["**tests*"]
 namespaces = false
 
 [tool.setuptools.package-data]
-web_annotation = ["templates/*.html", "static/*"]
+web_annotation = ["templates/*.html", "static/*", "about.md"]
