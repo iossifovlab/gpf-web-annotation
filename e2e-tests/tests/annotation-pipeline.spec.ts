@@ -647,7 +647,17 @@ test.describe('Add annotator to pipeline tests', () => {
 
     await expect(page.locator('#name-modal')).toBeVisible();
     await page.locator('#name-modal input').fill('My Pipeline');
-    await page.locator('#name-modal').getByRole('button', { name: 'Save' }).click();
+
+    await Promise.all([
+      page.locator('#name-modal').getByRole('button', { name: 'Save' }).click(),
+      page.waitForResponse(
+        resp => resp.url().includes('api/pipelines/load') // wait for pipeline to be saved and loaded
+      ),
+      page.waitForResponse(
+        resp => resp.url().includes('api/editor/pipeline_status?pipeline_id'),
+        {timeout: 300000}
+      )
+    ]);
 
     await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
     // append new annotator
