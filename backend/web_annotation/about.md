@@ -1,7 +1,8 @@
 # GAIn: Genomic Annotation Infrastructure
                             
 Genomic Annotation Infrastructure (GAIn) is an open-source platform
-([http://git/gain](http://git/gain)..) for building transparent, reproducible 
+([https://github.com/iossifovlab/gpf/tree/master/gain_core](https://github.com/iossifovlab/gpf/tree/master/gain_core))
+for building transparent, reproducible 
 genomic annotation pipelines that enable users to annotate genetic positions,
 regions, or variants using available genomic resources. GAIn's web interface
 is a browser-based entry point to GAIn. It lets users explore annotation

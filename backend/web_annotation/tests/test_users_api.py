@@ -495,4 +495,5 @@ def test_about_page(clients: dict[str, Client]) -> None:
         assert response.headers["Content-Type"] == "text/markdown", client_type
         assert len(response.content) > 0, client_type
         assert response.content.decode().find(
-            "Annotation is a core step in genomic analysis") != -1, client_type
+            "Genomic Annotation Infrastructure (GAIn) "
+            "is an open-source platform") != -1, client_type
