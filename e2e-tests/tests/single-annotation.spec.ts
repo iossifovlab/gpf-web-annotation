@@ -82,6 +82,10 @@ test.describe('Single annotation input tests', () => {
 test.describe('Single annotation report tests', () => {
   test.beforeEach(async({ page }) => {
     await page.goto('/', {waitUntil: 'load'});
+    const email = utils.getRandomString() + '@email.com';
+    const password = 'aaabbb';
+    await utils.registerUser(page, email, password);
+    await utils.loginUser(page, email, password);
     await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
     await customDefaultPipeline(page);
     await page.getByPlaceholder('Type annotatable...').fill('chr1 11796321 G A');
@@ -290,59 +294,56 @@ test.describe('Single annotation history tests', () => {
   });
 });
 
-test.describe.skip('Single annotation rate limit tests - anonymous user', () => {
-  test('should return 429 when rate limit is exceeded', async({ page, request }) => {
+test.describe('Single annotation rate limit tests - anonymous user', () => {
+  test('should return 429 when rate limit is exceeded', async({ page }) => {
     await page.goto('/', {waitUntil: 'load'});
-    const payload = {
-      annotatable: { chrom: 'chr1', pos: 11796321, ref: 'G', alt: 'A' },
-      pipeline_id: 'pipeline/Clinical_annotation',
-    };
+    await page.getByPlaceholder('Type annotatable...').fill('chr1 11796321 G A');
 
-    await Promise.all(
-      Array.from({ length: 10 }, () =>
-        request.post('http://localhost:8000/api/single_allele/annotate', { data: payload })
-      )
+    /* eslint-disable no-await-in-loop */
+    for (let i = 0; i < 10; i++) {
+      await page.getByRole('button', { name: 'Go', exact: true }).click();
+      await page.waitForResponse(
+        resp => resp.url().includes('api/single_allele/annotate') && resp.status() === 200, {timeout: 30000}
+      );
+    }
+    /* eslint-enable */
+
+    // 11th click should fail
+    await page.getByRole('button', { name: 'Go', exact: true }).click();
+    const annotateResponse = page.waitForResponse(
+      resp => resp.url().includes('api/single_allele/annotate')
     );
-    const response = await request.post(
-      'http://localhost:8000/api/single_allele/annotate',
-      { data: payload }
-    );
-    expect(response.status()).toBe(429);
+    expect((await annotateResponse).status()).toBe(429);
   });
 });
 
-test.describe.skip('Single annotation rate limit tests - logged in user', () => {
+test.describe('Single annotation rate limit tests - logged in user', () => {
   test('should return 429 when rate limit is exceeded', async({ page }) => {
+    // all tests for single annotation should be done with logged in user
+    // as anonymous users have a very low rate limit which makes it hard not to hit the limit
     await page.goto('/', {waitUntil: 'load'});
     const email = utils.getRandomString() + '@email.com';
     const password = 'aaabbb';
     await utils.registerUser(page, email, password);
     await utils.loginUser(page, email, password);
 
-    const cookies = await page.context().cookies();
-    const csrfToken = cookies.find(c => c.name === 'csrftoken')?.value ?? '';
+    await page.getByPlaceholder('Type annotatable...').fill('chr1 11796321 G A');
 
-    const payload = {
-      annotatable: { chrom: 'chr1', pos: 11796321, ref: 'G', alt: 'A' },
-      pipeline_id: 'pipeline/Clinical_annotation',
-    };
+    /* eslint-disable no-await-in-loop */
+    for (let i = 0; i < 10; i++) {
+      await page.getByRole('button', { name: 'Go', exact: true }).click();
+      await page.waitForResponse(
+        resp => resp.url().includes('api/single_allele/annotate') && resp.status() === 200, {timeout: 30000}
+      );
+    }
+    /* eslint-enable */
 
-    await Promise.all(
-      Array.from({ length: 10 }, () =>
-        page.request.post(
-          'http://localhost:8000/api/single_allele/annotate',
-          {
-            data: payload,
-            headers: { 'X-CSRFToken': csrfToken }
-          }
-        )
-      )
+    // 11th click should fail
+    await page.getByRole('button', { name: 'Go', exact: true }).click();
+    const annotateResponse = page.waitForResponse(
+      resp => resp.url().includes('api/single_allele/annotate')
     );
-    const response = await page.request.post(
-      'http://localhost:8000/api/single_allele/annotate',
-      { data: payload, headers: { 'X-CSRFToken': csrfToken } }
-    );
-    expect(response.status()).toBe(429);
+    expect((await annotateResponse).status()).toBe(429);
   });
 });
 
