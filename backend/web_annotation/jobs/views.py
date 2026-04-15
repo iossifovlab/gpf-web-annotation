@@ -22,10 +22,12 @@ from web_annotation.annotate_helpers import (
     extract_head,
     is_compressed_filename,
 )
-from web_annotation.annotation_base_view import AnnotationBaseView
+from web_annotation.annotation_base_view import AnnotationBaseView, \
+    count_input_variants
 from web_annotation.authentication import WebAnnotationAuthentication
 from web_annotation.models import (
     AnonymousJob,
+    BaseUser,
     Job,
     User,
     UserWrapper,
@@ -230,6 +232,17 @@ class AnnotateVCF(AnnotationBaseView):
             job.update_job_success(str(args))
             self._notify_user_job(request.user, str(job.pk), job.status)
 
+            assert isinstance(request.user, BaseUser)
+            attributes_count = sum(
+                1 for annotator in pipeline.annotators
+                for attr in annotator.attributes
+                if not attr.internal
+            )
+            variants_count = count_input_variants(
+                job.input_path, job.annotation_type,
+            )
+            request.user.get_quota().job_complete(variants_count, attributes_count)
+
         def on_failure(exception: BaseException) -> None:
             """Callback when annotation fails."""
             logger.error(
@@ -373,6 +386,17 @@ class AnnotateColumns(AnnotationBaseView):
             job.disk_size += Path(job.result_path).stat().st_size
             job.update_job_success(str(args))
             self._notify_user_job(request.user, str(job.pk), job.status)
+
+            assert isinstance(request.user, BaseUser)
+            attributes_count = sum(
+                1 for annotator in pipeline.annotators
+                for attr in annotator.attributes
+                if not attr.internal
+            )
+            variants_count = count_input_variants(
+                job.input_path, job.annotation_type,
+            )
+            request.user.get_quota().job_complete(variants_count, attributes_count)
 
         def on_failure(exception: BaseException) -> None:
             job.duration = time.time() - start_time
