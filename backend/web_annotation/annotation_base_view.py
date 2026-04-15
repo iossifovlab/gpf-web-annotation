@@ -1,5 +1,6 @@
 """Module containing base view for annotation work."""
 from functools import partial
+import gzip
 import logging
 from pathlib import Path
 from typing import Any, cast
@@ -53,6 +54,22 @@ def get_grr_pipelines(grr: GenomicResourceRepo) -> dict[str, dict[str, str]]:
 
 
 GRR_PIPELINES = get_grr_pipelines(GRR)
+
+
+def count_input_variants(input_path: str, annotation_type: str) -> int:
+    """Count variant lines in an annotation input file."""
+    path = Path(input_path)
+    if not path.exists():
+        return 0
+    open_fn = gzip.open if str(input_path).endswith((".gz", ".bgz")) else open
+    count = sum(
+        1 for line in open_fn(str(input_path), "rt")
+        if line.strip() and not line.startswith("#")
+    )
+    # Columnar input files have one header line not prefixed with '#'
+    if annotation_type == "columns":
+        return max(0, count - 1)
+    return count
 
 
 def get_grr_genomes(grr: GenomicResourceRepo) -> list[str]:
@@ -323,6 +340,13 @@ class AnnotationBaseView(views.APIView):
         if not request.user.can_create():
             return Response(
                 {"reason": "Daily job limit reached!"},
+                status=views.status.HTTP_403_FORBIDDEN,
+            )
+        assert isinstance(request.user, BaseUser)
+        quota = request.user.get_quota()
+        if not quota.check_job_quota():
+            return Response(
+                {"reason": "Job quota exceeded!"},
                 status=views.status.HTTP_403_FORBIDDEN,
             )
         if not request.content_type.startswith("multipart/form-data"):

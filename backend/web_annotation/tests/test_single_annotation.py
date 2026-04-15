@@ -172,6 +172,114 @@ def test_use_of_thread_safe_pipelines(
     assert thread_safe_dummy.lock.__enter__.call_count == 3
 
 
+def test_single_annotation_returns_403_when_quota_exceeded(
+    mocker: MockerFixture,
+    test_grr: GenomicResourceRepo,
+) -> None:
+    view = SingleAnnotation()
+    custom_cache = LRUPipelineCache(test_grr, 16)
+    custom_cache.put_pipeline("dummy", "")
+
+    quota_mock = MagicMock()
+    quota_mock.single_allele_allowed.return_value = False
+
+    request_data = MagicMock()
+    request_data.data = {
+        "pipeline_id": "dummy",
+        "annotatable": {"chrom": "1", "pos": 12345, "ref": "A", "alt": "T"},
+    }
+    request_data.user.get_quota.return_value = quota_mock
+
+    mocker.patch(
+        "web_annotation.single_allele_annotation"
+        ".views.SingleAnnotation.lru_cache",
+        new=custom_cache,
+    )
+
+    response = view.post(request_data)
+
+    assert response.status_code == 403
+    quota_mock.single_allele_query_complete.assert_not_called()
+
+
+def test_single_annotation_records_quota_usage_on_success(
+    mocker: MockerFixture,
+    test_grr: GenomicResourceRepo,
+) -> None:
+    view = SingleAnnotation()
+    custom_cache = LRUPipelineCache(test_grr, 16)
+    custom_cache.put_pipeline("dummy", "")
+
+    quota_mock = MagicMock()
+    quota_mock.single_allele_allowed.return_value = True
+
+    request_data = MagicMock()
+    request_data.data = {
+        "pipeline_id": "dummy",
+        "annotatable": {"chrom": "1", "pos": 12345, "ref": "A", "alt": "T"},
+    }
+    request_data.user.get_quota.return_value = quota_mock
+
+    mocker.patch(
+        "web_annotation.single_allele_annotation"
+        ".views.SingleAnnotation.lru_cache",
+        new=custom_cache,
+    )
+
+    response = view.post(request_data)
+
+    assert response.status_code == 200
+    # Empty pipeline has no annotators, so attributes_count == 0
+    quota_mock.single_allele_allowed.assert_called_once_with(0)
+    quota_mock.single_allele_query_complete.assert_called_once_with(0)
+
+
+def test_single_annotation_quota_counts_only_non_internal_attributes(
+    mocker: MockerFixture,
+    test_grr: GenomicResourceRepo,
+) -> None:
+    view = SingleAnnotation()
+
+    non_internal = SimpleNamespace(
+        internal=False, name="attr", source="s",
+        description="d", value_type="str",
+    )
+    internal = SimpleNamespace(internal=True)
+    annotator = SimpleNamespace(
+        attributes=[non_internal, non_internal, internal],
+        resource_ids={"test"},
+        get_info=lambda: SimpleNamespace(
+            type="t", documentation="d", resources=[],
+        ),
+    )
+
+    dummy_pipeline = DummyPipeline()
+    dummy_pipeline.annotators = [annotator]
+
+    mocker.patch.object(
+        view, "_build_attribute_description", return_value={},
+    )
+    mocker.patch.object(
+        view, "get_pipeline", return_value=dummy_pipeline,
+    )
+
+    quota_mock = MagicMock()
+    quota_mock.single_allele_allowed.return_value = True
+
+    request_data = MagicMock()
+    request_data.data = {
+        "pipeline_id": "some_pipeline",
+        "annotatable": {"chrom": "1", "pos": 12345, "ref": "A", "alt": "T"},
+    }
+    request_data.user.get_quota.return_value = quota_mock
+
+    view.post(request_data)
+
+    # 2 non-internal attributes, 1 internal — only non-internal counted
+    quota_mock.single_allele_allowed.assert_called_once_with(2)
+    quota_mock.single_allele_query_complete.assert_called_once_with(2)
+
+
 @pytest.mark.parametrize(
     "annotatable,expected", [
         (

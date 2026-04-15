@@ -30,6 +30,9 @@ from web_annotation.resources.urls import (
 from web_annotation.editor.urls import (
     urlpatterns as editor_urls,
 )
+from web_annotation.quotas.urls import (
+    urlpatterns as quotas_urls,
+)
 from web_annotation.consumers import AnnotationStateConsumer
 
 
@@ -41,6 +44,7 @@ urlpatterns = [
     *pipeline_urls,
     *resources_urls,
     *editor_urls,
+    *quotas_urls,
 
     path('api/about', views.AboutPage.as_view()),
 
