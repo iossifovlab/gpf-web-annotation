@@ -425,6 +425,79 @@ def test_user_quota_job_complete(user_quota: UserQuota) -> None:
     assert user_quota.daily_jobs == before - 1
 
 
+# --- Quota.add_units ---
+
+def test_add_units_increments_extra_jobs(
+    anonymous_quota: AnonymousUserQuota,
+) -> None:
+    before = anonymous_quota.extra_jobs
+    anonymous_quota.add_units()
+    assert anonymous_quota.extra_jobs == before + anonymous_quota.get_monthly_job_max()
+
+
+def test_add_units_increments_extra_allele_queries(
+    anonymous_quota: AnonymousUserQuota,
+) -> None:
+    before = anonymous_quota.extra_allele_queries
+    anonymous_quota.add_units()
+    assert anonymous_quota.extra_allele_queries == \
+        before + anonymous_quota.get_monthly_allele_query_max()
+
+
+def test_add_units_increments_extra_variants(
+    anonymous_quota: AnonymousUserQuota,
+) -> None:
+    before = anonymous_quota.extra_variants
+    anonymous_quota.add_units()
+    assert anonymous_quota.extra_variants == \
+        before + anonymous_quota.get_monthly_variant_max()
+
+
+def test_add_units_increments_extra_attributes(
+    anonymous_quota: AnonymousUserQuota,
+) -> None:
+    before = anonymous_quota.extra_attributes
+    anonymous_quota.add_units()
+    assert anonymous_quota.extra_attributes == \
+        before + anonymous_quota.get_monthly_attribute_max()
+
+
+def test_add_units_clamps_negative_extras_before_adding(
+    anonymous_quota: AnonymousUserQuota,
+) -> None:
+    anonymous_quota.extra_jobs = -5
+    anonymous_quota.extra_allele_queries = -10
+    anonymous_quota.extra_variants = -100
+    anonymous_quota.extra_attributes = -1_000
+    anonymous_quota.add_units()
+    assert anonymous_quota.extra_jobs == anonymous_quota.get_monthly_job_max()
+    assert anonymous_quota.extra_allele_queries == \
+        anonymous_quota.get_monthly_allele_query_max()
+    assert anonymous_quota.extra_variants == anonymous_quota.get_monthly_variant_max()
+    assert anonymous_quota.extra_attributes == \
+        anonymous_quota.get_monthly_attribute_max()
+
+
+def test_add_units_accumulates_on_repeated_calls(
+    anonymous_quota: AnonymousUserQuota,
+) -> None:
+    anonymous_quota.add_units()
+    anonymous_quota.add_units()
+    assert anonymous_quota.extra_jobs == 2 * anonymous_quota.get_monthly_job_max()
+    assert anonymous_quota.extra_variants == \
+        2 * anonymous_quota.get_monthly_variant_max()
+
+
+def test_add_units_persisted(anonymous_quota: AnonymousUserQuota) -> None:
+    anonymous_quota.add_units()
+    refreshed = AnonymousUserQuota.objects.get(pk=anonymous_quota.pk)
+    assert refreshed.extra_jobs == anonymous_quota.get_monthly_job_max()
+    assert refreshed.extra_allele_queries == \
+        anonymous_quota.get_monthly_allele_query_max()
+    assert refreshed.extra_variants == anonymous_quota.get_monthly_variant_max()
+    assert refreshed.extra_attributes == anonymous_quota.get_monthly_attribute_max()
+
+
 # --- User.get_quota ---
 
 def test_user_get_quota_creates_when_missing() -> None:

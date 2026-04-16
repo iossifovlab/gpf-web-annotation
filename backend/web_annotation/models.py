@@ -843,6 +843,22 @@ class Quota(models.Model):
         self.last_monthly_reset = now
         self.save()
 
+    def add_units(self) -> None:
+        """Add extra units to the quota."""
+        self.extra_jobs = max(self.extra_jobs, 0)
+        self.extra_jobs += self.get_monthly_job_max()
+
+        self.extra_allele_queries = max(self.extra_allele_queries, 0)
+        self.extra_allele_queries += self.get_monthly_allele_query_max()
+
+        self.extra_variants = max(self.extra_variants, 0)
+        self.extra_variants += self.get_monthly_variant_max()
+
+        self.extra_attributes = max(self.extra_attributes, 0)
+        self.extra_attributes += self.get_monthly_attribute_max()
+
+        self.save()
+
     def check_single_allele_quota(self) -> bool:
         """Check if the user has quota for a single allele query."""
         if self.extra_allele_queries > 0:
