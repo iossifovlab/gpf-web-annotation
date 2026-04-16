@@ -883,8 +883,8 @@ class Quota(models.Model):
         if self.daily_variants <= 0 or self.monthly_variants <= 0:
             return False
         if (
-            self.daily_variants >= variants_count
-            or self.monthly_variants >= variants_count
+            self.daily_variants < variants_count
+            or self.monthly_variants < variants_count
         ):
             return False
         return True
@@ -924,13 +924,20 @@ class Quota(models.Model):
     ) -> None:
         """Deduct `amount` from daily and monthly (floored at 0).
         Only consume from extras if the more-limiting period could not fully
-        cover the amount, and only once."""
+        cover the amount, and only once. If extras are fully consumed,
+        zero out all extra quotas."""
         daily_before = getattr(self, daily_field)
         monthly_before = getattr(self, monthly_field)
         setattr(self, daily_field, max(0, daily_before - amount))
         setattr(self, monthly_field, max(0, monthly_before - amount))
         extra_deduction = max(0, amount - max(daily_before, monthly_before))
-        setattr(self, extra_field, getattr(self, extra_field) - extra_deduction)
+        new_extra = getattr(self, extra_field) - extra_deduction
+        setattr(self, extra_field, new_extra)
+        if extra_deduction > 0 and new_extra <= 0:
+            self.extra_jobs = 0
+            self.extra_allele_queries = 0
+            self.extra_variants = 0
+            self.extra_attributes = 0
 
     def job_complete(self, variants_count: int, attributes_count: int) -> None:
         """Update quotas after a job is completed."""
@@ -970,28 +977,28 @@ class AnonymousUserQuota(Quota):
         db_table = "anonymous_user_quotas"
 
     def get_daily_job_max(self) -> int:
-        return 10
+        return cast(int, settings.QUOTAS["anonymous"]["daily_jobs"])
 
     def get_monthly_job_max(self) -> int:
-        return 100
+        return cast(int, settings.QUOTAS["anonymous"]["monthly_jobs"])
 
     def get_daily_allele_query_max(self) -> int:
-        return 100
+        return cast(int, settings.QUOTAS["anonymous"]["daily_allele_queries"])
 
     def get_monthly_allele_query_max(self) -> int:
-        return 1_000
+        return cast(int, settings.QUOTAS["anonymous"]["monthly_allele_queries"])
 
     def get_daily_variant_max(self) -> int:
-        return 100_000
+        return cast(int, settings.QUOTAS["anonymous"]["daily_variants"])
 
     def get_monthly_variant_max(self) -> int:
-        return 1_000_000
+        return cast(int, settings.QUOTAS["anonymous"]["monthly_variants"])
 
     def get_daily_attribute_max(self) -> int:
-        return 1_000_000
+        return cast(int, settings.QUOTAS["anonymous"]["daily_attributes"])
 
     def get_monthly_attribute_max(self) -> int:
-        return 10_000_000
+        return cast(int, settings.QUOTAS["anonymous"]["monthly_attributes"])
 
 
 class UserQuota(Quota):
@@ -1008,25 +1015,25 @@ class UserQuota(Quota):
         db_table = "user_quotas"
 
     def get_daily_job_max(self) -> int:
-        return 100
+        return cast(int, settings.QUOTAS["user"]["daily_jobs"])
 
     def get_monthly_job_max(self) -> int:
-        return 1_000
+        return cast(int, settings.QUOTAS["user"]["monthly_jobs"])
 
     def get_daily_allele_query_max(self) -> int:
-        return 1_000
+        return cast(int, settings.QUOTAS["user"]["daily_allele_queries"])
 
     def get_monthly_allele_query_max(self) -> int:
-        return 10_000
+        return cast(int, settings.QUOTAS["user"]["monthly_allele_queries"])
 
     def get_daily_variant_max(self) -> int:
-        return 1_000_000
+        return cast(int, settings.QUOTAS["user"]["daily_variants"])
 
     def get_monthly_variant_max(self) -> int:
-        return 10_000_000
+        return cast(int, settings.QUOTAS["user"]["monthly_variants"])
 
     def get_daily_attribute_max(self) -> int:
-        return 10_000_000
+        return cast(int, settings.QUOTAS["user"]["daily_attributes"])
 
     def get_monthly_attribute_max(self) -> int:
-        return 100_000_000
+        return cast(int, settings.QUOTAS["user"]["monthly_attributes"])

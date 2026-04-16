@@ -23,6 +23,26 @@ QUOTAS = {
     "filesize": "64M",
     "disk_space": "2048M",
     "variant_count": 1000,
+    "anonymous": {
+        "daily_jobs": 10,
+        "monthly_jobs": 100,
+        "daily_allele_queries": 100,
+        "monthly_allele_queries": 1_000,
+        "daily_variants": 100_000,
+        "monthly_variants": 1_000_000,
+        "daily_attributes": 1_000_000,
+        "monthly_attributes": 10_000_000,
+    },
+    "user": {
+        "daily_jobs": 100,
+        "monthly_jobs": 1_000,
+        "daily_allele_queries": 1_000,
+        "monthly_allele_queries": 10_000,
+        "daily_variants": 1_000_000,
+        "monthly_variants": 10_000_000,
+        "daily_attributes": 10_000_000,
+        "monthly_attributes": 100_000_000,
+    },
 }
 
 

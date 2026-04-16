@@ -297,6 +297,50 @@ def test_job_complete_consumes_extras_for_remainder_beyond_max_period(
     assert anonymous_quota.extra_attributes == 20 - 7
 
 
+def test_job_complete_zeros_all_extras_when_extra_exhausted(
+    anonymous_quota: AnonymousUserQuota,
+) -> None:
+    anonymous_quota.daily_attributes = 0
+    anonymous_quota.monthly_attributes = 0
+    anonymous_quota.extra_attributes = 5_000
+    anonymous_quota.extra_jobs = 50
+    anonymous_quota.extra_variants = 500_000
+
+    anonymous_quota.job_complete(variants_count=0, attributes_count=5_000)
+
+    assert anonymous_quota.extra_attributes == 0
+    assert anonymous_quota.extra_jobs == 0
+    assert anonymous_quota.extra_variants == 0
+
+
+def test_job_complete_zeros_all_extras_when_extra_overdrawn(
+    anonymous_quota: AnonymousUserQuota,
+) -> None:
+    anonymous_quota.daily_attributes = 0
+    anonymous_quota.monthly_attributes = 0
+    anonymous_quota.extra_attributes = 3_000
+    anonymous_quota.extra_jobs = 50
+
+    anonymous_quota.job_complete(variants_count=0, attributes_count=5_000)
+
+    assert anonymous_quota.extra_attributes == 0
+    assert anonymous_quota.extra_jobs == 0
+
+
+def test_job_complete_does_not_zero_extras_when_partial_consumption(
+    anonymous_quota: AnonymousUserQuota,
+) -> None:
+    anonymous_quota.daily_attributes = 0
+    anonymous_quota.monthly_attributes = 0
+    anonymous_quota.extra_attributes = 10_000
+    anonymous_quota.extra_jobs = 50
+
+    anonymous_quota.job_complete(variants_count=0, attributes_count=5_000)
+
+    assert anonymous_quota.extra_attributes == 5_000
+    assert anonymous_quota.extra_jobs == 50
+
+
 def test_job_complete_persisted(anonymous_quota: AnonymousUserQuota) -> None:
     anonymous_quota.job_complete(variants_count=500, attributes_count=2_000)
 
@@ -381,6 +425,34 @@ def test_single_allele_query_complete_consumes_extras_for_remainder_beyond_max_p
     assert anonymous_quota.daily_attributes == 0
     assert anonymous_quota.monthly_attributes == 0
     assert anonymous_quota.extra_attributes == 14
+
+
+def test_single_allele_query_complete_zeros_all_extras_when_extra_exhausted(
+    anonymous_quota: AnonymousUserQuota,
+) -> None:
+    anonymous_quota.daily_attributes = 0
+    anonymous_quota.monthly_attributes = 0
+    anonymous_quota.extra_attributes = 10
+    anonymous_quota.extra_allele_queries = 5
+
+    anonymous_quota.single_allele_query_complete(attributes_count=10)
+
+    assert anonymous_quota.extra_attributes == 0
+    assert anonymous_quota.extra_allele_queries == 0
+
+
+def test_single_allele_query_complete_does_not_zero_extras_when_partial_consumption(
+    anonymous_quota: AnonymousUserQuota,
+) -> None:
+    anonymous_quota.daily_attributes = 0
+    anonymous_quota.monthly_attributes = 0
+    anonymous_quota.extra_attributes = 50
+    anonymous_quota.extra_allele_queries = 5
+
+    anonymous_quota.single_allele_query_complete(attributes_count=10)
+
+    assert anonymous_quota.extra_attributes == 40
+    assert anonymous_quota.extra_allele_queries == 5
 
 
 def test_single_allele_query_complete_does_not_touch_variant_counts(
