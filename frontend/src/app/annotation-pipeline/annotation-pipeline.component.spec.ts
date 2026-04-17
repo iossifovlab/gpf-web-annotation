@@ -470,6 +470,13 @@ describe('AnnotationPipelineComponent', () => {
     expect(closeModalSpy).toHaveBeenCalledWith();
   });
 
+  it('should not save pipeline if the name exists', () => {
+    const closeModalSpy = jest.spyOn(mockMatDialogRef, 'close');
+    component.saveName('name3');
+    expect(component.invalidPipelineName).toBe(true);
+    expect(closeModalSpy).not.toHaveBeenCalledWith();
+  });
+
   it('should save pipeline and trigger pipelines query if new name is set', () => {
     const updatedMockPipelines = [
       new Pipeline('1', 'id1', 'content1', 'default', 'loaded'),

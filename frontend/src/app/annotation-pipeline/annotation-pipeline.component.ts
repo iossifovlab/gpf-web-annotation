@@ -77,6 +77,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   public pipelineValidationSubscription: Subscription = new Subscription();
   public pipelineInfo: PipelineInfo;
   public disableActions: boolean;
+  public invalidPipelineName = false;
 
   public constructor(
     private jobsService: JobsService,
@@ -469,10 +470,16 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   }
 
   public saveName(name: string): void {
+    if (this.pipelines.some(p => p.name === name)) {
+      this.invalidPipelineName = true;
+      return;
+    }
+    this.invalidPipelineName = false;
     this.dialog.getDialogById('setPipelineName').close(name);
   }
 
   public cancel(): void {
+    this.invalidPipelineName = false;
     this.dialog.getDialogById('setPipelineName').close();
   }
 
