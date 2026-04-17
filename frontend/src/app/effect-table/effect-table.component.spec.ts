@@ -51,6 +51,26 @@ describe('EffectDetailsComponent', () => {
     expect(component.effectDetails).toStrictEqual(expectedDetailsObject);
   });
 
+  it('should check effect details when annotator is simple effect annotator', () => {
+    component.rawEffectDetails = 'ENST00000376583.7:MTHFR:coding|ENST00000376585.6:MTHFR:coding';
+    component.source = 'effect_details';
+    component.annotator = 'simple_effect_annotator';
+    component.ngOnInit();
+    const expectedDetailsObject = [
+      new EffectDetail(
+        'MTHFR',
+        'coding',
+        'ENST00000376583.7',
+      ),
+      new EffectDetail(
+        'MTHFR',
+        'coding',
+        'ENST00000376585.6',
+      ),
+    ];
+    expect(component.effectDetails).toStrictEqual(expectedDetailsObject);
+  });
+
   it('should sort details data by gene', () => {
     component.rawEffectDetails =
     'NM_001129979_1:SYCE1L:nonsense:138/242(Trp->End)|' +

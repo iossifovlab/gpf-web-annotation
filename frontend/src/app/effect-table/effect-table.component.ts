@@ -10,12 +10,15 @@ import { EffectDetail } from './effect-details';
 })
 export class EffectTableComponent implements OnInit {
   @Input() public source: string;
+  @Input() public annotator: string;
   @Input() public rawEffectDetails: string;
   public effectDetails: EffectDetail[] = null;
-  public isFullData = false;
+  public isEffectDetails = false;
+  public isEffectAnnotator = false;
 
   public ngOnInit(): void {
     this.effectDetails = EffectDetail.fromDetailValue(this.rawEffectDetails);
-    this.isFullData = this.source === 'effect_details';
+    this.isEffectDetails = this.source === 'effect_details';
+    this.isEffectAnnotator = this.annotator === 'effect_annotator';
   }
 }

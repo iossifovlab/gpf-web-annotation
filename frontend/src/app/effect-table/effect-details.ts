@@ -16,6 +16,13 @@ export class EffectDetail {
           details[3],
         );
       }
+      if (details.length === 3 && (!details[2].includes('/') || isNaN(Number(details[2])))) {
+        return new EffectDetail(
+          details[1],
+          details[2],
+          details[0],
+        );
+      }
       return new EffectDetail(
         details[0],
         details[1],
