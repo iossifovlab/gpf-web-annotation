@@ -6,6 +6,11 @@
   gap: 4vw;
 }
 
+#front-page-logo {
+  width: 128px;
+  height: 128px;
+}
+
 #front-page-header {
   background-color: rgb(244, 247, 251);
   display: flex;
