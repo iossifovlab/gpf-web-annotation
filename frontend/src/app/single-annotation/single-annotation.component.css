@@ -72,6 +72,10 @@ button:disabled:hover {
   color: #b4b4b4;
 }
 
+#examples-button span {
+  vertical-align: middle;
+}
+
 #examples-button:hover {
   cursor: pointer;
   color: #7392a9;

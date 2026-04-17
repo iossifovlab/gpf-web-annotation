@@ -5,23 +5,23 @@ import { Pipe, PipeTransform } from '@angular/core';
 })
 export class FormatResultValuePipe implements PipeTransform {
   public transform(value: string | number | Map<string, string | number> | string[], numberOfDigits?: number): string {
-    let result = '';
+    const values: string[] = [];
     if (value instanceof Map) {
       value.forEach((v, k) => {
         if (typeof v === 'number') {
-          result += `${k}:${this.formatNumber(v, numberOfDigits)}; `;
+          values.push(`${k}:${this.formatNumber(v, numberOfDigits)}`);
         } else {
-          result += `${k}:${v}; `;
+          values.push(`${k}:${v}`);
         }
       });
     } else if (typeof value === 'number') {
-      result = this.formatNumber(value, numberOfDigits);
+      return this.formatNumber(value, numberOfDigits);
     } else if (typeof value === 'string') {
       return value;
     } else if (Array.isArray(value)) {
       return '[' + value.join(', ') + ']';
     }
-    return result;
+    return values.join('; ');
   }
 
   private formatNumber(value: number, numberOfDigits?: number): string {

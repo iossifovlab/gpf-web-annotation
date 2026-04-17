@@ -1,13 +1,13 @@
 <div id="single-annotation-container">
   <div id="annotation-wrapper">
+    <span id="examples-button" [matMenuTriggerFor]="tooltip" title="Examples"
+      ><span class="material-symbols-outlined">info</span></span
+    >
     <input
       [formControl]="alleleInput"
       type="text"
       placeholder="Type annotatable..."
       (keydown.enter)="triggerPipelineAutoSave()" />
-    <span id="examples-button" [matMenuTriggerFor]="tooltip" title="Examples"
-      ><span class="material-symbols-outlined">info</span></span
-    >
     <button (click)="triggerPipelineAutoSave()" [disabled]="disableGo()">Go</button>
 
     <mat-menu #tooltip="matMenu">

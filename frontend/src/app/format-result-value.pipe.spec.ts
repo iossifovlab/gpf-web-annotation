@@ -41,13 +41,13 @@ describe('FormatResultValuePipe', () => {
   it('should format value of type map with strings', () => {
     const pipe = new FormatResultValuePipe();
     const map = new Map<string, string>([['MTHFR', 'missense'], ['ABC', 'nonsense']]);
-    expect(pipe.transform(map)).toBe('MTHFR:missense; ABC:nonsense; ');
+    expect(pipe.transform(map)).toBe('MTHFR:missense; ABC:nonsense');
   });
 
   it('should format value of type map with string and number', () => {
     const pipe = new FormatResultValuePipe();
     const map = new Map<string, number>([['MTHFR', 15454], ['ABC', 52]]);
-    expect(pipe.transform(map, 3)).toBe('MTHFR:15454; ABC:52; ');
+    expect(pipe.transform(map, 3)).toBe('MTHFR:15454; ABC:52');
   });
 
   it('should format value of type array with strings', () => {
