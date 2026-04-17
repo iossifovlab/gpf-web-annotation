@@ -78,6 +78,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   public pipelineInfo: PipelineInfo;
   public disableActions: boolean;
   public invalidPipelineName = false;
+  public pipelinesLoaded = false;
 
   public constructor(
     private jobsService: JobsService,
@@ -193,9 +194,11 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   }
 
   private getPipelines(defaultPipelineId: string = ''): void {
+    this.pipelinesLoaded = false;
     this.jobsService.getAnnotationPipelines().pipe(take(1)).subscribe(pipelines => {
       this.pipelines = pipelines;
       this.filteredPipelines = this.pipelines;
+      this.pipelinesLoaded = true;
       if (defaultPipelineId) {
         this.onPipelineClick(this.pipelines.find(p => p.id === defaultPipelineId));
       } else {
@@ -218,6 +221,9 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   }
 
   public isConfigValid(): void {
+    if (!this.pipelinesLoaded) {
+      return;
+    }
     this.unselectPublicPipeline();
     this.displayUnsavedPipelineIndication();
 

@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AnnotationPipelineComponent } from './annotation-pipeline.component';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, of, Subject, throwError } from 'rxjs';
 import { JobCreationComponent } from '../job-creation/job-creation.component';
 import { FileContent } from '../job-creation/jobs';
 import { JobsService } from '../job-creation/jobs.service';
@@ -756,5 +756,32 @@ describe('AnnotationPipelineComponent', () => {
     jest.spyOn(mockMatDialogRef, 'afterClosed').mockReturnValueOnce(of(null));
     component.saveAs();
     expect(component.disableActions).toBe(false);
+  });
+
+  it('should not validate config before pipelines are loaded', () => {
+    const configValidationSpy = jest.spyOn(jobsServiceMock, 'validatePipelineConfig');
+    component.pipelinesLoaded = false;
+    component.isConfigValid();
+    expect(configValidationSpy).not.toHaveBeenCalled();
+  });
+
+  it('should set pipelinesLoaded to true after pipelines are fetched', () => {
+    component.pipelinesLoaded = false;
+    component.ngOnInit();
+    expect(component.pipelinesLoaded).toBe(true);
+  });
+
+  it('should reset pipelinesLoaded to false while reloading pipelines and restore it on completion', () => {
+    const subject = new Subject<Pipeline[]>();
+    jest.spyOn(jobsServiceMock, 'getAnnotationPipelines').mockReturnValueOnce(subject.asObservable());
+    jest.spyOn(annotationPipelineServiceMock, 'deletePipeline').mockReturnValue(of({}));
+    component.selectedPipeline = mockPipelines[2];
+
+    component.delete();
+    expect(component.pipelinesLoaded).toBe(false);
+
+    subject.next(mockPipelines);
+    subject.complete();
+    expect(component.pipelinesLoaded).toBe(true);
   });
 });
