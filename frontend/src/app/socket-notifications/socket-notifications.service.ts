@@ -11,9 +11,10 @@ export class SocketNotificationsService {
   public constructor() { }
 
   private readonly socketNotificationsUrl = `${environment.socketPath}/notifications`;
-  private socketNotifications: WebSocketSubject<object> = webSocket(this.socketNotificationsUrl);
+  private socketNotifications: WebSocketSubject<object> = null;
 
   public getJobNotifications(): Observable<JobNotification> {
+    this.socketNotifications = webSocket(this.socketNotificationsUrl);
     return this.socketNotifications.pipe(
       filter(n => n['type'] === 'job_status'),
       map((n: object) => JobNotification.fromJson(n))
@@ -21,6 +22,7 @@ export class SocketNotificationsService {
   }
 
   public getPipelineNotifications(): Observable<PipelineNotification> {
+    this.socketNotifications = webSocket(this.socketNotificationsUrl);
     return this.socketNotifications.pipe(
       filter(n => n['type'] === 'pipeline_status'),
       map((n: object) => PipelineNotification.fromJson(n))
@@ -28,6 +30,7 @@ export class SocketNotificationsService {
   }
 
   public closeConnection(): void {
-    this.socketNotifications.complete();
+    this.socketNotifications?.complete();
+    this.socketNotifications = null;
   }
 }

@@ -79,8 +79,10 @@ describe('SocketNotificationsService', () => {
   it('calls complete on the underlying WebSocketSubject when closeConnection is called', () => {
     const completeSpy = jest.spyOn(subject, 'complete');
 
+    service.getJobNotifications();
     service.closeConnection();
 
+    expect(service['socketNotifications']).toBeNull();
     expect(completeSpy).toHaveBeenCalledWith();
   });
 });
