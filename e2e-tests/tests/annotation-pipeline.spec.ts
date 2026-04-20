@@ -565,7 +565,7 @@ test.describe('Add annotator to pipeline tests', () => {
   });
 
   test('should append two annotators', async({ page }) => {
-    await utils.selectPipeline(page, 'pipeline/Clinical_annotation');
+    await customDefaultPipeline(page);
     await page.locator('#pipeline-actions').locator('#add-annotator-button').click();
 
     await page.getByRole('combobox', { name: 'Select annotator' }).click();
