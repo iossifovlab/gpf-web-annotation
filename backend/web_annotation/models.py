@@ -484,6 +484,7 @@ class AlleleQuery(models.Model):
         related_name='allele_query',
         on_delete=models.CASCADE,
     )
+    note = models.CharField(max_length=1024, default="")
     last_used = models.DateTimeField(default=timezone.now)
 
     def remove(self) -> None:

@@ -350,3 +350,37 @@ class AlleleHistory(generics.ListAPIView):
         allele_query.delete()
 
         return Response(status=views.status.HTTP_204_NO_CONTENT)
+
+
+class UpdateAlleleNote(views.APIView):
+    """View for updating a user's note on an allele query."""
+
+    authentication_classes = [WebAnnotationAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request: Request) -> Response:
+        """Update the note for an allele query."""
+        allele = request.data.get("allele")
+        note = request.data.get("note")
+
+        if not allele:
+            return Response(
+                {"reason": "Allele must be provided!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        allele_query = AlleleQuery.objects.filter(
+            allele=allele,
+            owner=request.user.as_owner,
+        ).first()
+
+        if allele_query is None:
+            return Response(
+                {"reason": "Allele query id not recognized!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        allele_query.note = note
+        allele_query.save()
+
+        return Response(status=views.status.HTTP_200_OK)

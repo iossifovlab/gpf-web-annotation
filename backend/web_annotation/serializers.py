@@ -39,4 +39,4 @@ class AlleleSerializer(serializers.ModelSerializer):
     class Meta:  # pylint: disable=too-few-public-methods
         """Meta class for job serializer."""
         model = AlleleQuery
-        fields = ["id", "allele", "owner"]
+        fields = ["id", "allele", "owner", "note", "last_used"]
