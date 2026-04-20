@@ -17,6 +17,7 @@ import { SocketNotificationsService } from '../socket-notifications/socket-notif
 import { PipelineNotification } from '../socket-notifications/socket-notifications';
 import { PipelineInfo } from '../annotation-pipeline';
 import { NewAnnotatorComponent } from '../new-annotator/new-annotator.component';
+import { AnnotationPipelineStateService } from './annotation-pipeline-state.service';
 
 const mockPipelines = [
   new Pipeline('id1', 'name1', 'content1', 'default', 'loaded'),
@@ -122,6 +123,7 @@ class SocketNotificationsServiceMock {
 describe('AnnotationPipelineComponent', () => {
   let component: AnnotationPipelineComponent;
   let fixture: ComponentFixture<AnnotationPipelineComponent>;
+  let pipelineStateService: AnnotationPipelineStateService;
   const jobsServiceMock = new JobsServiceMock();
   const userServiceMock = new UserServiceMock();
   const mockMatDialogRef = new MatDialogRefMock();
@@ -181,6 +183,8 @@ describe('AnnotationPipelineComponent', () => {
     };
 
     fixture.detectChanges();
+    pipelineStateService = TestBed.inject(AnnotationPipelineStateService);
+    pipelineStateService.pipelines.set([]);
     jest.clearAllMocks();
   });
 

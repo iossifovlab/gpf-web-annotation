@@ -82,14 +82,13 @@ export class SingleAlleleAnnotationWrapperComponent implements OnInit {
     this.resetSingleAlleleReport();
     this.pipelineId = newPipeline;
 
-    this.singleAnnotationComponent.pipelineId = newPipeline;
     if (newPipeline) {
       this.annotationPipelineService.loadPipeline(newPipeline).pipe(take(1)).subscribe();
     }
   }
 
   public resetSingleAlleleReport(): void {
-    this.singleAnnotationComponent.resetReport();
+    this.singleAnnotationComponent?.resetReport();
   }
 
   public setConfigValid(newState: boolean): void {
