@@ -11,4 +11,5 @@ export class AnnotationPipelineStateService {
   public readonly currentTemporaryPipelineId = signal<string>('');
   public readonly currentTemporaryPipelineStatus = signal<PipelineStatus>(null);
   public readonly pipelineInfo = signal<PipelineInfo>(null);
+  public readonly isConfigValid = signal<boolean>(false);
 }

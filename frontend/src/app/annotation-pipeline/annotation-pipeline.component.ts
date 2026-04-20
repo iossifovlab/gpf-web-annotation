@@ -227,7 +227,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
       this.selectedPipeline = pipeline;
       const name = this.isPipelineChanged() ? `${pipeline.name} *` : pipeline.name;
       this.dropdownControl.setValue(name);
-      this.isConfigValid();
+      this.emitIsConfigValid.emit(this.pipelineStateService.isConfigValid());
       this.getPipelineInfo();
       this.clearTemporaryPipeline();
     }
@@ -254,6 +254,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     this.unselectPublicPipeline();
     this.displayUnsavedPipelineIndication();
 
+    this.pipelineStateService.isConfigValid.set(false);
     this.emitIsConfigValid.emit(false);
 
     this.pipelineValidationSubscription.unsubscribe();
@@ -262,6 +263,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     ).subscribe((errorReason: string) => {
       this.configError = errorReason;
       if (!this.configError) {
+        this.pipelineStateService.isConfigValid.set(true);
         this.emitIsConfigValid.emit(true);
         if (this.isPipelineChanged()) {
           // Save pipeline as temporary when valid
@@ -270,6 +272,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
           this.getPipelineInfo();
         }
       } else {
+        this.pipelineStateService.isConfigValid.set(false);
         this.emitIsConfigValid.emit(false);
       }
     });
@@ -302,9 +305,9 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
       return;
     }
     this.configError = '';
+    this.pipelineStateService.isConfigValid.set(true);
     this.emitIsConfigValid.emit(true);
     this.selectedPipeline = pipeline;
-    this.currentPipelineText = pipeline.content;
     this.emitPipelineId.emit(this.selectedPipeline.id);
 
     this.currentPipelineText = pipeline.content;
@@ -567,6 +570,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     this.pipelineStateService.currentPipelineText.set(this.currentPipelineText);
     this.pipelineStateService.currentTemporaryPipelineId.set(this.currentTemporaryPipelineId);
     this.pipelineStateService.currentTemporaryPipelineStatus.set(this.currentTemporaryPipelineStatus);
+    this.pipelineStateService.isConfigValid.set(!this.configError);
 
     this.socketNotificationsService.closeConnection();
     if (this.resizeObserver) {
