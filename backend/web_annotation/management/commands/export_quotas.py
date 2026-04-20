@@ -1,6 +1,5 @@
 import argparse
 import csv
-import sys
 from typing import Any
 
 from django.core.management.base import BaseCommand
@@ -42,7 +41,7 @@ class Command(BaseCommand):
     def handle(self, *args: Any, **options: Any) -> None:
         output_path = options["output"]
         if output_path == "-":
-            self._write(sys.stdout)
+            self._write(self.stdout)
         else:
             with open(output_path, "w", newline="", encoding="utf-8") as f:
                 self._write(f)
