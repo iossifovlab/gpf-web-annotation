@@ -484,9 +484,10 @@ class AlleleQuery(models.Model):
         related_name='allele_query',
         on_delete=models.CASCADE,
     )
+    last_used = models.DateTimeField(default=timezone.now)
 
     def remove(self) -> None:
-        """Diactivate a job and clean its resources."""
+        """Deactivate a job and clean its resources."""
         self.delete()
 
 

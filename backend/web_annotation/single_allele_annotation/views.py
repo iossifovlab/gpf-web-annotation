@@ -220,15 +220,18 @@ class SingleAnnotation(AnnotationBaseView):
             and isinstance(request.user, BaseUser)
         ):
             allele = str(annotatable)
-            if AlleleQuery.objects.filter(
+            allele_query = AlleleQuery.objects.filter(
                 allele=allele,
                 owner=request.user.as_owner,
-            ).first() is None:
+            ).first()
+            if allele_query is None:
                 allele_query = AlleleQuery(
                     allele=allele,
                     owner=request.user.as_owner,
                 )
-                allele_query.save()
+            else:
+                allele_query.last_used = timezone.now()
+            allele_query.save()
 
         quota.single_allele_query_complete(attributes_count)
 
@@ -321,7 +324,8 @@ class AlleleHistory(generics.ListAPIView):
     def get_queryset(self) -> QuerySet:
         assert isinstance(self.request.user, BaseUser)
         return AlleleQuery.objects.filter(
-            owner=cast(User, self.request.user.as_owner))
+            owner=cast(User, self.request.user.as_owner),
+        ).order_by("-last_used")
 
     def delete(self, request: Request) -> Response:
         """Delete user allele annotation query from history"""
