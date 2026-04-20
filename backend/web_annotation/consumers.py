@@ -37,6 +37,7 @@ class AnnotationStateConsumer(WebsocketConsumer):
                 self.channel_layer,
             ).groups.get(self.user_id, {}),
         )
+        return  # TODO: Temporary early return for debugging
         if not user.is_authenticated and channel_count == 0:
             user.delete_jobs()
             user.delete_pipelines()
