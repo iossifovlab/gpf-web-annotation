@@ -7,6 +7,7 @@ from web_annotation.authentication import WebAnnotationAuthentication
 
 
 class QuotasView(AnnotationBaseView):
+    """View to get the quotas for the current user."""
 
     authentication_classes = [WebAnnotationAuthentication]
 

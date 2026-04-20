@@ -784,44 +784,41 @@ class Quota(models.Model):
         abstract = True
 
     @abstractmethod
+    def _quota_config(self) -> dict:
+        """Return the settings QUOTAS sub-dict for this quota type."""
+        raise NotImplementedError
+
     def get_daily_job_max(self) -> int:
         """Get the maximum number of daily jobs allowed."""
-        raise NotImplementedError
+        return cast(int, self._quota_config()["daily_jobs"])
 
-    @abstractmethod
     def get_monthly_job_max(self) -> int:
         """Get the maximum number of monthly jobs allowed."""
-        raise NotImplementedError
+        return cast(int, self._quota_config()["monthly_jobs"])
 
-    @abstractmethod
     def get_daily_allele_query_max(self) -> int:
         """Get the maximum number of daily allele queries allowed."""
-        raise NotImplementedError
+        return cast(int, self._quota_config()["daily_allele_queries"])
 
-    @abstractmethod
     def get_monthly_allele_query_max(self) -> int:
         """Get the maximum number of monthly allele queries allowed."""
-        raise NotImplementedError
+        return cast(int, self._quota_config()["monthly_allele_queries"])
 
-    @abstractmethod
     def get_daily_variant_max(self) -> int:
         """Get the maximum number of daily variants allowed."""
-        raise NotImplementedError
+        return cast(int, self._quota_config()["daily_variants"])
 
-    @abstractmethod
     def get_monthly_variant_max(self) -> int:
         """Get the maximum number of monthly variants allowed."""
-        raise NotImplementedError
+        return cast(int, self._quota_config()["monthly_variants"])
 
-    @abstractmethod
     def get_daily_attribute_max(self) -> int:
         """Get the maximum number of daily attributes allowed."""
-        raise NotImplementedError
+        return cast(int, self._quota_config()["daily_attributes"])
 
-    @abstractmethod
     def get_monthly_attribute_max(self) -> int:
         """Get the maximum number of monthly attributes allowed."""
-        raise NotImplementedError
+        return cast(int, self._quota_config()["monthly_attributes"])
 
     def reset_daily(self) -> None:
         """Reset all daily quota counts."""
@@ -933,7 +930,7 @@ class Quota(models.Model):
         extra_deduction = max(0, amount - max(daily_before, monthly_before))
         new_extra = getattr(self, extra_field) - extra_deduction
         setattr(self, extra_field, new_extra)
-        if extra_deduction > 0 and new_extra <= 0:
+        if new_extra <= 0 < extra_deduction:
             self.extra_jobs = 0
             self.extra_allele_queries = 0
             self.extra_variants = 0
@@ -976,29 +973,8 @@ class AnonymousUserQuota(Quota):
         """Meta class for anonymous user quotas."""
         db_table = "anonymous_user_quotas"
 
-    def get_daily_job_max(self) -> int:
-        return cast(int, settings.QUOTAS["anonymous"]["daily_jobs"])
-
-    def get_monthly_job_max(self) -> int:
-        return cast(int, settings.QUOTAS["anonymous"]["monthly_jobs"])
-
-    def get_daily_allele_query_max(self) -> int:
-        return cast(int, settings.QUOTAS["anonymous"]["daily_allele_queries"])
-
-    def get_monthly_allele_query_max(self) -> int:
-        return cast(int, settings.QUOTAS["anonymous"]["monthly_allele_queries"])
-
-    def get_daily_variant_max(self) -> int:
-        return cast(int, settings.QUOTAS["anonymous"]["daily_variants"])
-
-    def get_monthly_variant_max(self) -> int:
-        return cast(int, settings.QUOTAS["anonymous"]["monthly_variants"])
-
-    def get_daily_attribute_max(self) -> int:
-        return cast(int, settings.QUOTAS["anonymous"]["daily_attributes"])
-
-    def get_monthly_attribute_max(self) -> int:
-        return cast(int, settings.QUOTAS["anonymous"]["monthly_attributes"])
+    def _quota_config(self) -> dict:
+        return cast(dict, settings.QUOTAS["anonymous"])
 
 
 class UserQuota(Quota):
@@ -1014,26 +990,5 @@ class UserQuota(Quota):
         """Meta class for user quotas."""
         db_table = "user_quotas"
 
-    def get_daily_job_max(self) -> int:
-        return cast(int, settings.QUOTAS["user"]["daily_jobs"])
-
-    def get_monthly_job_max(self) -> int:
-        return cast(int, settings.QUOTAS["user"]["monthly_jobs"])
-
-    def get_daily_allele_query_max(self) -> int:
-        return cast(int, settings.QUOTAS["user"]["daily_allele_queries"])
-
-    def get_monthly_allele_query_max(self) -> int:
-        return cast(int, settings.QUOTAS["user"]["monthly_allele_queries"])
-
-    def get_daily_variant_max(self) -> int:
-        return cast(int, settings.QUOTAS["user"]["daily_variants"])
-
-    def get_monthly_variant_max(self) -> int:
-        return cast(int, settings.QUOTAS["user"]["monthly_variants"])
-
-    def get_daily_attribute_max(self) -> int:
-        return cast(int, settings.QUOTAS["user"]["daily_attributes"])
-
-    def get_monthly_attribute_max(self) -> int:
-        return cast(int, settings.QUOTAS["user"]["monthly_attributes"])
+    def _quota_config(self) -> dict:
+        return cast(dict, settings.QUOTAS["user"])
