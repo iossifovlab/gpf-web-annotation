@@ -376,8 +376,8 @@ class UpdateAlleleNote(views.APIView):
 
         if allele_query is None:
             return Response(
-                {"reason": "Allele query id not recognized!"},
-                status=views.status.HTTP_400_BAD_REQUEST,
+                {"reason": "Allele not found!"},
+                status=views.status.HTTP_404_NOT_FOUND,
             )
 
         allele_query.note = note
