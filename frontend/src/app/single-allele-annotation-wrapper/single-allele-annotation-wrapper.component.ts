@@ -6,6 +6,7 @@ import { SingleAnnotationComponent } from '../single-annotation/single-annotatio
 import { AllelesTableComponent } from '../alleles-table/alleles-table.component';
 import { UsersService } from '../users.service';
 import { AnnotationPipelineService } from '../annotation-pipeline.service';
+import { AnnotationPipelineStateService } from '../annotation-pipeline/annotation-pipeline-state.service';
 
 @Component({
   selector: 'app-single-allele-annotation-wrapper',
@@ -21,7 +22,6 @@ import { AnnotationPipelineService } from '../annotation-pipeline.service';
 
 export class SingleAlleleAnnotationWrapperComponent implements OnInit {
   public pipelineId = '';
-  public isConfigValid = true;
   public creationError = '';
   @ViewChild(AnnotationPipelineComponent) public pipelinesComponent: AnnotationPipelineComponent;
   @ViewChild(AllelesTableComponent) public allelesTableComponent: AllelesTableComponent;
@@ -35,6 +35,7 @@ export class SingleAlleleAnnotationWrapperComponent implements OnInit {
       private userService: UsersService,
       private ngZone: NgZone,
       private annotationPipelineService: AnnotationPipelineService,
+      private pipelineStateService: AnnotationPipelineStateService,
   ) { }
 
   public ngOnInit(): void {
@@ -51,8 +52,12 @@ export class SingleAlleleAnnotationWrapperComponent implements OnInit {
     }
   }
 
+  public get isConfigValid(): boolean {
+    return this.pipelineStateService.isConfigValid();
+  }
+
   public autoSavePipeline(): void {
-    if (!this.isConfigValid) {
+    if (!this.pipelineStateService.isConfigValid()) {
       return;
     }
     if (this.pipelinesComponent.isPipelineChanged()) {
@@ -89,14 +94,6 @@ export class SingleAlleleAnnotationWrapperComponent implements OnInit {
 
   public resetSingleAlleleReport(): void {
     this.singleAnnotationComponent?.resetReport();
-  }
-
-  public setConfigValid(newState: boolean): void {
-    if (this.isConfigValid === newState) {
-      return;
-    }
-    this.resetSingleAlleleReport();
-    this.isConfigValid = newState;
   }
 
   public refreshAllelesTable(): void {

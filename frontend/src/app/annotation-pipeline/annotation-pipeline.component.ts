@@ -57,7 +57,6 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   public selectedPipeline: Pipeline = null;
   public configError = '';
   @Output() public emitPipelineId = new EventEmitter<string>();
-  @Output() public emitIsConfigValid = new EventEmitter<boolean>();
   public filteredPipelines: Pipeline[] = null;
   public dropdownControl = new FormControl<string>('');
   @ViewChild('nameInput') public nameInputTemplateRef: TemplateRef<ElementRef>;
@@ -227,7 +226,6 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
       this.selectedPipeline = pipeline;
       const name = this.isPipelineChanged() ? `${pipeline.name} *` : pipeline.name;
       this.dropdownControl.setValue(name);
-      this.emitIsConfigValid.emit(this.pipelineStateService.isConfigValid());
       this.getPipelineInfo();
       this.clearTemporaryPipeline();
     }
@@ -255,7 +253,6 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     this.displayUnsavedPipelineIndication();
 
     this.pipelineStateService.isConfigValid.set(false);
-    this.emitIsConfigValid.emit(false);
 
     this.pipelineValidationSubscription.unsubscribe();
     this.pipelineValidationSubscription = this.jobsService.validatePipelineConfig(this.currentPipelineText).pipe(
@@ -264,7 +261,6 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
       this.configError = errorReason;
       if (!this.configError) {
         this.pipelineStateService.isConfigValid.set(true);
-        this.emitIsConfigValid.emit(true);
         if (this.isPipelineChanged()) {
           // Save pipeline as temporary when valid
           this.autoSave().subscribe(() => this.getPipelineInfo());
@@ -273,7 +269,6 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
         }
       } else {
         this.pipelineStateService.isConfigValid.set(false);
-        this.emitIsConfigValid.emit(false);
       }
     });
   }
@@ -306,7 +301,6 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     }
     this.configError = '';
     this.pipelineStateService.isConfigValid.set(true);
-    this.emitIsConfigValid.emit(true);
     this.selectedPipeline = pipeline;
     this.emitPipelineId.emit(this.selectedPipeline.id);
 

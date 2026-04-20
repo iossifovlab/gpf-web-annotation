@@ -10,6 +10,7 @@ import { UsersService } from '../users.service';
 import { SocketNotificationsService } from '../socket-notifications/socket-notifications.service';
 import { JobNotification } from '../socket-notifications/socket-notifications';
 import { AnnotationPipelineService } from '../annotation-pipeline.service';
+import { AnnotationPipelineStateService } from '../annotation-pipeline/annotation-pipeline-state.service';
 
 @Component({
   selector: 'app-annotation-jobs-wrapper',
@@ -28,7 +29,6 @@ export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
   public fileSeparator: string = null;
   public fileHeader: Map<string, string> = null;
   public pipelineId = '';
-  public isConfigValid = true;
   public creationError = '';
   public selectedGenome = '';
   public isCreationFormVisible = true;
@@ -51,6 +51,7 @@ export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
       private ngZone: NgZone,
       private socketNotificationsService: SocketNotificationsService,
       private annotationPipelineService: AnnotationPipelineService,
+      private pipelineStateService: AnnotationPipelineStateService,
   ) { }
 
   public ngOnInit(): void {
@@ -107,7 +108,7 @@ export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
   }
 
   public autoSavePipeline(): void {
-    if (!this.isConfigValid) {
+    if (!this.pipelineStateService.isConfigValid()) {
       return;
     }
     if (this.pipelinesComponent.isPipelineChanged()) {
@@ -202,15 +203,6 @@ export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
     this.selectedGenome = genome;
   }
 
-  public setConfigValid(newState: boolean): void {
-    if (this.isConfigValid === newState) {
-      return;
-    }
-
-    this.isConfigValid = newState;
-    this.disableCreate();
-  }
-
   public setFile(newFile: File): void {
     this.file = newFile;
     this.creationError = '';
@@ -244,7 +236,7 @@ export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
       || !this.pipelineId
       || !this.file
       || (this.file.type !== 'text/vcard' && !this.fileHeader)
-      || !this.isConfigValid
+      || !this.pipelineStateService.isConfigValid()
       || (this.file.type !== 'text/vcard' && !this.isGenomeValid());
   }
 
