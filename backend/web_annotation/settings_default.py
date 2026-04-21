@@ -37,6 +37,9 @@ QUOTAS = {
     "filesize": "64M",
     "disk_space": "2048M",
     "variant_count": 50000,
+}
+
+QUERY_QUOTAS = {
     "anonymous": {
         "daily_jobs": 10,
         "monthly_jobs": 100,

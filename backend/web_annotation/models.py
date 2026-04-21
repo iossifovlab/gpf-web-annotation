@@ -974,7 +974,7 @@ class AnonymousUserQuota(Quota):
         db_table = "anonymous_user_quotas"
 
     def _quota_config(self) -> dict:
-        return cast(dict, settings.QUOTAS["anonymous"])
+        return cast(dict, settings.QUERY_QUOTAS["anonymous"])
 
 
 class UserQuota(Quota):
@@ -991,4 +991,4 @@ class UserQuota(Quota):
         db_table = "user_quotas"
 
     def _quota_config(self) -> dict:
-        return cast(dict, settings.QUOTAS["user"])
+        return cast(dict, settings.QUERY_QUOTAS["user"])
