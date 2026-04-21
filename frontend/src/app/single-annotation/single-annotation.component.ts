@@ -77,7 +77,7 @@ export class SingleAnnotationComponent implements OnInit {
 
   public annotateAllele(): void {
     const pipelineId = this.pipelineStateService.currentTemporaryPipelineId() ||
-      this.pipelineStateService.selectedPipeline()?.id ||
+      this.pipelineStateService.selectedPipelineId() ||
       '';
     if (this.alleleInput.valid && pipelineId) {
       this.getReport(pipelineId);
@@ -89,7 +89,7 @@ export class SingleAnnotationComponent implements OnInit {
 
   public disableGo(): boolean {
     const pipelineId = this.pipelineStateService.currentTemporaryPipelineId() ||
-      this.pipelineStateService.selectedPipeline()?.id ||
+      this.pipelineStateService.selectedPipelineId() ||
       '';
     return !(this.alleleInput.value &&
       this.alleleInput.valid &&

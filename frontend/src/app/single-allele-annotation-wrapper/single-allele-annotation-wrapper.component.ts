@@ -38,7 +38,7 @@ export class SingleAlleleAnnotationWrapperComponent implements OnInit {
   ) {
     effect(() => {
       const id = this.pipelineStateService.currentTemporaryPipelineId() ||
-        this.pipelineStateService.selectedPipeline()?.id;
+        this.pipelineStateService.selectedPipelineId();
       if (id) {
         this.resetSingleAlleleReport();
         this.annotationPipelineService.loadPipeline(id).pipe(take(1)).subscribe();

@@ -6,7 +6,7 @@ import { PipelineInfo } from '../annotation-pipeline';
 @Injectable({ providedIn: 'root' })
 export class AnnotationPipelineStateService {
   public readonly pipelines = signal<Pipeline[]>([]);
-  public readonly selectedPipeline = signal<Pipeline>(null);
+  public readonly selectedPipelineId = signal<string>('');
   public readonly currentPipelineText = signal<string>('');
   public readonly currentTemporaryPipelineId = signal<string>('');
   public readonly currentTemporaryPipelineStatus = signal<PipelineStatus>(null);

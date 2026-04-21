@@ -333,18 +333,18 @@ describe('AnnotationPipelineComponent', () => {
     expect(component.selectedPipeline.id).toBe('1');
     expect(component.selectedPipeline.name).toBe('other pipeline');
     expect(component.selectedPipeline.content).toBe('config');
-    expect(pipelineStateService.selectedPipeline()?.id).toBe('1');
+    expect(pipelineStateService.selectedPipelineId()).toBe('1');
     expect(setDropdownValueSpy).toHaveBeenCalledWith('other pipeline');
   });
 
   it('should not set new pipeline if invalid one', () => {
-    const initialId = pipelineStateService.selectedPipeline()?.id;
+    const initialId = pipelineStateService.selectedPipelineId();
     const setDropdownValueSpy = jest.spyOn(component.dropdownControl, 'setValue');
 
     component.onPipelineClick(null);
     expect(component.selectedPipeline.id).toBe('id1');
     expect(component.selectedPipeline.content).toBe('content1');
-    expect(pipelineStateService.selectedPipeline()?.id).toBe(initialId);
+    expect(pipelineStateService.selectedPipelineId()).toBe(initialId);
     expect(setDropdownValueSpy).not.toHaveBeenCalledWith();
   });
 
@@ -421,7 +421,7 @@ describe('AnnotationPipelineComponent', () => {
 
     component.isConfigValid();
     expect(component.dropdownControl.value).toBe('pipeline-name');
-    expect(pipelineStateService.selectedPipeline()?.id).toBe('1');
+    expect(pipelineStateService.selectedPipelineId()).toBe('1');
     expect(component.currentTemporaryPipelineId).toBe('');
   });
 

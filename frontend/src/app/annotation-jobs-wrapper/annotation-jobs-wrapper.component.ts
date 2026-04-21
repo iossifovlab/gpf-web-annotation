@@ -54,7 +54,7 @@ export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
   ) {
     effect(() => {
       const id = this.pipelineStateService.currentTemporaryPipelineId() ||
-        this.pipelineStateService.selectedPipeline()?.id;
+        this.pipelineStateService.selectedPipelineId();
       if (id) {
         this.annotationPipelineService.loadPipeline(id).pipe(take(1)).subscribe();
       }
@@ -134,7 +134,7 @@ export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
         createObservable = this.jobsService.createVcfJob(
           this.file,
           this.pipelineStateService.currentTemporaryPipelineId() ||
-            this.pipelineStateService.selectedPipeline()?.id ||
+            this.pipelineStateService.selectedPipelineId() ||
             '',
           this.selectedGenome,
         );
@@ -142,7 +142,7 @@ export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
         createObservable = this.jobsService.createNonVcfJob(
           this.file,
           this.pipelineStateService.currentTemporaryPipelineId() ||
-            this.pipelineStateService.selectedPipeline()?.id ||
+            this.pipelineStateService.selectedPipelineId() ||
             '',
           this.selectedGenome,
           this.fileSeparator,
@@ -233,7 +233,7 @@ export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
       || this.creationError !== ''
       || !this.file
       || (this.file.type !== 'text/vcard' && !this.fileHeader)
-      || !(this.pipelineStateService.currentTemporaryPipelineId() || this.pipelineStateService.selectedPipeline()?.id)
+      || !(this.pipelineStateService.currentTemporaryPipelineId() || this.pipelineStateService.selectedPipelineId())
       || !this.pipelineStateService.isConfigValid()
       || (this.file.type !== 'text/vcard' && !this.isGenomeValid());
   }
