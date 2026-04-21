@@ -494,7 +494,7 @@ class BaseJob(models.Model):
 
     def delete(self, *args: Any, **kwargs: Any) -> tuple[int, dict[str, int]]:
         """Delete a job and its resources."""
-        self._cleanup_files()
+        # self._cleanup_files()
         return super().delete(*args, **kwargs)
 
     class Meta:  # pylint: disable=too-few-public-methods
