@@ -159,6 +159,19 @@ class SingleAnnotation(AnnotationBaseView):
 
         pipeline = self.get_pipeline(pipeline_id, request.user)
 
+        attributes_count = sum(
+            1 for annotator in pipeline.annotators
+            for attr in annotator.attributes
+            if not attr.internal
+        )
+
+        quota = request.user.get_quota()
+        if not quota.single_allele_allowed(attributes_count):
+            return Response(
+                {"reason": "Single allele query quota exceeded!"},
+                status=views.status.HTTP_403_FORBIDDEN,
+            )
+
         annotatable = build_annotatable_from_dict(annotatable)
 
         annotation = pipeline.annotate(annotatable, {})
@@ -203,8 +216,7 @@ class SingleAnnotation(AnnotationBaseView):
             )
 
         if (
-            request.user
-            and request.user.is_authenticated
+            request.user.is_authenticated
             and isinstance(request.user, BaseUser)
         ):
             allele = str(annotatable)
@@ -217,6 +229,8 @@ class SingleAnnotation(AnnotationBaseView):
                     owner=request.user.as_owner,
                 )
                 allele_query.save()
+
+        quota.single_allele_query_complete(attributes_count)
 
         response_data = {
             "annotatable": annotatable.to_dict(),

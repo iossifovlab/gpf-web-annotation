@@ -906,6 +906,125 @@ def test_annotate_columns_disk_size(
 
 
 @pytest.mark.django_db
+def test_annotate_vcf_returns_403_when_quota_exceeded(
+    user_client: Client,
+    mocker: MockerFixture,
+) -> None:
+    quota_mock = MagicMock()
+    quota_mock.check_job_quota.return_value = False
+    mocker.patch.object(User, "get_quota", return_value=quota_mock)
+
+    vcf = textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
+        chr1\t1\t.\tC\tA\t.\t.\t.
+    """).strip()
+
+    response = user_client.post(
+        "/api/jobs/annotate_vcf",
+        {
+            "pipeline_id": "pipeline/test_pipeline",
+            "data": ContentFile(vcf, "test_input.vcf"),
+        },
+    )
+
+    assert response.status_code == 403
+    quota_mock.job_complete.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_annotate_vcf_records_quota_usage_on_success(
+    user_client: Client,
+    mocker: MockerFixture,
+    test_grr: GenomicResourceRepo,
+) -> None:
+    quota_mock = MagicMock()
+    quota_mock.check_job_quota.return_value = True
+    mocker.patch.object(User, "get_quota", return_value=quota_mock)
+
+    vcf = textwrap.dedent("""
+        ##fileformat=VCFv4.1
+        ##contig=<ID=chr1>
+        #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO
+        chr1\t1\t.\tC\tA\t.\t.\t.
+    """).strip()
+
+    response = user_client.post(
+        "/api/jobs/annotate_vcf",
+        {
+            "pipeline_id": "pipeline/test_pipeline",
+            "data": ContentFile(vcf, "test_input.vcf"),
+        },
+    )
+
+    assert response.status_code == 200
+    quota_mock.job_complete.assert_called_once()
+
+
+@pytest.mark.django_db
+def test_annotate_columns_returns_403_when_quota_exceeded(
+    user_client: Client,
+    mocker: MockerFixture,
+) -> None:
+    quota_mock = MagicMock()
+    quota_mock.check_job_quota.return_value = False
+    mocker.patch.object(User, "get_quota", return_value=quota_mock)
+
+    file = textwrap.dedent("""
+        chrom,pos,ref,alt
+        chr1,1,C,A
+    """).strip()
+
+    response = user_client.post(
+        "/api/jobs/annotate_columns",
+        {
+            "pipeline_id": "pipeline/test_pipeline",
+            "data": ContentFile(file, "test_input.csv"),
+            "col_chrom": "chrom",
+            "col_pos": "pos",
+            "col_ref": "ref",
+            "col_alt": "alt",
+            "separator": ",",
+        },
+    )
+
+    assert response.status_code == 403
+    quota_mock.job_complete.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_annotate_columns_records_quota_usage_on_success(
+    user_client: Client,
+    mocker: MockerFixture,
+    test_grr: GenomicResourceRepo,
+) -> None:
+    quota_mock = MagicMock()
+    quota_mock.check_job_quota.return_value = True
+    mocker.patch.object(User, "get_quota", return_value=quota_mock)
+
+    file = textwrap.dedent("""
+        chrom,pos,ref,alt
+        chr1,1,C,A
+    """).strip()
+
+    response = user_client.post(
+        "/api/jobs/annotate_columns",
+        {
+            "pipeline_id": "pipeline/test_pipeline",
+            "data": ContentFile(file, "test_input.csv"),
+            "col_chrom": "chrom",
+            "col_pos": "pos",
+            "col_ref": "ref",
+            "col_alt": "alt",
+            "separator": ",",
+        },
+    )
+
+    assert response.status_code == 200
+    quota_mock.job_complete.assert_called_once()
+
+
+@pytest.mark.django_db
 def test_annotate_columns_t4c8_gzipped(
     admin_client: Client,
 ) -> None:
