@@ -127,12 +127,14 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
       next: (notification: PipelineNotification) => {
         if (this.currentTemporaryPipelineId === notification.pipelineId) {
           this.currentTemporaryPipelineStatus = notification.status;
+          this.pipelineStateService.currentTemporaryPipelineStatus.set(notification.status);
           return;
         }
         if (!this.currentTemporaryPipelineId && !this.pipelines.find(p => p.id === notification.pipelineId)) {
           this.currentTemporaryPipelineId = notification.pipelineId;
           this.currentTemporaryPipelineStatus = notification.status;
           this.pipelineStateService.currentTemporaryPipelineId.set(this.currentTemporaryPipelineId);
+          this.pipelineStateService.currentTemporaryPipelineStatus.set(notification.status);
           return;
         }
 
@@ -250,6 +252,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     this.unselectPublicPipeline();
     this.displayUnsavedPipelineIndication();
 
+    this.pipelineStateService.currentPipelineText.set(this.currentPipelineText);
     this.pipelineStateService.isConfigValid.set(false);
 
     this.pipelineValidationSubscription.unsubscribe();
@@ -303,6 +306,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     this.pipelineStateService.selectedPipelineId.set(pipeline.id);
 
     this.currentPipelineText = pipeline.content;
+    this.pipelineStateService.currentPipelineText.set(pipeline.content);
 
     this.dropdownControl.setValue(this.selectedPipeline.name);
     this.clearTemporaryPipeline();
@@ -313,14 +317,17 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
 
   private getPipelineInfo(): void {
     this.pipelineInfo = null;
+    this.pipelineStateService.pipelineInfo.set(null);
     this.annotationPipelineService.getPipelineInfo(this.currentTemporaryPipelineId || this.selectedPipeline.id).pipe(
       take(1)
     ).subscribe({
       next: res => {
         this.pipelineInfo = res;
+        this.pipelineStateService.pipelineInfo.set(res);
       },
       error: () => {
         this.pipelineInfo = null;
+        this.pipelineStateService.pipelineInfo.set(null);
       }
     });
   }
@@ -394,6 +401,7 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     newAnnotatorModal.afterClosed().subscribe((result: string) => {
       if (result) {
         this.currentPipelineText += result;
+        this.pipelineStateService.currentPipelineText.set(this.currentPipelineText);
         this.autoScroll();
       }
     });
@@ -421,9 +429,11 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
 
   public doClear(): void {
     this.pipelineInfo = null;
+    this.pipelineStateService.pipelineInfo.set(null);
     this.selectedPipeline = null;
     this.pipelineStateService.selectedPipelineId.set('');
     this.currentPipelineText = '';
+    this.pipelineStateService.currentPipelineText.set('');
     this.dropdownControl.setValue('');
     this.clearTemporaryPipeline();
     this.isConfigValid();
@@ -557,13 +567,6 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   }
 
   public ngOnDestroy(): void {
-    this.pipelineStateService.pipelineInfo.set(this.pipelineInfo);
-    this.pipelineStateService.selectedPipelineId.set(this.selectedPipeline?.id || '');
-    this.pipelineStateService.currentPipelineText.set(this.currentPipelineText);
-    this.pipelineStateService.currentTemporaryPipelineId.set(this.currentTemporaryPipelineId);
-    this.pipelineStateService.currentTemporaryPipelineStatus.set(this.currentTemporaryPipelineStatus);
-    this.pipelineStateService.isConfigValid.set(!this.configError);
-
     this.socketNotificationsService.closeConnection();
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
