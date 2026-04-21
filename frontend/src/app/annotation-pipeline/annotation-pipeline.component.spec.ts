@@ -17,6 +17,7 @@ import { SocketNotificationsService } from '../socket-notifications/socket-notif
 import { PipelineNotification } from '../socket-notifications/socket-notifications';
 import { PipelineInfo } from '../annotation-pipeline';
 import { NewAnnotatorComponent } from '../new-annotator/new-annotator.component';
+import { AnnotationPipelineStateService } from './annotation-pipeline-state.service';
 
 const mockPipelines = [
   new Pipeline('id1', 'name1', 'content1', 'default', 'loaded'),
@@ -122,6 +123,7 @@ class SocketNotificationsServiceMock {
 describe('AnnotationPipelineComponent', () => {
   let component: AnnotationPipelineComponent;
   let fixture: ComponentFixture<AnnotationPipelineComponent>;
+  let pipelineStateService: AnnotationPipelineStateService;
   const jobsServiceMock = new JobsServiceMock();
   const userServiceMock = new UserServiceMock();
   const mockMatDialogRef = new MatDialogRefMock();
@@ -181,6 +183,8 @@ describe('AnnotationPipelineComponent', () => {
     };
 
     fixture.detectChanges();
+    pipelineStateService = TestBed.inject(AnnotationPipelineStateService);
+    pipelineStateService.pipelines.set([]);
     jest.clearAllMocks();
   });
 
@@ -203,7 +207,6 @@ describe('AnnotationPipelineComponent', () => {
   });
 
   it('should set temporary pipeline id on notification arrival if id is not set', () => {
-    const emitPipelineIdSpy = jest.spyOn(component.emitPipelineId, 'emit');
     jest.spyOn(socketNotificationsServiceMock, 'getPipelineNotifications').mockReturnValueOnce(
       of(new PipelineNotification('215', 'loading'))
     );
@@ -212,7 +215,7 @@ describe('AnnotationPipelineComponent', () => {
     component.ngOnInit();
     expect(component.currentTemporaryPipelineId).toBe('215');
     expect(component.currentTemporaryPipelineStatus).toBe('loading');
-    expect(emitPipelineIdSpy).toHaveBeenCalledWith('215');
+    expect(pipelineStateService.currentTemporaryPipelineId()).toBe('215');
   });
 
   it('should reconnects to socket notifications on close event', () => {
@@ -325,24 +328,23 @@ describe('AnnotationPipelineComponent', () => {
 
 
   it('should select new pipeline and emit to parent', () => {
-    const emitPipelineIdSpy = jest.spyOn(component.emitPipelineId, 'emit');
     const setDropdownValueSpy = jest.spyOn(component.dropdownControl, 'setValue');
     component.onPipelineClick(new Pipeline('1', 'other pipeline', 'config', 'default', 'loaded'));
     expect(component.selectedPipeline.id).toBe('1');
     expect(component.selectedPipeline.name).toBe('other pipeline');
     expect(component.selectedPipeline.content).toBe('config');
-    expect(emitPipelineIdSpy).toHaveBeenCalledWith('1');
+    expect(pipelineStateService.selectedPipelineId()).toBe('1');
     expect(setDropdownValueSpy).toHaveBeenCalledWith('other pipeline');
   });
 
   it('should not set new pipeline if invalid one', () => {
-    const emitPipelineIdSpy = jest.spyOn(component.emitPipelineId, 'emit');
+    const initialId = pipelineStateService.selectedPipelineId();
     const setDropdownValueSpy = jest.spyOn(component.dropdownControl, 'setValue');
 
     component.onPipelineClick(null);
     expect(component.selectedPipeline.id).toBe('id1');
     expect(component.selectedPipeline.content).toBe('content1');
-    expect(emitPipelineIdSpy).not.toHaveBeenCalledWith();
+    expect(pipelineStateService.selectedPipelineId()).toBe(initialId);
     expect(setDropdownValueSpy).not.toHaveBeenCalledWith();
   });
 
@@ -365,26 +367,22 @@ describe('AnnotationPipelineComponent', () => {
   });
 
   it('should success config validation', () => {
-    const emitIsConfigValid = jest.spyOn(component.emitIsConfigValid, 'emit');
-
     const configValidationSpy = jest.spyOn(jobsServiceMock, 'validatePipelineConfig');
     component.currentPipelineText = 'config content';
     component.isConfigValid();
     expect(configValidationSpy).toHaveBeenCalledWith('config content');
     expect(component.configError).toBe('');
-    expect(emitIsConfigValid).toHaveBeenCalledWith(true);
+    expect(pipelineStateService.isConfigValid()).toBe(true);
   });
 
   it('should fail config validation', () => {
-    const emitIsConfigValid = jest.spyOn(component.emitIsConfigValid, 'emit');
-
     const configValidationSpy = jest.spyOn(jobsServiceMock, 'validatePipelineConfig')
       .mockReturnValue(of('error message'));
     component.currentPipelineText = 'config content';
     component.isConfigValid();
     expect(configValidationSpy).toHaveBeenCalledWith('config content');
     expect(component.configError).toBe('error message');
-    expect(emitIsConfigValid).toHaveBeenCalledWith(false);
+    expect(pipelineStateService.isConfigValid()).toBe(false);
   });
 
   it('should get pipeline status info after successful validation', () => {
@@ -416,7 +414,6 @@ describe('AnnotationPipelineComponent', () => {
   });
 
   it('should remove \' *\' when pipeline changes are reverted, update id in parent and clear temporary id', () => {
-    const emitPipelineIdSpy = jest.spyOn(component.emitPipelineId, 'emit');
     jest.spyOn(component, 'isPipelineChanged').mockReturnValue(false);
     component.dropdownControl.setValue('pipeline-name *');
     component.currentTemporaryPipelineId = '1234';
@@ -424,7 +421,7 @@ describe('AnnotationPipelineComponent', () => {
 
     component.isConfigValid();
     expect(component.dropdownControl.value).toBe('pipeline-name');
-    expect(emitPipelineIdSpy).toHaveBeenCalledWith('1');
+    expect(pipelineStateService.selectedPipelineId()).toBe('1');
     expect(component.currentTemporaryPipelineId).toBe('');
   });
 
@@ -783,5 +780,66 @@ describe('AnnotationPipelineComponent', () => {
     subject.next(mockPipelines);
     subject.complete();
     expect(component.pipelinesLoaded).toBe(true);
+  });
+
+  it('should update temporary pipeline status in state when notification matches current temporary pipeline', () => {
+    jest.spyOn(socketNotificationsServiceMock, 'getPipelineNotifications').mockReturnValueOnce(
+      of(new PipelineNotification('215', 'loaded'))
+    );
+    component.currentTemporaryPipelineId = '215';
+    component.ngOnInit();
+    expect(component.currentTemporaryPipelineStatus).toBe('loaded');
+    expect(pipelineStateService.currentTemporaryPipelineStatus()).toBe('loaded');
+  });
+
+  it('should also update temporary pipeline status in state when new id arrives from notification', () => {
+    jest.spyOn(socketNotificationsServiceMock, 'getPipelineNotifications').mockReturnValueOnce(
+      of(new PipelineNotification('215', 'loading'))
+    );
+    component.currentTemporaryPipelineId = '';
+    component.ngOnInit();
+    expect(pipelineStateService.currentTemporaryPipelineStatus()).toBe('loading');
+  });
+
+  it('should sync pipeline text to state when selecting a pipeline', () => {
+    component.onPipelineClick(new Pipeline('1', 'other pipeline', 'config content', 'default', 'loaded'));
+    expect(pipelineStateService.currentPipelineText()).toBe('config content');
+  });
+
+  it('should sync pipeline text to state on config validation', () => {
+    component.currentPipelineText = 'new config';
+    component.isConfigValid();
+    expect(pipelineStateService.currentPipelineText()).toBe('new config');
+  });
+
+  it('should sync pipeline info to state after fetching it', () => {
+    component.onPipelineClick(mockPipelines[0]);
+    expect(pipelineStateService.pipelineInfo()).toStrictEqual(
+      new PipelineInfo(20, 4, ['hg19_annotatable'], ['gene_list'])
+    );
+  });
+
+  it('should clear pipeline id, text and info in state when clearing the pipeline', () => {
+    component.selectedPipeline = mockPipelines[0];
+    component.currentPipelineText = 'some content';
+    component.pipelineInfo = new PipelineInfo(20, 4, ['hg19_annotatable'], ['gene_list']);
+
+    component.doClear();
+
+    expect(pipelineStateService.selectedPipelineId()).toBe('');
+    expect(pipelineStateService.currentPipelineText()).toBe('');
+    expect(pipelineStateService.pipelineInfo()).toBeNull();
+  });
+
+  it('should restore state from service when navigating back to the page', () => {
+    pipelineStateService.pipelines.set(mockPipelines);
+    pipelineStateService.selectedPipelineId.set('id3');
+    pipelineStateService.currentPipelineText.set('content3');
+
+    component.ngOnInit();
+
+    expect(component.selectedPipeline).toStrictEqual(mockPipelines[2]);
+    expect(component.currentPipelineText).toBe('content3');
+    expect(component.dropdownControl.value).toBe('name3');
   });
 });

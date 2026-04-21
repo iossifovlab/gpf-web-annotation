@@ -12,6 +12,7 @@ import { SocketNotificationsService } from '../socket-notifications/socket-notif
 import { JobNotification, PipelineNotification } from '../socket-notifications/socket-notifications';
 import { AnnotationPipelineService } from '../annotation-pipeline.service';
 import { MatTooltip } from '@angular/material/tooltip';
+import { AnnotationPipelineStateService } from '../annotation-pipeline/annotation-pipeline-state.service';
 
 class UserServiceMock {
   public userData = new BehaviorSubject<UserData>({
@@ -120,6 +121,7 @@ class AnnotationPipelineServiceMock {
 describe('AnnotationJobsWrapperComponent', () => {
   let component: AnnotationJobsWrapperComponent;
   let fixture: ComponentFixture<AnnotationJobsWrapperComponent>;
+  let pipelineStateService: AnnotationPipelineStateService;
   const jobsServiceMock = new JobsServiceMock();
   const userServiceMock = new UserServiceMock();
   const socketNotificationsServiceMock = new SocketNotificationsServiceMock();
@@ -155,6 +157,9 @@ describe('AnnotationJobsWrapperComponent', () => {
 
     fixture = TestBed.createComponent(AnnotationJobsWrapperComponent);
     component = fixture.componentInstance;
+
+    pipelineStateService = TestBed.inject(AnnotationPipelineStateService);
+    pipelineStateService.pipelines.set([]);
 
     fixture.detectChanges();
   });
@@ -228,12 +233,12 @@ describe('AnnotationJobsWrapperComponent', () => {
 
   it('should disable Create button if no file is uploaded', () => {
     component.file = null;
-    component.pipelineId = 'autism';
+    pipelineStateService.selectedPipelineId.set('autism');
     expect(component.disableCreate()).toBe(true);
   });
 
   it('should disable Create button if yml config is invalid', () => {
-    component.isConfigValid = false;
+    pipelineStateService.isConfigValid.set(false);
     expect(component.disableCreate()).toBe(true);
   });
 
@@ -241,7 +246,6 @@ describe('AnnotationJobsWrapperComponent', () => {
     const mockFile = new File([], 'mockFile', { type: 'text/vcard' });
     component.file = mockFile;
     component.selectedGenome = 'hg38';
-    component.pipelineId = 'autism';
     component.isCreationFormVisible = true;
 
     component.autoSavePipeline();
@@ -257,24 +261,14 @@ describe('AnnotationJobsWrapperComponent', () => {
     expect(component.file).toBeNull();
   });
 
-  it('should auto save and get annonymous pipeline name', () => {
-    const pipelinesComponentSpy = jest.spyOn(component.pipelinesComponent, 'autoSave')
-      .mockReturnValue(of('annonymous pipeline'));
+  it('should auto save and set temporary pipeline id', () => {
+    jest.spyOn(annotationPipelineServiceMock, 'savePipeline').mockReturnValueOnce(of('temp'));
+    const pipelinesComponentSpy = jest.spyOn(component.pipelinesComponent, 'autoSave');
     jest.spyOn(component.pipelinesComponent, 'isPipelineChanged').mockReturnValue(true);
 
     component.autoSavePipeline();
     expect(pipelinesComponentSpy).toHaveBeenCalledWith();
-    expect(component.pipelineId).toBe('annonymous pipeline');
-  });
-
-  it('should auto save pipeline', () => {
-    const pipelinesComponentSpy = jest.spyOn(component.pipelinesComponent, 'autoSave')
-      .mockReturnValue(of('temp'));
-    jest.spyOn(component.pipelinesComponent, 'isPipelineChanged').mockReturnValue(true);
-
-    component.autoSavePipeline();
-    expect(pipelinesComponentSpy).toHaveBeenCalledWith();
-    expect(component.pipelineId).toBe('temp');
+    expect(pipelineStateService.currentTemporaryPipelineId()).toBe('temp');
   });
 
   it('should trigger auto save pipeline when editor is empty', () => {
@@ -287,7 +281,6 @@ describe('AnnotationJobsWrapperComponent', () => {
 
   it('should create job with vcf file and auto save pipeline', () => {
     component.file = new File([], 'mock.vcf', { type: 'text/vcard' });
-    component.pipelineId = 'pipeline';
     component.selectedGenome = 'hg38';
     component.fileSeparator = '';
     component.fileHeader = null;
@@ -310,7 +303,6 @@ describe('AnnotationJobsWrapperComponent', () => {
 
   it('should create job with csv file and auto save pipeline', () => {
     component.file = new File([], 'mock.csv', { type: 'text/comma-separated-values' });
-    component.pipelineId = 'pipeline';
     component.selectedGenome = 'hg38';
     component.fileSeparator = ',';
     component.fileHeader = new Map<string, string>([['a', '1']]);
@@ -330,41 +322,19 @@ describe('AnnotationJobsWrapperComponent', () => {
     expect(component.currentJobId).toBe(1);
   });
 
-  it('should set and load pipeline when catching emits from pipeline component', () => {
-    component.pipelineId = 'prev_pipeline';
+  it('should load pipeline on pipeline selection', () => {
     const loadPipelineSpy = jest.spyOn(annotationPipelineServiceMock, 'loadPipeline');
     const disableCreateSpy = jest.spyOn(component, 'disableCreate');
-
-    component.setPipeline('pipeline_autism');
-    expect(component.pipelineId).toBe('pipeline_autism');
-    expect(loadPipelineSpy).toHaveBeenCalledWith('pipeline_autism');
+    pipelineStateService.selectedPipelineId.set('new_pipeline');
+    fixture.detectChanges();
+    expect(loadPipelineSpy).toHaveBeenCalledWith('new_pipeline');
     expect(disableCreateSpy).toHaveBeenCalledWith();
-  });
-
-
-  it('should not trigger any changes when selecting the same pipeline', () => {
-    component.pipelineId = 'pipeline_autism';
-    const disableCreateJobSpy = jest.spyOn(component, 'disableCreate');
-
-    component.setPipeline('pipeline_autism');
-    expect(disableCreateJobSpy).not.toHaveBeenCalledWith();
   });
 
   it('should set genome', () => {
     component.selectedGenome = 'hg19';
     component.setGenome('hg38');
     expect(component.selectedGenome).toBe('hg38');
-  });
-
-  it('should set pipeline config state', () => {
-    component.isConfigValid = true;
-    const disableCreateSpy = jest.spyOn(component, 'disableCreate');
-    component.setConfigValid(true);
-    expect(disableCreateSpy).not.toHaveBeenCalledWith();
-
-    component.setConfigValid(false);
-    expect(component.isConfigValid).toBe(false);
-    expect(disableCreateSpy).toHaveBeenCalledWith();
   });
 
   it('should set job\'s file', () => {
@@ -422,56 +392,55 @@ describe('AnnotationJobsWrapperComponent', () => {
 
   it('should disable create job button', () => {
     component.blockCreate = true;
-    component.pipelineId = 'pipeline_autism';
     component.file = new File([], 'mockFile', { type: 'text/vcard' });
     component.selectedGenome = 'hg38';
-    component.isConfigValid = true;
+    pipelineStateService.isConfigValid.set(true);
     expect(component.disableCreate()).toBe(true);
   });
 
   it('should disable create job button when no pipeline is selected', () => {
     component.blockCreate = false;
-    component.pipelineId = '';
+    pipelineStateService.selectedPipelineId.set('');
     component.file = new File([], 'mockFile', { type: 'text/vcard' });
     component.selectedGenome = 'hg38';
-    component.isConfigValid = true;
+    pipelineStateService.isConfigValid.set(true);
     expect(component.disableCreate()).toBe(true);
   });
 
   it('should disable create job button when no file is uploaded', () => {
     component.blockCreate = false;
-    component.pipelineId = 'pipeline_autism';
+    pipelineStateService.selectedPipelineId.set('pipeline_autism');
     component.file = null;
     component.selectedGenome = 'hg38';
-    component.isConfigValid = true;
+    pipelineStateService.isConfigValid.set(true);
     expect(component.disableCreate()).toBe(true);
   });
 
   it('should disable create job button when no genome is selected when required', () => {
     component.blockCreate = false;
-    component.pipelineId = 'pipeline_autism';
+    pipelineStateService.selectedPipelineId.set('pipeline_autism');
     component.file = new File([], 'mockFile', { type: 'text/comma-separated-values' });
     component.fileHeader = new Map<string, string>([['location', 'LOC']]);
     component.selectedGenome = '';
-    component.isConfigValid = true;
+    pipelineStateService.isConfigValid.set(true);
     expect(component.disableCreate()).toBe(true);
   });
 
   it('should disable create job button when no new columns are selected', () => {
     component.blockCreate = false;
-    component.pipelineId = 'pipeline_autism';
+    pipelineStateService.selectedPipelineId.set('pipeline_autism');
     component.file = new File([], 'mockFile', { type: 'text/comma-separated-values' });
     component.fileHeader = null;
-    component.isConfigValid = true;
+    pipelineStateService.isConfigValid.set(true);
     expect(component.disableCreate()).toBe(true);
   });
 
   it('should disable create job button when pipeline config is not valid', () => {
     component.blockCreate = false;
-    component.pipelineId = 'pipeline_autism';
+    pipelineStateService.selectedPipelineId.set('pipeline_autism');
     component.file = new File([], 'mockFile', { type: 'text/vcard' });
     component.selectedGenome = 'hg38';
-    component.isConfigValid = false;
+    pipelineStateService.isConfigValid.set(false);
     expect(component.disableCreate()).toBe(true);
   });
 
@@ -515,5 +484,23 @@ describe('AnnotationJobsWrapperComponent', () => {
     const mockBoeforeUnloadEvent = { preventDefault: jest.fn() } as unknown as BeforeUnloadEvent;
     component.beforeUnload(mockBoeforeUnloadEvent);
     expect(mockBoeforeUnloadEvent.preventDefault).not.toHaveBeenCalledWith();
+  });
+
+  it('should set creation error when job creation fails', () => {
+    jest.spyOn(jobsServiceMock, 'createVcfJob').mockReturnValueOnce(throwError(new Error('Server error')));
+    component.file = new File([], 'mock.vcf', { type: 'text/vcard' });
+    component.selectedGenome = 'hg38';
+
+    component.autoSavePipeline();
+    expect(component.creationError).toBe('Server error');
+    expect(component.blockCreate).toBe(false);
+  });
+
+  it('should disable create button when there is a creation error', () => {
+    component.file = new File([], 'mockFile', { type: 'text/vcard' });
+    pipelineStateService.selectedPipelineId.set('autism');
+    pipelineStateService.isConfigValid.set(true);
+    component.creationError = 'some error';
+    expect(component.disableCreate()).toBe(true);
   });
 });

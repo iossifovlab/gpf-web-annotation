@@ -1,4 +1,4 @@
-import { Component, ViewChild, OnInit, OnDestroy, NgZone, HostListener } from '@angular/core';
+import { Component, ViewChild, OnInit, OnDestroy, NgZone, HostListener, effect } from '@angular/core';
 import { JobsTableComponent } from '../jobs-table/jobs-table.component';
 import { Observable, Subscription, take } from 'rxjs';
 import { JobsService } from '../job-creation/jobs.service';
@@ -10,6 +10,7 @@ import { UsersService } from '../users.service';
 import { SocketNotificationsService } from '../socket-notifications/socket-notifications.service';
 import { JobNotification } from '../socket-notifications/socket-notifications';
 import { AnnotationPipelineService } from '../annotation-pipeline.service';
+import { AnnotationPipelineStateService } from '../annotation-pipeline/annotation-pipeline-state.service';
 
 @Component({
   selector: 'app-annotation-jobs-wrapper',
@@ -27,8 +28,6 @@ export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
   public file: File = null;
   public fileSeparator: string = null;
   public fileHeader: Map<string, string> = null;
-  public pipelineId = '';
-  public isConfigValid = true;
   public creationError = '';
   public selectedGenome = '';
   public isCreationFormVisible = true;
@@ -51,7 +50,16 @@ export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
       private ngZone: NgZone,
       private socketNotificationsService: SocketNotificationsService,
       private annotationPipelineService: AnnotationPipelineService,
-  ) { }
+      private pipelineStateService: AnnotationPipelineStateService,
+  ) {
+    effect(() => {
+      const id = this.pipelineStateService.currentTemporaryPipelineId() ||
+        this.pipelineStateService.selectedPipelineId();
+      if (id) {
+        this.annotationPipelineService.loadPipeline(id).pipe(take(1)).subscribe();
+      }
+    });
+  }
 
   public ngOnInit(): void {
     this.setupJobWebSocketConnection();
@@ -107,12 +115,11 @@ export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
   }
 
   public autoSavePipeline(): void {
-    if (!this.isConfigValid) {
+    if (!this.pipelineStateService.isConfigValid()) {
       return;
     }
     if (this.pipelinesComponent.isPipelineChanged()) {
-      this.pipelinesComponent.autoSave().pipe(take(1)).subscribe(annonymousPipelineName => {
-        this.pipelineId = annonymousPipelineName;
+      this.pipelinesComponent.autoSave().pipe(take(1)).subscribe(() => {
         this.create();
       });
     } else {
@@ -126,13 +133,17 @@ export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
       if (this.file.type === 'text/vcard') {
         createObservable = this.jobsService.createVcfJob(
           this.file,
-          this.pipelineId,
+          this.pipelineStateService.currentTemporaryPipelineId() ||
+            this.pipelineStateService.selectedPipelineId() ||
+            '',
           this.selectedGenome,
         );
       } else {
         createObservable = this.jobsService.createNonVcfJob(
           this.file,
-          this.pipelineId,
+          this.pipelineStateService.currentTemporaryPipelineId() ||
+            this.pipelineStateService.selectedPipelineId() ||
+            '',
           this.selectedGenome,
           this.fileSeparator,
           this.fileHeader
@@ -186,29 +197,8 @@ export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
     this.fileHeader = null;
   }
 
-  public setPipeline(newPipeline: string): void {
-    if (!newPipeline || this.pipelineId === newPipeline) {
-      return;
-    }
-    this.pipelineId = newPipeline;
-
-    if (newPipeline) {
-      this.annotationPipelineService.loadPipeline(newPipeline).pipe(take(1)).subscribe();
-    }
-    this.disableCreate();
-  }
-
   public setGenome(genome: string): void {
     this.selectedGenome = genome;
-  }
-
-  public setConfigValid(newState: boolean): void {
-    if (this.isConfigValid === newState) {
-      return;
-    }
-
-    this.isConfigValid = newState;
-    this.disableCreate();
   }
 
   public setFile(newFile: File): void {
@@ -241,10 +231,10 @@ export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
   public disableCreate(): boolean {
     return this.blockCreate
       || this.creationError !== ''
-      || !this.pipelineId
       || !this.file
       || (this.file.type !== 'text/vcard' && !this.fileHeader)
-      || !this.isConfigValid
+      || !(this.pipelineStateService.currentTemporaryPipelineId() || this.pipelineStateService.selectedPipelineId())
+      || !this.pipelineStateService.isConfigValid()
       || (this.file.type !== 'text/vcard' && !this.isGenomeValid());
   }
 

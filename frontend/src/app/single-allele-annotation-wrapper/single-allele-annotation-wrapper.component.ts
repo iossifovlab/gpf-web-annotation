@@ -1,4 +1,4 @@
-import { Component, ViewChild, OnInit, NgZone, HostListener } from '@angular/core';
+import { Component, ViewChild, OnInit, NgZone, HostListener, effect } from '@angular/core';
 import { take } from 'rxjs';
 import { AnnotationPipelineComponent } from '../annotation-pipeline/annotation-pipeline.component';
 import { CommonModule } from '@angular/common';
@@ -6,6 +6,7 @@ import { SingleAnnotationComponent } from '../single-annotation/single-annotatio
 import { AllelesTableComponent } from '../alleles-table/alleles-table.component';
 import { UsersService } from '../users.service';
 import { AnnotationPipelineService } from '../annotation-pipeline.service';
+import { AnnotationPipelineStateService } from '../annotation-pipeline/annotation-pipeline-state.service';
 
 @Component({
   selector: 'app-single-allele-annotation-wrapper',
@@ -20,8 +21,6 @@ import { AnnotationPipelineService } from '../annotation-pipeline.service';
 })
 
 export class SingleAlleleAnnotationWrapperComponent implements OnInit {
-  public pipelineId = '';
-  public isConfigValid = true;
   public creationError = '';
   @ViewChild(AnnotationPipelineComponent) public pipelinesComponent: AnnotationPipelineComponent;
   @ViewChild(AllelesTableComponent) public allelesTableComponent: AllelesTableComponent;
@@ -35,7 +34,22 @@ export class SingleAlleleAnnotationWrapperComponent implements OnInit {
       private userService: UsersService,
       private ngZone: NgZone,
       private annotationPipelineService: AnnotationPipelineService,
-  ) { }
+      private pipelineStateService: AnnotationPipelineStateService,
+  ) {
+    effect(() => {
+      const id = this.pipelineStateService.currentTemporaryPipelineId() ||
+        this.pipelineStateService.selectedPipelineId();
+      if (id) {
+        this.resetSingleAlleleReport();
+        this.annotationPipelineService.loadPipeline(id).pipe(take(1)).subscribe();
+      }
+    });
+
+    effect(() => {
+      this.pipelineStateService.currentPipelineText();
+      this.resetSingleAlleleReport();
+    });
+  }
 
   public ngOnInit(): void {
     this.userService.userData.pipe(
@@ -52,12 +66,11 @@ export class SingleAlleleAnnotationWrapperComponent implements OnInit {
   }
 
   public autoSavePipeline(): void {
-    if (!this.isConfigValid) {
+    if (!this.pipelineStateService.isConfigValid()) {
       return;
     }
     if (this.pipelinesComponent.isPipelineChanged()) {
-      this.pipelinesComponent.autoSave().pipe(take(1)).subscribe(annonymousPipelineName => {
-        this.pipelineId = annonymousPipelineName;
+      this.pipelinesComponent.autoSave().pipe(take(1)).subscribe(() => {
         this.annotate();
       });
     } else {
@@ -66,7 +79,6 @@ export class SingleAlleleAnnotationWrapperComponent implements OnInit {
   }
 
   private annotate(): void {
-    this.singleAnnotationComponent.pipelineId = this.pipelineId;
     this.singleAnnotationComponent.annotateAllele();
   }
 
@@ -75,29 +87,8 @@ export class SingleAlleleAnnotationWrapperComponent implements OnInit {
     this.autoSavePipeline();
   }
 
-  public setPipeline(newPipeline: string): void {
-    if (!newPipeline || this.pipelineId === newPipeline) {
-      return;
-    }
-    this.resetSingleAlleleReport();
-    this.pipelineId = newPipeline;
-
-    this.singleAnnotationComponent.pipelineId = newPipeline;
-    if (newPipeline) {
-      this.annotationPipelineService.loadPipeline(newPipeline).pipe(take(1)).subscribe();
-    }
-  }
-
   public resetSingleAlleleReport(): void {
-    this.singleAnnotationComponent.resetReport();
-  }
-
-  public setConfigValid(newState: boolean): void {
-    if (this.isConfigValid === newState) {
-      return;
-    }
-    this.resetSingleAlleleReport();
-    this.isConfigValid = newState;
+    this.singleAnnotationComponent?.resetReport();
   }
 
   public refreshAllelesTable(): void {
