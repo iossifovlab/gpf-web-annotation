@@ -1,14 +1,17 @@
 # pylint: disable=W0621,C0114,C0116,W0212,W0613
 import pytest
+from datetime import timedelta
 from types import SimpleNamespace
 from typing import Any
 from unittest.mock import MagicMock
 
 from pytest_mock import MockerFixture
 from django.test import Client
+from django.utils import timezone
 
 from gain.annotation.annotation_config import AttributeInfo
 from gain.genomic_resources.repository import GenomicResourceRepo
+from web_annotation.models import AlleleQuery, User
 from web_annotation.pipeline_cache import LRUPipelineCache
 from web_annotation.single_allele_annotation.views import SingleAnnotation
 
@@ -368,3 +371,139 @@ def test_different_annotatables(
     assert response.status_code == 200
 
     assert response.json()["annotatable"] == expected
+
+
+@pytest.fixture
+def allele_query() -> AlleleQuery:
+    user = User.objects.get(email="user@example.com")
+    query = AlleleQuery.objects.create(allele="chr1:100:A:T", owner=user)
+    return query
+
+
+def test_update_note_sets_note_on_allele(
+    user_client: Client,
+    allele_query: AlleleQuery,
+) -> None:
+    response = user_client.post(
+        "/api/single_allele/note",
+        {"allele": "chr1:100:A:T", "note": "interesting variant"},
+        content_type="application/json",
+    )
+
+    assert response.status_code == 200
+    allele_query.refresh_from_db()
+    assert allele_query.note == "interesting variant"
+
+
+def test_update_note_overwrites_existing_note(
+    user_client: Client,
+    allele_query: AlleleQuery,
+) -> None:
+    allele_query.note = "old note"
+    allele_query.save()
+
+    user_client.post(
+        "/api/single_allele/note",
+        {"allele": "chr1:100:A:T", "note": "new note"},
+        content_type="application/json",
+    )
+
+    allele_query.refresh_from_db()
+    assert allele_query.note == "new note"
+
+
+def test_update_note_returns_400_when_allele_missing(
+    user_client: Client,
+) -> None:
+    response = user_client.post(
+        "/api/single_allele/note",
+        {"note": "some note"},
+        content_type="application/json",
+    )
+
+    assert response.status_code == 400
+
+
+def test_update_note_returns_404_for_unknown_allele(
+    user_client: Client,
+) -> None:
+    response = user_client.post(
+        "/api/single_allele/note",
+        {"allele": "chr99:1 X:Y", "note": "whatever"},
+        content_type="application/json",
+    )
+
+    assert response.status_code == 404
+
+
+def test_update_note_requires_authentication(
+    anonymous_client: Client,
+    allele_query: AlleleQuery,
+) -> None:
+    response = anonymous_client.post(
+        "/api/single_allele/note",
+        {"allele": "chr1:100 A:T", "note": "note"},
+        content_type="application/json",
+    )
+
+    assert response.status_code == 403
+
+
+def test_history_ordered_by_last_used_descending(user_client: Client) -> None:
+    user = User.objects.get(email="user@example.com")
+    now = timezone.now()
+    AlleleQuery.objects.create(
+        allele="chr1:1 A>T", owner=user, last_used=now - timedelta(minutes=10))
+    AlleleQuery.objects.create(
+        allele="chr2:2 C>G", owner=user, last_used=now - timedelta(minutes=5))
+    AlleleQuery.objects.create(
+        allele="chr3:3 T>A", owner=user, last_used=now)
+
+    response = user_client.get("/api/single_allele/history")
+
+    assert response.status_code == 200
+    alleles = [r["allele"] for r in response.json()]
+    assert alleles == ["chr3:3 T>A", "chr2:2 C>G", "chr1:1 A>T"]
+
+
+def test_annotation_updates_last_used_on_existing_allele(
+    user_client: Client,
+) -> None:
+    user = User.objects.get(email="user@example.com")
+    old_time = timezone.now() - timedelta(hours=1)
+    allele_query = AlleleQuery.objects.create(
+        allele="1:3 A>T",
+        owner=user,
+        last_used=old_time,
+    )
+
+    user_client.post(
+        "/api/single_allele/annotate",
+        {
+            "annotatable": {"chrom": "1", "pos": "3", "ref": "A", "alt": "T"},
+            "pipeline_id": "t4c8/t4c8_pipeline",
+        },
+        content_type="application/json",
+    )
+
+    allele_query.refresh_from_db()
+    assert allele_query.last_used > old_time
+
+
+def test_annotation_does_not_create_duplicate_allele_query(
+    user_client: Client,
+) -> None:
+    user = User.objects.get(email="user@example.com")
+    AlleleQuery.objects.create(allele="1:3 A>T", owner=user)
+
+    user_client.post(
+        "/api/single_allele/annotate",
+        {
+            "annotatable": {"chrom": "1", "pos": "3", "ref": "A", "alt": "T"},
+            "pipeline_id": "t4c8/t4c8_pipeline",
+        },
+        content_type="application/json",
+    )
+
+    assert AlleleQuery.objects.filter(
+        allele="1:3 A>T", owner=user).count() == 1

@@ -4,6 +4,7 @@ import gzip
 import pathlib
 import textwrap
 from typing import cast
+from unittest.mock import ANY
 
 import pytest
 from gain.genomic_resources.repository import GenomicResourceRepo
@@ -1263,15 +1264,19 @@ def test_single_annotation_save_query_in_history(admin_client: Client) -> None:
     assert response.status_code == 200
     assert response.json() == [
         {
-            "id": 1,
-            "owner": "admin@example.com",
-            "allele": "chr1:53 C>A",
-        },
-        {
             "id": 2,
             "owner": "admin@example.com",
             "allele": "chr2:62 T>G",
-        }
+            "last_used": ANY,
+            "note": "",
+        },
+        {
+            "id": 1,
+            "owner": "admin@example.com",
+            "allele": "chr1:53 C>A",
+            "last_used": ANY,
+            "note": "",
+        },
     ]
 
 
@@ -1309,6 +1314,8 @@ def test_single_annotation_save_duplicate_query_in_history(
             "id": 1,
             "owner": "admin@example.com",
             "allele": "chr1:53 C>A",
+            "last_used": ANY,
+            "note": "",
         },
     ]
 
@@ -1333,6 +1340,8 @@ def test_user_delete_allele_query_from_history(admin_client: Client) -> None:
             "id": 1,
             "owner": "admin@example.com",
             "allele": "chr1:53 C>A",
+            "last_used": ANY,
+            "note": "",
         },
     ]
 

@@ -220,15 +220,18 @@ class SingleAnnotation(AnnotationBaseView):
             and isinstance(request.user, BaseUser)
         ):
             allele = str(annotatable)
-            if AlleleQuery.objects.filter(
+            allele_query = AlleleQuery.objects.filter(
                 allele=allele,
                 owner=request.user.as_owner,
-            ).first() is None:
+            ).first()
+            if allele_query is None:
                 allele_query = AlleleQuery(
                     allele=allele,
                     owner=request.user.as_owner,
                 )
-                allele_query.save()
+            else:
+                allele_query.last_used = timezone.now()
+            allele_query.save()
 
         quota.single_allele_query_complete(attributes_count)
 
@@ -321,7 +324,8 @@ class AlleleHistory(generics.ListAPIView):
     def get_queryset(self) -> QuerySet:
         assert isinstance(self.request.user, BaseUser)
         return AlleleQuery.objects.filter(
-            owner=cast(User, self.request.user.as_owner))
+            owner=cast(User, self.request.user.as_owner),
+        ).order_by("-last_used")
 
     def delete(self, request: Request) -> Response:
         """Delete user allele annotation query from history"""
@@ -346,3 +350,37 @@ class AlleleHistory(generics.ListAPIView):
         allele_query.delete()
 
         return Response(status=views.status.HTTP_204_NO_CONTENT)
+
+
+class UpdateAlleleNote(views.APIView):
+    """View for updating a user's note on an allele query."""
+
+    authentication_classes = [WebAnnotationAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request: Request) -> Response:
+        """Update the note for an allele query."""
+        allele = request.data.get("allele")
+        note = request.data.get("note")
+
+        if not allele:
+            return Response(
+                {"reason": "Allele must be provided!"},
+                status=views.status.HTTP_400_BAD_REQUEST,
+            )
+
+        allele_query = AlleleQuery.objects.filter(
+            allele=allele,
+            owner=request.user.as_owner,
+        ).first()
+
+        if allele_query is None:
+            return Response(
+                {"reason": "Allele not found!"},
+                status=views.status.HTTP_404_NOT_FOUND,
+            )
+
+        allele_query.note = note
+        allele_query.save()
+
+        return Response(status=views.status.HTTP_200_OK)
