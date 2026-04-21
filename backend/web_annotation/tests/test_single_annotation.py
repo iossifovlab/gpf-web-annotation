@@ -424,7 +424,7 @@ def test_update_note_returns_400_when_allele_missing(
     assert response.status_code == 400
 
 
-def test_update_note_returns_400_for_unknown_allele(
+def test_update_note_returns_404_for_unknown_allele(
     user_client: Client,
 ) -> None:
     response = user_client.post(
@@ -433,7 +433,7 @@ def test_update_note_returns_400_for_unknown_allele(
         content_type="application/json",
     )
 
-    assert response.status_code == 400
+    assert response.status_code == 404
 
 
 def test_update_note_requires_authentication(
