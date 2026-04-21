@@ -9,6 +9,7 @@ import { BehaviorSubject, Observable, of } from 'rxjs';
 import { Annotator, AnnotatorDetails, Resource, SingleAnnotationReport, Annotatable } from '../single-annotation';
 import { UserData, UsersService } from '../users.service';
 import { MatTooltip } from '@angular/material/tooltip';
+import { AnnotationPipelineStateService } from '../annotation-pipeline/annotation-pipeline-state.service';
 
 const mockReport = new SingleAnnotationReport(
   new Annotatable('chr14', 204000100, 'A', 'AA', 'ins', null, null),
@@ -42,6 +43,7 @@ class MockUsersService {
 describe('SingleAnnotationComponent', () => {
   let component: SingleAnnotationComponent;
   let fixture: ComponentFixture<SingleAnnotationComponent>;
+  let pipelineStateService: AnnotationPipelineStateService;
   const mockSingleAnnotationService = new MockSingleAnnotationService();
   const mockUsersService = new MockUsersService();
 
@@ -67,6 +69,10 @@ describe('SingleAnnotationComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(SingleAnnotationComponent);
+
+    pipelineStateService = TestBed.inject(AnnotationPipelineStateService);
+    pipelineStateService.selectedPipelineId.set('pipelineId');
+    pipelineStateService.isConfigValid.set(true);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
@@ -77,7 +83,6 @@ describe('SingleAnnotationComponent', () => {
 
   it('should not show error message for valid alleles', () => {
     component.alleleInput.setValue('chr1 11796321 G A');
-    component.pipelineId = 'pipelineId';
     component.annotateAllele();
     expect(component.alleleInput.valid).toBe(true);
 
@@ -139,8 +144,6 @@ describe('SingleAnnotationComponent', () => {
   });
 
   it('should show error message for invalid alleles', () => {
-    component.pipelineId = 'pipelineId';
-
     component.alleleInput.setValue('chr1 GTT A');
     component.annotateAllele();
     expect(component.alleleInput.valid).toBe(false);
@@ -183,7 +186,6 @@ describe('SingleAnnotationComponent', () => {
   });
 
   it('should check if position of an allele is valid', () => {
-    component.pipelineId = 'pipelineId';
     component.alleleInput.setValue('chr1 11796321 G A');
     component.annotateAllele();
     expect(component.alleleInput.valid).toBe(true);
@@ -227,7 +229,6 @@ describe('SingleAnnotationComponent', () => {
 
   it('should check if reference of an allele is valid', () => {
     component.alleleInput.setValue('chr1 11796321 G A');
-    component.pipelineId = 'pipelineId';
     component.annotateAllele();
     expect(component.alleleInput.valid).toBe(true);
 
@@ -254,7 +255,6 @@ describe('SingleAnnotationComponent', () => {
 
   it('should check if alternative of an allele is valid', () => {
     component.alleleInput.setValue('chr1 11796321 G A');
-    component.pipelineId = 'pipelineId';
     component.annotateAllele();
     expect(component.alleleInput.valid).toBe(true);
 
@@ -281,8 +281,6 @@ describe('SingleAnnotationComponent', () => {
 
   it('should get report when clicking go button and input is valid', () => {
     component.alleleInput.setValue('chr1 11796321 G GT');
-    component.pipelineId = 'pipelineId';
-    component.isPipelineValid = true;
     const getReportSpy = jest.spyOn(mockSingleAnnotationService, 'getReport');
 
     component.annotateAllele();
@@ -305,8 +303,6 @@ describe('SingleAnnotationComponent', () => {
   });
 
   it('should trigger update table in parent after getting the report', () => {
-    component.pipelineId = 'pipelineId';
-    component.isPipelineValid = true;
     component.alleleInput.setValue('chr1 11796321 G GT');
     const emitSpy = jest.spyOn(component.alleleUpdateEmit, 'emit');
 

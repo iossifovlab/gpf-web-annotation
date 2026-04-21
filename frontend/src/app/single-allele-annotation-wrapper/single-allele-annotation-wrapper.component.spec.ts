@@ -9,6 +9,7 @@ import { provideMonacoEditor } from 'ngx-monaco-editor-v2';
 import { AnnotationPipelineService } from '../annotation-pipeline.service';
 import { SingleAnnotationComponent } from '../single-annotation/single-annotation.component';
 import { MatTooltip } from '@angular/material/tooltip';
+import { AnnotationPipelineStateService } from '../annotation-pipeline/annotation-pipeline-state.service';
 
 class UserServiceMock {
   public userData = new BehaviorSubject<UserData>({
@@ -51,6 +52,7 @@ class AnnotationPipelineServiceMock {
 describe('SingleAlleleAnnotationWrapperComponent', () => {
   let component: SingleAlleleAnnotationWrapperComponent;
   let fixture: ComponentFixture<SingleAlleleAnnotationWrapperComponent>;
+  let pipelineStateService: AnnotationPipelineStateService;
   const userServiceMock = new UserServiceMock();
   const annotationPipelineServiceMock = new AnnotationPipelineServiceMock();
 
@@ -77,6 +79,8 @@ describe('SingleAlleleAnnotationWrapperComponent', () => {
     fixture = TestBed.createComponent(SingleAlleleAnnotationWrapperComponent);
     component = fixture.componentInstance;
 
+    pipelineStateService = TestBed.inject(AnnotationPipelineStateService);
+
     fixture.detectChanges();
     component.singleAnnotationComponent = TestBed.createComponent(SingleAnnotationComponent).componentInstance;
   });
@@ -90,29 +94,21 @@ describe('SingleAlleleAnnotationWrapperComponent', () => {
     expect(component.isUserLoggedIn).toBe(true);
   });
 
-  it('should auto save and get annonymous pipeline name', () => {
-    const pipelinesComponentSpy = jest.spyOn(component.pipelinesComponent, 'autoSave')
-      .mockReturnValue(of('annonymous pipeline'));
+  it('should auto save and set temporary pipeline id', () => {
+    jest.spyOn(annotationPipelineServiceMock, 'savePipeline').mockReturnValueOnce(of('temp'));
+    const pipelinesComponentSpy = jest.spyOn(component.pipelinesComponent, 'autoSave');
     jest.spyOn(component.pipelinesComponent, 'isPipelineChanged').mockReturnValue(true);
+    pipelineStateService.isConfigValid.set(true);
 
     component.autoSavePipeline();
     expect(pipelinesComponentSpy).toHaveBeenCalledWith();
-    expect(component.pipelineId).toBe('annonymous pipeline');
-  });
-
-  it('should auto save pipeline', () => {
-    const pipelinesComponentSpy = jest.spyOn(component.pipelinesComponent, 'autoSave')
-      .mockReturnValue(of('temp'));
-    jest.spyOn(component.pipelinesComponent, 'isPipelineChanged').mockReturnValue(true);
-
-    component.autoSavePipeline();
-    expect(pipelinesComponentSpy).toHaveBeenCalledWith();
-    expect(component.pipelineId).toBe('temp');
+    expect(pipelineStateService.currentTemporaryPipelineId()).toBe('temp');
   });
 
   it('should trigger auto save pipeline when editor is empty', () => {
     const pipelinesComponentSpy = jest.spyOn(component.pipelinesComponent, 'autoSave');
     component.pipelinesComponent.currentPipelineText = '';
+    pipelineStateService.isConfigValid.set(true);
 
     component.autoSavePipeline();
     expect(pipelinesComponentSpy).toHaveBeenCalledWith();
@@ -120,8 +116,8 @@ describe('SingleAlleleAnnotationWrapperComponent', () => {
 
   it('should trigger allele annotation and auto save pipeline', () => {
     fixture.detectChanges();
+    pipelineStateService.isConfigValid.set(true);
 
-    component.pipelineId = 'pipeline';
     const pipelinesComponentSpy = jest.spyOn(component.pipelinesComponent, 'autoSave').mockReturnValue(of(''));
     const annotateAlleleSpy = jest.spyOn(component.singleAnnotationComponent, 'annotateAllele');
     jest.spyOn(component.pipelinesComponent, 'isPipelineChanged').mockReturnValue(true);
@@ -143,14 +139,13 @@ describe('SingleAlleleAnnotationWrapperComponent', () => {
   });
 
   it('should set and load pipeline when catching emits from pipeline component', () => {
-    component.pipelineId = 'prev_pipeline';
     const loadPipelineSpy = jest.spyOn(annotationPipelineServiceMock, 'loadPipeline');
     const resetSingleAlleleReportSpy = jest.spyOn(component, 'resetSingleAlleleReport');
+    pipelineStateService.selectedPipelineId.set('new_pipeline');
 
-    component.setPipeline('pipeline_autism');
+    fixture.detectChanges();
     expect(resetSingleAlleleReportSpy).toHaveBeenCalledWith();
-    expect(component.pipelineId).toBe('pipeline_autism');
-    expect(loadPipelineSpy).toHaveBeenCalledWith('pipeline_autism');
+    expect(loadPipelineSpy).toHaveBeenCalledWith('new_pipeline');
   });
 
   it('should trigger annotation report reset on pipeline change', () => {
@@ -160,26 +155,6 @@ describe('SingleAlleleAnnotationWrapperComponent', () => {
 
     component.resetSingleAlleleReport();
     expect(resetReportSpy).toHaveBeenCalledWith();
-  });
-
-  it('should not trigger any changes when selecting the same pipeline', () => {
-    component.pipelineId = 'pipeline_autism';
-    const resetSingleAlleleReportSpy = jest.spyOn(component, 'resetSingleAlleleReport');
-
-    component.setPipeline('pipeline_autism');
-    expect(resetSingleAlleleReportSpy).not.toHaveBeenCalledWith();
-  });
-
-  it('should set pipeline config state', () => {
-    component.isConfigValid = true;
-    const resetSingleAlleleReportSpy = jest.spyOn(component, 'resetSingleAlleleReport');
-
-    component.setConfigValid(true);
-    expect(resetSingleAlleleReportSpy).not.toHaveBeenCalledWith();
-
-    component.setConfigValid(false);
-    expect(component.isConfigValid).toBe(false);
-    expect(resetSingleAlleleReportSpy).toHaveBeenCalledWith();
   });
 
   it('should trigger alleles table refresh', () => {
