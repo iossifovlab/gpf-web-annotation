@@ -485,4 +485,22 @@ describe('AnnotationJobsWrapperComponent', () => {
     component.beforeUnload(mockBoeforeUnloadEvent);
     expect(mockBoeforeUnloadEvent.preventDefault).not.toHaveBeenCalledWith();
   });
+
+  it('should set creation error when job creation fails', () => {
+    jest.spyOn(jobsServiceMock, 'createVcfJob').mockReturnValueOnce(throwError(new Error('Server error')));
+    component.file = new File([], 'mock.vcf', { type: 'text/vcard' });
+    component.selectedGenome = 'hg38';
+
+    component.autoSavePipeline();
+    expect(component.creationError).toBe('Server error');
+    expect(component.blockCreate).toBe(false);
+  });
+
+  it('should disable create button when there is a creation error', () => {
+    component.file = new File([], 'mockFile', { type: 'text/vcard' });
+    pipelineStateService.selectedPipelineId.set('autism');
+    pipelineStateService.isConfigValid.set(true);
+    component.creationError = 'some error';
+    expect(component.disableCreate()).toBe(true);
+  });
 });

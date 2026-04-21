@@ -193,4 +193,19 @@ describe('SingleAlleleAnnotationWrapperComponent', () => {
     component.beforeUnload(mockBoeforeUnloadEvent);
     expect(mockBoeforeUnloadEvent.preventDefault).not.toHaveBeenCalledWith();
   });
+
+  it('should reset single allele report when pipeline text changes', () => {
+    const resetSingleAlleleReportSpy = jest.spyOn(component, 'resetSingleAlleleReport');
+    pipelineStateService.currentPipelineText.set('new pipeline config');
+    fixture.detectChanges();
+    expect(resetSingleAlleleReportSpy).toHaveBeenCalledWith();
+  });
+
+  it('should not auto save pipeline when config is invalid', () => {
+    const pipelinesComponentSpy = jest.spyOn(component.pipelinesComponent, 'autoSave');
+    pipelineStateService.isConfigValid.set(false);
+
+    component.autoSavePipeline();
+    expect(pipelinesComponentSpy).not.toHaveBeenCalled();
+  });
 });

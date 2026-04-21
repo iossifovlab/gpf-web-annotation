@@ -781,4 +781,65 @@ describe('AnnotationPipelineComponent', () => {
     subject.complete();
     expect(component.pipelinesLoaded).toBe(true);
   });
+
+  it('should update temporary pipeline status in state when notification matches current temporary pipeline', () => {
+    jest.spyOn(socketNotificationsServiceMock, 'getPipelineNotifications').mockReturnValueOnce(
+      of(new PipelineNotification('215', 'loaded'))
+    );
+    component.currentTemporaryPipelineId = '215';
+    component.ngOnInit();
+    expect(component.currentTemporaryPipelineStatus).toBe('loaded');
+    expect(pipelineStateService.currentTemporaryPipelineStatus()).toBe('loaded');
+  });
+
+  it('should also update temporary pipeline status in state when new id arrives from notification', () => {
+    jest.spyOn(socketNotificationsServiceMock, 'getPipelineNotifications').mockReturnValueOnce(
+      of(new PipelineNotification('215', 'loading'))
+    );
+    component.currentTemporaryPipelineId = '';
+    component.ngOnInit();
+    expect(pipelineStateService.currentTemporaryPipelineStatus()).toBe('loading');
+  });
+
+  it('should sync pipeline text to state when selecting a pipeline', () => {
+    component.onPipelineClick(new Pipeline('1', 'other pipeline', 'config content', 'default', 'loaded'));
+    expect(pipelineStateService.currentPipelineText()).toBe('config content');
+  });
+
+  it('should sync pipeline text to state on config validation', () => {
+    component.currentPipelineText = 'new config';
+    component.isConfigValid();
+    expect(pipelineStateService.currentPipelineText()).toBe('new config');
+  });
+
+  it('should sync pipeline info to state after fetching it', () => {
+    component.onPipelineClick(mockPipelines[0]);
+    expect(pipelineStateService.pipelineInfo()).toStrictEqual(
+      new PipelineInfo(20, 4, ['hg19_annotatable'], ['gene_list'])
+    );
+  });
+
+  it('should clear pipeline id, text and info in state when clearing the pipeline', () => {
+    component.selectedPipeline = mockPipelines[0];
+    component.currentPipelineText = 'some content';
+    component.pipelineInfo = new PipelineInfo(20, 4, ['hg19_annotatable'], ['gene_list']);
+
+    component.doClear();
+
+    expect(pipelineStateService.selectedPipelineId()).toBe('');
+    expect(pipelineStateService.currentPipelineText()).toBe('');
+    expect(pipelineStateService.pipelineInfo()).toBeNull();
+  });
+
+  it('should restore state from service when navigating back to the page', () => {
+    pipelineStateService.pipelines.set(mockPipelines);
+    pipelineStateService.selectedPipelineId.set('id3');
+    pipelineStateService.currentPipelineText.set('content3');
+
+    component.ngOnInit();
+
+    expect(component.selectedPipeline).toStrictEqual(mockPipelines[2]);
+    expect(component.currentPipelineText).toBe('content3');
+    expect(component.dropdownControl.value).toBe('name3');
+  });
 });

@@ -5,7 +5,7 @@ import { JobsService } from '../job-creation/jobs.service';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { SingleAnnotationService } from '../single-annotation.service';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { Annotator, AnnotatorDetails, Resource, SingleAnnotationReport, Annotatable } from '../single-annotation';
 import { UserData, UsersService } from '../users.service';
 import { MatTooltip } from '@angular/material/tooltip';
@@ -318,5 +318,44 @@ describe('SingleAnnotationComponent', () => {
 
     component.annotateAllele();
     expect(emitSpy).not.toHaveBeenCalledWith();
+  });
+
+  it('should disable Go button when no pipeline is selected', () => {
+    pipelineStateService.selectedPipelineId.set('');
+    pipelineStateService.currentTemporaryPipelineId.set('');
+    component.alleleInput.setValue('chr1 11796321 G A');
+    expect(component.disableGo()).toBe(true);
+  });
+
+  it('should disable Go button when pipeline config is invalid', () => {
+    pipelineStateService.isConfigValid.set(false);
+    component.alleleInput.setValue('chr1 11796321 G A');
+    expect(component.disableGo()).toBe(true);
+  });
+
+  it('should disable Go button when allele input is empty', () => {
+    component.alleleInput.setValue('');
+    expect(component.disableGo()).toBe(true);
+  });
+
+  it('should set allele input value and reset report', () => {
+    component.report = mockReport;
+    component.setAllele('chr1 11796321 G A');
+    expect(component.alleleInput.value).toBe('chr1 11796321 G A');
+    expect(component.report).toBeNull();
+  });
+
+  it('should emit autoSaveTrigger when triggering pipeline auto save', () => {
+    const emitSpy = jest.spyOn(component.autoSaveTrigger, 'emit');
+    component.triggerPipelineAutoSave();
+    expect(emitSpy).toHaveBeenCalledWith();
+  });
+
+  it('should set loading to false and keep report null when annotation fails', () => {
+    jest.spyOn(mockSingleAnnotationService, 'getReport').mockReturnValueOnce(throwError(new Error('error')));
+    component.alleleInput.setValue('chr1 11796321 G A');
+    component.annotateAllele();
+    expect(component.loading).toBe(false);
+    expect(component.report).toBeNull();
   });
 });
