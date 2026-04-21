@@ -488,7 +488,7 @@ class BaseJob(models.Model):
     def deactivate(self) -> None:
         """Diactivate a job and clean its resources."""
         self.is_active = False
-        # self._cleanup_files()
+        self._cleanup_files()
         self.disk_size = 0
         self.save()
 
