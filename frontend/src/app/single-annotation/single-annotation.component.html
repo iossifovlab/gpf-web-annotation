@@ -18,8 +18,6 @@
   </div>
   @if(!alleleInput.valid) {
   <span id="validation-message">Invalid allele format!</span>
-  } @if(!pipelineId) {
-  <span id="validation-message">Missing pipeline!</span>
   } @if (loading) {
   <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>
   <span id="loading-text">Loading...</span>

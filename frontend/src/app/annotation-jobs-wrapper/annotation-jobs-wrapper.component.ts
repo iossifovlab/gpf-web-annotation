@@ -1,4 +1,4 @@
-import { Component, ViewChild, OnInit, OnDestroy, NgZone, HostListener } from '@angular/core';
+import { Component, ViewChild, OnInit, OnDestroy, NgZone, HostListener, effect } from '@angular/core';
 import { JobsTableComponent } from '../jobs-table/jobs-table.component';
 import { Observable, Subscription, take } from 'rxjs';
 import { JobsService } from '../job-creation/jobs.service';
@@ -28,7 +28,6 @@ export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
   public file: File = null;
   public fileSeparator: string = null;
   public fileHeader: Map<string, string> = null;
-  public pipelineId = '';
   public creationError = '';
   public selectedGenome = '';
   public isCreationFormVisible = true;
@@ -52,7 +51,15 @@ export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
       private socketNotificationsService: SocketNotificationsService,
       private annotationPipelineService: AnnotationPipelineService,
       private pipelineStateService: AnnotationPipelineStateService,
-  ) { }
+  ) {
+    effect(() => {
+      const id = this.pipelineStateService.currentTemporaryPipelineId() ||
+        this.pipelineStateService.selectedPipeline()?.id;
+      if (id) {
+        this.annotationPipelineService.loadPipeline(id).pipe(take(1)).subscribe();
+      }
+    });
+  }
 
   public ngOnInit(): void {
     this.setupJobWebSocketConnection();
@@ -112,8 +119,7 @@ export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
       return;
     }
     if (this.pipelinesComponent.isPipelineChanged()) {
-      this.pipelinesComponent.autoSave().pipe(take(1)).subscribe(annonymousPipelineName => {
-        this.pipelineId = annonymousPipelineName;
+      this.pipelinesComponent.autoSave().pipe(take(1)).subscribe(() => {
         this.create();
       });
     } else {
@@ -127,13 +133,17 @@ export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
       if (this.file.type === 'text/vcard') {
         createObservable = this.jobsService.createVcfJob(
           this.file,
-          this.pipelineId,
+          this.pipelineStateService.currentTemporaryPipelineId() ||
+            this.pipelineStateService.selectedPipeline()?.id ||
+            '',
           this.selectedGenome,
         );
       } else {
         createObservable = this.jobsService.createNonVcfJob(
           this.file,
-          this.pipelineId,
+          this.pipelineStateService.currentTemporaryPipelineId() ||
+            this.pipelineStateService.selectedPipeline()?.id ||
+            '',
           this.selectedGenome,
           this.fileSeparator,
           this.fileHeader
@@ -187,18 +197,6 @@ export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
     this.fileHeader = null;
   }
 
-  public setPipeline(newPipeline: string): void {
-    if (!newPipeline || this.pipelineId === newPipeline) {
-      return;
-    }
-    this.pipelineId = newPipeline;
-
-    if (newPipeline) {
-      this.annotationPipelineService.loadPipeline(newPipeline).pipe(take(1)).subscribe();
-    }
-    this.disableCreate();
-  }
-
   public setGenome(genome: string): void {
     this.selectedGenome = genome;
   }
@@ -233,9 +231,9 @@ export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
   public disableCreate(): boolean {
     return this.blockCreate
       || this.creationError !== ''
-      || !this.pipelineId
       || !this.file
       || (this.file.type !== 'text/vcard' && !this.fileHeader)
+      || !(this.pipelineStateService.currentTemporaryPipelineId() || this.pipelineStateService.selectedPipeline()?.id)
       || !this.pipelineStateService.isConfigValid()
       || (this.file.type !== 'text/vcard' && !this.isGenomeValid());
   }

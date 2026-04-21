@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -9,6 +9,8 @@ import { UsersService } from '../users.service';
 import { distinctUntilChanged, Subscription } from 'rxjs';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatMenuModule } from '@angular/material/menu';
+import { AnnotationPipelineStateService } from '../annotation-pipeline/annotation-pipeline-state.service';
+
 
 @Component({
   selector: 'app-single-annotation',
@@ -24,8 +26,6 @@ import { MatMenuModule } from '@angular/material/menu';
   styleUrl: './single-annotation.component.css'
 })
 export class SingleAnnotationComponent implements OnInit {
-  @Input() public pipelineId = '';
-  @Input() public isPipelineValid: boolean;
   public readonly environment = environment;
   public alleleInput: FormControl<string>;
   public report: SingleAnnotationReport = null;
@@ -36,7 +36,11 @@ export class SingleAnnotationComponent implements OnInit {
   private alleleJson: Annotatable;
   public examples: string[];
 
-  public constructor(private singleAnnotationService: SingleAnnotationService, private userService: UsersService) { }
+  public constructor(
+    private singleAnnotationService: SingleAnnotationService,
+    private userService: UsersService,
+    private pipelineStateService: AnnotationPipelineStateService,
+  ) { }
 
   public ngOnInit(): void {
     this.examples = [
@@ -72,8 +76,11 @@ export class SingleAnnotationComponent implements OnInit {
   }
 
   public annotateAllele(): void {
-    if (this.alleleInput.valid && this.pipelineId) {
-      this.getReport(this.pipelineId);
+    const pipelineId = this.pipelineStateService.currentTemporaryPipelineId() ||
+      this.pipelineStateService.selectedPipeline()?.id ||
+      '';
+    if (this.alleleInput.valid && pipelineId) {
+      this.getReport(pipelineId);
     } else {
       this.alleleJson = undefined;
       this.report = null;
@@ -81,7 +88,13 @@ export class SingleAnnotationComponent implements OnInit {
   }
 
   public disableGo(): boolean {
-    return !(this.alleleInput.value && this.alleleInput.valid && Boolean(this.pipelineId) && this.isPipelineValid);
+    const pipelineId = this.pipelineStateService.currentTemporaryPipelineId() ||
+      this.pipelineStateService.selectedPipeline()?.id ||
+      '';
+    return !(this.alleleInput.value &&
+      this.alleleInput.valid &&
+      Boolean(pipelineId) &&
+      this.pipelineStateService.isConfigValid());
   }
 
   private isAlleleValid(allele: string): boolean {
@@ -196,7 +209,7 @@ export class SingleAnnotationComponent implements OnInit {
   }
 
   private getReport(pipelineId: string): void {
-    if (this.disableGo()) {
+    if (!pipelineId || this.disableGo()) {
       return;
     }
     this.getReportSubscription.unsubscribe();
