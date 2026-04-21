@@ -44,6 +44,11 @@ export class SingleAlleleAnnotationWrapperComponent implements OnInit {
         this.annotationPipelineService.loadPipeline(id).pipe(take(1)).subscribe();
       }
     });
+
+    effect(() => {
+      this.pipelineStateService.currentPipelineText();
+      this.resetSingleAlleleReport();
+    });
   }
 
   public ngOnInit(): void {
