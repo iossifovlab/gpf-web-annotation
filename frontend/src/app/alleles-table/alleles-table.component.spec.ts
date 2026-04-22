@@ -42,14 +42,14 @@ describe('AllelesTableComponent', () => {
     const getAllelesSpy = jest.spyOn(singleAnnotationServiceMock, 'getAllelesHistory');
     component.ngOnInit();
     expect(getAllelesSpy).toHaveBeenCalledWith();
-    expect(component.allelesHistory).toStrictEqual(['chr1 11999921 G TT', 'chr1 11777321 G A']);
+    expect(component.allelesHistory).toStrictEqual(['chr1 11777321 G A', 'chr1 11999921 G TT']);
   });
 
   it('should refresh history table on init', () => {
     const getAllelesSpy = jest.spyOn(singleAnnotationServiceMock, 'getAllelesHistory');
     component.ngOnInit();
     expect(getAllelesSpy).toHaveBeenCalledWith();
-    expect(component.allelesHistory).toStrictEqual(['chr1 11999921 G TT', 'chr1 11777321 G A']);
+    expect(component.allelesHistory).toStrictEqual(['chr1 11777321 G A', 'chr1 11999921 G TT']);
   });
 
   it('should delete allele by id from history table', () => {

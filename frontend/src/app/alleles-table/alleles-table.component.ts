@@ -26,13 +26,13 @@ export class AllelesTableComponent implements OnInit, OnDestroy {
     this.refreshAllelesSubscription.unsubscribe();
     this.refreshAllelesSubscription = this.singleAnnotationService.getAllelesHistory().pipe(
     ).subscribe(alleles => {
-      this.allelesHistory = alleles.reverse();
+      this.allelesHistory = alleles;
     });
   }
 
   private getAlleles(): void {
     this.singleAnnotationService.getAllelesHistory().pipe(take(1)).subscribe(alleles => {
-      this.allelesHistory = alleles.reverse();
+      this.allelesHistory = alleles;
     });
   }
 
