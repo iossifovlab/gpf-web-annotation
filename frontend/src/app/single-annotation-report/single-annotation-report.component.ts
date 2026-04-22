@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, TemplateRef, ViewChild } from '@angular/core';
+import { Component, effect, ElementRef, Input, TemplateRef, ViewChild } from '@angular/core';
 import { Annotator, SingleAnnotationReport } from '../single-annotation';
 import { CommonModule } from '@angular/common';
 import { MarkdownModule } from 'ngx-markdown';
@@ -7,6 +7,7 @@ import { EffectTableComponent } from '../effect-table/effect-table.component';
 import { saveAs } from 'file-saver';
 import { MatDialog } from '@angular/material/dialog';
 import { FormatResultValuePipe } from '../format-result-value.pipe';
+import { SingleAnnotationReportStateService } from './single-annotation-report-state.service';
 
 @Component({
   selector: 'app-single-annotation-report',
@@ -23,13 +24,18 @@ import { FormatResultValuePipe } from '../format-result-value.pipe';
 export class SingleAnnotationReportComponent {
   @Input() public report: SingleAnnotationReport = null;
   public tableViewSources = ['effect_details', 'gene_effects'];
-  public showFullReport = false;
+  public showFullReport: boolean;
   @ViewChild('infoModal') public infoModalRef: TemplateRef<ElementRef>;
 
 
   public constructor(
     private dialog: MatDialog,
-  ) { }
+    private singleAnnotationReportStateService: SingleAnnotationReportStateService
+  ) {
+    effect(() => {
+      this.showFullReport = this.singleAnnotationReportStateService.isFullReport();
+    });
+  }
 
   public showInfo(annotator: Annotator): void {
     this.dialog.open(this.infoModalRef, {
@@ -39,6 +45,10 @@ export class SingleAnnotationReportComponent {
       minWidth: '500px',
       maxHeight: '700px',
     });
+  }
+
+  public toggleView(): void {
+    this.singleAnnotationReportStateService.isFullReport.set(!this.showFullReport);
   }
 
   public saveReport(): void {

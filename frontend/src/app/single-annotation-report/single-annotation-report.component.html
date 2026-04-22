@@ -2,7 +2,7 @@
   <div id="annotatable">
     <div id="report-header">
       <div id="toggle-view-container">
-        <input class="switch" type="checkbox" [checked]="!showFullReport" (change)="showFullReport = !showFullReport" />
+        <input class="switch" type="checkbox" [checked]="!showFullReport" (change)="toggleView()" />
         <label [ngStyle]="{ color: showFullReport ? '#5b778c' : '#85a2b9' }">full report</label>
       </div>
       <span id="download-report" download>
