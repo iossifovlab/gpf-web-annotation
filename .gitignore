@@ -21,3 +21,4 @@ coverage.xml
 .mypy_cache
 .env
 .DS_Store
+/tmp

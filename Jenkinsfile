@@ -100,6 +100,8 @@ pipeline {
 
         stage('Run E2E Tests') {
             steps {
+                sh "docker compose -f compose-jenkins.yaml build backend-e2e"
+                sh "docker compose -f compose-jenkins.yaml build frontend-e2e"
                 sh "docker compose -f compose-jenkins.yaml build e2e-tests"
                 sh "mkdir -p e2e-tests/reports"
                 sh "docker compose -f compose-jenkins.yaml down --remove-orphans"

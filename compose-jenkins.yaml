@@ -60,6 +60,7 @@ services:
     volumes:
       - ./gpfwa-data:/data
       - ./gpfwa-logs:/logs
+      - /mnt/cephfs/seqpipe/grr:/grr
     volumes_from:
       - static-data
     environment:
@@ -99,6 +100,7 @@ services:
     volumes:
       - ./gpfwa-data:/data
       - ./gpfwa-logs:/logs
+      - /mnt/cephfs/seqpipe/grr:/grr
     volumes_from:
       - static-data
     environment:
