@@ -131,7 +131,7 @@ test.describe('Anonymous user tests', () => {
 
   test('should use public pipeline for job annotation', async({ page }) => {
     await page.getByRole('link', { name: 'Annotation Jobs' }).click();
-    await utils.selectPipeline(page, 'pipeline/Autism_annotation');
+    await utils.selectPipeline(page, 'pipeline/Clinical_annotation');
     await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-vcf-file-reduced.vcf');
     await page.locator('#create-button').click();
 
