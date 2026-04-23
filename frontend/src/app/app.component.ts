@@ -5,6 +5,7 @@ import { UserData, UsersService } from './users.service';
 import { takeWhile } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { MarkdownModule } from 'ngx-markdown';
+import { SocketNotificationsService } from './socket-notifications/socket-notifications.service';
 
 @Component({
   selector: 'app-root',
@@ -19,6 +20,7 @@ export class AppComponent implements DoCheck, OnInit {
   public constructor(
     private usersService: UsersService,
     private changeDetectorRef: ChangeDetectorRef,
+    private socketNotificationsService: SocketNotificationsService,
     private router: Router,
   ) { }
 
@@ -31,6 +33,7 @@ export class AppComponent implements DoCheck, OnInit {
       takeWhile(user => user?.email !== this.currentUserData?.email),
     ).subscribe((userData) => {
       this.currentUserData = userData;
+      this.socketNotificationsService.reopenConnection();
     });
     this.changeDetectorRef.detectChanges();
   }
@@ -40,6 +43,7 @@ export class AppComponent implements DoCheck, OnInit {
       this.currentUserData = null;
       window.location.reload();
       this.usersService.refreshUserData();
+      this.socketNotificationsService.reopenConnection();
     });
   }
 

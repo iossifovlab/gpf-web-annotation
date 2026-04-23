@@ -229,6 +229,38 @@ test.describe('Anonymous user tests', () => {
   });
 });
 
+test.describe('Web socket tests', () => {
+  test.beforeEach(async({ page }) => {
+    await page.goto('/', {waitUntil: 'load'});
+    // wait for default pipeline to load
+    await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
+  });
+
+  test('should download job result by link copy', async({ page }) => {
+    await page.getByRole('link', { name: 'Annotation Jobs' }).click();
+    await customDefaultPipeline(page);
+    await page.locator('input[id="file-upload"]').setInputFiles('./fixtures/input-vcf-file.vcf');
+    await page.locator('#create-button').click();
+
+    await page.waitForSelector('.success-status', {timeout: 120000});
+
+    const downloadUrl = await page.locator('#download-result').getAttribute('href');
+
+    await page.getByRole('link', { name: 'About' }).click();
+
+    const downloadPromise = page.waitForEvent('download');
+    // eslint-disable-next-line no-return-assign
+    await page.evaluate(url => window.location.href = url ?? '', downloadUrl);
+    const downloadedFile = await downloadPromise;
+
+    const fixtureData = scanCSV(await downloadedFile.path(), {truncateRaggedLines: true});
+    const downloadData = scanCSV('./fixtures/job-result-3.vcf', {truncateRaggedLines: true});
+    const fixtureFrame = await fixtureData.collect();
+    const downloadFrame = await downloadData.collect();
+    expect(fixtureFrame.toString()).toEqual(downloadFrame.toString());
+  });
+});
+
 async function customDefaultPipeline(page: Page): Promise<void> {
   await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New pipeline', exact: true }).click();
   await expect(page.locator('#pipelines-input')).toBeEmpty();

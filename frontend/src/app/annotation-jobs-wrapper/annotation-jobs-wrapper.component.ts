@@ -1,4 +1,4 @@
-import { Component, ViewChild, OnInit, OnDestroy, NgZone, HostListener, effect } from '@angular/core';
+import { Component, ViewChild, OnInit, NgZone, HostListener, effect } from '@angular/core';
 import { JobsTableComponent } from '../jobs-table/jobs-table.component';
 import { Observable, Subscription, take } from 'rxjs';
 import { JobsService } from '../job-creation/jobs.service';
@@ -24,7 +24,7 @@ import { AnnotationPipelineStateService } from '../annotation-pipeline/annotatio
   styleUrl: './annotation-jobs-wrapper.component.css'
 })
 
-export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
+export class AnnotationJobsWrapperComponent implements OnInit {
   public file: File = null;
   public fileSeparator: string = null;
   public fileHeader: Map<string, string> = null;
@@ -85,10 +85,6 @@ export class AnnotationJobsWrapperComponent implements OnInit, OnDestroy {
       return true;
     }
     return false;
-  }
-
-  public ngOnDestroy(): void {
-    this.socketNotificationsService.closeConnection();
   }
 
 

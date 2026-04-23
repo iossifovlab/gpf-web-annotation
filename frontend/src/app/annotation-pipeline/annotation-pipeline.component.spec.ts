@@ -246,12 +246,6 @@ describe('AnnotationPipelineComponent', () => {
     expect(setupSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('should close socket connection on destroy', () => {
-    const closeConnectionSpy = jest.spyOn(socketNotificationsServiceMock, 'closeConnection');
-    component.ngOnDestroy();
-    expect(closeConnectionSpy).toHaveBeenCalledWith();
-  });
-
   it('should check if user is logged in on component init', () => {
     component.ngOnInit();
     expect(component.isUserLoggedIn).toBe(true);

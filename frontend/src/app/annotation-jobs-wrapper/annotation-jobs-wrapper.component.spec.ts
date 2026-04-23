@@ -225,12 +225,6 @@ describe('AnnotationJobsWrapperComponent', () => {
     expect(setupSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('should close socket connection on destroy', () => {
-    const closeConnectionSpy = jest.spyOn(socketNotificationsServiceMock, 'closeConnection');
-    component.ngOnDestroy();
-    expect(closeConnectionSpy).toHaveBeenCalledWith();
-  });
-
   it('should disable Create button if no file is uploaded', () => {
     component.file = null;
     pipelineStateService.selectedPipelineId.set('autism');

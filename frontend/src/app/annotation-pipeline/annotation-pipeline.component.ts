@@ -567,7 +567,6 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
   }
 
   public ngOnDestroy(): void {
-    this.socketNotificationsService.closeConnection();
     if (this.resizeObserver) {
       this.resizeObserver.disconnect();
     }
