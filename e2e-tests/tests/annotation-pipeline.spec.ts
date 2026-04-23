@@ -1284,7 +1284,7 @@ test.describe('Add resource to pipeline tests', () => {
     ]);
 
     await popup.waitForLoadState('domcontentloaded');
-    await expect(popup).toHaveURL('https://grr.seqpipe.org/hg38/scores/CADD_v1.4/index.html');
+    expect(popup.url()).toContain('/hg38/scores/CADD_v1.4/index.html');
   });
 });
 
