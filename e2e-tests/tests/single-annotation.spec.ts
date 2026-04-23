@@ -301,10 +301,12 @@ test.describe('Single annotation rate limit tests - anonymous user', () => {
 
     /* eslint-disable no-await-in-loop */
     for (let i = 0; i < 10; i++) {
-      await page.getByRole('button', { name: 'Go', exact: true }).click();
-      await page.waitForResponse(
-        resp => resp.url().includes('api/single_allele/annotate') && resp.status() === 200, {timeout: 30000}
-      );
+      await Promise.all([
+        page.getByRole('button', { name: 'Go', exact: true }).click(),
+        page.waitForResponse(
+          resp => resp.url().includes('api/single_allele/annotate') && resp.status() === 200, {timeout: 30000}
+        )
+      ]);
     }
     /* eslint-enable */
 
@@ -331,10 +333,12 @@ test.describe('Single annotation rate limit tests - logged in user', () => {
 
     /* eslint-disable no-await-in-loop */
     for (let i = 0; i < 10; i++) {
-      await page.getByRole('button', { name: 'Go', exact: true }).click();
-      await page.waitForResponse(
-        resp => resp.url().includes('api/single_allele/annotate') && resp.status() === 200, {timeout: 30000}
-      );
+      await Promise.all([
+        page.getByRole('button', { name: 'Go', exact: true }).click(),
+        page.waitForResponse(
+          resp => resp.url().includes('api/single_allele/annotate') && resp.status() === 200, {timeout: 30000}
+        )
+      ]);
     }
     /* eslint-enable */
 

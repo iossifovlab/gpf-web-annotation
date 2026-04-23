@@ -307,6 +307,94 @@ test.describe('Pipeline tests', () => {
     await page.locator('#pipelines-input').fill('piepline');
     await expect(page.locator('mat-option')).toHaveCount(0);
   });
+
+  test('should update annotator and attribute counts in status bar after adding annotator', async({ page }) => {
+    await customDefaultPipeline(page);
+
+    await expect(page.locator('#status-bar .status-item').nth(0)).toHaveText('menu1 annotators');
+    await expect(page.locator('#status-bar .status-item').nth(1)).toHaveText('menu_open2 attributes');
+
+    // add simple_effect_annotator which contributes 3 attributes
+    await page.locator('#pipeline-actions').locator('#add-annotator-button').click();
+    await page.getByRole('combobox', { name: 'Select annotator' }).click();
+    await page.locator('mat-option').getByText('simple_effect_annotator').click();
+    await page.getByRole('button', { name: 'Next' }).click();
+
+    await page.locator('[id="gene_models-dropdown"]').click();
+    await page.locator('mat-option').getByText('hg19/gene_models/ccds_v201309').click();
+    await page.getByRole('button', { name: 'Next' }).click();
+
+    await Promise.all([
+      page.getByRole('button', { name: 'Finish' }).click(),
+      page.waitForResponse(resp => resp.url().includes('api/editor/pipeline_status')),
+    ]);
+
+    await expect(page.locator('#status-bar .status-item').nth(0)).toHaveText('menu2 annotators');
+    await expect(page.locator('#status-bar .status-item').nth(1)).toHaveText('menu_open5 attributes');
+  });
+
+  test('should save user pipeline with Ctrl+S', async({ page }) => {
+    await customDefaultPipeline(page);
+
+    await page.getByRole('button', { name: 'Save as' }).click();
+    await page.locator('#name-modal input').fill('My pipeline');
+    await Promise.all([
+      page.locator('#name-modal').getByRole('button', { name: 'Save' }).click(),
+      page.waitForResponse(resp => resp.url().includes('api/pipelines/load')),
+    ]);
+
+    await expect(page.locator('#pipelines-input')).toHaveValue('My pipeline');
+
+    /* eslint-disable */
+    await page.evaluate(() => {
+      const monaco = (window as any).monaco;
+      const model = monaco.editor.getModels()[0];
+      model.applyEdits([{ range: new monaco.Range(5, 1, 5, 1), text: '    # edited\n' }]);
+    });
+    /* eslint-enable */
+
+    await expect(page.locator('#pipelines-input')).toHaveValue('My pipeline *');
+
+    const saveResponse = page.waitForResponse(
+      resp => resp.url().includes('api/pipelines/user') && resp.request().method() === 'POST'
+    );
+    await page.keyboard.press('Control+s');
+    await saveResponse;
+
+    await expect(page.locator('#pipelines-input')).toHaveValue('My pipeline');
+  });
+
+  test('should cancel name modal without saving pipeline', async({ page }) => {
+    await customDefaultPipeline(page);
+
+    await page.getByRole('button', { name: 'Save as' }).click();
+    await expect(page.locator('#name-modal')).toBeVisible();
+    await page.locator('#name-modal input').fill('My Pipeline');
+    await page.locator('#cancel-button').click();
+
+    await expect(page.locator('#name-modal')).not.toBeVisible();
+    await expect(page.locator('#pipelines-input')).toBeEmpty();
+  });
+
+  test('should show error when saving pipeline with already existing name', async({ page }) => {
+    await customDefaultPipeline(page);
+
+    await page.getByRole('button', { name: 'Save as' }).click();
+    await page.locator('#name-modal input').fill('My Pipeline');
+    await Promise.all([
+      page.locator('#name-modal').getByRole('button', { name: 'Save' }).click(),
+      page.waitForResponse(resp => resp.url().includes('api/pipelines/load')),
+    ]);
+
+    await expect(page.locator('#pipelines-input')).toHaveValue('My Pipeline');
+
+    await page.getByRole('button', { name: 'Save as' }).click();
+    await page.locator('#name-modal input').fill('My Pipeline');
+    await page.locator('#name-modal').getByRole('button', { name: 'Save' }).click();
+
+    await expect(page.locator('#name-modal .error-message')).toHaveText('Pipeline with this name already exists.');
+    await expect(page.locator('#name-modal')).toBeVisible();
+  });
 });
 
 
@@ -743,6 +831,29 @@ test.describe('Add annotator to pipeline tests', () => {
     await expect(page.getByRole('combobox', { name: 'allele_score_annotator' })).toBeVisible();
   });
 
+  test('should check selected data in summary panel', async({ page }) => {
+    await page.locator('#pipeline-actions').locator('#add-annotator-button').click();
+
+    await page.getByRole('combobox', { name: 'Select annotator' }).click();
+    await page.locator('mat-option').getByText('allele_score').click();
+    await page.getByRole('button', { name: 'Next' }).click();
+
+    // configure step: summary shows the selected annotator
+    const configureSummary = page.locator('.mat-horizontal-stepper-content-current');
+    await expect(configureSummary.locator('.annotator-display-text')).toContainText('annotator');
+    await expect(configureSummary.locator('.annotator-display-text')).toContainText('allele_score_annotator');
+
+    await page.locator('[id="resource_id-dropdown"]').click();
+    await page.locator('mat-option').getByText('hg38/scores/CADD_v1.4').click();
+    await page.getByRole('button', { name: 'Next' }).click();
+
+    // attribute step: summary adds the configured resource_id beneath the annotator
+    const attributeSummary = page.locator('.mat-horizontal-stepper-content-current');
+    await expect(attributeSummary.locator('.annotator-display-text')).toContainText('allele_score_annotator');
+    const resourceIdDisplay = attributeSummary.locator('.resources-display-text').filter({ hasText: 'resource_id' });
+    await expect(resourceIdDisplay).toContainText('hg38/scores/CADD_v1.4');
+  });
+
   test('should remove a default attribute in the attribute step', async({ page }) => {
     await page.locator('#pipeline-actions').locator('#add-annotator-button').click();
 
@@ -882,7 +993,7 @@ test.describe('Add annotator to pipeline tests', () => {
 
     await page.locator('[id="chain-dropdown"]').locator('.dropdown-icon').click();
 
-    await page.locator('[id="chain-dropdown"] input').fill('hg19');
+    await page.locator('[id="chain-dropdown"] input').pressSequentially('hg19');
     const filteredOptions = page.locator('mat-option.resource-option');
 
     expect(await filteredOptions.count()).toBe(6);
@@ -896,7 +1007,7 @@ test.describe('Add annotator to pipeline tests', () => {
 
     await page.locator('[id="source_genome-dropdown"]').locator('.dropdown-icon').click();
 
-    await page.locator('[id="source_genome-dropdown"] input').fill('t2t');
+    await page.locator('[id="source_genome-dropdown"] input').pressSequentially('t2t');
     const filteredOptions = page.locator('mat-option.resource-option');
 
     expect(await filteredOptions.count()).toBe(1);
@@ -922,6 +1033,258 @@ test.describe('Add annotator to pipeline tests', () => {
     await page.keyboard.press('Escape');
 
     await expect(page.getByRole('button', { name: 'Next' })).toBeDisabled();
+  });
+
+  test('should toggle attribute internal flag and reflect it in finished YAML', async({ page }) => {
+    await customDefaultPipeline(page);
+    await page.locator('#pipeline-actions').locator('#add-annotator-button').click();
+
+    await page.getByRole('combobox', { name: 'Select annotator' }).click();
+    await page.locator('mat-option').getByText('simple_effect_annotator').click();
+    await page.getByRole('button', { name: 'Next' }).click();
+
+    await page.locator('[id="gene_models-dropdown"]').click();
+    await page.locator('mat-option').getByText('hg19/gene_models/ccds_v201309').click();
+    await page.getByRole('button', { name: 'Next' }).click();
+
+    // gene_list is the 3rd attribute (index 2) and internal: true by default
+    const geneListCheckbox = page.locator('.attribute-internal input[type="checkbox"]').nth(2);
+    await expect(geneListCheckbox).toBeChecked();
+    await geneListCheckbox.click();
+    await expect(geneListCheckbox).not.toBeChecked();
+
+    await Promise.all([
+      page.getByRole('button', { name: 'Finish' }).click(),
+      page.waitForResponse(resp => resp.url().includes('api/pipelines/validate')),
+    ]);
+
+    /* eslint-disable */
+    const value = await page.evaluate(() => {
+      return (window as any).monaco.editor.getModels()[0].getValue();
+    });
+    /* eslint-enable */
+
+    expect(value).toContain('name: gene_list\n      source: gene_list\n      internal: false');
+  });
+});
+
+
+test.describe('Add resource to pipeline tests', () => {
+  test.beforeEach(async({ page }) => {
+    await page.goto('/', {waitUntil: 'load'});
+
+    const email = utils.getRandomString() + '@email.com';
+    const password = 'aaabbb';
+    await utils.registerUser(page, email, password);
+
+    await utils.loginUser(page, email, password);
+    await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
+  });
+
+  test('should open New resource dialog with correct header and first step', async({ page }) => {
+    await page.locator('#pipeline-actions').locator('#add-resource-button').click();
+
+    await expect(page.locator('mat-dialog-container')).toBeVisible();
+    await expect(page.locator('#modal-header')).toHaveText('New resource');
+    await expect(page.locator('#resource-type')).toBeVisible();
+    await expect(page.locator('#resource-search-input')).toBeVisible();
+    await expect(page.locator('#resource-count')).toBeVisible();
+  });
+
+  test('should display matching resources after typing in search input', async({ page }) => {
+    await page.locator('#pipeline-actions').locator('#add-resource-button').click();
+
+    await page.locator('#resource-search-input').fill('CADD');
+    await page.locator('#resource-search-input').dispatchEvent('keyup'); // trigger search
+
+    await page.waitForResponse(
+      resp => resp.url().includes('api/resources/search?search=CADD'), {timeout: 30000}
+    );
+
+    await expect(page.locator('#resource-count')).toHaveText('5 resources');
+    await expect(page.getByTitle('hg38/scores/CADD_v1.4')).toBeVisible();
+    await expect(page.getByTitle('hg38/scores/CADD_v1.6')).toBeVisible();
+    await expect(page.getByTitle('hg19/scores/CADD')).toBeVisible();
+    await expect(page.getByTitle('hg38/scores/CADD_v1.7')).toBeVisible();
+    await expect(page.getByTitle('hg38/scores/dbNSFP4.9a')).toBeVisible();
+  });
+
+  test('should filter resources by resource type', async({ page }) => {
+    await page.locator('#pipeline-actions').locator('#add-resource-button').click();
+    await page.locator('#resource-type mat-select').click();
+    await page.locator('mat-option').filter({ hasText: 'position_score' }).click();
+    await expect(page.locator('#resource-count')).toHaveText('8082 resources');
+  });
+
+  test('should navigate past select annotator step after clicking continue', async({ page }) => {
+    await page.locator('#pipeline-actions').locator('#add-resource-button').click();
+
+    await page.locator('#resource-search-input').fill('"CADD_v1.4"');
+    await page.locator('#resource-search-input').dispatchEvent('keyup'); // trigger search
+
+    await page.waitForResponse(
+      resp => resp.url().includes('api/resources/search?search=%22CADD_v1.4%22'), {timeout: 30000}
+    );
+    await page.waitForSelector('[id="hg38/scores/CADD_v1.4-continue-button"]', { state: 'visible', timeout: 15000 });
+    await page.locator('[id$="-continue-button"]').first().click();
+
+    await expect(page.locator('#resources-form')).toBeVisible({ timeout: 15000 });
+    await expect(
+      page.locator('.mat-horizontal-stepper-content-current').locator('.annotator-display-text')
+    ).toContainText('allele_score_annotator');
+  });
+
+  test('should navigate back to previous step', async({ page }) => {
+    await page.locator('#pipeline-actions').locator('#add-resource-button').click();
+
+    await page.locator('#resource-search-input').fill('"CADD_v1.4"');
+    await page.locator('#resource-search-input').dispatchEvent('keyup'); // trigger search
+
+    await page.waitForResponse(
+      resp => resp.url().includes('api/resources/search?search=%22CADD_v1.4%22'), {timeout: 30000}
+    );
+    await page.waitForSelector('[id="hg38/scores/CADD_v1.4-continue-button"]', { state: 'visible', timeout: 15000 });
+    await page.locator('[id$="-continue-button"]').first().click();
+
+    await expect(page.locator('#resources-form')).toBeVisible({ timeout: 15000 });
+
+    await page.getByRole('button', { name: 'Back' }).click();
+
+    await expect(page.locator('#annotator-input-form')).toBeVisible();
+  });
+
+  test('should check selected data in summary panel', async({ page }) => {
+    await page.locator('#pipeline-actions').locator('#add-resource-button').click();
+
+    await page.locator('#resource-search-input').fill('"gene_properties/gene_scores/GTEx_V11_RNAexpression"');
+    await page.locator('#resource-search-input').dispatchEvent('keyup');
+    await page.waitForResponse(
+      resp => resp.url().includes(
+        'api/resources/search?search=%22gene_properties/gene_scores/GTEx_V11_RNAexpression%22'
+      ), {timeout: 30000}
+    );
+    await page.waitForSelector(
+      '[id="gene_properties/gene_scores/GTEx_V11_RNAexpression-continue-button"]',
+      { state: 'visible', timeout: 15000 }
+    );
+    await page.locator('[id="gene_properties/gene_scores/GTEx_V11_RNAexpression-continue-button"]').click();
+
+    const summary = page.locator('.mat-horizontal-stepper-content-current');
+    // configure annotator step
+    await expect(page.locator('#resources-form')).toBeVisible({ timeout: 15000 });
+    await expect(summary.locator('.resource-type-display-text').nth(0))
+      .toHaveText('resource type gene_score');
+    await expect(summary.locator('.resource-type-display-text').nth(1))
+      .toHaveText('resource id gene_properties/gene_scores/GTEx_V11_RNAexpression');
+    await expect(summary.locator('.annotator-display-text')).toHaveText('annotatorgene_score_annotator');
+
+    // advance to attribute step
+    await expect(page.getByRole('button', { name: 'Next' })).toBeEnabled();
+    await page.getByRole('button', { name: 'Next' }).click();
+
+    // // attribute step
+    await expect(summary.locator('.resource-type-display-text').nth(0))
+      .toHaveText('resource type gene_score');
+    await expect(summary.locator('.resource-type-display-text').nth(1))
+      .toHaveText('resource id gene_properties/gene_scores/GTEx_V11_RNAexpression');
+    await expect(summary.locator('.annotator-display-text')).toHaveText('annotatorgene_score_annotator');
+    await expect(summary.locator('.resources-display-text')).toHaveText('input_gene_list\ngene_list');
+  });
+
+  test('should complete workflow via finish with defaults and append YAML to editor', async({ page }) => {
+    await customDefaultPipeline(page);
+
+    await page.locator('#pipeline-actions').locator('#add-resource-button').click();
+
+    await page.locator('#resource-search-input').fill('"hg19/scores/AlphaMissense"');
+    await page.locator('#resource-search-input').dispatchEvent('keyup'); // trigger search
+
+    await page.waitForResponse(
+      resp => resp.url().includes('api/resources/search?search=%22hg19/scores/AlphaMissense%22'), {timeout: 30000}
+    );
+    await page.waitForSelector('[id="hg19/scores/AlphaMissense-finish-button"]', { state: 'visible', timeout: 15000 });
+
+    await Promise.all([
+      page.locator('[id="hg19/scores/AlphaMissense-finish-button"]').click(),
+      page.waitForResponse(resp => resp.url().includes('api/pipelines/validate')),
+    ]);
+
+    /* eslint-disable */
+    const value = await page.evaluate(() => {
+      return (window as any).monaco.editor.getModels()[0].getValue();
+    });
+    /* eslint-enable */
+
+    expect(value).toContain('resource_id: hg19/scores/AlphaMissense');
+  });
+
+  test('should complete full workflow via continue and append YAML to editor', async({ page }) => {
+    await customDefaultPipeline(page);
+
+    await page.locator('#pipeline-actions').locator('#add-resource-button').click();
+
+    await page.locator('#resource-search-input').fill('"hg19/scores/AlphaMissense"');
+    await page.locator('#resource-search-input').dispatchEvent('keyup'); // trigger search
+    await page.waitForResponse(
+      resp => resp.url().includes('api/resources/search?search=%22hg19/scores/AlphaMissense%22'), {timeout: 30000}
+    );
+    await page.waitForSelector(
+      '[id="hg19/scores/AlphaMissense-continue-button"]',
+      { state: 'visible', timeout: 15000 }
+    );
+    await page.locator('[id="hg19/scores/AlphaMissense-continue-button"]').click();
+
+    // resource workflow auto-selects the annotator and navigates to configure step
+    await expect(page.locator('#resources-form')).toBeVisible({ timeout: 15000 });
+    // resource_id is pre-filled from the selected resource, so Next is enabled immediately
+    await expect(page.getByRole('button', { name: 'Next' })).toBeEnabled();
+    await page.getByRole('button', { name: 'Next' }).click();
+
+    await expect(page.getByRole('button', { name: 'Finish' })).toBeVisible({ timeout: 10000 });
+
+    await Promise.all([
+      page.getByRole('button', { name: 'Finish' }).click(),
+      page.waitForResponse(resp => resp.url().includes('api/editor/annotator_yaml')),
+    ]);
+
+    /* eslint-disable */
+    const value = await page.evaluate(() => {
+      return (window as any).monaco.editor.getModels()[0].getValue();
+    });
+    /* eslint-enable */
+
+    expect(value).toContain('resource_id: hg38/scores/CADD_v1.4');
+  });
+
+  test('should disable New resource button when pipeline config is invalid', async({ page }) => {
+    await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New pipeline', exact: true }).click();
+    await utils.typeInPipelineEditor(page, 'preamble:\n input_reference_genome: hg38/genomes/GRCh38-hg38');
+    await page.waitForSelector('.invalid-config', { state: 'visible', timeout: 120000 });
+
+    await expect(page.locator('#pipeline-actions').locator('#add-resource-button')).toBeDisabled();
+  });
+
+  test('should open resource details in new tab', async({ page }) => {
+    await page.locator('#pipeline-actions').locator('#add-resource-button').click();
+
+    await page.locator('#resource-search-input').fill('"CADD_v1.4"');
+    await page.locator('#resource-search-input').dispatchEvent('keyup');
+
+    await page.waitForResponse(
+      resp => resp.url().includes('api/resources/search?search=%22CADD_v1.4%22'), {timeout: 30000}
+    );
+    await page.waitForSelector(
+      '[id="hg38/scores/CADD_v1.4-resource-details-button"]',
+      { state: 'visible', timeout: 15000 }
+    );
+
+    const [popup] = await Promise.all([
+      page.context().waitForEvent('page'),
+      page.locator('[id="hg38/scores/CADD_v1.4-resource-details-button"] a').click(),
+    ]);
+
+    await popup.waitForLoadState('domcontentloaded');
+    await expect(popup).toHaveURL('https://grr.seqpipe.org/hg38/scores/CADD_v1.4/index.html');
   });
 });
 
