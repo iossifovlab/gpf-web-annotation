@@ -29,10 +29,10 @@
               {
                 "glob": "assets/**/*",
                 "input": "src",
-                "ignore": ["assets/favicon.ico"]
+                "ignore": ["assets/gain-logo.png"]
               },
               {
-                "glob": "favicon.ico",
+                "glob": "gain-logo.png",
                 "input": "src/assets"
               }
             ],
