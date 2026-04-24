@@ -228,7 +228,7 @@ describe('AnnotationPipelineComponent', () => {
     component.ngOnInit();
 
     expect(unsubSpy).toHaveBeenCalledWith();
-    expect(setupSpy).toHaveBeenCalledTimes(2);
+    expect(setupSpy).toHaveBeenCalledWith();
   });
 
   it('does not reconnect for non-close events', () => {

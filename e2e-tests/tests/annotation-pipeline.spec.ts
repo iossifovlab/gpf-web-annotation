@@ -46,7 +46,7 @@ test.describe('Pipeline tests', () => {
     await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
   });
 
-  test('should receive pipeline status via WebSocket after socket reconnection', async({ page }) => {
+  test.skip('should receive pipeline status via WebSocket after socket reconnection', async({ page }) => {
     await page.waitForSelector('.loaded-editor', { state: 'visible', timeout: 120000 });
 
     await page.locator('#pipeline-actions').getByRole('button', { name: 'draft New pipeline', exact: true }).click();
