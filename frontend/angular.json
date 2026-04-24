@@ -28,12 +28,7 @@
               },
               {
                 "glob": "assets/**/*",
-                "input": "src",
-                "ignore": ["assets/gain-logo.png"]
-              },
-              {
-                "glob": "gain-logo.png",
-                "input": "src/assets"
+                "input": "src"
               }
             ],
             "styles": [
