@@ -149,6 +149,10 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
           this.socketNotificationSubscription.unsubscribe();
           this.setupPipelineWebSocketConnection();
         }
+      },
+      complete: () => {
+        this.socketNotificationSubscription.unsubscribe();
+        this.setupPipelineWebSocketConnection();
       }
     });
   }
@@ -204,17 +208,21 @@ export class AnnotationPipelineComponent implements OnInit, OnDestroy, AfterView
     }
 
     this.pipelinesLoaded = false;
-    this.jobsService.getAnnotationPipelines().pipe(take(1)).subscribe(pipelines => {
-      this.pipelines = pipelines;
-      this.filteredPipelines = this.pipelines;
-      this.pipelineStateService.pipelines.set(pipelines);
-      this.pipelinesLoaded = true;
-      if (defaultPipelineId) {
-        this.onPipelineClick(this.pipelines.find(p => p.id === defaultPipelineId));
-      } else {
-        this.onPipelineClick(this.pipelines[0]);
-      }
-    });
+    this.jobsService.getAnnotationPipelines().pipe(take(1)).subscribe({
+      next: pipelines => {
+        this.pipelines = pipelines;
+        this.filteredPipelines = this.pipelines;
+        this.pipelineStateService.pipelines.set(pipelines);
+        this.pipelinesLoaded = true;
+        if (defaultPipelineId) {
+          this.onPipelineClick(this.pipelines.find(p => p.id === defaultPipelineId));
+        } else {
+          this.onPipelineClick(this.pipelines[0]);
+        }
+      },
+      error: () => {
+        this.disableActions = false;
+      }});
   }
 
   private restoreState(): void {
