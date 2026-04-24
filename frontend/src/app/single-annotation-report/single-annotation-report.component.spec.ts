@@ -64,6 +64,7 @@ describe('SingleAnnotationReportComponent', () => {
     );
 
     component.report = report;
+    component.showFullReport = true;
     fixture.detectChanges();
 
     const allValueElements = (fixture.nativeElement as HTMLElement).querySelectorAll('.value-result');

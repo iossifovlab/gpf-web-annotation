@@ -139,11 +139,44 @@ hr {
 }
 
 .attributes {
-  width: 100%;
+  width: 93%;
 }
 
 .attribute-result {
   width: 60%;
+}
+
+.value-grid-container {
+  display: grid;
+  width: 65%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.value-grid-header {
+  min-height: 2rem;
+  line-height: 2rem;
+  border: 1px solid #cfd8df;
+  background-color: #ecf1f6;
+  text-align: center;
+  font-weight: bold;
+  font-size: 14px;
+  padding: 0 7px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.value-grid-cell {
+  border: 1px solid #cfd8df;
+  text-align: center;
+  padding: 7px;
+  font-size: 14px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .value-result {
@@ -151,6 +184,15 @@ hr {
   font-size: 18px;
   font-weight: 800;
   color: #252e34;
+}
+
+.compact-value-result {
+  font-size: 18px;
+  font-weight: 800;
+  color: #252e34;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 a {

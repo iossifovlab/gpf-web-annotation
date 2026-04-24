@@ -52,6 +52,6 @@ describe('FormatResultValuePipe', () => {
 
   it('should format value of type array with strings', () => {
     const pipe = new FormatResultValuePipe();
-    expect(pipe.transform(['MTHFR', 'ABC'])).toBe('[MTHFR, ABC]');
+    expect(pipe.transform(['MTHFR', 'ABC'])).toBe('MTHFR, ABC');
   });
 });
