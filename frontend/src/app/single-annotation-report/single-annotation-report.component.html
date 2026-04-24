@@ -63,30 +63,35 @@
         <div *ngFor="let attribute of annotator.attributes" class="attribute-container">
           <div class="attribute">
             <div class="attribute-header">{{ attribute.name }}</div>
+            @if(showFullReport) {
             <div class="attribute-result">
-              <div class="value-result" *ngIf="!tableViewSources.includes(attribute.source)">{{
+              @if(!tableViewSources.includes(attribute.source)) {
+              <div class="value-result" [ngClass]="">{{ attribute.result.value | formatResultValue : 3 }}</div>
+              } @if(tableViewSources.includes(attribute.source) && (annotator.details.name === 'effect_annotator' ||
+              annotator.details.name === 'simple_effect_annotator') && attribute.result.value) {
+              <app-effect-table
+                [rawEffectDetails]="attribute.result.value.toString()"
+                [source]="attribute.source"
+                [annotator]="annotator.details.name"></app-effect-table>
+              }
+            </div>
+            } @else {
+            <div class="attribute-result">
+              <div class="compact-value-result" [title]="attribute.result.value">{{
                 attribute.result.value | formatResultValue : 3
               }}</div>
-              <div
-                *ngIf="
-                  tableViewSources.includes(attribute.source) &&
-                  (annotator.details.name === 'effect_annotator' ||
-                    annotator.details.name === 'simple_effect_annotator') &&
-                  attribute.result.value
-                ">
-                <app-effect-table
-                  [rawEffectDetails]="attribute.result.value.toString()"
-                  [source]="attribute.source"
-                  [annotator]="annotator.details.name"></app-effect-table>
-              </div>
             </div>
+            }
           </div>
-          <div *ngIf="showFullReport" class="attribute-description">{{ attribute.description }}</div>
+          @if(showFullReport) {
+          <div class="attribute-description">{{ attribute.description }}</div>
+          }
           <div style="display: flex; justify-content: center">
+            @if(showFullReport && attribute.result.histogramLink) {
             <app-histogram-wrapper
-              *ngIf="showFullReport && attribute.result.histogramLink"
               [histogramUrl]="attribute.result.histogramLink"
               [value]="attribute.result.value"></app-histogram-wrapper>
+            }
           </div>
         </div>
       </div>

@@ -19,7 +19,7 @@ export class FormatResultValuePipe implements PipeTransform {
     } else if (typeof value === 'string') {
       return value;
     } else if (Array.isArray(value)) {
-      return '[' + value.join(', ') + ']';
+      return value.join(', ');
     }
     return values.join('; ');
   }
