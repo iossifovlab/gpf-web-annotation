@@ -96,7 +96,19 @@ export class SingleAnnotationReportComponent {
     saveAs(content, fileName);
   }
 
-  public isValueMap(value: string | number | Map<string, string | number>): boolean {
+  public isValueMap(value: unknown): value is Map<string, string | number> {
     return value instanceof Map;
+  }
+
+  public isValueArray(value: unknown): value is string[] {
+    return Array.isArray(value);
+  }
+
+  public asArray(value: unknown): string[] {
+    return value as string[];
+  }
+
+  public asMapEntries(value: unknown): [string, string | number][] {
+    return Array.from((value as Map<string, string | number>).entries());
   }
 }
