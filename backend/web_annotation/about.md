@@ -59,4 +59,4 @@ your use case, expected scale, and whether the work is academic, clinical, or
 internal research. We may be able to increase the quota for appropriate
 projects.
 
-Contact: [contact email here]
+Contact: gain@iossifovlab.com
